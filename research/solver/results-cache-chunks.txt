@@ -1,0 +1,45 @@
+cache-chunks.test.mjs (Part D, D5.6's measurement; src/solverCache.js), 14 Nov 04:39 UK, code 7d11b0e01252
+
+== the fixed code
+PASS  1. in chunks of at most 20000 bytes, the one array over it alone in its chunk (54 chunks, the largest 40000 bytes)
+PASS  1. the head holds no typed array, each of the record's 107 arrays named once in it (107 named, 107 in the chunks)
+PASS  1. joined back: the same shape, types and bytes
+PASS  1. and so after each part is cloned on its own, as a store keeps them
+PASS  2. a 140 MB record stored whole, as before, is refused, the browser's reason named and nothing left behind (the store failed (UnknownError: The serialized keys and/or value are too large (size=140000329 bytes, max=133169152 bytes).))
+PASS  2. stored in chunks of the store's 64 MB: stored, 3 chunks, the largest 64.0 MB serialized, under the browser's 133169152
+PASS  2. loaded back bit for bit, and probed by its key
+PASS  3. an evicted solve leaves no chunk (pos3's 3 chunks, then 0; the base's 3; 0 chunks of no solve)
+PASS  3. a solve stored again under its key with fewer chunks leaves none of the old (1 chunk; none of no solve)
+PASS  3. a solve of other code drops every chunk of the old code's (part:new:0 part:new:1)
+PASS  4. a solve stored whole, as before, loads as it was
+PASS  5. S370's record (24.6 MB, its largest array 0.01 MB), the limit at 6.2 MB, under the whole record: stored in 9 chunks
+PASS  5. loaded and restored: the tables (6ea4212685302893 against 6ea4212685302893) and the reference the solve's, bit for bit
+PASS  6. a 2 MB array over a 1 MB limit: not stored (the store failed (UnknownError: The serialized keys and/or value are too large (size=2000012 bytes, max=1000000 bytes).)), the base untouched and restored
+PASS  7. no rejection left unhandled (0)
+ALL PASS: 15 checks
+
+== its plants
+plant 'whole': the checks that fail: 2, 3, 5; wanted 2, 3, 5: yes
+plant 'keepparts': the checks that fail: 3; wanted 3: yes
+
+== the code before (HEAD's src/solverCache.js: the record stored whole, the transaction rejecting on its first error event and leaving a request's throw unhandled; the test's three new imports stubbed: no chunks)
+FAIL  1. in chunks of at most 20000 bytes, the one array over it alone in its chunk (0 chunks, the largest -Infinity bytes)
+FAIL  1. the head holds no typed array, each of the record's 107 arrays named once in it (0 named, 0 in the chunks)
+PASS  1. joined back: the same shape, types and bytes
+PASS  1. and so after each part is cloned on its own, as a store keeps them
+FAIL  2. a 140 MB record stored whole, as before, is refused, the browser's reason named and nothing left behind (the store failed (null))
+(an unhandled rejection: TransactionInactiveError: Failed to execute on 'IDBObjectStore': The transaction has finished.)
+FAIL  2. stored in chunks of the store's 64 MB: not stored (the store failed (null)), 0 chunks, the largest - MB serialized, under the browser's 133169152
+(an unhandled rejection: TransactionInactiveError: Failed to execute on 'IDBObjectStore': The transaction has finished.)
+FAIL  2. loaded back bit for bit, and probed by its key
+FAIL  3. an evicted solve leaves no chunk (pos3's 0 chunks, then 0; the base's 0; 0 chunks of no solve)
+FAIL  3. a solve stored again under its key with fewer chunks leaves none of the old (0 chunk; none of no solve)
+FAIL  3. a solve of other code drops every chunk of the old code's ()
+PASS  4. a solve stored whole, as before, loads as it was
+FAIL  5. S370's record (24.6 MB, its largest array 0.01 MB), the limit at 6.2 MB, under the whole record: not stored (the store failed (null))
+(an unhandled rejection: TransactionInactiveError: Failed to execute on 'IDBObjectStore': The transaction has finished.)
+FAIL  5. loaded and restored: the tables (6ea4212685302893 against none) and the reference the solve's, bit for bit
+(an unhandled rejection: TransactionInactiveError: Failed to execute on 'IDBObjectStore': The transaction has finished.)
+FAIL  6. a 2 MB array over a 1 MB limit: not stored (the store failed (null)), the base untouched and restored
+FAIL  7. no rejection left unhandled (4: TransactionInactiveError)
+FAILED: 12 of 15 checks

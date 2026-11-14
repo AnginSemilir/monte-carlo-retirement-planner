@@ -128,7 +128,11 @@ const CEILING = 3800;
 // 5 Nov 2026 (D58 (2)): measured 232KB for a saved plan and 233KB for an empty one (the quick start's chunk), so 234
 // 13 Nov 2026 (D94 (2)): measured 234KB for a saved plan and 236KB for an empty one on the first batch of the improvements
 // (the same engine code as the classic ceiling's note above), so 237
-const PLANNER_JS_CEILING = 237;
+// 14 Nov 2026 (D101, the maintainer's ruling on D94 (2)'s stop): measured 235KB for a saved plan and 239KB for an empty one on
+// the third batch (B1's gate on e8fe41ed, code-stamp:cb3335d0f99214f2), against batch 3's first gate on c7364a8d about 1.2KB
+// compressed more, screens' code and not the engine's: the speed mode's warnings, its setting and its box, the couples' guard
+// and their words (the coverage line, the couples card, the quick start's line), so 240
+const PLANNER_JS_CEILING = 240;
 
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };

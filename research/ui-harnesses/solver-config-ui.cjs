@@ -15,11 +15,16 @@
  *      - the dial at 3 is solved on its base, and the store keeps both, the base and the position (step L2);
  *      - the hidden policy fields are unchanged in the saved plan.
  * 2b. The preview build on a phone (the launch plan's B10): the solve waits for "Solve my plan", then solves.
- * 3. The preview build, a couple (D42): the couples card, no solver card, and nothing solved.
+ * 3. The preview build, a couple the solver does not run (D42; since couples are on, D99, one outside src/couplesSwitch.js's
+ *    guard, its younger partner holding 75%): the couples card, no solver card, and nothing solved.
  *
  *   node research/ui-harnesses/solver-config-ui.cjs [port]      (the preview build is served on port + 7)
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+// a couple the solver does not run (src/couplesSwitch.js, D99: its younger partner holding 75% of every wrapper, outside the
+// guard), so it keeps the app's rules and the couples card under the switch, as every couple did before couples were on
+const unevenOf = plan => { const re = JSON.parse(JSON.stringify(plan)), tot = {}; for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); tot[k] = (tot[k] || 0) + (Number(a.balance) || 0); } for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); if (/_self$/.test(a.id)) a.balance = tot[k] * 0.25; else if (/_part$/.test(a.id)) a.balance = tot[k] * 0.75; } return re; };
+
 const { execFileSync, spawn } = require('node:child_process');
 const { join } = require('node:path');
 const { mkdtempSync, rmSync } = require('node:fs');
@@ -180,8 +185,8 @@ const POLICY = ['search', 'policy', 'drawdown', 'lookahead', 'harvest', 'playboo
     // 3. a couple under the switch
     if (!couple) ok('a couple in the library to test with', false);
     else {
-      const c = await open(b, PREVIEW_PORT, couple.plan, 'new'), cs = await tabState(c.p);
-      ok(`switch on, opted in, a couple (${couple.id}): the couples card and no solver card`, cs.couple && !cs.aims && !cs.locks, JSON.stringify(cs));
+      const c = await open(b, PREVIEW_PORT, unevenOf(couple.plan), 'new'), cs = await tabState(c.p);
+      ok(`switch on, opted in, a couple the solver does not run (${couple.id}, its younger partner holding 75%): the couples card and no solver card`, cs.couple && !cs.aims && !cs.locks, JSON.stringify(cs));
       await c.p.waitForTimeout(3000);
       const got = c.urls.filter(u => /solverClient|solverWorker/.test(u));
       ok('a couple: nothing solved, no solver code fetched', got.length === 0, got.join(', ') || 'none');

@@ -34,7 +34,11 @@
  *      card and the scenarios card; each saying its cost before it is asked;
  *   9  Details: the solved ledger with its action column; the history check; Assumptions with Display and the solver's
  *      settings; the docs section;
- *  10  a couple: the couples card on three places; "Open the classic planner" shows the classic tabs, and a reload keeps them;
+ *  10  a couple, couples off (the rollback: the main build reads src/couplesSwitch.js COUPLES false, vite.config.js
+ *      solver-harness with COUPLES_OFF=1; couples on since D99): the couples card on three places, its reason 'off'; "Open the
+ *      classic planner" shows the classic tabs, and a reload keeps them; no speed mode offered; You's Limits as before D5 (a row
+ *      a wrapper for the household, no line for the two of them) and its first change writing the household's ceiling alone
+ *      (the reviewer of 14 Nov, finding 1);
  *  11  a failure (the worker planted to fail every question): the failure card, "Try again", the classic link, your current
  *      approach's figures under it, its money chart named as yours alone (there is no solved plan), the levers still usable;
  *  12  the phone: the four places each 44px or more; no horizontal scroll on any place; nothing solved and no solver chunk
@@ -53,18 +57,39 @@
  *  17  the rename pass (Phase 12 item 1): no tournament word ("tournament", "recommended policy", "bridge safety margin") and
  *      no classic tab's name on any of the four places, Details' full documentation open; the documentation leads with how the
  *      solver decides, the coverage card lists the solver's approximations, the glossary gives its four words;
+ *  19  couples on (Part D, D5.5 and D6): a build of the site as it ships, couples on (src/couplesSwitch.js COUPLES, D99);
+ *      a library couple holding its money 60/40 solves in the new planner (each person's table, then the couple): no couples
+ *      card, the headline said to the two of them, this year's actions each named for its person, every figure the
+ *      reference's bit for bit (the couple solved from the unbundled source in this Chromium as the worker solves it:
+ *      src/solverCouple.js couplePlans, solveForApp for each person with their partner's age, assembleCouple; strategyOf on
+ *      it); a reload restores both tables from the store (the diagnostic: restored, parts above one), every figure the
+ *      reference's again (whether the parts then run shares of the paths the page cannot show: couple-split.test.mjs);
+ *      You's Limits gives each person their own ceiling rows and says the pension age and the lump sum hold for both;
+ *      the guard (D99): the same couple re-held 90/10, its elder holding 90%, is solved to the end, no couples card, every
+ *      figure the reference's on the couples' default share rule bit for bit (the reference solves on APP_COUPLE's); re-held 25/75, its
+ *      younger partner holding 75%, the couples card with its reason ('uneven') and the share; and check 10's card, couples
+ *      off, gives its reason 'off'; the speed mode offered to the couple with the couple's warning (D98);
+ *  20  the speed mode (D97 (3), D98, on the main fixture): its box in the levers off by default with the single's warning,
+ *      the maintainer's words; on, the plan carries `solver.speed` 'fast' and solves under a key of its own, every figure the
+ *      reference's for that plan (the reference solving it in speed mode); off again, no field left on the plan and the plan's
+ *      own key back;
  *  18  the diagnostic (Phase 12 item 4, F17): "Copy the details for a bug report" in Details on a solved plan gives the
  *      whitelist's fields in order and no number of 100 or more outside the lines of counts, seconds, versions and hex; on the
  *      failure card, not completed and the error's words.
  * Its plants (PLANNER_PLANT, built into the preview: src/plannerPlant.js), each failing exactly its own check, all in one
  * run with --plants (results-planner-ui-plants.txt): leversunder (3), fifthplace (1), onefewer (2), noband (4), chartyear (5),
  * keyguard (7), contribold (7: Your money's contributions drawn grey and their increase named as the classic table names it),
- * nocouple (10), failboth (11: the failure view's money chart drawn as both arms, the solved plan's named), phonesolve (12),
+ * nocouple (10), lockspart (10: You's Limits giving a couple the solver does not run the card for two, as f1b2b457 did),
+ * failboth (11: the failure view's money chart drawn as both arms, the solved plan's named), phonesolve (12),
  * staleask (12), navtarget40 (12), noquickcontrib (13: the plan the quick start builds without the contributions it was given),
  * classicfetch (14), optinloses (15: the switch between the planners resets the plan), betaignored (16: the page reads
  * rp_planner whatever PLANNER_BETA says), tournamentdocs (17: the documentation keeps the tournament's sections in the new
- * planner), diagwhole (18: the diagnostic appends the solve's record whole).
- *   node research/ui-harnesses/solver-planner-ui.cjs [port] [--plants]      (the build is served on port + 11, the rollback on + 12)
+ * planner), diagwhole (18: the diagnostic appends the solve's record whole), couplecard (19: an in-band couple shown the couples
+ * card), coupleage (19: each person's table solved without their partner's age, which the couple's assembly refuses),
+ * speedoff (20: the speed mode's box writes nothing to the plan), speedcouple (10: the speed mode offered to a couple the
+ * solver does not run), couplehalf (19: the page solving a couple on the half share, as before D99; alone, it fails only the
+ * 90/10 couple's figures against the reference on the pots' share: PLANNER_PLANT=couplehalf).
+ *   node research/ui-harnesses/solver-planner-ui.cjs [port] [--plants]      (the build is served on port + 11, the rollback on + 12, couples on + 13)
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
 const { reference } = require('./lib/reference.cjs');
@@ -74,13 +99,17 @@ const { mkdtempSync, rmSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { pathToFileURL } = require('node:url');
 const args = process.argv.slice(2), PLANTS_RUN = args.includes('--plants');
-const PORT = args.find(a => /^\d+$/.test(a)) || '4173', PREVIEW_PORT = String(Number(PORT) + 11), ROLLBACK_PORT = String(Number(PORT) + 12);
+const PORT = args.find(a => /^\d+$/.test(a)) || '4173', PREVIEW_PORT = String(Number(PORT) + 11), ROLLBACK_PORT = String(Number(PORT) + 12), COUPLES_PORT = String(Number(PORT) + 13);
 const ROOT = join(__dirname, '../..');
 const STORE = 'rp_plan_full_v28', SEED = 12345;
+// the speed mode's two warnings, the maintainer's word for word (D98; src/solverWords.js SPEED_WORDS, pinned to the same words by
+// research/tests/speed-mode.test.mjs check 7)
+const SPEED_SINGLE = 'Speed mode works out your figures about twice as fast by looking at fewer options in each simulated year. In our tests it very slightly lowered the chance your money lasts: about 2 in 10,000 on average, and at most about 2 in 1,000. This year\'s recommended actions still use every option.';
+const SPEED_COUPLE = 'For couples, speed mode is less tested. It ranged from slightly slower to nearly twice as fast, and it spent a little less and held slightly less in shares than the full calculation. Use the full calculation for decisions.';
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -179,8 +208,19 @@ const firstDiff = (a, b, at = '') => {
     const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
     return JSON.stringify(strategyOf(E, solveForApp(E, M, pl, light), pl, { trials, seed }));
   }, { pl, light: LIGHT, seed: SEED, trials: last }));
+  // a couple's reference (Part D, D5.5): solved as the worker solves it, each person's table then the couple, in this Chromium,
+  // on the couples' default share rule (src/solverSettings.js APP_COUPLE, D99; the reviewer on D99, finding 2), so a couple held
+  // unevenly is checked against its own figures and a page solving it on another share fails
+  const refCouple = async pl => JSON.parse(await ref.run(async ({ pl, light, seed, trials }) => {
+    const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
+    const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
+    const { couplePlans, assembleCouple } = await import('/src/solverCouple.js'), { APP_COUPLE } = await import('/src/solverSettings.js');
+    const cut = couplePlans(E, pl, { shareRule: APP_COUPLE.shareRule }), one = w => solveForApp(E, M, cut.plans[w], { ...light, ageWith: cut.ageWith[w] });
+    const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
+    return JSON.stringify(strategyOf(E, cp, pl, { trials, seed }));
+  }, { pl, light: LIGHT, seed: SEED, trials: last }));
   try {
-    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), PLANNER_PLANT: PLANTED.join(',') } });
+    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), COUPLES_OFF: '1', PLANNER_PLANT: PLANTED.join(',') } });
     server = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT, '--port', PREVIEW_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
     let up = false;
     for (let i = 0; i < 40 && !up; i++) { try { const r = await fetch(`http://localhost:${PREVIEW_PORT}/`); up = r.ok; } catch (e) { await new Promise(res => setTimeout(res, 500)); } }
@@ -214,7 +254,10 @@ const firstDiff = (a, b, at = '') => {
         if (st && stripSeen[stripSeen.length - 1] !== st.state) stripSeen.push(st.state);
         if (cd && cardSeen[cardSeen.length - 1] !== cd) cardSeen.push(cd);
         const m = st && /(\d+)%/.exec(st.text); if (m && st.state === 'solving') pcts.push(Number(m[1]));
-        if (cd === 'filling' && typAtFilling === null) typAtFilling = await p.$eval('[data-outlook="spend"]', el => el.dataset.outlookTypical).catch(() => null);
+        // the typical line as the first step drew it: read once it is drawn (between the first step's figures and the ten-year
+        // rows' answer the outlook is drawn without it, data-outlook-typical empty; read in that moment, an undrawn line passed
+        // for a moved one: B1's gate on batch 3, 14 Nov, check 5)
+        if (cd === 'filling' && !typAtFilling) typAtFilling = (await p.$eval('[data-outlook="spend"]', el => el.dataset.outlookTypical).catch(() => null)) || null;
         if (cd === 'done' && st && st.state === 'solved') break;
         await p.waitForTimeout(200);
       }
@@ -269,7 +312,7 @@ const firstDiff = (a, b, at = '') => {
       const raiseWant = node.s.raise && !(node.s.raise.t === node.s.headline.retireT && node.s.raise.level <= node.s.headline.startLevel) ? 'shown' : 'none';
       ok(5, 'both charts drawn, every mark at the worker\'s figures (the bands, the money\'s bands, the typical run)', !!o && bandsDrawn && typDrawn && wDrawn, o ? `${o.bpts.length} band marks, ${o.tpts.length} typical marks, ${o.wpts.length} money marks` : 'no charts');
       ok(5, 'the line\'s first ten years are the ten-year rows\' spending, and it has not moved since the first step', !!o && ten.length === 10 && JSON.stringify(ten) === JSON.stringify(o.typical.slice(0, 10)) && (typAtFilling === null || typAtFilling === JSON.stringify(o.typical)),
-        o ? `${ten.join(' ')} against ${o.typical ? o.typical.slice(0, 10).join(' ') : '-'}` : '');
+        o ? `${ten.join(' ')} against ${o.typical ? o.typical.slice(0, 10).join(' ') : '-'}; since the first step ${typAtFilling === null ? 'not seen drawn while filling' : typAtFilling === JSON.stringify(o.typical) ? 'unmoved' : 'MOVED'}` : '');
       ok(5, `the back mark at the headline's back year (${page && page.headline.backYear}) and the raise line ${raiseWant}`, !!o && (page.headline.backT === null ? !o.backX : near(Number(o.backX), age0 + page.headline.backT)) && o.raise === raiseWant, o ? `mark at ${o.backX}; raise ${o.raise}` : '');
 
       // 6. this year, the rule, ten years, the comparison
@@ -373,6 +416,35 @@ const firstDiff = (a, b, at = '') => {
       ok(18, 'the details for a bug report, on a solved plan: the whitelist\'s fields in order, completed, the grid and the solver\'s code named, and no number of 100 or more outside the counts\' lines',
         !!g18 && JSON.stringify(g18.fields) === JSON.stringify(DIAG_FIELDS) && g18.big.length === 0 && g18.at.completed === 'yes' && /^solver-code:[0-9a-f]{16}$/.test(g18.at.code) && /^\d+ wealth points, \d+ paths$/.test(g18.at.grid),
         g18 ? `fields ${g18.fields.length}${g18.fields.length !== DIAG_FIELDS.length ? ` (${g18.fields.join(', ').slice(0, 120)})` : ''}; numbers of 100 or more ${g18.big.slice(0, 4).join(', ') || 'none'}; completed ${g18.at.completed}; code ${g18.at.code}` : 'no diagnostic shown');
+      // 20. the speed mode (D97 (3), D98): off by default with the single's warning; on, the plan carries it and solves under a key
+      // of its own, every figure the reference's for that plan (which solves it in speed mode); off again, no field left on the
+      // plan and its own key back. The plant 'speedoff' (the box writes nothing) fails it.
+      await goPlace(p, 'Your plan');
+      await p.waitForSelector('[data-solver-aims] [data-solver-speed]', { timeout: 60000, state: 'attached' }).catch(() => {});
+      const sp0 = await p.evaluate(() => { const b = document.querySelector('[data-solver-aims] [data-solver-speed]'), w = document.querySelector('[data-solver-aims] [data-solver-speed-warning]'); return b ? { checked: b.checked, warning: w ? w.textContent : '' } : null; });
+      const nextSolve = async k => {   // the solve after a change: its key, once its card is done again
+        let nk = null, left = false;
+        for (const t0 = Date.now(); Date.now() - t0 < WAIT_MS;) {
+          const st = await strip(p), c = await card(p);
+          if (st && st.key && st.key !== k) nk = st.key;
+          if (nk && c !== 'done') left = true;
+          if (nk && left && c === 'done' && st.solve === 'solved' && st.key === nk) return nk;
+          if (!nk && Date.now() - t0 > 30000) return null;   // the change never moved the key
+          await p.waitForTimeout(150);
+        }
+        return null;
+      };
+      const k20 = (await strip(p)).key;
+      await p.click('[data-solver-aims] [data-solver-speed]').catch(() => {});
+      const k21 = await nextSolve(k20), pl21 = await saved(p);
+      const page21 = k21 ? await figs(p) : null, want21 = page21 ? await refStrategy(pl21) : null;
+      const same21 = !!page21 && JSON.stringify(page21) === JSON.stringify(want21);
+      ok(20, 'the speed mode: off by default with the single\'s warning (D98); on, the plan carries it and solves under a key of its own, every figure the reference\'s for that plan',
+        !!sp0 && !sp0.checked && sp0.warning === SPEED_SINGLE && !!k21 && pl21 && pl21.solver && pl21.solver.speed === 'fast' && same21,
+        `${sp0 ? `box ${sp0.checked ? 'on' : 'off'}, the warning ${sp0.warning === SPEED_SINGLE ? 'the single\'s' : `"${sp0.warning.slice(0, 60)}"`}` : 'no box'}; key ${k21 ? 'moved' : 'NOT moved'}; plan ${pl21 && pl21.solver ? JSON.stringify(pl21.solver.speed || null) : 'no solver'}; figures ${same21 ? 'the reference\'s' : 'NOT the reference\'s'}`);
+      await p.click('[data-solver-aims] [data-solver-speed]').catch(() => {});
+      const k22 = k21 ? await nextSolve(k21) : null, pl22 = await saved(p);
+      ok(20, 'the speed mode off again: no field left on the plan, its own key back', !!k22 && k22 === k20 && !(pl22 && pl22.solver && 'speed' in pl22.solver), `key ${k22 === k20 ? 'the plan\'s own' : 'NOT the plan\'s own'}; ${pl22 && pl22.solver && 'speed' in pl22.solver ? 'a speed field left' : 'no speed field'}`);
       void urls;
       await p.context().close(); }
 
@@ -410,6 +482,32 @@ const firstDiff = (a, b, at = '') => {
       const on = [];
       for (const [id, label] of [['plan', 'Your plan'], ['whatif', 'What if'], ['details', 'Details']]) { await goPlace(p, label); if (await p.$(`[data-place="${id}"] [data-planner-couple]`)) on.push(id); }
       await goPlace(p, 'Your plan');
+      // couples off in this build (the rollback, COUPLES_OFF=1; couples on since D99): the card gives that as its reason (D5.4)
+      const why10 = await p.evaluate(() => { const el = document.querySelector('[data-place="plan"] [data-planner-couple]'); return el ? el.dataset.plannerCouple : null; });
+      ok(10, 'a couple, couples off: the card gives its reason, \'off\'', why10 === 'off', `the card ${why10 === null ? 'missing' : `says '${why10}'`}`);
+      // the speed mode (D97 (3)) is not offered to a couple the solver does not run, on any place: their screens as before
+      const speed10 = await p.evaluate(() => document.querySelectorAll('[data-solver-speed]').length);
+      ok(10, 'a couple, couples off: no speed mode offered', speed10 === 0, `${speed10} speed boxes`);
+      // You's Limits, couples off (the reviewer of 14 Nov, finding 1): the card as before D5, a row a wrapper for the household,
+      // no line for the two of them, and its first change writes the household's ceiling alone
+      await goPlace(p, 'You');
+      const LIM = '[data-place="you"] [data-section="limits"] [data-solver-locks]';
+      await p.waitForSelector(LIM, { timeout: 20000 }).catch(() => {});
+      const lim10 = await p.evaluate(sel => { const c = document.querySelector(sel); return c ? { both: !!c.querySelector('[data-locks-couple]'), rows: [...c.querySelectorAll('select[data-solver-lock^="tier-"]')].map(x => `${x.dataset.solverLock}:${x.getAttribute('aria-label')}`) } : null; }, LIM);
+      const OLD = { 'tier-pen': 'Riskiest tier for the pension', 'tier-isa': 'Riskiest tier for the ISA' };
+      let wrote10 = null;
+      if (lim10 && lim10.rows.length) {
+        const first = lim10.rows[0].split(':')[0];
+        await p.selectOption(`${LIM} select[data-solver-lock="${first}"]`, 'Low Risk').catch(() => {});
+        await p.waitForTimeout(800);
+        const sv = await saved(p);
+        wrote10 = sv && sv.solver && sv.solver.locks ? { first, locks: sv.solver.locks } : { first, locks: null };
+      }
+      const asBefore = !!lim10 && !lim10.both && lim10.rows.length > 0 && lim10.rows.every(r => { const [k, ...l] = r.split(':'); return OLD[k] === l.join(':'); });
+      const wroteOne = !!wrote10 && !!wrote10.locks && wrote10.locks.tierCeiling && wrote10.locks.tierCeiling[wrote10.first.slice(5)] === 'Low Risk' && !('tierCeilingPart' in wrote10.locks);
+      ok(10, 'a couple, couples off: You\'s Limits as before D5 (a row a wrapper for the household, no line for the two of them), its first change writing the household\'s ceiling alone', asBefore && wroteOne,
+        lim10 ? `rows ${lim10.rows.join(' | ') || 'none'}; the line for the two of them ${lim10.both ? 'shown' : 'not shown'}; the saved locks ${JSON.stringify(wrote10 && wrote10.locks)}` : 'no Limits card on You');
+      await goPlace(p, 'Your plan');
       await p.click('[data-planner-couple] [data-open-classic]').catch(() => {});
       await p.waitForTimeout(800);
       const tabs = await p.$$eval('[data-tabbar] button', bs => bs.map(x => x.textContent.trim()));
@@ -417,6 +515,7 @@ const firstDiff = (a, b, at = '') => {
       const tabs2 = await p.$$eval('[data-tabbar] button', bs => bs.map(x => x.textContent.trim()));
       ok(10, `${couple.id}: the couples card on Your plan, What if and Details; "Open the classic planner" shows the classic tabs, and a reload keeps them`, on.length === 3 && tabs.includes('Plan Inputs') && tabs2.includes('Plan Inputs'), `card on ${on.join(', ') || 'none'}; tabs ${tabs.slice(0, 3).join(', ')}; after a reload ${tabs2.slice(0, 3).join(', ')}`);
       ok(10, 'a couple: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+
       await p.context().close(); }
 
     // ---------------------------------------------------------------- 15. the opt-in both ways keeps the plan
@@ -544,6 +643,79 @@ const firstDiff = (a, b, at = '') => {
         `fields ${potFields.join(', ') || 'none'}; pension ${num(acc('pen_self').contrib)} rising ${num(acc('pen_self').growth)}%, ISA ${num(acc('isa_self').contrib)}, other ${num(acc('other_self').contrib)}, cash ${num(acc('cash_self').contrib)}`);
       ok(13, 'the quick start: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
+
+    // ---------------------------------------------------------------- 19. couples on (Part D, D5.5)
+    { const OUT3 = mkdtempSync(join(tmpdir(), 'solver-planner-couples-'));
+      let server3 = null;
+      try {
+        execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT3, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), ...(PLANTED.length ? { PLANNER_PLANT: PLANTED.join(',') } : {}) } });
+        server3 = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT3, '--port', COUPLES_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
+        let up3 = false;
+        for (let i = 0; i < 40 && !up3; i++) { try { const r = await fetch(`http://localhost:${COUPLES_PORT}/`); up3 = r.ok; } catch (e) { await new Promise(res => setTimeout(res, 500)); } }
+        const share = pl => { const of = w => pl.accounts.filter(a => a.id.endsWith('_' + w)).reduce((t, a) => t + (Number(a.balance) || 0), 0); return of('self') / (of('self') + of('part')); };
+        const even = couple && Math.abs(share(couple.plan) - 0.6) < 0.05 ? couple : all.find(s2 => s2.plan.demographics.planningMode === 'couple' && Math.abs(share(s2.plan) - 0.6) < 0.05);
+        // (a) an in-band couple solves on the page, its figures the reference's
+        { const { p, errs } = await open(b, even.plan, { port: COUPLES_PORT });
+          const done = await waitCard(p, 'done', WAIT_MS);
+          const page = done ? await figs(p) : null, pl = await saved(p), want = page ? await refCouple(pl) : null;
+          const same = !!page && JSON.stringify(page) === JSON.stringify(want);
+          const words = await p.evaluate(() => { const el = document.querySelector('[data-plan-answer]'); return el ? el.textContent : ''; });
+          const card = !!(await p.$('[data-place="plan"] [data-planner-couple]'));
+          await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
+          const acts = await p.$$eval('[data-strategy-action]', els => els.map(e => e.dataset.strategyAction));
+          ok(19, `couples on: ${even.id} (60/40) solves in the new planner, no couples card, the headline said to the two of you`, up3 && done && !card && /two of you|first of you/.test(words), `served ${up3}; done ${done}; card ${card}`);
+          ok(19, 'couples on: every figure the reference\'s bit for bit (each person\'s table with their partner\'s age, then the couple, strategyOf on it)', same, page ? `survival ${page.headline.survival}% against ${want && want.headline.survival}%` : 'no figures');
+          const speedWords = await p.evaluate(() => { const w = document.querySelector('[data-solver-aims] [data-solver-speed-warning]'); return w ? w.textContent : null; });
+          ok(19, 'couples on: the speed mode offered with the couple\'s warning (D98)', speedWords === SPEED_COUPLE, speedWords === null ? 'no warning shown' : speedWords === SPEED_COUPLE ? 'the couple\'s' : `"${speedWords.slice(0, 60)}"`);
+          ok(19, 'couples on: this year\'s actions each named for its person (or nothing to change)', acts.length > 0 && acts.every(a => a === 'none' || /^(self|part|household):/.test(a)), acts.join(', ') || 'none shown');
+          ok(19, 'couples on: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+          // (c) D5.6: a reload restores both people's tables from the store (the owner copying each record in, its parts
+          // following it): every figure the reference's again, the solve named restored with its parts, the actions per person.
+          // The diagnostic's parts are the last phase's count, so whether the parts then ran shares of the couple's paths is not
+          // seen here (the reviewer of 14 Nov, finding 4 (e)): couple-split.test.mjs shows it for the client
+          await p.reload({ waitUntil: 'networkidle' });
+          const again = await waitCard(p, 'done', WAIT_MS), page2 = again ? await figs(p) : null;
+          await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
+          const acts2 = await p.$$eval('[data-strategy-action]', els => els.map(e => e.dataset.strategyAction));
+          await goPlace(p, 'Details');
+          const g19 = await diagnosticIn(p, '[data-place="details"] [data-solver-settings]');
+          const restored = !!g19 && /restored from the store/.test(g19.at.times || ''), nparts = g19 ? Number(g19.at.parts) : 0;
+          ok(19, 'couples on, reloaded: both people\'s tables restored from the store, the parts above one, every figure the reference\'s again, the actions per person',
+            again && !!page2 && JSON.stringify(page2) === JSON.stringify(want) && restored && nparts > 1 && acts2.length > 0 && acts2.every(a => a === 'none' || /^(self|part|household):/.test(a)),
+            `done ${again}; ${g19 ? `times "${g19.at.times}", parts ${g19.at.parts}` : 'no diagnostic'}; survival ${page2 ? page2.headline.survival : '-'}% against ${want && want.headline.survival}%`);
+          ok(19, 'couples on, reloaded: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+          // (d) the limits per person (D5): You's Limits gives a ceiling row for each of the partner's wrappers, and says the
+          // pension age and the lump sum hold for both
+          await goPlace(p, 'You');
+          await p.waitForSelector('[data-place="you"] [data-section="limits"] [data-solver-locks]', { timeout: 20000 }).catch(() => {});
+          const lim = await p.evaluate(() => ({ both: !!document.querySelector('[data-place="you"] [data-section="limits"] [data-locks-couple]'),
+            part: [...document.querySelectorAll('[data-place="you"] [data-section="limits"] [data-solver-lock^="tier-part-"]')].map(e => e.dataset.solverLock),
+            self: [...document.querySelectorAll('[data-place="you"] [data-section="limits"] [data-solver-lock^="tier-"]')].map(e => e.dataset.solverLock).filter(x => !x.startsWith('tier-part-')) }));
+          ok(19, 'couples on: the limits per person, a ceiling row for each person\'s wrappers, the age and the lump sum said to hold for both', lim.both && lim.part.length > 0 && lim.self.length > 0, JSON.stringify(lim));
+          await p.context().close(); }
+        // (b) the guard (src/couplesSwitch.js, D99): the same couple re-held, every wrapper alike (its first person the elder,
+        // as every library couple's): 90/10, its elder holding 90%, is solved, no couples card; 25/75, its younger partner
+        // holding 75%, keeps the app's rules, the couples card with its reason, the uneven holding, and the first person's share
+        const reheld = f => { const re = JSON.parse(JSON.stringify(even.plan)), tot = {};
+          for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); tot[k] = (tot[k] || 0) + (Number(a.balance) || 0); }
+          for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); if (/_self$/.test(a.id)) a.balance = tot[k] * f; else if (/_part$/.test(a.id)) a.balance = tot[k] * (1 - f); }
+          return re; };
+        { const { p, errs } = await open(b, reheld(0.9), { port: COUPLES_PORT });
+          // solved to the end on the pots' share (the reviewer on D99, finding 2): no couples card, and every figure the reference's,
+          // which solves it on the couples' default share rule, bit for bit: a page solving it on the half share fails here
+          const done90 = await waitCard(p, 'done', WAIT_MS), card90 = !!(await p.$('[data-place="plan"] [data-planner-couple]'));
+          const page90 = done90 ? await figs(p) : null, pl90 = await saved(p), want90 = page90 ? await refCouple(pl90) : null;
+          ok(19, 'couples on: the same couple re-held 90/10, its elder holding 90%, is solved (the guard, D99): no couples card, every figure the reference\'s on the pots\' share bit for bit',
+            done90 && !card90 && !!page90 && JSON.stringify(page90) === JSON.stringify(want90), `done ${done90}; card ${card90}; survival ${page90 ? page90.headline.survival : '-'}% against ${want90 ? want90.headline.survival : '-'}%`);
+          ok(19, 'couples on, held 90/10: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+          await p.context().close(); }
+        { const { p, errs } = await open(b, reheld(0.25), { port: COUPLES_PORT });
+          await p.waitForSelector('[data-place="plan"] [data-planner-couple]', { timeout: 60000 }).catch(() => {});
+          const st = await p.evaluate(() => { const el = document.querySelector('[data-place="plan"] [data-planner-couple]'), sh = el && el.querySelector('[data-couple-share]'); return { why: el ? el.dataset.plannerCouple : null, share: sh ? Number(sh.dataset.coupleShare) : null }; });
+          ok(19, 'couples on: the same couple re-held 25/75, its younger partner holding 75%, is shown the couples card, its reason the uneven holding and the share', st.why === 'uneven' && st.share !== null && Math.abs(st.share - 0.25) < 1e-9, `the card ${st.why === null ? 'missing' : `says '${st.why}', the share ${st.share}`}`);
+          ok(19, 'couples on, held 25/75: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+          await p.context().close(); }
+      } finally { if (server3) server3.kill(); rmSync(OUT3, { recursive: true, force: true }); } }
   } finally {
     await ref.close(); await b.close();
     if (server) server.kill();

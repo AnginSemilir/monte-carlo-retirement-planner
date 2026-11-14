@@ -36,7 +36,8 @@
  * are that code); 'fullfloor', 'nohhfloor', 'baselayer', 'nocharge' and 'noheld' (couple-tables.test.mjs) each D2.3 gap it
  * names; 'ownmoney' D2.4's (each person's bridge read on their own money); 'nolock' D3's (couple-levers.test.mjs: the rollout
  * unlocked from each person's base); 'faststale' the review of 9 Nov's item 2 (couple-rank.test.mjs: the shared ranking given
- * the scores of the decision before); 'sharehalf' the review's item 6 (couple-share.test.mjs: shareFor held at 0.5).
+ * the scores of the decision before); 'sharehalf' the review's item 6 (couple-share.test.mjs: shareFor held at 0.5);
+ * 'nopartlock' D5's limits per person (couple-limits.test.mjs: both plans keep the household's locks whole, as before D5).
  * opts.shareRule 'pots' (a research option, off; the review of 9 Nov, item 6, stage B; D70): each person's table solved on
  * shareFor(plan) of the household's spending, not half: a person who cannot fund half alone has a table reading ruin
  * everywhere, and the rollout then chooses blind. meta records share and shareRule.
@@ -101,7 +102,17 @@ export function singlePlanFor(plan, who, share = 0.5) {
   // the household's minimum pot at the plan's end cut to the share too (Part D, D2: before it each person's table was asked to
   // end with the household's whole minimum pot on their own, 84 of the library's 210 couples setting one); plant 'fullfloor'
   const config = plan.config && Number(plan.config.solvencyFloor) > 0 && !planted('fullfloor') ? { ...plan.config, solvencyFloor: scale(plan.config.solvencyFloor) } : plan.config;
-  return { ...plan, config, demographics, accounts, otherIncomes, spending, oneOffCosts, oneOffContributions };
+  return { ...plan, config, demographics, accounts, otherIncomes, spending, oneOffCosts, oneOffContributions, ...personLocks(plan.solver, who) };
+}
+/* The limits per person (Part D, D5; research/tests/couple-limits.test.mjs): where the household's locks carry the partner's
+   own ceilings on the riskiest tier (`tierCeilingPart`), the partner's plan takes them as its `tierCeiling` and the first
+   person's keeps the household's; neither carries the other's. Where they do not, each plan carries the household's locks as
+   before (D3). Plant 'nopartlock': both plans keep the household's locks whole, as the cut before D5 did */
+function personLocks(solver, who) {
+  const L = solver && solver.locks;
+  if (!L || !('tierCeilingPart' in L) || planted('nopartlock')) return {};
+  const { tierCeilingPart, ...rest } = L;
+  return { solver: { ...solver, locks: who === 'part' ? { ...rest, tierCeiling: tierCeilingPart || {} } : rest } };
 }
 
 /* The couple's model state seen as one person's single-plan state, without copying the pots' values twice. */

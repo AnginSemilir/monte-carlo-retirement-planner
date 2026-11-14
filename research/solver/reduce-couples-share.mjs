@@ -25,7 +25,7 @@ import { survivalItem, spendingItem } from './reduce-phase4.mjs';
 import { harmOf } from './reduce-couples.mjs';
 import { wantProblems } from './audit-couples.mjs';
 import { ARMS, CONFIG, CANDH_N, SEED, PILOT_SEED, REGISTRATION, PATHS_FILE, W, pathsFor, stampFilesHash, pilotIds } from './audit-couples-share.mjs';
-import { readSharePanel } from './couples-share-panel.mjs';
+import { readSharePanel, SHARE_PANEL } from './couples-share-panel.mjs';
 import { shareFor } from '../../src/solver/couple.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -46,14 +46,16 @@ export function loadDir(dir) {
 export const personLine = (ran, who) => { const m = new RegExp(`${who}: (.*?)(?: \\| |$)`).exec(ran || ''); return m ? m[1] : ''; };
 const kv = s => Object.fromEntries((s.match(/(\S+) (\S+)/g) || []).map(x => x.split(' ')));
 /* the gate: refusals, each a line. `units` the panel's units (id, kind, target, label, plan); `paths` id -> N, or null (pilot) */
-export function gate(U, units, { seed, prediction = null, audit = null, paths = null, ptsFree = false } = {}) {
+export function gate(U, units, { seed, prediction = null, audit = null, paths = null, ptsFree = false, code = null } = {}) {
   const P = [], all = [];
   for (const u of units) for (const arm of ARMS) { const r = U[u.id] && U[u.id][arm]; if (!r) P.push(`${u.id} ${arm}: missing`); else all.push(r); }
   const one = (what, g) => { const vs = [...new Set(all.map(g))]; if (vs.length > 1) P.push(`more than one ${what}: ${vs.join(', ')}`); };
-  one('code', r => r.stamp.code); one('audit', r => r.stamp.audit); one('seed', r => r.seed); one('prediction', r => r.stamp.prediction); one('estate weight', r => r.W);
+  one('code', r => r.stamp.code); one('audit', r => r.stamp.audit); one('seed', r => r.seed); one('prediction', r => r.stamp.prediction); one('estate weight', r => r.W); one('Node version', r => r.stamp.node);
   if (all.some(r => r.seed !== seed)) P.push(`a unit is not on seed ${seed}`);
   if (prediction && all.some(r => r.stamp.prediction !== prediction)) P.push(`a unit was not run under ${prediction}`);
   if (audit && all.some(r => r.stamp.audit !== audit)) P.push(`a unit's audit is not these files' (${audit})`);
+  // the code the panel was landed on (couples-share-panel.json), as the couples' re-run's read holds its units (the second design review, MINOR 4)
+  if (code && all.some(r => r.stamp.code !== code)) P.push(`a unit's code is not the code the panel was landed on (${code})`);
   for (const u of units) {
     const R = U[u.id] || {}; if (ARMS.some(a => !R[a])) continue;
     const N = paths ? paths[u.id] : R.CANDS.N;
@@ -62,7 +64,7 @@ export function gate(U, units, { seed, prediction = null, audit = null, paths = 
       const r = R[arm], n = pathsFor(arm, N);
       if (r.N !== N || r.n !== n) P.push(`${u.id} ${arm}: ${r.n} of ${r.N} paths, not ${n} of ${N}`);
       for (const k of Object.keys(T)) if (r.main[k].length !== r.n) P.push(`${u.id} ${arm}: ${k} not one a path`);
-      if (r.inputsNoMpaa !== R.APP.inputsNoMpaa) P.push(`${u.id} ${arm}: not on the unit's plan (inputs less the MPAA ages ${r.inputsNoMpaa}, APP's ${R.APP.inputsNoMpaa})`);
+      if (r.inputs !== R.APP.inputs) P.push(`${u.id} ${arm}: not on the unit's plan (inputs ${r.inputs}, APP's ${R.APP.inputs})`);
       if (r.label !== u.label) P.push(`${u.id} ${arm}: arm A's pick ${r.label}, not the landing's ${u.label}`);
       if (r.target !== u.target) P.push(`${u.id} ${arm}: target ${r.target}, not the panel's ${u.target}`);
     }
@@ -93,7 +95,7 @@ export function decide(rows, pooled) {
   const fFlag = feature.filter(r => r.flag), rFlag = reheld.filter(r => r.flag);
   if (fFlag.length) return { outcome: 'STOP', decides: `the couples' solver is flagged on a kind of household the library does not hold (${fFlag.map(r => r.id).join(', ')}); the maintainer rules before couples go on` };
   if (rFlag.length) return { outcome: 'THE GUARD STAYS', decides: `a re-held unit is flagged (${rFlag.map(r => r.id).join(', ')}): couples outside 40% to 60% keep the app's rules, and the maintainer rules on a new design` };
-  if (pooled.lo > POOL_BAR) return { outcome: 'PASS', decides: "no unit flagged and the pooled gain's 95% interval above 0: shareRule 'pots' becomes the couples' default and the guard comes off, in the same commit as the D-line naming this run" };
+  if (pooled.lo > POOL_BAR) return { outcome: 'PASS', decides: "no unit flagged and the pooled gain's 95% interval above 0: shareRule 'pots' becomes the couples' default and the guard comes off for what the panel tested, couples whose elder (by age) holds more than 60% and at most 90% of the pots, in the same commit as the D-line naming this run; a couple whose younger partner holds more, or where either holds over 90%, keeps the app's rules until a test of those reads" };
   return { outcome: 'NOT SHOWN', decides: "no unit flagged, but the pooled gain's 95% interval is not above 0: the guard stays; to the maintainer" };
 }
 
@@ -120,7 +122,7 @@ function planted() {
     const main = Object.fromEntries(Object.entries(T).map(([k, C]) => [k, z(C)]));
     const ran = arm === 'APP' ? 'armA x' : `config ${CONFIG[arm]} flat true fast true shortlist none item12 none tieBreak none | self: ${line} | part: ${line}`;
     const share = arm === 'CANDS' ? shareFor(u.plan) : arm === 'CANDH' ? 0.5 : null, shareRule = arm === 'CANDS' ? 'pots' : arm === 'CANDH' ? 'half' : null;
-    return { id: u.id, arm, N, n: nn, seed: 7002, W, inputs: 'h', inputsNoMpaa: 'h0', mpaa: [null, null], label: 'L', target: 100, config: arm === 'APP' ? null : CONFIG[arm], share, shareRule, ran, stamp: { code: 'c', audit: 'a', prediction: 'p' }, ...o, main: mainOf({ ...main, ...(o.main || {}) }) }; };
+    return { id: u.id, arm, N, n: nn, seed: 7002, W, inputs: 'h', inputsNoMpaa: 'h0', mpaa: [null, null], mpaaOwn: arm === 'APP' ? undefined : [null, null], label: 'L', target: 100, config: arm === 'APP' ? null : CONFIG[arm], share, shareRule, ran, stamp: { code: 'c', audit: 'a', prediction: 'p', node: 'v22' }, ...o, main: mainOf({ ...main, ...(o.main || {}) }) }; };
   const units = [{ id: 'X-90', kind: 'reheld', target: 100, label: 'L', plan: plan9 }, { id: 'X-db', kind: 'feature', target: 100, label: 'L', plan: plan6 }];
   const build = (over = {}) => Object.fromEntries(units.map(u => [u.id, Object.fromEntries(ARMS.map(a => [a, mk(u, a, (over[u.id] || {})[a])]))]));
   const G = U => gate(U, units, { seed: 7002 });
@@ -128,9 +130,16 @@ function planted() {
   check('the gate refuses a missing arm', G((() => { const U = build(); delete U['X-90'].CANDH; return U; })()).some(x => /X-90 CANDH: missing/.test(x)));
   check('the gate refuses CANDS solved at 0.5 on a 90/10 unit, and CANDH at the pots\' share', G(build({ 'X-90': { CANDS: { share: 0.5 } } })).some(x => /X-90 CANDS: share 0.5 pots, not 0.9 pots/.test(x)) && G(build({ 'X-90': { CANDH: { share: 0.9, shareRule: 'pots' } } })).some(x => /X-90 CANDH: share 0.9 pots/.test(x)));
   check('the gate refuses another configuration, a tie-break on, a person on another lattice', G(build({ 'X-90': { CANDS: { config: 'af001697ce1b' } } })).some(x => /configuration af001697ce1b/.test(x)) && G(build({ 'X-90': { CANDS: { ran: mk(units[0], 'CANDS').ran.replace('tieBreak none', 'tieBreak 0.0001') } } })).some(x => /tieBreak 0.0001 \(D80/.test(x)) && G(build({ 'X-90': { CANDH: { ran: mk(units[0], 'CANDH').ran.replace(/lattice 80x21x64/g, 'lattice 160x41x128') } } })).some(x => /X-90 CANDH self: lattice 160x41x128/.test(x)));
-  check('the gate refuses an arm on another plan, lets an arm differ in its MPAA ages alone, and refuses another target, another pick, another seed', G(build({ 'X-90': { APP: { inputsNoMpaa: 'z' } } })).some(x => /not on the unit's plan/.test(x)) && G(build({ 'X-90': { CANDS: { inputs: 'h2', mpaa: [68, null] } } })).length === 0 && G(build({ 'X-90': { CANDS: { target: 99 } } })).some(x => /target 99/.test(x)) && G(build({ 'X-90': { CANDH: { label: 'M' } } })).some(x => /pick M/.test(x)) && G(build({ 'X-90': { APP: { seed: 7022 } } })).some(x => /not on seed 7002/.test(x)));
+  check('the gate refuses an arm on another plan (an MPAA age not taken from arm A among them), passes a solver arm whose own ages differed but which took arm A\'s, and refuses another target, another pick, another seed', G(build({ 'X-90': { APP: { inputs: 'z' } } })).some(x => /not on the unit's plan/.test(x)) && G(build({ 'X-90': { CANDS: { inputs: 'h2', mpaa: [68, null] } } })).some(x => /X-90 CANDS: not on the unit's plan/.test(x)) && G(build({ 'X-90': { CANDS: { mpaaOwn: [68, null] } } })).length === 0 && G(build({ 'X-90': { CANDS: { target: 99 } } })).some(x => /target 99/.test(x)) && G(build({ 'X-90': { CANDH: { label: 'M' } } })).some(x => /pick M/.test(x)) && G(build({ 'X-90': { APP: { seed: 7022 } } })).some(x => /not on seed 7002/.test(x)));
   check('the gate refuses a feature unit whose CANDS and CANDH part on a path, and lets a re-held unit\'s differ', G(build({ 'X-db': { CANDS: { main: { survived: b64(Uint8Array.from([1, 0, 0, 0])) } } } })).some(x => /X-db: a unit with a feature, CANDS and CANDH differ on 1 of 4/.test(x)) && G(build({ 'X-90': { CANDS: { main: { survived: b64(Uint8Array.from([1, 0, 0, 0])) } } } })).length === 0);
   check('the gate refuses a unit at other paths than the registration\'s', gate(build(), units, { seed: 7002, paths: { 'X-90': 5, 'X-db': 4 } }).some(x => /X-90 CANDS: 4 of 4 paths, not 5 of 5/.test(x)));
+  // the design review of 13 Nov, MINOR 6: the refusals with no planted case before
+  { const st = o => ({ stamp: { code: 'c', audit: 'a', prediction: 'p', node: 'v22', ...o } });
+    check('the gate refuses units of two codes, of two audits, of two Node versions, of two predictions and at two estate weights', G(build({ 'X-90': { APP: st({ code: 'd' }) } })).some(x => /more than one code/.test(x)) && G(build({ 'X-90': { APP: st({ audit: 'b' }) } })).some(x => /more than one audit/.test(x)) && G(build({ 'X-90': { APP: st({ node: 'v20' }) } })).some(x => /more than one Node version/.test(x)) && G(build({ 'X-90': { APP: st({ prediction: 'q' }) } })).some(x => /more than one prediction/.test(x)) && G(build({ 'X-90': { CANDH: { W: 0.01 } } })).some(x => /more than one estate weight/.test(x)));
+    check('the gate refuses a unit not run under the registration, one whose audit is not these files\', and one not on the panel\'s code', gate(build(), units, { seed: 7002, prediction: 'r' }).some(x => /was not run under r/.test(x)) && gate(build(), units, { seed: 7002, audit: 'z' }).some(x => /audit is not these files/.test(x)) && gate(build(), units, { seed: 7002, code: 'k' }).some(x => /not the code the panel was landed on \(k\)/.test(x)) && gate(build(), units, { seed: 7002, code: 'c' }).length === 0);
+    check('the gate refuses an array not one a path', G(build({ 'X-90': { CANDS: { main: { tax: b64(new Float32Array(3)) } } } })).some(x => /X-90 CANDS: tax not one a path/.test(x)));
+    const ranOff = (arm, from, to) => mk(units[0], arm).ran.replace(from, to);
+    check('the gate refuses the couples\' path off its flat arrays or its shared scores, a shortlist and an item 12 option', G(build({ 'X-90': { CANDS: { ran: ranOff('CANDS', 'flat true', 'flat false') } } })).some(x => /flat false/.test(x)) && G(build({ 'X-90': { CANDH: { ran: ranOff('CANDH', 'fast true', 'fast false') } } })).some(x => /fast false/.test(x)) && G(build({ 'X-90': { CANDS: { ran: ranOff('CANDS', 'shortlist none', 'shortlist order') } } })).some(x => /shortlist order \(D80/.test(x)) && G(build({ 'X-90': { CANDS: { ran: ranOff('CANDS', 'item12 none', 'item12 near') } } })).some(x => /item12 near \(D80/.test(x))); }
   console.log(bad ? `\n${bad} planted check(s) failed` : '\nall planted checks pass');
   return bad;
 }
@@ -147,14 +156,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     requireFairLogs(existsSync(DIR) ? Object.fromEntries(readdirSync(DIR).filter(x => /^case\d+\.txt$/.test(x)).map(x => [x, readFileSync(join(DIR, x), 'utf8')])) : {}, REGISTRATION);
   }
   const U = loadDir(DIR), paths = PILOT ? null : JSON.parse(readFileSync(PATHS_FILE, 'utf8')).paths;
-  const P = gate(U, units, PILOT ? { seed: PILOT_SEED, ptsFree } : { seed: SEED, prediction: REGISTRATION, audit: stampFilesHash(), paths });
+  const P = gate(U, units, PILOT ? { seed: PILOT_SEED, ptsFree } : { seed: SEED, prediction: REGISTRATION, audit: stampFilesHash(), paths, code: JSON.parse(readFileSync(SHARE_PANEL, 'utf8')).code });
   if (P.length) { console.log(`ITEM 6 STAGE C GATE: NOT FAIR\n  ${P.join('\n  ')}`); process.exit(1); }
   const r0 = U[units[0].id].CANDS, rows = units.map(u => rowOf(u, U[u.id])), reheld = units.filter(u => u.kind === 'reheld'), Nmin = Math.min(...reheld.map(u => U[u.id].CANDS.n));
   console.log(`ITEM 6 STAGE C${PILOT ? ' (THE PILOT: EXPLORATORY, no outcome)' : ' (registrations/couples-share.md; read once)'}: ${units.length} units (${reheld.length} re-held, ${units.length - reheld.length} with a feature), seed ${r0.seed}, code ${r0.stamp.code}, audit ${r0.stamp.audit}; CANDS ${CONFIG.CANDS} and APP on each unit's paths, CANDH ${CONFIG.CANDH} on its first ${CANDH_N}; the gate: fair`);
   console.log(`\nBy unit (survival APP / CANDS / CANDH on its first paths; CANDS less APP over the unit's paths: the loss, lost and saved, discordance; D34's threshold at the realised discordance and its rates at a quarter-point and a 1-point loss; the flag; CANDS's share):`);
-  for (const r of rows) console.log(`  ${r.id.padEnd(11)} ${r.kind === 'reheld' ? `re-held ${r.variant}` : `feature ${r.feature}`.padEnd(13)} ${r.sApp.toFixed(2)}% / ${r.sCands.toFixed(2)}% / ${r.sCandh.toFixed(2)}% | loss ${f(r.loss)} points (${r.lost} lost, ${r.saved} saved of ${r.n}; discordant ${(100 * r.disc).toFixed(2)}%) | threshold ${r.t.toFixed(3)}, rates ${r.fp.toFixed(3)} / ${r.tp.toFixed(3)} | ${r.flag ? 'FLAGGED' : 'not flagged'} | share ${r.share}`);
-  const mp = units.filter(u => ARMS.some(a => U[u.id][a].inputs !== U[u.id].APP.inputs));
-  console.log(`\nUnits whose arms differ in a person's MPAA age alone (it follows each arm's drawing policy; the inputs less those ages the same in every arm): ${mp.length ? mp.map(u => `${u.id} (APP ${U[u.id].APP.mpaa.map(x => x === null ? 'none' : x).join('/')}, CANDS ${U[u.id].CANDS.mpaa.map(x => x === null ? 'none' : x).join('/')}, CANDH ${U[u.id].CANDH.mpaa.map(x => x === null ? 'none' : x).join('/')})`).join('; ') : 'none'}`);
+  for (const r of rows) console.log(`  ${r.id.padEnd(11)} ${r.kind === 'reheld' ? `re-held ${r.variant}` : `feature ${r.feature}`.padEnd(13)} ${r.sApp.toFixed(2)}% / ${r.sCands.toFixed(2)}% / ${r.sCandh.toFixed(2)}% | loss ${f(r.loss)} points (${r.lost} lost, ${r.saved} saved of ${r.n}; discordant ${(100 * r.disc).toFixed(2)}%, its upper bound ${(100 * r.dUp).toFixed(2)}%) | threshold ${r.t.toFixed(3)}, rates ${r.fp.toFixed(3)} / ${r.tp.toFixed(3)} | ${r.flag ? 'FLAGGED' : 'not flagged'} | share ${r.share}`);
+  const na = x => (x === null || x === undefined ? 'none' : x), mp = units.filter(u => ['CANDS', 'CANDH'].some(a => JSON.stringify(U[u.id][a].mpaaOwn) !== JSON.stringify(U[u.id].APP.mpaa)));
+  console.log(`\nUnits where a solver arm's own MPAA ages differed from arm A's, which it took (the report D94 adopted; the age follows each arm's own drawing): ${mp.length ? mp.map(u => `${u.id} (APP ${U[u.id].APP.mpaa.map(na).join('/')}; CANDS's own ${(U[u.id].CANDS.mpaaOwn || []).map(na).join('/')}, CANDH's own ${(U[u.id].CANDH.mpaaOwn || []).map(na).join('/')})`).join('; ') : 'none'}`);
   const pooled = survivalItem(reheld.map(u => [U[u.id].CANDS.main, U[u.id].APP.main]), Nmin), spend = spendingItem(reheld.map(u => [U[u.id].CANDS.main, U[u.id].APP.main]), Nmin);
   const featureU = units.filter(u => u.kind === 'feature'), NF = featureU.length ? Math.min(...featureU.map(u => U[u.id].CANDS.n)) : 0;
   const pooledF = featureU.length ? survivalItem(featureU.map(u => [U[u.id].CANDS.main, U[u.id].APP.main]), NF) : null;
@@ -170,6 +179,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`  the share rule's own effect, CANDS less CANDH on the re-held units' first ${Math.min(...reheld.map(u => U[u.id].CANDH.n))} paths: ${f(half.d)} points (95% ${f(half.lo)} to ${f(half.hi)}); by unit ${rows.filter(r => r.kind === 'reheld').map(r => `${r.id} ${f(-r.vsHalf.loss, 2)}`).join(', ')}`);
   const mean = (a, n = a.length) => { let s = 0; for (let i = 0; i < n; i++) s += a[i]; return s / n; };
   for (const [nm, us] of [['the re-held units', reheld], ['the units with a feature', featureU]]) if (us.length) console.log(`  ${nm}: the mean pot left APP / CANDS £${Math.round(mean(us.map(u => mean(U[u.id].APP.main.wealth)))).toLocaleString('en-GB')} / £${Math.round(mean(us.map(u => mean(U[u.id].CANDS.main.wealth)))).toLocaleString('en-GB')}; lifetime tax £${Math.round(mean(us.map(u => mean(U[u.id].APP.main.tax)))).toLocaleString('en-GB')} / £${Math.round(mean(us.map(u => mean(U[u.id].CANDS.main.tax)))).toLocaleString('en-GB')}`);
+  const med = a => { const b = [...a].sort((x, y) => x - y); return b.length ? b[Math.floor(b.length / 2)] : 0; };
+  console.log(`  the solves' seconds, the median over the units (CANDS / CANDH): ${Math.round(med(units.map(u => U[u.id].CANDS.solveSecs)))} / ${Math.round(med(units.map(u => U[u.id].CANDH.solveSecs)))}; the engine's milliseconds a path (CANDS / APP): ${(1000 * med(units.map(u => U[u.id].CANDS.engineSecs / U[u.id].CANDS.n))).toFixed(1)} / ${(1000 * med(units.map(u => U[u.id].APP.engineSecs / U[u.id].APP.n))).toFixed(2)}; the hosts: ${[...new Set(units.flatMap(u => ARMS.map(a => U[u.id][a].cpu)))].join('; ')}`);
   const bs = units.map(u => U[u.id].CANDS.beside).filter(Boolean);
   console.log(`  the couples' rollout in the exact model beside the engine on CANDS's first paths: ${bs.reduce((s, b) => s + b.N, 0)} paths, the engine alone ${bs.reduce((s, b) => s + b.engineOnly, 0)}, the model alone ${bs.reduce((s, b) => s + b.modelOnly, 0)}`);
   if (PILOT) { console.log('\n(THE PILOT: no outcome is read from it; its discordance sizes the run, size-couples-share.mjs)'); process.exit(0); }

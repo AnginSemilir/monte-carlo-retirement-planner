@@ -19,6 +19,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { PLANNER_PLANT } from './plannerPlant.js';
+import { storeNoteAfter } from './solveStatus.js';
 
 export const loadSolverClient = () => import('./solverClient.js');
 // the harness's way in to the built site's lazy chunk, which nothing loads while the switch is off
@@ -56,10 +57,13 @@ export function useSolver(plan, enabled, engine, opts = null, hold = false) {
       if (!live || key === jobKey.current) return;
       setState(s => (s.solveState === 'idle' && !s.solveMeta ? s : { ...s, solveState: 'stale' }));
       if (job.current) { job.current.cancel(); job.current.close(); }
-      const base = await client.baseOf(engine, plan, opts || {});
+      // a couple's plan (Part D, D5.1): each person's table solved in turn, each with its own dial base, then the couple assembled
+      // (src/solverClient.js startSolve's `couple`); the household's plan has no base of its own
+      const isCouplePlan = !!(plan && plan.demographics && plan.demographics.planningMode === 'couple');
+      const base = isCouplePlan ? null : await client.baseOf(engine, plan, opts || {});
       if (!live || key === jobKey.current) return;
       let kept = null;
-      const h = client.startSolve(plan, { ...(opts || {}), key, base, onProgress: progress => { if (job.current === h) setState(s => ({ ...s, progress })); }, onStored: (stored, why) => { kept = stored ? null : why; if (job.current === h) setState(s => ({ ...s, storeNote: kept })); } });
+      const h = client.startSolve(plan, { ...(opts || {}), key, base, ...(isCouplePlan ? { couple: { engine } } : {}), onProgress: progress => { if (job.current === h) setState(s => ({ ...s, progress })); }, onStored: (stored, why) => { kept = storeNoteAfter(kept, stored, why); if (job.current === h) setState(s => ({ ...s, storeNote: kept })); } });
       job.current = h; jobKey.current = key;
       setState(s => ({ ...s, solveState: 'solving', progress: null, key, storeNote: null }));
       try {

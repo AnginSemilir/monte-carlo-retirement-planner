@@ -1,0 +1,22 @@
+research/tests/restore-split.test.mjs, 14 Nov 05:07 UK, on the working tree (code 7d11b0e01252); the machine running stage C's batch beside it
+
+PASS  1. S370's record restored whole gives the solve's tables  -- 6ea4212685302893 against 6ea4212685302893
+PASS  2. restored split 3 ways: part 0's tables and each following part's the whole restore's, bit for bit, each marked restored  -- part 0 6ea421268530, part 1 6ea421268530, part 2 6ea421268530 (whole 6ea421268530)
+PASS  3. the adaptive reference in every part: its arrays the whole restore's bit for bit, its counts the record's  -- part 0 63fae700a4ea {"nonMono":0,"footLive":81}; part 1 63fae700a4ea {"nonMono":0,"footLive":81}; part 2 63fae700a4ea {"nonMono":0,"footLive":81} (whole 63fae700a4ea {"nonMono":0,"footLive":81})
+PASS  4. the strategy's figures from the 3 parts' shares of 120 paths, joined, are the whole restore's bit for bit  -- survival 73.33% against 73.33%; start 80 against 80
+PASS  5. a dial position split two ways: its reference's counts (and tables) the same as unsplit  -- unsplit {"nonMono":0,"footLive":81}; split part 0 {"nonMono":0,"footLive":81}, part 1 {"nonMono":0,"footLive":81}; tables the same
+
+ALL PASS: 5 checks
+
+--planted:
+plant 'stale': the checks that fail: 2; wanted 2: yes
+plant 'noasty': the checks that fail: 2, 3, 4; wanted 2, 3, 4: yes
+
+on the code before the change (/home/user/scratch-rsplit at de969be2, the test and its two helpers copied in, with src/solverCache.js and src/solverApp.js, which the test imports):
+PASS  1. S370's record restored whole gives the solve's tables  -- 6ea4212685302893 against 6ea4212685302893
+FAIL  2. restored split 3 ways: part 0's tables and each following part's the whole restore's, bit for bit, each marked restored  -- threw: a restored solve is not split: it solves nothing
+FAIL  3. the adaptive reference in every part: its arrays the whole restore's bit for bit, its counts the record's  -- threw: a restored solve is not split: it solves nothing
+FAIL  4. the strategy's figures from the 3 parts' shares of 120 paths, joined, are the whole restore's bit for bit  -- threw: a restored solve is not split: it solves nothing
+FAIL  5. a dial position split two ways: its reference's counts (and tables) the same as unsplit  -- unsplit {"nonMono":0,"footLive":81}; split part 0 {"nonMono":0,"footLive":162}, part 1 {"nonMono":0,"footLive":162}; tables the same
+
+FAILED: 4 of 5 checks

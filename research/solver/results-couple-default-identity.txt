@@ -1,0 +1,25 @@
+A COUPLE'S SOLVE AT THE NEW DEFAULTS AGAINST THE CODE STAGE C TESTED (D99; EXPLORATORY, an identity check deciding nothing)
+research/solver/couple-default-identity.mjs, on four of stage C's units, each solved three ways at 45 points: the registered CANDS
+arm as stage C's audit solves it on the tested code (the launch worktree) and on today's, and the page's own route on today's
+(couplePlans on APP_COUPLE's share rule, solveForApp at the app's candidate with the tie-break, assembleCouple); then each
+person's table digest, the share and its rule, and the engine's run of the couple on the first 500 paths of seed 7002 (the
+paths survived, and a hash of every path's survival, pot, estate, spending delivered and lifetime tax).
+
+  S015-90    audit tested (ce8ca278, code 7002a1fec94c)         share 0.9 rule pots self 5c671fb0e6e23a0a part bf324f9f6527acd0 survived 492 of 500 outcomes 03139198b70b3695  (73 s)
+  S015-90    app   today (the working tree, code b7cd77e5ebec)  share 0.9 rule pots self 5c671fb0e6e23a0a part bf324f9f6527acd0 survived 492 of 500 outcomes 03139198b70b3695  (73 s)
+  S015-90    audit today (the working tree, code b7cd77e5ebec)  share 0.9 rule pots self 5c671fb0e6e23a0a part bf324f9f6527acd0 survived 492 of 500 outcomes 03139198b70b3695  (73 s)
+  S015-90: THE SAME on all three: both tables bit for bit, every path's outcomes
+  S129-75    audit tested (ce8ca278, code 7002a1fec94c)         share 0.75 rule pots self da3e43d6d2d8b1cd part 6d99da3d89acbd2c survived 494 of 500 outcomes 7d17bba0584b970f  (115 s)
+  S129-75    app   today (the working tree, code b7cd77e5ebec)  share 0.75 rule pots self da3e43d6d2d8b1cd part 6d99da3d89acbd2c survived 494 of 500 outcomes 7d17bba0584b970f  (116 s)
+  S129-75    audit today (the working tree, code b7cd77e5ebec)  share 0.75 rule pots self da3e43d6d2d8b1cd part 6d99da3d89acbd2c survived 494 of 500 outcomes 7d17bba0584b970f  (117 s)
+  S129-75: THE SAME on all three: both tables bit for bit, every path's outcomes
+  S211-db    audit tested (ce8ca278, code 7002a1fec94c)         share 0.5 rule pots self f132a0ffaaf46ef9 part 6e51e1c2798325fb survived 452 of 500 outcomes 2d4d01eb61daef0c  (104 s)
+  S211-db    app   today (the working tree, code b7cd77e5ebec)  share 0.5 rule pots self f132a0ffaaf46ef9 part 6e51e1c2798325fb survived 452 of 500 outcomes 2d4d01eb61daef0c  (92 s)
+  S211-db    audit today (the working tree, code b7cd77e5ebec)  share 0.5 rule pots self f132a0ffaaf46ef9 part 6e51e1c2798325fb survived 452 of 500 outcomes 2d4d01eb61daef0c  (95 s)
+  S211-db: THE SAME on all three: both tables bit for bit, every path's outcomes
+  S389-gain  audit tested (ce8ca278, code 7002a1fec94c)         share 0.5 rule pots self 342706846f93a5e4 part 4ac046b6923a7175 survived 484 of 500 outcomes 673d72011fb44c92  (144 s)
+  S389-gain  app   today (the working tree, code b7cd77e5ebec)  share 0.5 rule pots self 342706846f93a5e4 part 4ac046b6923a7175 survived 484 of 500 outcomes 673d72011fb44c92  (142 s)
+  S389-gain  audit today (the working tree, code b7cd77e5ebec)  share 0.5 rule pots self 342706846f93a5e4 part 4ac046b6923a7175 survived 484 of 500 outcomes 673d72011fb44c92  (144 s)
+  S389-gain: THE SAME on all three: both tables bit for bit, every path's outcomes
+
+VERDICT: IDENTITY HOLDS: on each unit the page's route at the new defaults and the registered arm on today's code give the tested code's tables and paths

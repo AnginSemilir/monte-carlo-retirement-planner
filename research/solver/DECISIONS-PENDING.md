@@ -11,6 +11,61 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**RULED (D101, 14 Nov, afternoon): the new planner's first-load ceiling to 240KB.** B1's gate on the third batch found the
+new planner's first load on an empty plan at 239KB against its ceiling of 237KB, a saved plan at 235KB. The growth since
+batch 3's first gate is about 1.2KB compressed: the speed mode's and the couples' screens' code, not the engine's, so by
+D94 (2) it stopped for the maintainer. The maintainer: "Go with your recco": the measured figure plus one, 240KB, with a
+dated note in `load-perf-ui.cjs`; the classic mode run again on it.
+
+**RULED (D100, 14 Nov, afternoon): couples in the other order get their own test.** The maintainer: "Ensure a follow up test
+is placed in the plan so we can open up couples in the other order." Since D99 the solver plans for an uneven couple only
+when the older partner is entered first, as every couple stage C tested was. The test, in full in `PART-D.md` D7:
+- stage A, EXPLORATORY: the joint estate weight made the same whichever partner is entered first (couples entered elder
+  first unchanged bit for bit), then stage C's couples entered both ways and compared on the same paths;
+- stage B, registered on a new held-out seed: the couples entered the other way against the app's rules by stage C's rule.
+  Its PASS opens the guard for them, the reviewer on the change of default.
+
+It comes after the share ensemble, ahead of (c) to (e) below. Stage B's registration comes to the maintainer before its
+launch, as stage C's did, unless the maintainer says to launch it once its design review passes.
+
+**RULED (D98, 14 Nov, morning): "Agreed with all"**, on the agent's reply to D97: (2) as read, a couple's tie rule
+passing its rule joins the couples' candidate with no further word (the reviewer on the change of default); (3) the speed
+mode's warnings as drafted, for a single: "Speed mode works out your figures about twice as fast by looking at fewer
+options in each simulated year. In our tests it very slightly lowered the chance your money lasts: about 2 in 10,000 on
+average, and at most about 2 in 1,000. This year's recommended actions still use every option." and for a couple: "For
+couples, speed mode is less tested. It ranged from slightly slower to nearly twice as fast, and it spent a little less and
+held slightly less in shares than the full calculation. Use the full calculation for decisions."; (4) the harvest
+ceiling's allowance step offered at both places, where it stood before and where it stands now, the solver choosing:
+built off in code with its test, read EXPLORATORY by its rule committed first, its passing the ruling naming the run (in
+the candidate, the reviewer on the change of default), failing closed and reported.
+
+**RULED (D97, 14 Nov, morning): the four items of the morning report.** The maintainer: "1 - go with your
+recommendation 2 - add the test to the plan after couples, but don't wait for me to ok it. 3 - run a wider test on it.
+For now add as an optional 'beta - speed mode' toggle with a warning to singles and couples. 4 - wouldn't the point of
+backward induction be that we don't add a hardcoded rule and let the solver choose? But please let me know if this has
+been disproven or is less likely to work in this scenario from tests seen so far". As the agent reads them: (1) couples
+run the candidate under the opt-in once item 6's stage C has read, by its outcome (PASS: couples whose elder holds more
+than 60% and at most 90% too; THE GUARD STAYS: couples outside 40% to 60% keep the app's rules; STOP: back to the
+maintainer first, as the registration says), the reviewer on the change of default, merged on B1's gate; (2) a tie rule
+for a couple's joint move, measured after couples are on, as item 13 was (its rule committed first, EXPLORATORY, off in
+code): passing its rule is the ruling naming the run, built and in the couples' candidate with the reviewer on the change
+of default and no further word; failing, closed and reported; (3) `chooserShortlist: 'order'` read again, wider, on singles
+and couples (EXPLORATORY, its rule committed first, when stage C frees the cores), and meanwhile offered in the app as an
+opt-in "Beta - speed mode", off by default, with a warning for singles and one for couples; (4) a question, answered in the
+reply of 14 Nov: nothing so far disproves letting the solver choose; the agent's recommendation was that (the allowance's
+step offered at both places, the solver choosing); building it waits on the maintainer's word. The four entries below are
+kept as they were put.
+
+**RULED (D96, 13 Nov, night): item 6's stage C, launched on the agent's three recommendations.** The maintainer:
+"Proceed with your recommendation": launched as registered, at 19,000 paths a unit, no mirror. It runs once batch 2's
+gate ends, from a worktree at the commit recording D96; its read comes back with the outcome as registered. In full:
+`reports/2026-11-13-stage-c-registration.md`; the registration `registrations/couples-share.md`, its design review's PASS
+after one fix. Twelve held-out couples, 36 units (each re-held 75/25 and 90/10, and once with a DB pension, an existing gain or
+a state pension age of 67), seed 7022, about 61 core-hours. Three choices: (1) launch: the agent recommends yes; (2) the
+paths: 19,000 a unit (D34's rate held only below about 12% discordance; D61's choice for D4, yours here) or 30,000 (about 95
+core-hours); the agent recommends 19,000; (3) the mirror, the younger partner holding more (about 40 core-hours more): the agent
+recommends not now, so a PASS lifts the guard only where the elder holds 60% to 90%.
+
 **For the maintainer and the external review (13 Nov, night): the harvest ceiling's allowance step trades tax for pot
 below the cap.** `results-ceiling-lead.txt` (EXPLORATORY, seed 7002; `CEILING-LEAD.md`); the reviewer at the read: PASS,
 three MINORs (`reviews/2026-11-13-read-ceiling-lead.md`). The ceiling (on `main` since the first batch) moved the
@@ -111,25 +166,45 @@ and keep the chunks (the agent's recommendation); (2) fix the cause in the audit
 twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/2026-11-13-d4b-stage-gate.md`.
 
 1. **The improvements laid out**, in this order; the first not done is the next.
-   - **Built, on the working branch, not yet on `main`:** the newest candidate (D73: the sweep to the ISA, the solve on
-     anchors, the thinner bridge reference); the engine's year in HMRC's order (item 3) and relief on money the plan pays
-     into a pension (item 4); the pages naming the sweep (item 5) and item 8's caption; a couple's path faster, exactly
-     (items 2 and 11); Part D's D1 to D3; built and off: `shareRule: 'pots'` (item 6), `tieAboveCap` (item 13),
-     `chooserShortlist: 'order'` with its guard (item 7).
-   - **Running:** the couples' re-run (item 1, `registrations/couples-d4b.md`), read once when every chunk is in, then
-     the reviewer at the read and the deep reviewer.
-   - **After its read:** (a) the tie-break joins the candidate (D90 (1)), the reviewer on the change of default;
-     (b) the basic harvest ceiling (`research/reviews/2026-11-11/ANSWERS.md` section 5: its cases first; it changes the
-     rules' figures and every table), which D79 held for the beta's end and the agent reads D91 as taking in. It is
-     being built now on a branch of its own (it does not rest on the read), and goes in before (d) so that the next
-     registered test is landed once, on the code that ships; (c) item 12's stage A (D84), then the shortlist's trade
-     back to the maintainer (D90 (2)); (d) item 6's stage C, the registered test for couples who hold their money
-     unevenly (until it reads such a couple keeps the app's rules, M4), landed after (a) to (c) so no change of code
-     falls between its landing and its read; (e) Part D's D5, the couples' screens in the new planner, then couples on
-     under the switch (the launch plan's D6, no longer a couples' beta).
+   - **On `main`:** batches 1 and 2 (pull requests 12 and 13): the newest candidate (D73; D95's tie-break for singles),
+     the engine's year in HMRC's order (item 3), relief on money paid into a pension (item 4), the pages naming the sweep
+     (item 5), item 8's caption, a couple's path faster (items 2 and 11), Part D's D1 to D3, the harvest ceiling, the
+     capital gains bill's fix; built and off: `shareRule: 'pots'` (item 6), `chooserShortlist: 'order'` with its guard
+     (item 7).
+   - **Batch 3, at its gate (14 Nov):** Part D's D5 behind `COUPLES` (off), the store in chunks, a restored solve shared
+     across its parts, the limits per person.
+   - **Read (14 Nov): item 6's stage C, PASS** (`results-couples-share.txt`; in plain words and in full,
+     `reports/2026-11-14-stage-c-read.md`): every one of the 36 units gains on the app's rules, none flagged; the pooled
+     gain over the 24 re-held units +10.7 points (+10.4 to +10.9). By the registration and D97 (1) it decides the couples'
+     default (`shareRule: 'pots'`) and lifts the guard for couples whose elder holds more than 60% and at most 90%. The
+     reviewer at the read: PASS, six MINORs, the write-up corrected (by unit the gain is survival's: the median pot lower
+     on 20 of 24 uneven units, tax higher on 10 of 36, spending lower on 5 of 36, the oldest couples). The deep review: the
+     PASS sound; **the guard opens only where the older partner is entered first**, as every tested couple was: the joint
+     move weighs both estates at the first person's own weight, which for an elder entered second would be three to nine
+     times any tested (D99 holds them back, "for what the panel tested"). Two leads for the maintainer, neither blocking:
+     the share is read from today's pots alone, not from each person's incomes (its one test, a share ensemble,
+     EXPLORATORY, about 6 core-hours, queued after the gate); and the joint estate weight itself (a household-level weight
+     would need its own test). For the maintainer's UI work: the couples' screens should say the pot is smaller on most
+     uneven couples, tax higher on the long-horizon ones, and the oldest couples gain survival, not spending.
+   - **Next, in this order (D97):** (a) the speed mode: `chooserShortlist: 'order'` offered as an opt-in "Beta - speed
+     mode", off by default, a warning for singles and one for couples, with its tests, to `main` with the next batch
+     (built, 11293476; its browser checks to run); (b) couples on under the opt-in by stage C's PASS (D99, built 14 Nov): the
+     share rule, the guard on the elder's share and the switch, in one commit with the D-line naming the run
+     (`couple-default.test.mjs`; `PART-D.md` D6), the reviewer on the change of default, then one gate for batch 3, the
+     speed mode and couples on; then the share ensemble (`SHARE-ENSEMBLE.md`, its rule committed, EXPLORATORY) and
+     couples in the other order (D100: `PART-D.md` D7, stage A EXPLORATORY, then stage B registered, its PASS opening the
+     guard for the elder entered second); the guard's age cap (a partner who would pass 120 before the plan ends kept on the
+     app's rules, with its check: the reviewer on D99, second round, MINOR 1), with the next batch; a couple's solve
+     measured on the phone's budget (each part holds both tables;
+     Phase 11 measured a single's), before sharing publicly; (c) the
+     shortlist's wider read (EXPLORATORY, its rule committed first) when stage C frees the cores, to the maintainer;
+     (d) after couples are on, a tie rule for a couple's joint move (EXPLORATORY, its rule committed first): passing, it
+     joins the couples' candidate without another word, the reviewer on the change of default; failing, closed and
+     reported; (e) the harvest ceiling's allowance step offered at both places, the solver choosing (D98): built off
+     with its test, read EXPLORATORY by its rule committed first; passing, it joins the candidate without another word,
+     the reviewer on the change of default; failing, closed and reported.
    - **Whenever cores are free:** the research queue (B7), the windfall factorial then the savings factorial,
-     EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test (B7's "after the launch" is no
-     longer a wait).
+     EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test.
    - **Open with the maintainer** (below): M3, M6, the cash buffer's size as a lever, `survivalChangeU`'s interval.
 2. **The maintainer's work on the UI.** Its scope is the maintainer's; nothing is planned for it here yet.
 3. **Sharing it publicly.** Before it: the readiness checklist taken again on that commit, and the maintainer's word on

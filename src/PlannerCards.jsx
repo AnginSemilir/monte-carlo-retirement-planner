@@ -13,13 +13,25 @@ import { SolverPlanAnswers } from './SolverSimple.jsx';
 import { solverApproximations } from './solverApproximations.js';
 import { DiagnosticCopy } from './DiagnosticCopy.jsx';
 
-/* a couple's plan (LAYOUT.md section 6): the classic planner, or a plan for one person */
-export function Couples({ isPhone, onClassic, onOnePerson }) {
+/* a couple's plan the solver does not run (LAYOUT.md section 6; Part D, D5): the classic planner, or a plan for one person.
+   `why` 'off': couples are not on in the solver (src/couplesSwitch.js COUPLES off, the rollback), the words as before D5;
+   'uneven': couples are on (D99), and this one is outside the guard: its first person holding neither 40% to 60% of the pots
+   nor, as the elder, more than 60% and at most 90%, which keeps the app's rules until a test of those holdings reads
+   (src/couplesSwitch.js coupleSolverOn); `share` the first person's share of the pots */
+export function Couples({ isPhone, onClassic, onOnePerson, why = 'off', share = null }) {
   if (PLANNER_PLANT.has('nocouple')) return null;
+  // a share shown at an edge of the guard (10%, 40%, 60%, 90%) is not rounded onto it, so a couple just outside is not told it holds
+  // what was tested (the reviewer on D99, finding 5): "just over 90%", "just under 40%"
+  const uneven = why === 'uneven', pc = x => { const p = 100 * x, r = Math.round(p); return [10, 40, 60, 90].includes(r) && Math.abs(p - r) > 1e-9 ? `just ${p > r ? 'over' : 'under'} ${r}%` : `${r}%`; };
   return (
-  <section data-planner-couple className="p-5 bg-surface border border-slate-200/90 rounded-xl space-y-3 max-w-3xl">
+  <section data-planner-couple={why} className="p-5 bg-surface border border-slate-200/90 rounded-xl space-y-3 max-w-3xl">
+    {uneven ? <>
+      <h2 className="text-[15px] font-semibold text-slate-900">The new planner does not work out a split like yours yet</h2>
+      <p className="text-sm text-slate-600" data-couple-share={share}>Your plan has {pc(share)} of your money with you and {pc(1 - share)} with your partner. The solver has been tested on couples who hold their money about evenly, 40% to 60% each, and on couples where you are the older of the two and hold up to 90% of it. A split like yours is still to be tested, so for now your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+    </> : <>
     <h2 className="text-[15px] font-semibold text-slate-900">The new planner works out plans for one person for now</h2>
     <p className="text-sm text-slate-600">Your plan is for two people. Until the solver plans for couples, which is being built, a couple&apos;s plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+    </>}
     <div className="flex flex-wrap gap-2">
       <button type="button" data-open-classic onClick={onClassic} className={`px-4 rounded-lg bg-accent hover:bg-accent-hover text-onaccent text-sm font-bold cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Open the classic planner</button>
       <button type="button" onClick={onOnePerson} className={`px-4 rounded-lg border border-slate-300 bg-surface text-sm font-semibold text-slate-800 cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Change to a plan for one person</button>
@@ -34,7 +46,7 @@ export function WhatIf({ solvedInHand, plan, solve, ageNow, last, seed, upto, en
   return (
     <div className="grid gap-6 min-[1100px]:grid-cols-2 items-start">
       {!solvedInHand && <p data-whatif-wait className="text-sm text-slate-600 min-[1100px]:col-span-2">Each card here works your plan out again at another setting, once your plan itself is worked out.</p>}
-      <SolverAges plan={plan} solve={solve} ageNow={ageNow} seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} />
+      <SolverAges plan={plan} solve={solve} ageNow={ageNow} seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} couple={!!(plan && plan.demographics && plan.demographics.planningMode === 'couple')} />
       <SolverTargets plan={plan} solve={solve} seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} />
       <div data-whatif-limits className="p-4 rounded-xl border border-slate-200/90 bg-surface">
         {solvedInHand ? <SolverPlanAnswers plan={plan} fromSpend={null} ageNow={ageNow} last={last} engine={engine} opts={opts} fmt={fmt} whatIf />

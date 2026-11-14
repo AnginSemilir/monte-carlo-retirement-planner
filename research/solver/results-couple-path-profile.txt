@@ -1,0 +1,35 @@
+A COUPLE'S PATH, WHERE ITS TIME GOES (Part D, D5.6), EXPLORATORY: S121 at 6 points (light settings), 60 paths of seed 4242,
+node --cpu-prof research/solver/couple-path-prof.mjs 60 6 on 14 Nov, the machine running stage C's batch beside it (the ms a path a guide only);
+the profile's time under runPath, by function, each function's time with what it calls (its share of the 60 paths)
+
+profiled 42.9 s in all, 11.2 s under runPath (the 60 paths)
+   100.0%  runPath solverStrategy.js:50
+   100.0%  (anon) couple-path-prof.mjs:1
+   100.0%  evaluate :0
+   100.0%  run module_job:332
+   100.0%  (root) :0
+    99.7%  stepYear engine.mjs:2095
+    98.2%  choose couple.js:711
+    98.1%  chooseJoint couple.js:614
+    77.2%  rankFor couple.js:525
+    76.6%  chooseAction solve.js:1809
+    76.5%  chooseActionCore solve.js:1824
+    34.3%  decisionRepeats solve.js:2241
+    29.2%  sameClassesAt solve.js:2232
+    28.7%  classesOf solve.js:2113
+    25.9%  clsBits solve.js:2112
+    24.0%  (anon) solve.js:1859
+    22.7%  scoreWorldOnce solve.js:2261
+    18.3%  readValues grid.js:322
+    16.9%  decisionFlows solve.js:2083
+    15.4%  (anon) solve.js:2112
+    13.7%  expectedValue couple.js:463
+    13.5%  expectedValueFlat couple.js:415
+    12.1%  flatAt couple.js:367
+    11.7%  flatShare couple.js:394
+    10.8%  tryX couple.js:400
+    10.6%  flatRead couple.js:352
+    10.5%  flow fast.js:409
+     4.8%  drawPension fast.js:514
+     4.5%  step model.js:168
+     4.2%  interpPair grid.js:656

@@ -35,7 +35,9 @@ const SMALL = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: t
 
 // hand-made paths: a level per year (percent of target), a failure year or -1
 const fake = (levels, failT = -1) => ({ survived: failT < 0, failT, level: Uint16Array.from(levels), target: levels.filter(x => x > 0).length * 100, delivered: levels.reduce((a, x) => a + x, 0), terminalPot: 0, terminalPotNet: 0, lifetimeTax: 0 });
-const CTX = { totalYears: 9, ageSelf0: 60, baseYear: 2026, spendBands: [], targetSpend: 20000, owners: [{ retireAge: 60 }] };
+// the owners carry their own age as the engine's context does (engine.mjs buildContext: age0 for each person; src/solverStrategy.js
+// retireYearOf reads it since Part D's D5, a couple retired from either person's first retired year)
+const CTX = { totalYears: 9, ageSelf0: 60, baseYear: 2026, spendBands: [], targetSpend: 20000, owners: [{ retireAge: 60, age0: 60 }] };
 const EF = { spendTargetAtAge: () => 20000 };
 const rise = k => Array.from({ length: 10 }, (_, t) => (t < k ? 80 : 100));   // back at target in year k
 
@@ -70,7 +72,7 @@ console.log('=========== 3. THE HEADLINE\'S RULES ===========');
   ok(md.backT === 5 && md.backYear === 2031 && md.case === 'long', `3. the median over the paths: back in years 1, 5 and 9 reads year ${md.backT} (${md.backYear}), ${md.case}`);
   const fl = H([fake(rise(2), 1), fake(rise(2), 1), fake(rise(2))]);
   ok(fl.case === 'never' && fl.survival.toFixed(2) === '33.33', `3. a path that fails before it is back counts as never: ${fl.case}`);
-  const wk = headlineOf(EF, { ...CTX, owners: [{ retireAge: 63 }] }, [fake([0, 0, 0, 85, 85, 100, 100, 100, 100, 100]), fake([0, 0, 0, 90, 100, 100, 100, 100, 100, 100]), fake([0, 0, 0, 80, 80, 80, 100, 100, 100, 100])], retireYearOf({ ...CTX, owners: [{ retireAge: 63 }] }));
+  const wk = headlineOf(EF, { ...CTX, owners: [{ retireAge: 63, age0: 60 }] }, [fake([0, 0, 0, 85, 85, 100, 100, 100, 100, 100]), fake([0, 0, 0, 90, 100, 100, 100, 100, 100, 100]), fake([0, 0, 0, 80, 80, 80, 100, 100, 100, 100])], retireYearOf({ ...CTX, owners: [{ retireAge: 63, age0: 60 }] }));
   ok(wk.retireT === 3 && !wk.retired && wk.startLevel === 85 && wk.backT === 5 && wk.backIn === 2 && wk.case === 'short', `3. a household still working: retires in year ${wk.retireT}, starts at ${wk.startLevel}% (the median of the first retired year), back ${wk.backIn} years in, ${wk.case}`);
   // plants, each in the module's own rule
   const planted = (rule, f) => { PLANT.rule = rule; try { return f(); } finally { PLANT.rule = ''; } };

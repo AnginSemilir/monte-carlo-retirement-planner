@@ -12,6 +12,15 @@
  */
 const PCT = p => (p && p.total ? Math.round((100 * p.done) / p.total) : null);
 
+/*
+ * The store's note on the solve in hand (useSolver's storeNote): a job can store more than one solve (a dial position's base
+ * and the position; a couple's two people, src/solverClient.js calling onStored for each), and the note keeps the first one
+ * not kept, so one kept after it does not hide it (research/tests/store-note.test.mjs; the second review of D5, 14 Nov,
+ * finding 2). STATUS_PLANT (tests only): 'lastnote' keeps the last store's result alone, as before.
+ */
+export const STATUS_PLANT = { rule: '' };
+export const storeNoteAfter = (note, stored, why) => (STATUS_PLANT.rule === 'lastnote' ? (stored ? null : why) : note || (stored ? null : why));
+
 // a solve's time: seconds under 90 seconds, whole minutes from there
 export const solveTime = secs => (secs < 90 ? `${Math.round(secs)} seconds` : `${Math.round(secs / 60)} minutes`);
 
@@ -32,7 +41,10 @@ export function statusOf(solve, { isPhone = false, asked = true, simulating = fa
   if (solveState === 'idle' && isPhone && !asked) return { state: 'ask', text: 'Not worked out on this phone yet', pct: null, left: null, action: 'request' };
   if (solveState === 'stale') return { state: 'stale', text: isPhone ? 'Your plan changed: working it out again' : `Your plan changed: working it out again${tail}`, pct: null, left: null, action: null };
   if (solveState === 'solving') {
-    const pct = PCT(progress), stage = progress && progress.stage === 'base' ? ' at the Low setting first' : '';
+    // a couple's plan (Part D, D5.1) is worked out one person's part at a time, each progress naming whose (`who`); a part, not a
+    // half, since each person's table is solved on their share of the pots (D99; the deep review of 14 Nov)
+    const whose = progress && progress.who === 'self' ? ': your part' : progress && progress.who === 'part' ? ': your partner\'s part' : '';
+    const pct = PCT(progress), stage = (progress && progress.stage === 'base' ? ' at the Low setting first' : '') + whose;
     const what = !progress ? '' : progress.phase === 'years' ? 'year by year, ' : 'the years before your pension opens, ';
     const text = isPhone ? `Working out${stage}: ${pct === null ? '…' : `${pct}%`}` : `Working out your plan${stage}${pct === null ? '…' : `: ${what}${pct}%`}${tail}`;
     return { state: 'solving', text, pct, left: isPhone ? null : timeLeft(progress, elapsed), action: null };

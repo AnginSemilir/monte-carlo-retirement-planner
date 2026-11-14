@@ -13,15 +13,22 @@ const ISOLATED = { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Em
  *   - SOLVER_HARNESS_OPTS (JSON): `const SOLVER_OPTS = null;` reads it, the harness's light settings, so its solves are quick;
  *     unset, the page solves at the app's own settings, as the site does;
  *   - PLANNER_BETA_OFF=1: `const PLANNER_BETA = true;` reads false, the rollback ("one deploy turns it off for everyone"), which
- *     solver-planner-ui check 16 builds to see it give everyone the classic planner.
+ *     solver-planner-ui check 16 builds to see it give everyone the classic planner;
+ *   - COUPLES_OFF=1 (Part D, D6): src/couplesSwitch.js's `export const COUPLES = true;` reads false, the couples' rollback (one
+ *     deploy turning couples off for everyone), which solver-planner-ui check 10 builds to see a couple's screens as before D5.
  * Either line moved stops the build, so a harness can never pass on a build that ignored what it asked for.
  */
-const OPTS = '\nconst SOLVER_OPTS = null;\n', BETA = '\nconst PLANNER_BETA = true;\n';
+const OPTS = '\nconst SOLVER_OPTS = null;\n', BETA = '\nconst PLANNER_BETA = true;\n', COUPLES = '\nexport const COUPLES = true;\n';
 const solverHarness = () => ({
   name: 'solver-harness',
   enforce: 'pre',
   transform(code, id) {
     if (process.env.SOLVER_HARNESS !== '1') return null;
+    // Part D, D6: COUPLES_OFF=1 turns the couples' screens off (src/couplesSwitch.js COUPLES), on in the source since D99
+    if (/[\\/]src[\\/]couplesSwitch\.js$/.test(id)) {
+      if (!code.includes(COUPLES)) this.error('solver-harness: the couples line in src/couplesSwitch.js has moved');
+      return process.env.COUPLES_OFF === '1' ? { code: code.replace(COUPLES, '\nexport const COUPLES = false;\n'), map: null } : null;
+    }
     if (!/[\\/]src[\\/]App\.jsx$/.test(id)) return null;
     if (!code.includes(OPTS) || !code.includes(BETA)) this.error('solver-harness: the settings or beta lines in src/App.jsx have moved');
     const opts = process.env.SOLVER_HARNESS_OPTS || 'null';

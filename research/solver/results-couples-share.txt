@@ -1,0 +1,57 @@
+ITEM 6 STAGE C (registrations/couples-share.md; read once): 36 units (24 re-held, 12 with a feature), seed 7022, code 7002a1fec94c, audit 327661b4d2fc; CANDS 27d2a7c7ee9d and APP on each unit's paths, CANDH af001697ce1b on its first 1000; the gate: fair
+
+By unit (survival APP / CANDS / CANDH on its first paths; CANDS less APP over the unit's paths: the loss, lost and saved, discordance; D34's threshold at the realised discordance and its rates at a quarter-point and a 1-point loss; the flag; CANDS's share):
+  S015-75     re-held 75 85.39% / 99.15% / 96.20% | loss -13.758 points (0 lost, 2614 saved of 19000; discordant 13.76%, its upper bound 14.26%) | threshold 0.700, rates 0.049 / 0.861 | not flagged | share 0.75
+  S015-90     re-held 90 84.74% / 99.00% / 61.10% | loss -14.258 points (2 lost, 2711 saved of 19000; discordant 14.28%, its upper bound 14.78%) | threshold 0.711, rates 0.048 / 0.848 | not flagged | share 0.9
+  S015-db     feature db    84.53% / 97.62% / 97.40% | loss -13.089 points (4 lost, 2491 saved of 19000; discordant 13.13%, its upper bound 13.62%) | threshold 0.689, rates 0.049 / 0.875 | not flagged | share 0.5
+  S043-75     re-held 75 86.19% / 98.11% / 89.90% | loss -11.921 points (4 lost, 2269 saved of 19000; discordant 11.96%, its upper bound 12.43%) | threshold 0.668, rates 0.050 / 0.901 | not flagged | share 0.75
+  S043-90     re-held 90 86.68% / 98.76% / 65.60% | loss -12.079 points (2 lost, 2297 saved of 19000; discordant 12.10%, its upper bound 12.57%) | threshold 0.674, rates 0.049 / 0.896 | not flagged | share 0.9
+  S043-gain   feature gain  85.22% / 95.92% / 95.70% | loss -10.700 points (15 lost, 2048 saved of 19000; discordant 10.86%, its upper bound 11.31%) | threshold 0.653, rates 0.048 / 0.921 | not flagged | share 0.5
+  S103-75     re-held 75 83.99% / 94.92% / 86.40% | loss -10.932 points (11 lost, 2088 saved of 19000; discordant 11.05%, its upper bound 11.50%) | threshold 0.653, rates 0.050 / 0.920 | not flagged | share 0.75
+  S103-90     re-held 90 84.68% / 95.84% / 57.30% | loss -11.163 points (1 lost, 2122 saved of 19000; discordant 11.17%, its upper bound 11.63%) | threshold 0.658, rates 0.049 / 0.915 | not flagged | share 0.9
+  S103-spa67  feature spa67 84.69% / 94.29% / 94.10% | loss -9.600 points (27 lost, 1851 saved of 19000; discordant 9.88%, its upper bound 10.32%) | threshold 0.632, rates 0.050 / 0.942 | not flagged | share 0.5
+  S129-75     re-held 75 85.34% / 97.42% / 90.50% | loss -12.084 points (0 lost, 2296 saved of 19000; discordant 12.08%, its upper bound 12.56%) | threshold 0.674, rates 0.049 / 0.896 | not flagged | share 0.75
+  S129-90     re-held 90 85.06% / 94.71% / 79.30% | loss -9.642 points (12 lost, 1844 saved of 19000; discordant 9.77%, its upper bound 10.20%) | threshold 0.632, rates 0.049 / 0.943 | not flagged | share 0.9
+  S129-db     feature db    85.72% / 96.48% / 96.50% | loss -10.763 points (0 lost, 2045 saved of 19000; discordant 10.76%, its upper bound 11.21%) | threshold 0.647, rates 0.050 / 0.925 | not flagged | share 0.5
+  S155-75     re-held 75 84.87% / 92.51% / 82.50% | loss -7.642 points (49 lost, 1501 saved of 19000; discordant 8.16%, its upper bound 8.56%) | threshold 0.600, rates 0.048 / 0.970 | not flagged | share 0.75
+  S155-90     re-held 90 84.43% / 92.91% / 58.00% | loss -8.479 points (15 lost, 1626 saved of 19000; discordant 8.64%, its upper bound 9.05%) | threshold 0.611, rates 0.048 / 0.962 | not flagged | share 0.9
+  S155-gain   feature gain  85.75% / 92.87% / 93.10% | loss -7.121 points (0 lost, 1353 saved of 19000; discordant 7.12%, its upper bound 7.50%) | threshold 0.579, rates 0.048 / 0.983 | not flagged | share 0.5
+  S183-75     re-held 75 85.00% / 96.52% / 93.10% | loss -11.521 points (1 lost, 2190 saved of 19000; discordant 11.53%, its upper bound 11.99%) | threshold 0.663, rates 0.049 / 0.908 | not flagged | share 0.75
+  S183-90     re-held 90 85.06% / 95.44% / 83.20% | loss -10.379 points (1 lost, 1973 saved of 19000; discordant 10.39%, its upper bound 10.83%) | threshold 0.642, rates 0.049 / 0.932 | not flagged | share 0.9
+  S183-spa67  feature spa67 85.79% / 97.59% / 97.80% | loss -11.795 points (6 lost, 2247 saved of 19000; discordant 11.86%, its upper bound 12.33%) | threshold 0.668, rates 0.049 / 0.902 | not flagged | share 0.5
+  S211-75     re-held 75 85.42% / 94.72% / 87.90% | loss -9.300 points (3 lost, 1770 saved of 19000; discordant 9.33%, its upper bound 9.75%) | threshold 0.621, rates 0.050 / 0.952 | not flagged | share 0.75
+  S211-90     re-held 90 85.28% / 94.65% / 70.50% | loss -9.363 points (3 lost, 1782 saved of 19000; discordant 9.39%, its upper bound 9.82%) | threshold 0.626, rates 0.048 / 0.949 | not flagged | share 0.9
+  S211-db     feature db    84.91% / 89.50% / 88.10% | loss -4.595 points (41 lost, 914 saved of 19000; discordant 5.03%, its upper bound 5.35%) | threshold 0.526, rates 0.048 / 0.998 | not flagged | share 0.5
+  S237-75     re-held 75 84.97% / 97.04% / 91.60% | loss -12.068 points (0 lost, 2293 saved of 19000; discordant 12.07%, its upper bound 12.54%) | threshold 0.674, rates 0.049 / 0.896 | not flagged | share 0.75
+  S237-90     re-held 90 85.28% / 96.13% / 80.40% | loss -10.847 points (0 lost, 2061 saved of 19000; discordant 10.85%, its upper bound 11.30%) | threshold 0.653, rates 0.048 / 0.921 | not flagged | share 0.9
+  S237-gain   feature gain  84.41% / 96.69% / 96.80% | loss -12.284 points (2 lost, 2336 saved of 19000; discordant 12.31%, its upper bound 12.78%) | threshold 0.679, rates 0.048 / 0.890 | not flagged | share 0.5
+  S265-75     re-held 75 84.32% / 92.37% / 92.20% | loss -8.058 points (0 lost, 1531 saved of 19000; discordant 8.06%, its upper bound 8.45%) | threshold 0.595, rates 0.050 / 0.972 | not flagged | share 0.75
+  S265-90     re-held 90 84.05% / 90.84% / 91.00% | loss -6.795 points (0 lost, 1291 saved of 19000; discordant 6.79%, its upper bound 7.16%) | threshold 0.568, rates 0.049 / 0.987 | not flagged | share 0.9
+  S265-spa67  feature spa67 85.57% / 95.07% / 94.60% | loss -9.505 points (0 lost, 1806 saved of 19000; discordant 9.51%, its upper bound 9.93%) | threshold 0.626, rates 0.049 / 0.948 | not flagged | share 0.5
+  S291-75     re-held 75 84.03% / 95.06% / 93.10% | loss -11.026 points (4 lost, 2099 saved of 19000; discordant 11.07%, its upper bound 11.52%) | threshold 0.653, rates 0.050 / 0.919 | not flagged | share 0.75
+  S291-90     re-held 90 84.96% / 94.94% / 91.60% | loss -9.984 points (3 lost, 1900 saved of 19000; discordant 10.02%, its upper bound 10.45%) | threshold 0.637, rates 0.048 / 0.938 | not flagged | share 0.9
+  S291-db     feature db    83.84% / 91.69% / 91.50% | loss -7.858 points (8 lost, 1501 saved of 19000; discordant 7.94%, its upper bound 8.34%) | threshold 0.595, rates 0.049 / 0.973 | not flagged | share 0.5
+  S389-75     re-held 75 85.11% / 97.05% / 93.70% | loss -11.942 points (6 lost, 2275 saved of 19000; discordant 12.01%, its upper bound 12.48%) | threshold 0.674, rates 0.048 / 0.897 | not flagged | share 0.75
+  S389-90     re-held 90 84.65% / 96.09% / 83.20% | loss -11.442 points (0 lost, 2174 saved of 19000; discordant 11.44%, its upper bound 11.90%) | threshold 0.663, rates 0.048 / 0.909 | not flagged | share 0.9
+  S389-gain   feature gain  85.13% / 96.85% / 96.60% | loss -11.721 points (1 lost, 2228 saved of 19000; discordant 11.73%, its upper bound 12.20%) | threshold 0.668, rates 0.048 / 0.903 | not flagged | share 0.5
+  S019-75     re-held 75 85.71% / 97.61% / 92.30% | loss -11.900 points (1 lost, 2262 saved of 19000; discordant 11.91%, its upper bound 12.38%) | threshold 0.668, rates 0.050 / 0.901 | not flagged | share 0.75
+  S019-90     re-held 90 86.72% / 96.50% / 73.40% | loss -9.779 points (2 lost, 1860 saved of 19000; discordant 9.80%, its upper bound 10.23%) | threshold 0.632, rates 0.049 / 0.943 | not flagged | share 0.9
+  S019-spa67  feature spa67 86.86% / 96.99% / 97.00% | loss -10.132 points (1 lost, 1926 saved of 19000; discordant 10.14%, its upper bound 10.58%) | threshold 0.637, rates 0.049 / 0.937 | not flagged | share 0.5
+
+Units where a solver arm's own MPAA ages differed from arm A's, which it took (the report D94 adopted; the age follows each arm's own drawing): S015-db (APP none/65; CANDS's own 68/65, CANDH's own 68/65); S183-75 (APP 60/60; CANDS's own 60/58, CANDH's own 60/58); S265-75 (APP 60/60; CANDS's own 58/58, CANDH's own 58/58); S265-90 (APP 60/60; CANDS's own 58/58, CANDH's own 58/58); S265-spa67 (APP 60/60; CANDS's own 58/58, CANDH's own 58/58); S291-75 (APP 60/60; CANDS's own 58/58, CANDH's own 58/58); S291-90 (APP 60/60; CANDS's own 58/58, CANDH's own 58/58)
+
+The rule (CANDS against APP):
+  1. D34's harm rule on the 24 re-held units: flagged none
+  2. the pooled gain over the 24 re-held units, on their first 19000 paths: +10.682 points (95% +10.442 to +10.921, se 0.1221); its lower end above 0: HOLDS
+  3. D34's harm rule on the 12 units with a feature, read apart: flagged none; their pooled change +9.930 points (95% +9.707 to +10.153)
+  comparisons whose 1-point rate at their realised discordance falls below 0.9 (named, D34 (4)): S015-75 0.861 (discordant 13.76%), S015-90 0.848 (discordant 14.28%), S015-db 0.875 (discordant 13.13%), S043-90 0.896 (discordant 12.10%), S129-75 0.896 (discordant 12.08%), S237-75 0.896 (discordant 12.07%), S237-gain 0.890 (discordant 12.31%), S389-75 0.897 (discordant 12.01%)
+
+Beside the rule, deciding nothing:
+  spending delivered over the re-held units, CANDS less APP: +4.024% of APP's (95% +3.992 to +4.055)
+  the share rule's own effect, CANDS less CANDH on the re-held units' first 1000 paths: +12.867 points (95% +11.946 to +13.787); by unit S015-75 +2.90, S015-90 +38.00, S043-75 +7.70, S043-90 +33.10, S103-75 +8.40, S103-90 +38.30, S129-75 +7.00, S129-90 +15.80, S155-75 +9.90, S155-90 +35.00, S183-75 +3.70, S183-90 +11.80, S211-75 +6.60, S211-90 +23.60, S237-75 +5.60, S237-90 +16.00, S265-75 -0.30, S265-90 -0.90, S291-75 +1.20, S291-90 +2.60, S389-75 +2.50, S389-90 +12.70, S019-75 +4.80, S019-90 +22.80
+  the re-held units: the mean pot left APP / CANDS £7,552,317 / £3,017,579; lifetime tax £144,075 / £113,220
+  the units with a feature: the mean pot left APP / CANDS £6,934,109 / £3,049,652; lifetime tax £184,035 / £129,710
+  the solves' seconds, the median over the units (CANDS / CANDH): 136 / 97; the engine's milliseconds a path (CANDS / APP): 153.8 / 0.45; the hosts: Intel(R) Xeon(R) Processor @ 2.10GHz
+  the couples' rollout in the exact model beside the engine on CANDS's first paths: 18000 paths, the engine alone 0, the model alone 0
+
+ITEM 6 STAGE C OUTCOME: PASS: no unit flagged and the pooled gain's 95% interval above 0: shareRule 'pots' becomes the couples' default and the guard comes off for what the panel tested, couples whose elder (by age) holds more than 60% and at most 90% of the pots, in the same commit as the D-line naming this run; a couple whose younger partner holds more, or where either holds over 90%, keeps the app's rules until a test of those reads

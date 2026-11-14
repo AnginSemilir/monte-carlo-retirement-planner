@@ -37,6 +37,7 @@ import { SectionTabs, DeckBar } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
 import EditMode from './EditMode.jsx';
 import { useSolverState } from './solverState.js';
+import { coupleSolverOn } from './couplesSwitch.js';
 // ============================================================================================
 // Monte-Carlo Retirement Planner v3.4 — single-file build (engine + UI).
 // The engine section is framework-free and unit-tested; the UI section starts at "export default function App".
@@ -1061,7 +1062,10 @@ function normalizeSolverLocks(src) {
   const l = isPlainObject(src.locks) ? src.locks : {}, tc = isPlainObject(l.tierCeiling) ? l.tierCeiling : {};
   const age = l.pensionBefore === null || l.pensionBefore === '' || l.pensionBefore === undefined ? NaN : num(l.pensionBefore, NaN);
   const tier = v => (typeof v === 'string' && DEFAULT_RISK_PROFILES[v] ? v : null);
-  return { locks: { pensionBefore: Number.isFinite(age) ? clamp(Math.round(age), 0, 120) : null, tierCeiling: { pen: tier(tc.pen), isa: tier(tc.isa) }, lumpSum: ['never', 'now'].includes(l.lumpSum) ? l.lumpSum : 'free' } };
+  // a couple's partner's own ceilings (Part D, D5: the limits per person; src/solverSettings.js lockedPlan), kept only where
+  // the plan carries them, so every other plan normalises as before
+  const part = isPlainObject(l.tierCeilingPart) ? { tierCeilingPart: { pen: tier(l.tierCeilingPart.pen), isa: tier(l.tierCeilingPart.isa) } } : {};
+  return { locks: { pensionBefore: Number.isFinite(age) ? clamp(Math.round(age), 0, 120) : null, tierCeiling: { pen: tier(tc.pen), isa: tier(tc.isa) }, lumpSum: ['never', 'now'].includes(l.lumpSum) ? l.lumpSum : 'free', ...part } };
 }
 /*
  * WHAT THE SOLVER AIMS FOR (Part C Phase 8, research/solver/PHASE-8.md): `plan.solver.aims`, kept only where a plan carries it.
@@ -1183,8 +1187,10 @@ function normalizePlan(raw) {
     plan.riskProfiles[k] = { ...DEFAULT_RISK_PROFILES[k], ...(isPlainObject(rp[k]) ? rp[k] : {}) };
   });
   plan.accounts.forEach(a => { if (!plan.riskProfiles[a.risk]) a.risk = 'High Risk'; });
-  // the solver's locks, only where the plan carries them: a plan without them normalises exactly as before (Part C Phase 7c)
-  if (isPlainObject(src.solver)) plan.solver = { ...normalizeSolverLocks(src.solver), ...(isPlainObject(src.solver.aims) ? { aims: normalizeSolverAims(src.solver.aims) } : {}) };
+  // the solver's locks, only where the plan carries them: a plan without them normalises exactly as before (Part C Phase 7c).
+  // `speed` 'fast', the speed mode (D97 (3): the chooser's shortlist on the paths that only count, src/solverSettings.js
+  // speedOptions), kept only where the plan carries it, so every other plan normalises as before
+  if (isPlainObject(src.solver)) plan.solver = { ...normalizeSolverLocks(src.solver), ...(isPlainObject(src.solver.aims) ? { aims: normalizeSolverAims(src.solver.aims) } : {}), ...(src.solver.speed === 'fast' ? { speed: 'fast' } : {}) };
   return plan;
 }
 
@@ -8691,9 +8697,12 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const [mcSeed, setMcSeed] = useState(12345);
 
   const [plan, setPlan] = useState(() => E.normalizePlan(safeStorageGet(STORAGE_KEY) ? (() => { try { return JSON.parse(safeStorageGet(STORAGE_KEY)); } catch (e) { return null; } })() : null));
-  // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it). Single households only (D42):
-  // a couple's plan keeps the app's rules and is not solved
-  const solverRules = solverOn && plan?.demographics?.planningMode === 'single';
+  // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it). A single household's plan, and
+  // a couple's where couples are on (Part D, D5 and D6: src/couplesSwitch.js COUPLES, on since D99) and the couple is inside
+  // the guard (its first person holding 40% to 60% of the pots, or its elder by age more than 60% and at most 90%: item 6's
+  // stage C, D99); any other couple's plan keeps the app's rules and is not solved (D42), the couples card saying why
+  const coupleState = plan?.demographics?.planningMode === 'couple' ? coupleSolverOn(plan) : null;
+  const solverRules = solverOn && (plan?.demographics?.planningMode === 'single' || !!(coupleState && coupleState.on));
   // the navigation: the new planner's four places, or the classic tabs
   const navTabs = solverOn ? (PLANNER_PLANT.has('fifthplace') ? [...PLANNER_TABS, { id: 'more', Icon: Layers, label: 'More', short: 'More' }] : PLANNER_TABS) : visibleTabs();
   // step U's plant 'classicfetch' (solver-planner-ui check 14): the classic planner fetching a solver chunk at its first render
@@ -8794,6 +8803,8 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
 
   const fileInputRef = useRef(null);
   const isCouple = plan?.demographics?.planningMode !== 'single';
+  // a couple's plan the solver does not run (above, solverRules): the couples card on Your plan, What if and Details
+  const coupleCard = isCouple && (!solverRules || PLANNER_PLANT.has('couplecard'));   // plant 'couplecard': solver-planner-ui check 19
 
   // ------------------------------------------------------------ engine context & projections
   /*
@@ -9279,7 +9290,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     // the ledger's action words come with it: solverWords.js loads then, in a chunk of its own, not with the page
     const asked = solve.ask('rows', { market: want === 'expected' ? 'expected' : { historical: true, startYear: want } });
     (want === 'expected'
-      ? Promise.all([asked, import('./solverWords.js')]).then(([a, w]) => ({ ...a, rows: a.rows && { ...a.rows, words: a.rows.parts.map((pt, i) => w.ledgerWords(pt, a.rows.rows[i].targetSpend > 0, a.rows.rows[i])) } }))
+      ? Promise.all([asked, import('./solverWords.js')]).then(([a, w]) => ({ ...a, rows: a.rows && { ...a.rows, words: a.rows.parts.map((pt, i) => (a.rows.couple ? w.coupleLedgerWords : w.ledgerWords)(pt, a.rows.rows[i].targetSpend > 0, a.rows.rows[i])) } }))
       : asked)
       .then(({ rows: run }) => { if (live && run) setSolvedRows(s => { const kept = s.key === key ? s : { key, expected: null, hist: {} }; return want === 'expected' ? { ...kept, expected: run } : { ...kept, hist: { ...kept.hist, [want]: run } }; }); })
       .catch(() => { /* the solved plan's run failed: your plan's figures stand */ });
@@ -12358,7 +12369,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   );
   // the new planner's cards come in a chunk of their own (src/PlannerCards.jsx; LAYOUT.md section 11.2)
   const couplesCard = () => (
-    <Suspense fallback={null}><PlannerCouples isPhone={isPhone} onClassic={() => setPlanner('classic')} onOnePerson={() => { setActiveTab('you'); selectSection('you'); }} /></Suspense>
+    <Suspense fallback={null}><PlannerCouples isPhone={isPhone} why={coupleState ? coupleState.why : 'off'} share={coupleState ? coupleState.share : null} onClassic={() => setPlanner('classic')} onOnePerson={() => { setActiveTab('you'); selectSection('you'); }} /></Suspense>
   );
   const youNav = () => <Suspense fallback={null}><PlannerYouNav sections={PLANNER_SECTIONS} names={YOU_NAMES} /></Suspense>;
   const youHeader = () => <Suspense fallback={null}><PlannerYouHeader isPhone={isPhone} onSave={handleSaveAsNewScenario} /></Suspense>;
@@ -16474,7 +16485,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <QuickStartCard onStart={p => { setPlan(p); setAskedPlan(p); }} onFillAll={() => { setActiveTab('you'); selectSection('you'); }} onClassic={() => setPlanner('classic')}
                   isPhone={isPhone} regions={E.TAX_REGION_LABELS} statePensionFull={E.STATE_PENSION_FULL} fmt={formatGBP} />
               </Suspense>
-            ) : isCouple ? couplesCard() : (
+            ) : coupleCard ? couplesCard() : (
               <Suspense fallback={<div data-plan-answer="loading" className="p-5 bg-surface border border-indigo-200 rounded-xl text-sm text-slate-600">Loading your plan&hellip;</div>}>
                 <PlannerPlanCard plan={plan} solve={solve} seed={mcSeed} fmt={formatGBP} isPhone={isPhone} steps={plannerSteps}
                   {...(SOLVER_OPTS && SOLVER_OPTS.strategyActionsN ? { actionsN: SOLVER_OPTS.strategyActionsN } : {})}
@@ -16490,7 +16501,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <main data-place="whatif" className="space-y-6">
             <h1 className="text-[22px] font-semibold text-slate-900">What if</h1>
             {!planStarted ? <p className="text-sm text-slate-600">Fill in your plan first, on Your plan or in You.</p>
-              : isCouple ? couplesCard() : (
+              : coupleCard ? couplesCard() : (
                 <Suspense fallback={null}>
                   <PlannerWhatIf solvedInHand={solvedInHand} plan={plan} solve={solve} ageNow={ctx.owners[0].age0} last={terminalAge - 1} seed={mcSeed} upto={plannerSteps[0]}
                     engine={E} opts={SOLVER_OPTS} fmt={formatGBP} scenarios={{ scenarios, activeScenarioId, isPhone, onLoad: handleSelectScenario, onDelete: handleDeleteScenario }} />
@@ -16504,7 +16515,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <PlannerDetails isPhone={isPhone} sections={DETAILS_SECTIONS} section={detailsSection} onSection={setDetailsSection}
               onPrint={planFigures ? printSolvedPlan : null} onExport={handleExportJSON} onImport={() => fileInputRef.current?.click()}
               fileInput={<input type="file" ref={fileInputRef} onChange={handleImportJSON} className="hidden" />}
-              couple={isCouple ? couplesCard : null} ledger={auditCard} history={historyView} taxRules={ctlTaxRules} assumptions={() => assumptionCards(false)}
+              couple={coupleCard ? couplesCard : null} ledger={auditCard} history={historyView} taxRules={ctlTaxRules} assumptions={() => assumptionCards(false)}
               theme={<ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />} numberFormat={numberFormatCard}
               settings={solverSettingsCard} docs={docsSolverCard} />
           </Suspense>

@@ -81,7 +81,41 @@ export const atDial = (plan, x) => ({ ...plan, solver: { ...(plan.solver || {}),
 /* the solver's aims as the Config tab stores them: a choice there writes every aim, the defaults filled in (SolverConfig.jsx) */
 export const AIMS_DEFAULT = Object.freeze({ cuts: 1, estate: 'standard', raises: 'capped', riskConsent: true });
 export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.solver || {}), aims: { ...AIMS_DEFAULT, ...((plan.solver && plan.solver.aims) || {}), ...patch } } });
-export const PLANT = { rule: '' };   // tests only: 'rawsig' (solver-figures.test.mjs) keys the dial's figures on the plan as stored; 'needsolver', 'lumpthrow' (library-sweep.test.mjs, prepareForSolve)
+/*
+ * THE SPEED MODE ("Beta - speed mode"; D97 (3), D98, 14 Nov). `plan.solver.speed` 'fast' (App.jsx normalizePlan keeps it only
+ * where a plan carries it) hands the solve the chooser's shortlist (`chooserShortlist: 'order'`, src/solver/solve.js: the paths
+ * that only count score the moves the table's own cells chose and their kin, never a decision the pages show; the review of
+ * 9 Nov, item 7; results-tie-a.txt for singles, results-item12-a.txt for couples). The plan carries it, so it names the solve
+ * as every other setting does (src/solverKey.js): a solve in speed mode is stored apart from one without, and a dial position
+ * and its base, a What if variant and each person of a couple (src/solver/couple.js) take it from the plan. Off, the plan
+ * carries no field, so it solves and is named as before. research/tests/speed-mode.test.mjs.
+ */
+/*
+ * THE COUPLES' DEFAULT (D99, 14 Nov; item 6's stage C, research/solver/registrations/couples-share.md, read once: PASS,
+ * results-couples-share.txt). A couple's two tables are each solved on that person's share of the household's spending: half
+ * where the first person holds 40% to 60% of the pots, their share of the pots outside it (src/solver/couple.js shareFor,
+ * `shareRule: 'pots'`). The solver's own default stays the half share, a research option there, as the candidate's options are
+ * off in the solver's code; the page solves a couple with this (src/solverClient.js startSolve). Which couples the page solves
+ * at all is src/couplesSwitch.js's guard. Pinned to STATE.md's decided-defaults block by research/tests/couple-default.test.mjs.
+ */
+export const APP_COUPLE = Object.freeze({ shareRule: 'pots' });
+export const SPEED_OPTIONS = Object.freeze({ chooserShortlist: 'order' });
+export const speedOf = plan => !!(plan && plan.solver && plan.solver.speed === 'fast');
+// plant 'speednone' (speed-mode.test.mjs): the solve not handed the speed mode the plan asks for
+export const speedOptions = plan => (speedOf(plan) && PLANT.rule !== 'speednone' ? SPEED_OPTIONS : {});
+export function withSpeed(plan, on) {
+  const s = (plan && plan.solver) || null;
+  if (!on && !(s && 'speed' in s)) return plan;
+  const rest = { ...(s || {}) };
+  delete rest.speed;
+  if (on) return { ...plan, solver: { ...rest, speed: 'fast' } };
+  // off: no field left behind, and no empty solver section where the plan had none before the speed mode was turned on
+  if (Object.keys(rest).length) return { ...plan, solver: rest };
+  const out = { ...plan };
+  delete out.solver;
+  return out;
+}
+export const PLANT = { rule: '' };   // tests only: 'speednone' (speed-mode.test.mjs, speedOptions: the speed mode not handed to the solve); 'rawsig' (solver-figures.test.mjs) keys the dial's figures on the plan as stored; 'needsolver', 'lumpthrow' (library-sweep.test.mjs, prepareForSolve); 'nopartceil', 'singlepart', 'partfree' (couple-limits.test.mjs, lockedPlan: the partner's own ceilings not held; read on a single's plan, as before 14 Nov; the partner's wrappers left free where they have no ceilings of their own)
 /* what the dial's figures belong to (Phase 10, item 3): the plan at position 1 with its aims filled in, so choosing another
    position (which writes the defaults the plan left out) keeps them, and any other edit drops them */
 export const dialSig = plan => JSON.stringify(atDial(PLANT.rule === 'rawsig' ? plan : withAims(plan), 1));
@@ -131,7 +165,11 @@ const RISK = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk',
  * the solver solves, so the engine that runs the solved plan holds to them too. Each shrinks what the solver may do:
  *   pensionBefore  the plan's pension access age raised to it (never lowered): no pension, nor lump sum, before that age;
  *   tierCeiling    the pension's or ISA's tier lowered to it where riskier (single households: the wrappers of 'self'), and
- *                  the tier above switched off (`riskAbove: false`), so no tier the solver may choose is riskier;
+ *                  the tier above switched off (`riskAbove: false`), so no tier the solver may choose is riskier; a couple's
+ *                  partner's own (`tierCeilingPart`, Part D, D5: the limits per person) holds their wrappers (`_part`), the
+ *                  first person's `tierCeiling` theirs; where the partner has none of their own, `tierCeiling` holds both;
+ *                  a single's plan never reads `tierCeilingPart` and drops it from the plan the solver takes, so a single that
+ *                  carries it (a couple's plan made a single's) locks, keys and solves as without it (couple-limits check 5);
  *   lumpSum        'never' phased drawdown, 'now' the full tax-free lump at first access, 'free' the plan's own choice (the
  *                  solver does not choose the lump yet: the lump sum's route is the maintainer's call, D41 (5)).
  * Applied twice is applied once.
@@ -140,17 +178,21 @@ export function lockedPlan(E, plan) {
   const L = plan.solver && plan.solver.locks;
   if (!L) return { plan, riskAbove: undefined };
   let p = plan, binds = false;
+  // the partner's own ceilings are a couple's alone (the engine's reading: a plan is a couple's unless it says 'single')
+  const couple = (plan.demographics || {}).planningMode !== 'single', partRead = couple || PLANT.rule === 'singlepart';
+  if (!partRead && 'tierCeilingPart' in L) { const { tierCeilingPart, ...rest } = L; p = { ...p, solver: { ...p.solver, locks: rest } }; }
   if (L.pensionBefore !== null && L.pensionBefore !== undefined) {
     const d = p.demographics || {}, now = E.num(d.privatePensionAge, 58);
     if (L.pensionBefore > now) p = { ...p, demographics: { ...d, privatePensionAge: L.pensionBefore } };
   }
   if (L.lumpSum === 'never' || L.lumpSum === 'now') p = { ...p, spending: { ...p.spending, drawdownStrategy: L.lumpSum === 'now' ? 'Full 25% Lump Sum' : 'Phased Drawdown' } };
-  const tc = L.tierCeiling || {};
+  const tc = L.tierCeiling || {}, tp = partRead && 'tierCeilingPart' in L && PLANT.rule !== 'nopartceil' ? L.tierCeilingPart || {} : null;
+  const real = c => !!c && RISK.includes(c);
   for (const [w, prefix] of [['pen', 'pen_'], ['isa', 'isa_']]) {
-    const ceil = tc[w];
-    if (!ceil || !RISK.includes(ceil)) continue;
+    const self = real(tc[w]) ? tc[w] : null, part = tp ? (real(tp[w]) ? tp[w] : null) : PLANT.rule === 'partfree' ? null : self;
+    if (!self && !part) continue;
     binds = true;
-    p = { ...p, accounts: (p.accounts || []).map(a => (a.id && a.id.startsWith(prefix) && RISK.indexOf(a.risk) < RISK.indexOf(ceil) ? { ...a, risk: ceil } : a)) };
+    p = { ...p, accounts: (p.accounts || []).map(a => { const ceil = /_part$/.test(String(a.id)) ? part : self; return (ceil && a.id && a.id.startsWith(prefix) && RISK.indexOf(a.risk) < RISK.indexOf(ceil) ? { ...a, risk: ceil } : a); }) };
   }
   return { plan: p, riskAbove: binds ? false : undefined };
 }

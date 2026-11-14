@@ -354,7 +354,9 @@ table shorter than the couple's horizon. The cut gives each person the couple's 
 plan's end age stops at 120. The solve's figures then fail with the failure card. It is loud, and no figure is wrong.
 - It is rare: it needs an age gap wider than 120 less the end age.
 - It predates D99.
-- Its fix, the guard keeping such a couple on the app's rules with a check of its class, goes with the next batch.
+- Its fix, the guard keeping such a couple on the app's rules (`src/couplesSwitch.js` `horizonFits`, its reason 'ages' and
+  the couples card's words for it), with a check of its class (`couple-default.test.mjs` check 6, its plant 'noagecap'), is
+  built on the working branch after the release branch's cut and goes with the next batch.
 
 Merged on B1's gate with batch 3 and the speed mode (D92), the plant `couplehalf`'s run alone recorded first.
 

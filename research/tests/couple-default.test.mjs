@@ -25,13 +25,19 @@
  *   5. a couple's cut gives each person what the couple's own run reads (the reviewer on D99, finding 4): over 30 of the
  *      library's couples, with each person's age, each retirement age or the plan's end age left blank, the ages as text, or
  *      the end age at the first person's age, each person's plan (src/solverCouple.js couplePlans) has the age today, the
- *      retirement age, the salary, the state pension and the horizon the household's context gives that person.
+ *      retirement age, the salary, the state pension and the horizon the household's context gives that person;
+ *   6. a couple whose partner would pass 120 before the plan ends keeps the app's rules (the reviewer on D99, second round,
+ *      MINOR 1: a person's table cannot run past 120, so the cut would give that partner a shorter horizon and the figures
+ *      fail): over 30 of the library's couples, each end age from 95 to 120 and the partner from their own age to 35 years
+ *      older, the guard 'ages' exactly where the engine's own ages put the partner past 120 by the plan's end, and every
+ *      couple the guard runs cut to the couple's horizon for both people; the reviewer's two cases among them.
  * Plants (--planted runs each and wants its checks to fail): 'firstnotelder' (src/couplesSwitch.js: the first person taken for
  * the elder whatever the ages: check 2), 'eldereither' (src/couplesSwitch.js: the guard lifted for an elder entered second too,
  * as D99's first draft: check 2), 'halfdefault' (src/solverClient.js: a couple solved on the half share unless asked otherwise,
  * as before D99: check 3), 'oldcouples' (src/solverApproximations.js: the line before D99 with couples on: check 4), 'rawages'
- * (src/solverCouple.js householdPlan: a blank age or end age left as the plan has it: check 5). Check 1's planted blocks run
- * in every run.
+ * (src/solverCouple.js householdPlan: a blank age or end age left as the plan has it: check 5), 'noagecap'
+ * (src/couplesSwitch.js: a couple run whose partner would pass 120 before the plan ends: check 6). Check 1's planted blocks
+ * run in every run.
  *   node research/tests/couple-default.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -39,7 +45,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { COUPLES, COUPLE_BAND, ELDER_UP_TO, ELDER_FIRST, coupleSolverOn, elderOf, PLANT as SWITCH_PLANT } from '../../src/couplesSwitch.js';
+import { COUPLES, COUPLE_BAND, ELDER_UP_TO, ELDER_FIRST, coupleSolverOn, elderOf, horizonFits, PLANT as SWITCH_PLANT } from '../../src/couplesSwitch.js';
 import { APP_COUPLE } from '../../src/solverSettings.js';
 import { couplePlans, PLANT as COUPLE_PLANT } from '../../src/solverCouple.js';
 import { solverApproximations, COUPLES_LINE, PLANT as WORDS_PLANT } from '../../src/solverApproximations.js';
@@ -48,7 +54,7 @@ import { buildScenarios } from '../policy-study/scenarios.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['firstnotelder', ['2']], ['eldereither', ['2']], ['halfdefault', ['3']], ['oldcouples', ['4']], ['rawages', ['5']]]) {
+  for (const [plant, want] of [['firstnotelder', ['2']], ['eldereither', ['2']], ['halfdefault', ['3']], ['oldcouples', ['4']], ['rawages', ['5']], ['noagecap', ['6']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, COUPLE_DEFAULT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
@@ -58,7 +64,7 @@ if (process.argv.includes('--planted')) {
   process.exit(bad ? 1 : 0);
 }
 const PLANTED = process.env.COUPLE_DEFAULT_PLANT || '';
-if (PLANTED === 'firstnotelder' || PLANTED === 'eldereither') SWITCH_PLANT.rule = PLANTED;
+if (PLANTED === 'firstnotelder' || PLANTED === 'eldereither' || PLANTED === 'noagecap') SWITCH_PLANT.rule = PLANTED;
 if (PLANTED === 'oldcouples') WORDS_PLANT.rule = PLANTED;
 if (PLANTED === 'rawages') COUPLE_PLANT.rule = PLANTED;
 
@@ -171,6 +177,34 @@ const withAges = (plan, how) => { const re = JSON.parse(JSON.stringify(plan)), d
   }
   ok('5. a couple\'s cut gives each person the age, retirement age, salary, state pension and horizon the couple\'s own run reads, whatever is left blank',
     n === 30 * variants.length * 2 && differ === 0, `${n} people (30 couples, ${variants.length} variants), ${differ} differing${first.length ? `: ${first.join('; ')}` : ''}`); }
+
+// 6. the age cap: a couple whose partner would pass 120 before the plan ends keeps the app's rules
+{ let n = 0, wrongWhy = 0, shortOn = 0, capped = 0, ran = 0; const first = [];
+  const cases = [];
+  for (const c of couples.slice(0, 30)) for (const end of [95, 100, 110, 120]) for (const older of [0, 15, 25, 35]) {
+    const p = JSON.parse(JSON.stringify(c.plan)), d = p.demographics;
+    d.terminalAge = end; d.currentAgePart = Math.min(120, Number(d.currentAgePart) + older);
+    cases.push([`${c.id} ending at ${end}, the partner ${older} years older`, p]);
+  }
+  // the reviewer's two: S001 held 60/40 at 49 and 70 ending at 100; a blank first age beside a partner of 66 ending at 95
+  { const s1 = couples.find(x => x.id === 'S001') || couples[0];
+    const a = JSON.parse(JSON.stringify(s1.plan)); Object.assign(a.demographics, { currentAgeSelf: 49, currentAgePart: 70, terminalAge: 100 }); cases.push(['the reviewer\'s 49 and 70 ending at 100', a]);
+    const b = JSON.parse(JSON.stringify(s1.plan)); Object.assign(b.demographics, { currentAgeSelf: '', currentAgePart: 66, terminalAge: 95 }); cases.push(['the reviewer\'s blank and 66 ending at 95', b]); }
+  for (const [name, p] of cases) {
+    const h = E.buildContext(E.resolveMpaa(E.normalizePlan(p))), fits = h.agePart0 + (h.terminalAge - h.ageSelf0) <= 120 + 1e-9;
+    const g = coupleSolverOn(p, true);
+    n++; if (!fits) capped++;
+    if ((g.why === 'ages') !== !fits) { wrongWhy++; if (first.length < 3) first.push(`${name}: the guard '${g.why}', the engine's partner ${h.agePart0 + (h.terminalAge - h.ageSelf0)} at the end`); }
+    if (g.on) {
+      ran++;
+      const cut = couplePlans(E, p), short = ['self', 'part'].some(w => E.buildContext(cut.plans[w]).totalYears !== h.totalYears);
+      if (short) { shortOn++; if (first.length < 3) first.push(`${name}: run, its cut short of the couple's ${h.totalYears} years`); }
+    }
+  }
+  const named = cases.slice(-2).every(([, p]) => coupleSolverOn(p, true).why === 'ages');
+  ok('6. a couple whose partner would pass 120 before the plan ends keeps the app\'s rules (\'ages\'), exactly where the engine\'s ages put them past it; every couple run cut to its whole horizon; the reviewer\'s two cases kept off',
+    wrongWhy === 0 && shortOn === 0 && capped > 0 && ran > 0 && named && cases.every(([, p]) => horizonFits(p) === (coupleSolverOn(p, true).why !== 'ages')),
+    `${n} plans, ${capped} past 120 by the end, ${ran} run; the reason wrong on ${wrongWhy}, a run couple cut short on ${shortOn}${first.length ? `: ${first.join('; ')}` : ''}`); }
 
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
 process.exit(fail ? 1 : 0);

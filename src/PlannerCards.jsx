@@ -17,15 +17,19 @@ import { DiagnosticCopy } from './DiagnosticCopy.jsx';
    `why` 'off': couples are not on in the solver (src/couplesSwitch.js COUPLES off, the rollback), the words as before D5;
    'uneven': couples are on (D99), and this one is outside the guard: its first person holding neither 40% to 60% of the pots
    nor, as the elder, more than 60% and at most 90%, which keeps the app's rules until a test of those holdings reads
-   (src/couplesSwitch.js coupleSolverOn); `share` the first person's share of the pots */
+   (src/couplesSwitch.js coupleSolverOn); 'ages': couples are on, and this one's partner would pass 120 before the plan ends,
+   which a person's table cannot run to (src/couplesSwitch.js horizonFits); `share` the first person's share of the pots */
 export function Couples({ isPhone, onClassic, onOnePerson, why = 'off', share = null }) {
   if (PLANNER_PLANT.has('nocouple')) return null;
   // a share shown at an edge of the guard (10%, 40%, 60%, 90%) is not rounded onto it, so a couple just outside is not told it holds
   // what was tested (the reviewer on D99, finding 5): "just over 90%", "just under 40%"
-  const uneven = why === 'uneven', pc = x => { const p = 100 * x, r = Math.round(p); return [10, 40, 60, 90].includes(r) && Math.abs(p - r) > 1e-9 ? `just ${p > r ? 'over' : 'under'} ${r}%` : `${r}%`; };
+  const uneven = why === 'uneven', ages = why === 'ages', pc = x => { const p = 100 * x, r = Math.round(p); return [10, 40, 60, 90].includes(r) && Math.abs(p - r) > 1e-9 ? `just ${p > r ? 'over' : 'under'} ${r}%` : `${r}%`; };
   return (
   <section data-planner-couple={why} className="p-5 bg-surface border border-slate-200/90 rounded-xl space-y-3 max-w-3xl">
-    {uneven ? <>
+    {ages ? <>
+      <h2 className="text-[15px] font-semibold text-slate-900">The new planner cannot work out a plan this long for the two of you yet</h2>
+      <p className="text-sm text-slate-600">Your plan runs until your partner would be past 120, which the new planner cannot plan for yet. Ending the plan at an earlier age brings it within reach; until then your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+    </> : uneven ? <>
       <h2 className="text-[15px] font-semibold text-slate-900">The new planner does not work out a split like yours yet</h2>
       <p className="text-sm text-slate-600" data-couple-share={share}>Your plan has {pc(share)} of your money with you and {pc(1 - share)} with your partner. The solver has been tested on couples who hold their money about evenly, 40% to 60% each, and on couples where you are the older of the two and hold up to 90% of it. A split like yours is still to be tested, so for now your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
     </> : <>

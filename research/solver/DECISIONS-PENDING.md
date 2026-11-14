@@ -11,6 +11,12 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**RULED (D101, 14 Nov, afternoon): the new planner's first-load ceiling to 240KB.** B1's gate on the third batch found the
+new planner's first load on an empty plan at 239KB against its ceiling of 237KB, a saved plan at 235KB. The growth since
+batch 3's first gate is about 1.2KB compressed: the speed mode's and the couples' screens' code, not the engine's, so by
+D94 (2) it stopped for the maintainer. The maintainer: "Go with your recco": the measured figure plus one, 240KB, with a
+dated note in `load-perf-ui.cjs`; the classic mode run again on it.
+
 **RULED (D100, 14 Nov, afternoon): couples in the other order get their own test.** The maintainer: "Ensure a follow up test
 is placed in the plan so we can open up couples in the other order." Since D99 the solver plans for an uneven couple only
 when the older partner is entered first, as every couple stage C tested was. The test, in full in `PART-D.md` D7:

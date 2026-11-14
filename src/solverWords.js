@@ -63,8 +63,8 @@ export function dialLineWords(h, fmt) {
 }
 
 /* this year's actions and the next years', in the playbook's words (the launch plan's Phase 9, items 4 and 5) */
-const DRAW = { 'pa-half': 'up to half your personal allowance', pa: 'up to your personal allowance', 'basic-mid': 'up to the middle of the basic-rate band', basic: 'up to the basic-rate limit', hr: 'up to the higher-rate taper threshold' };
-const WRAP = { pa: 'your personal allowance', basic: 'the basic-rate limit', hr: 'the higher-rate taper threshold', pam: 'half your personal allowance', bm: 'the middle of the basic-rate band' };
+const DRAW = { 'pa-half': 'up to half your personal allowance', pa: 'up to your personal allowance', 'pa-raw': 'up to your personal allowance, not counting your interest and dividends', 'basic-mid': 'up to the middle of the basic-rate band', basic: 'up to the basic-rate limit', hr: 'up to the higher-rate taper threshold' };
+const WRAP = { pa: 'your personal allowance', paraw: 'your personal allowance, not counting your interest and dividends', basic: 'the basic-rate limit', hr: 'the higher-rate taper threshold', pam: 'half your personal allowance', bm: 'the middle of the basic-rate band' };
 const steps = k => `${k} step${k > 1 ? 's' : ''}`;
 export const PART_WORDS = {
   level: (v, { target, fmt }) => (v < 1 ? `Spend ${fmt(v * target)} this year, ${pct(100 * v)} of your target` : `Spend up to ${fmt(v * target)} this year, ${pct(100 * v)} of your target`),
@@ -134,8 +134,8 @@ export function aheadRowsWords(rows, ctx) {
 }
 /* the audit table's action column (Phase 10, item 7): one year's move, short, the spending first where the year has a target;
    null in a year the table chose no move */
-const SHORT_DRAW = { 'pa-half': 'half the personal allowance', pa: 'the personal allowance', 'basic-mid': 'mid basic rate', basic: 'the basic-rate limit', hr: 'the taper threshold' };
-const SHORT_WRAP = { pa: 'the personal allowance', basic: 'the basic-rate limit', hr: 'the taper threshold', pam: 'half the personal allowance', bm: 'mid basic rate' };
+const SHORT_DRAW = { 'pa-half': 'half the personal allowance', pa: 'the personal allowance', 'pa-raw': 'the personal allowance before interest and dividends', 'basic-mid': 'mid basic rate', basic: 'the basic-rate limit', hr: 'the taper threshold' };
+const SHORT_WRAP = { pa: 'the personal allowance', paraw: 'the personal allowance before interest and dividends', basic: 'the basic-rate limit', hr: 'the taper threshold', pam: 'half the personal allowance', bm: 'mid basic rate' };
 export function ledgerWords(p, spending, row = null) {
   if (!p) return null;
   const w = [];

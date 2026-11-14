@@ -2118,8 +2118,13 @@ const giaAddBasis = (state, ownerKey, amount) => { if (amount > 0) state.giaBasi
  * sit inside the bands the product's menu stops at. Draw tokens first, re-wrap ceilings second; the product's own menu and
  * policies never name one, so nothing here runs outside a research table.
  */
-const N4_PEN = { penHR: P => P.thr, penPAm: P => P.pa / 2, penBm: P => (P.pa + P.higherRateStartsAt) / 2 };
-const N4_HARVEST = { hr: N4_PEN.penHR, pam: N4_PEN.penPAm, bm: N4_PEN.penBm };
+/* D98 (research only, research/solver/ALLOWANCE-BOTH.md): the allowance's ceiling at its old place as well as its new, the
+   solver choosing. 'penPAr' draws and 'paraw' re-wraps to the personal allowance as given, on the year's non-savings income
+   alone (N4_RAW: pensionCeiling is not applied), where 'penPA' and 'pa' stop where the year's whole bill would first rise. With
+   no interest and no dividends the two are the same to the bit. No policy of the app's names either. */
+const N4_PEN = { penHR: P => P.thr, penPAm: P => P.pa / 2, penBm: P => (P.pa + P.higherRateStartsAt) / 2, penPAr: P => P.pa };
+const N4_HARVEST = { hr: N4_PEN.penHR, pam: N4_PEN.penPAm, bm: N4_PEN.penBm, paraw: N4_PEN.penPAr };
+const N4_RAW = { penPAr: true, paraw: true };
 
 // A disposal realises gain pro-rata against the whole holding and reduces basis by the cost portion.
 const giaDispose = (state, balanceBefore, ownerKey, amount) => {
@@ -2359,8 +2364,9 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
   const pclsHeadroom = (o) => Math.max(0, P.lsa - state.cumPcls[o]);
   const ownerByKey = {}; owners.forEach(o => { ownerByKey[o.key] = o; });
 
-  // draw `netNeeded` net from an owner's pension without taking taxable income above `ceiling`; returns net delivered
-  const drawPension = (oKey, netNeeded, ceiling = Infinity) => {
+  // draw `netNeeded` net from an owner's pension without taking taxable income above `ceiling`; returns net delivered. `raw`
+  // (D98's 'penPAr' and 'paraw', research only) takes the ceiling as given, on the non-savings income alone
+  const drawPension = (oKey, netNeeded, ceiling = Infinity, raw = false) => {
     const o = ownerByKey[oKey];
     if (!o || netNeeded <= 0 || !access[oKey]) return 0;
     const pot = pots[o.ids.pen] || 0;
@@ -2369,7 +2375,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     const headroom = fully ? 0 : pclsHeadroom(oKey);
     const T0 = taxablePay[oKey] + taxable[oKey];
     // the ceiling is on the year's whole taxable income: the interest and dividends above the draw count towards it
-    ceiling = pensionCeiling(P, ceiling, T0, savingsInterest[oKey], giaDividends[oKey]);
+    if (!raw) ceiling = pensionCeiling(P, ceiling, T0, savingsInterest[oKey], giaDividends[oKey]);
     if (T0 >= ceiling) return 0;
     const grossNeeded = grossPensionNeededForNet(netNeeded, T0, P, fully, headroom, ceiling, { interest: savingsInterest[oKey], dividends: giaDividends[oKey] });
     const gross = Math.min(pot, grossNeeded);
@@ -2418,7 +2424,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
       if (step === 'penPA') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, P.pa); } }
       else if (step === 'penBasic') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, P.higherRateStartsAt); } }
       else if (step === 'penAny') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem); } }
-      else if (N4_PEN[step]) { const cap = N4_PEN[step](P); for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, cap); } }
+      else if (N4_PEN[step]) { const cap = N4_PEN[step](P), raw = !!N4_RAW[step]; for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, cap, raw); } }
       else { for (const o of owners) { if (rem > 0) rem -= drawPot(o.ids[step], rem); } }
     }
     unmetCost = Math.max(0, rem);
@@ -2534,7 +2540,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     const remaining = () => owners.reduce((s, o) => s + demand[o.key], 0);
     const stepsOf = (o) => (J.perOwner[o.key] && J.perOwner[o.key].steps ? J.perOwner[o.key].steps : ctx.policySteps);
     const drawFrom = (o, cat, need) => (cat === 'penPA' ? drawPension(o.key, need, P.pa) : cat === 'penBasic' ? drawPension(o.key, need, P.higherRateStartsAt)
-      : cat === 'penAny' ? drawPension(o.key, need, Infinity) : N4_PEN[cat] ? drawPension(o.key, need, N4_PEN[cat](P)) : drawPot(o.ids[cat], need));
+      : cat === 'penAny' ? drawPension(o.key, need, Infinity) : N4_PEN[cat] ? drawPension(o.key, need, N4_PEN[cat](P), !!N4_RAW[cat]) : drawPot(o.ids[cat], need));
     const K = Math.max(...owners.map(o => stepsOf(o).length));
     for (let k = 0; k < K; k++) {
       if (remaining() <= 0.005) break;
@@ -2549,16 +2555,16 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
       owners.forEach(o => { demand[o.key] -= drawPot(o.ids[cat], demand[o.key]); });
       owners.forEach(o => owners.forEach(x => { if (x.key !== o.key && demand[x.key] > 0) demand[x.key] -= drawPot(o.ids[cat], demand[x.key]); }));
     };
-    const pensionTier = (ceilingOf) => {
-      owners.forEach(o => { if (demand[o.key] > 0) demand[o.key] = Math.max(0, demand[o.key] - drawPension(o.key, demand[o.key], ceilingOf(o))); });
-      owners.forEach(o => owners.forEach(x => { if (x.key !== o.key && demand[x.key] > 0) demand[x.key] = Math.max(0, demand[x.key] - drawPension(o.key, demand[x.key], ceilingOf(o))); }));
+    const pensionTier = (ceilingOf, raw = false) => {
+      owners.forEach(o => { if (demand[o.key] > 0) demand[o.key] = Math.max(0, demand[o.key] - drawPension(o.key, demand[o.key], ceilingOf(o), raw)); });
+      owners.forEach(o => owners.forEach(x => { if (x.key !== o.key && demand[x.key] > 0) demand[x.key] = Math.max(0, demand[x.key] - drawPension(o.key, demand[x.key], ceilingOf(o), raw)); }));
     };
     for (const step of ctx.policySteps) {
       if (remaining() <= 0.005) break;
       if (step === 'penPA') pensionTier(() => P.pa);
       else if (step === 'penBasic') pensionTier(() => P.higherRateStartsAt);
       else if (step === 'penAny') pensionTier(() => Infinity);
-      else if (N4_PEN[step]) { const cap = N4_PEN[step](P); pensionTier(() => cap); }
+      else if (N4_PEN[step]) { const cap = N4_PEN[step](P); pensionTier(() => cap, !!N4_RAW[step]); }
       else tier(step);
     }
   }
@@ -2645,10 +2651,10 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
       // a couple's joint move (Part D, D2): each person's own harvest switch and ceiling, as the exact model's year
       const own = ctx.joint && ctx.joint.perOwner[o.key] ? ctx.joint.perOwner[o.key] : null;
       if (own && !own.harvest) return;
-      const ceil = own ? ceilOf(own.harvestCeil) : harvestCeil;
+      const ceil = own ? ceilOf(own.harvestCeil) : harvestCeil, raw = !!N4_RAW[own ? own.harvestCeil : ctx.harvestCeiling];
       if (working[o.key] || !access[o.key]) return;
       if ((pots[o.ids.pen] || 0) <= 0 || taxable[o.key] >= ceil) return;
-      const net = drawPension(o.key, 1e12, ceil);
+      const net = drawPension(o.key, 1e12, ceil, raw);
       if (net > 0) {
         const isaRoom = Math.max(0, P.isaAllowance - isaContribThisYear[o.key]);
         const toIsa = Math.min(net, isaRoom);
@@ -7147,7 +7153,7 @@ const E = { pensionCeiling, niceStep, gridWindow, spendRow, frontierSpend, num, 
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { GUARDRAILS, planHasKnownCost, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan, N4_PEN, N4_HARVEST, E };
+export { GUARDRAILS, planHasKnownCost, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan, N4_PEN, N4_HARVEST, N4_RAW, E };
 
 
 /*

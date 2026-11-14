@@ -232,7 +232,7 @@ export const strategyOf = (E, solved, plan, { trials = 2000, seed = 12345 } = {}
  * survival on the same n paths, the plan's against the skip's, in points. A part the move does not take (the plan's own tier,
  * no re-wrap) is not an action and has no skip.
  */
-const DRAW_PREFIX = { penPAm: 'pa-half', penPA: 'pa', penBm: 'basic-mid', penBasic: 'basic', penHR: 'hr', penAny: 'any' };
+const DRAW_PREFIX = { penPAm: 'pa-half', penPA: 'pa', penPAr: 'pa-raw', penBm: 'basic-mid', penBasic: 'basic', penHR: 'hr', penAny: 'any' };
 export function partsOf(a, ca) {
   const firstPen = a.steps.findIndex(x => x.startsWith('pen'));
   const lead = a.steps.slice(0, firstPen < 0 ? 0 : a.steps.findIndex(x => !x.startsWith('pen'))).filter(x => x.startsWith('pen'));

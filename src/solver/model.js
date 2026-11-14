@@ -342,8 +342,9 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
   let harvested = 0;
   const pclsHeadroom = (o) => Math.max(0, P.lsa - state.cumPcls[o]);
 
-  /* Draw `netNeeded` net from an owner's pension without taking taxable income past `ceiling`. */
-  const drawPension = (oKey, netNeeded, ceiling = Infinity) => {
+  /* Draw `netNeeded` net from an owner's pension without taking taxable income past `ceiling`; `raw` (D98's 'penPAr' and 'paraw',
+     the engine's N4_RAW, research only) takes the ceiling as given, on the non-savings income alone, as the engine's draw does. */
+  const drawPension = (oKey, netNeeded, ceiling = Infinity, raw = false) => {
     const o = ownerByKey[oKey];
     if (!o || netNeeded <= 0 || !access[oKey]) return 0;
     const pot = pots[o.ids.pen] || 0;
@@ -351,7 +352,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     const fully = action.lump && state.lumpTaken[oKey];
     const headroom = fully ? 0 : pclsHeadroom(oKey);
     const T0 = taxablePay[oKey] + taxable[oKey];
-    ceiling = E.pensionCeiling(P, ceiling, T0, savingsInterest[oKey], giaDividends[oKey]);   // on the year's whole taxable income, as the engine's
+    if (!raw || MODEL.plant === 'noraw') ceiling = E.pensionCeiling(P, ceiling, T0, savingsInterest[oKey], giaDividends[oKey]);   // on the year's whole taxable income, as the engine's (the plant 'noraw': D98's raw steps too)
     if (T0 >= ceiling) return 0;
     const grossNeeded = E.grossPensionNeededForNet(netNeeded, T0, P, fully, headroom, ceiling, { interest: savingsInterest[oKey], dividends: giaDividends[oKey] });
     const gross = Math.min(pot, grossNeeded);
@@ -390,7 +391,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       else if (s === 'penAny') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem); } }
       // N4's ceilings as the engine's cost draw (Part D, D2: before it a penHR cost step reached drawPot with no pot id and threw a
       // TypeError); any other step this year knows nothing of throws by name
-      else if (E.N4_PEN && E.N4_PEN[s] && MODEL.plant !== 'non4') { const cap = E.N4_PEN[s](P); for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, cap); } }
+      else if (E.N4_PEN && E.N4_PEN[s] && MODEL.plant !== 'non4') { const cap = E.N4_PEN[s](P), raw = !!(E.N4_RAW && E.N4_RAW[s]); for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, cap, raw); } }
       else if (MODEL.plant !== 'non4' && (!owners.every(o => s in o.ids) || s === 'pen')) throw new Error(`model.step: no draw for the cost step ${s}`);
       else { for (const o of owners) { if (rem > 0) rem -= drawPot(o.ids[s], rem); } }
     }
@@ -477,7 +478,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       if (cat === 'penBasic') return drawPension(o.key, need, P.higherRateStartsAt);
       if (cat === 'penAny') return drawPension(o.key, need, Infinity);
       if (MODEL.plant === 'non4') return drawPot(o.ids[cat], need);   // the code before D2
-      if (E.N4_PEN && E.N4_PEN[cat]) return drawPension(o.key, need, E.N4_PEN[cat](P));
+      if (E.N4_PEN && E.N4_PEN[cat]) return drawPension(o.key, need, E.N4_PEN[cat](P), !!(E.N4_RAW && E.N4_RAW[cat]));
       if (!(cat in o.ids) || cat === 'pen') throw new Error(`model.step: no draw for the step ${cat}`);
       return drawPot(o.ids[cat], need);
     };
@@ -500,7 +501,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       const harvestCeil = own.harvestCeil === 'basic' ? P.higherRateStartsAt : E.N4_HARVEST && E.N4_HARVEST[own.harvestCeil] && MODEL.plant !== 'non4' ? E.N4_HARVEST[own.harvestCeil](P) : P.pa;
       if (working[o.key] || !access[o.key]) return;
       if ((pots[o.ids.pen] || 0) <= 0 || taxable[o.key] >= harvestCeil) return;
-      const net = drawPension(o.key, 1e12, harvestCeil);
+      const net = drawPension(o.key, 1e12, harvestCeil, !!(E.N4_RAW && E.N4_RAW[own.harvestCeil]) && MODEL.plant !== 'non4');
       if (net > 0) {
         const isaRoom = Math.max(0, P.isaAllowance - isaContribThisYear[o.key]);
         const toIsa = Math.min(net, isaRoom);

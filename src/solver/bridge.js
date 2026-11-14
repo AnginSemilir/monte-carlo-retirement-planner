@@ -21,7 +21,7 @@ export function modelStateOf(engineState) {
   };
 }
 
-const N4_CODE = { hr: 'h++', pam: 'h-', bm: 'hm' };   // N4's research re-wrap ceilings (research/solver/n4-design.md); 'g' its CGT sale
+const N4_CODE = { hr: 'h++', pam: 'h-', bm: 'hm', paraw: 'h0' };   // N4's research re-wrap ceilings (research/solver/n4-design.md), D98's allowance as given; 'g' its CGT sale
 /* A short code for the audit row: the draw order's first pot, the harvest, the level and the tiers. */
 function codeOf(a, ca) {
   const first = a.steps[0].replace('pen', 'P').replace('isa', 'I').replace('cash', 'C').replace('other', 'G');

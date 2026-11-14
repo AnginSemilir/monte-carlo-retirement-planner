@@ -362,3 +362,4 @@
 13 Nov 20:37 UK | main | none: EXPLORATORY: item 6 stage C's pilot on seed 7002, sizing its registered run | code 7002a1fec94c | 133a2520 | load 3.33 2.89 2.33 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-couples-share.sh
 13 Nov 23:16 UK | main | research/solver/registrations/couples-share.md | code 7002a1fec94c | ce8ca278 | load 7.29 4.16 2.98 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-couples-share.sh
 14 Nov 00:24 UK | main | research/solver/registrations/couples-share.md | code 7002a1fec94c | ce8ca278 | load 0.40 0.12 0.04 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-couples-share.sh
+14 Nov 02:58 UK | main | research/solver/registrations/couples-share.md | code 7002a1fec94c | ce8ca278 | load 0.32 0.09 0.03 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-couples-share.sh

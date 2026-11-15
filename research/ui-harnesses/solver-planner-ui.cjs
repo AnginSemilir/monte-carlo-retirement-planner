@@ -71,7 +71,8 @@
  *      off, gives its reason 'off'; the speed mode offered to the couple with the couple's warning (D98); a couple entered
  *      younger first (D104 (1), src/couplesSwitch.js SWAP_ELDER): the same couple re-held 75/25, its elder holding 75%,
  *      entered elder first and then the other way round by this harness's own hand (each person's fields, the end age so the
- *      plan ends in the same year, each account's owner and id): entered younger first it is solved, no couples card, every
+ *      plan ends in the same year, each account's and each one-off cost's owner, each account's id): entered younger first it
+ *      is solved, no couples card, every
  *      figure the reference's bit for bit (solved on the couple's mirror, src/coupleOrder.js otherOrder, as the page solves
  *      it, and run against the plan as entered); its next ten years the elder-first entry's with each age the entered first
  *      person's, and this year's actions the elder-first entry's with each person's under the other's name;
@@ -736,16 +737,19 @@ const firstDiff = (a, b, at = '') => {
           await p.context().close(); }
         // (e) a couple entered younger first (D104 (1)): the same couple re-held 75/25, its elder holding 75%, entered elder first
         // and then the other way round by this harness's own hand, not the app's mirror: each person's fields, the end age so the
-        // plan ends in the same year, and each account's owner and id (the library couple has no bands, gifts, other incomes,
-        // deposits, costs or limits, which the app's mirror also moves; refused here if it has)
+        // plan ends in the same year, each account's owner and id, and each one-off cost's owner (S001 holds one, the first
+        // person's); the library couple has no bands, gifts, other incomes, deposits or limits, which the app's mirror also
+        // moves, and is refused here if it has
         { const PAIRED = ['currentAge', 'retireAge', 'salary', 'salaryGrowth', 'employment', 'cgtGainsUsed', 'cfBroughtForward', 'mpaaAge', 'statePension'];
           const otherWayByHand = pl => { const q = JSON.parse(JSON.stringify(pl)), d = q.demographics;
-            const bare = !((q.spending && q.spending.spendBands || []).length) && !(q.otherIncomes || []).length && !(q.oneOffContributions || []).length && !(q.oneOffCosts || []).length && !(q.solver && q.solver.locks);
+            const bare = !((q.spending && q.spending.spendBands || []).length) && !(q.otherIncomes || []).length && !(q.oneOffContributions || []).length && !(q.solver && q.solver.locks);
             if (!bare) throw new Error('check 19 (e): the fixture holds a field the hand swap leaves out');
             const self0 = Number(d.currentAgeSelf), part0 = Number(d.currentAgePart), end0 = d.terminalAge === '' || d.terminalAge === undefined || d.terminalAge === null ? 100 : Number(d.terminalAge);
             for (const k of PAIRED) { const a = d[`${k}Self`], c = d[`${k}Part`]; d[`${k}Self`] = c; d[`${k}Part`] = a; }
             d.terminalAge = end0 - self0 + part0;
-            q.accounts = q.accounts.map(a => ({ ...a, owner: a.owner === 'Myself' ? 'Partner' : a.owner === 'Partner' ? 'Myself' : a.owner, id: String(a.id).replace(/_(self|part)$/, (_, w) => (w === 'self' ? '_part' : '_self')) }));
+            const other = o => (o === 'Myself' ? 'Partner' : o === 'Partner' ? 'Myself' : o);
+            q.accounts = q.accounts.map(a => ({ ...a, owner: other(a.owner), id: String(a.id).replace(/_(self|part)$/, (_, w) => (w === 'self' ? '_part' : '_self')) }));
+            q.oneOffCosts = (q.oneOffCosts || []).map(c => (c.owner ? { ...c, owner: other(c.owner) } : c));
             return q; };
           const pageOf = async pl => { const { p, errs } = await open(b, pl, { port: COUPLES_PORT });
             const done = await waitCard(p, 'done', WAIT_MS), card = !!(await p.$('[data-place="plan"] [data-planner-couple]'));

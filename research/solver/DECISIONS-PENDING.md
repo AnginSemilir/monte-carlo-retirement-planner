@@ -11,6 +11,19 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**FOR THE MAINTAINER (15 Nov, morning): the speed mode's wider read, singles HOLDS and couples LOSES; the trade is yours (D90 (2)).**
+`results-speed-b.txt` (EXPLORATORY, seed 7002; `SPEED-B.md`, D97 (3)); in plain words, `reports/2026-11-15-speed-b-read.md`;
+beside it, `results-speed-b-beside.txt`.
+- **Singles (20):** nothing lost beyond item 7's bars (pooled survival +0.001, -0.012 to +0.015; spending and the pot level),
+  a path's time about halved (the median x0.54). Item 7's twelve singles had a small loss beyond noise inside the bars
+  (-0.019, -0.034 to -0.005).
+- **Couples (12):** spending lower by 0.0683% pooled against the bar of 0.05%, with no one couple carrying it. Survival
+  pooled -0.023 holds, but the six library couples lose -0.150 beyond noise (S031 -0.550, S063 -0.500) while the younger six
+  gain. A path's time the median x0.79. Item 12's eight couples also failed on spending.
+
+The agent recommends: for singles, drop the singles' warning and keep the speed mode an opt-in, not the default; for
+couples, keep it as it is, with its warning. Each is your ruling; nothing changes until then.
+
 **FOR THE MAINTAINER (15 Nov, early), to note: the couples' tie rule reads FAILS, so it is closed and nothing changes.**
 `results-tie-couple.txt` (EXPLORATORY, seed 7002; `TIE-C.md`, D97 (2)); in plain words, `reports/2026-11-15-tie-couple-read.md`;
 beside it, `results-tie-couple-beside.txt` and `results-tie-couple-trace.txt`; the reviewer at the read,

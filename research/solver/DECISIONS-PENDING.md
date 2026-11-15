@@ -14,7 +14,8 @@ below this section says "the beta", read it as history. The order from here:
 **FOR THE MAINTAINER (15 Nov, early), to note: the couples' tie rule reads FAILS, so it is closed and nothing changes.**
 `results-tie-couple.txt` (EXPLORATORY, seed 7002; `TIE-C.md`, D97 (2)); in plain words, `reports/2026-11-15-tie-couple-read.md`;
 beside it, `results-tie-couple-beside.txt` and `results-tie-couple-trace.txt`; the reviewer at the read,
-`reviews/2026-11-15-read-tie-couple.md` (FAIL on the first write-up, answered in one fix).
+`reviews/2026-11-15-read-tie-couple.md` (FAIL on the first write-up, answered in one fix) and `-2.md` (FAIL again, one new
+BLOCKING: the tax's half of one sentence; answered from a decomposition, not reviewed again, so by D81 (F) yours).
 - **Pooled:** survival and spending are unchanged, the pot a little higher, and lifetime tax falls by 2.76% and 3.39% at the
   two margins, but most of that is one couple's (S311F's): without it, 1.36% and 1.46%.
 - **It fails part 5 on S311F,** whose average pot left is lower by 0.692% and 0.804% against the bar of 0.1%. Two paths
@@ -22,8 +23,11 @@ beside it, `results-tie-couple-beside.txt` and `results-tie-couple-trace.txt`; t
   its standard error is about the size of the change.
 - **On those two paths** (traced) the tie arm's earlier picks left more in the taxable account. At 90, the tables step the
   first partner's pension and ISA three risk tiers down there, the candidate's own chooser making the same step at that
-  state. So the rule's earlier picks led, through the tables' later choice of risk, to more tax and a smaller pot. Why the
-  tables step down there is a lead.
+  state.
+  - The pot's fall is that step: undone, the pot ends within 0.07% of the candidate's.
+  - The extra tax is mostly the rule's own: with the step undone, 80% and 90% of it remains, as dividend tax on the larger
+    taxable account.
+  - Why the tables step down there is a lead.
 - By the rule nothing is run again; reopening it is yours alone. The question it leaves, if you want to weigh it: whether a
   couple's pot of billions far above its cap should count against a rule like this.
 

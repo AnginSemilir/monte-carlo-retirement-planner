@@ -1,4 +1,4 @@
-THE COUPLES' TIE RULE, S311F'S DECIDING PATHS TRACED (EXPLORATORY, written after the read, deciding nothing): solved in 141 s, caps £5,760,000 and £3,840,000; paths 4468, 5461 of seed 7002
+THE COUPLES' TIE RULE, S311F'S DECIDING PATHS TRACED (EXPLORATORY, written after the read, deciding nothing): solved in 140 s, caps £5,760,000 and £3,840,000; paths 4468, 5461 of seed 7002
 
 path 4468: CANDS's pot £7,434,464,191 and lifetime tax £836,567, the stored arrays' the same to the penny
   TIE5: its pot £4,895,665,052 (-34.1%) and lifetime tax £1,600,484 (+£763,916), the stored arrays' the same to the penny
@@ -7,12 +7,16 @@ path 4468: CANDS's pot £7,434,464,191 and lifetime tax £836,567, the stored ar
     in plan year 52: the household's pot £2,885,793,202 against CANDS's £2,883,729,962 (0.072%), its taxable account £7,078,624 against £1,435,943, its ISAs £22,000,985 against £25,504,839
     tax paid before plan year 53: £703,824 against CANDS's £716,128; from it to the end: £896,660 against £120,439
     CANDS's own chooser at the tie arm's state in plan year 53 picks the tiers 3/3 and 3/3; the tie arm's own move 3/3 and 3/3; CANDS on its own path 0/0 and 3/3
+    the decomposition: TIE5 with the first person's tiers held at CANDS's from plan year 53: the pot +0.06% of CANDS's, lifetime tax +£614,483, so 80% of TIE5's extra tax remains with the step undone; CANDS with the step forced from plan year 53: the pot -34.21%, lifetime tax +£55,427
+    dividend tax each year from plan year 53: TIE5 £45,150 to £84,478, CANDS £2,576 to £4,903; the year's tax in plan years 50 to 52: TIE5 £31,867, £63,068, £73,783, CANDS £21,298, £21,814, £22,451
   TIE4: its pot £4,896,121,219 (-34.1%) and lifetime tax £1,632,224 (+£795,657), the stored arrays' the same to the penny
     the moves first differ in plan year 12
     the tiers held first differ in plan year 53 (the first person 90): the tie arm holds 3/3 and 3/3 (pension/ISA, the first person and the partner), CANDS 0/0 and 3/3; both held 0/0 and 3/3 and 0/0 and 3/3 before it
     in plan year 52: the household's pot £2,886,129,619 against CANDS's £2,883,729,962 (0.083%), its taxable account £6,820,409 against £1,435,943, its ISAs £22,429,358 against £25,504,839
     tax paid before plan year 53: £746,781 against CANDS's £716,128; from it to the end: £885,443 against £120,439
     CANDS's own chooser at the tie arm's state in plan year 53 picks the tiers 3/3 and 3/3; the tie arm's own move 3/3 and 3/3; CANDS on its own path 0/0 and 3/3
+    the decomposition: TIE4 with the first person's tiers held at CANDS's from plan year 53: the pot +0.07% of CANDS's, lifetime tax +£634,300, so 80% of TIE4's extra tax remains with the step undone; CANDS with the step forced from plan year 53: the pot -34.21%, lifetime tax +£55,427
+    dividend tax each year from plan year 53: TIE4 £43,118 to £80,727, CANDS £2,576 to £4,903; the year's tax in plan years 50 to 52: TIE4 £57,014, £64,919, £72,391, CANDS £21,298, £21,814, £22,451
 
 path 5461: CANDS's pot £12,657,338,786 and lifetime tax £2,392,971, the stored arrays' the same to the penny
   TIE5: its pot £10,536,312,756 (-16.8%) and lifetime tax £2,813,221 (+£420,250), the stored arrays' the same to the penny
@@ -21,9 +25,13 @@ path 5461: CANDS's pot £12,657,338,786 and lifetime tax £2,392,971, the stored
     in plan year 52: the household's pot £7,082,729,827 against CANDS's £7,081,455,566 (0.018%), its taxable account £16,374,253 against £11,560,577, its ISAs £68,377,447 against £72,780,376
     tax paid before plan year 53: £1,466,817 against CANDS's £1,529,648; from it to the end: £1,346,404 against £863,323
     CANDS's own chooser at the tie arm's state in plan year 53 picks the tiers 3/3 and 3/3; the tie arm's own move 3/3 and 3/3; CANDS on its own path 0/0 and 3/3
+    the decomposition: TIE5 with the first person's tiers held at CANDS's from plan year 53: the pot +0.02% of CANDS's, lifetime tax +£379,403, so 90% of TIE5's extra tax remains with the step undone; CANDS with the step forced from plan year 53: the pot -16.77%, lifetime tax +£98,212
+    dividend tax each year from plan year 53: TIE5 £118,307 to £168,582, CANDS £67,153 to £101,707; the year's tax in plan years 50 to 52: TIE5 £97,719, £103,010, £113,771, CANDS £97,005, £99,073, £105,772
   TIE4: its pot £10,536,312,756 (-16.8%) and lifetime tax £2,813,221 (+£420,250), the stored arrays' the same to the penny
     the moves first differ in plan year 23
     the tiers held first differ in plan year 53 (the first person 90): the tie arm holds 3/3 and 3/3 (pension/ISA, the first person and the partner), CANDS 0/0 and 3/3; both held 0/0 and 3/3 and 0/0 and 3/3 before it
     in plan year 52: the household's pot £7,082,729,827 against CANDS's £7,081,455,566 (0.018%), its taxable account £16,374,253 against £11,560,577, its ISAs £68,377,447 against £72,780,376
     tax paid before plan year 53: £1,466,817 against CANDS's £1,529,648; from it to the end: £1,346,404 against £863,323
     CANDS's own chooser at the tie arm's state in plan year 53 picks the tiers 3/3 and 3/3; the tie arm's own move 3/3 and 3/3; CANDS on its own path 0/0 and 3/3
+    the decomposition: TIE4 with the first person's tiers held at CANDS's from plan year 53: the pot +0.02% of CANDS's, lifetime tax +£379,403, so 90% of TIE4's extra tax remains with the step undone; CANDS with the step forced from plan year 53: the pot -16.77%, lifetime tax +£98,212
+    dividend tax each year from plan year 53: TIE4 £118,307 to £168,582, CANDS £67,153 to £101,707; the year's tax in plan years 50 to 52: TIE4 £97,719, £103,010, £113,771, CANDS £97,005, £99,073, £105,772

@@ -7,7 +7,9 @@ EXPLORATORY, seed 7002 (D97 (2); `TIE-C.md`, its rule committed before launch at
   traced year by year, each path's pot and tax matching the stored arrays to the penny).
 
 Every figure below is printed in one of those files. The reviewer at the read: `reviews/2026-11-15-read-tie-couple.md`
-(FAIL, two BLOCKING, answered here in one fix).
+(FAIL, two BLOCKING, answered in one fix); again, `reviews/2026-11-15-read-tie-couple-2.md` (FAIL, one new BLOCKING: the
+tax's half of a sentence the first answer drew from the trace). The second is answered below, from a decomposition the trace
+now prints, but not reviewed again: by D81 (F) a FAIL standing after one fix is yours.
 
 ## In plain words
 
@@ -44,10 +46,19 @@ couples' tier test, 8,000 paths each.
   - The candidate's own chooser, handed the tie arm's state that year, makes the same step. That state holds more in the
     taxable account and less in the ISAs: £7,078,624 against £1,435,943, and £22,000,985 against £25,504,839, on path 4468.
   - After the step the tie arm pays more tax (£896,660 against £120,439 to the end, on path 4468) and ends far lower.
+- **What the step does, and what the wrappers do** (the decomposition, both paths, both margins):
+  - With the first partner's tiers held where the candidate holds them from plan year 53, the tie arm's pot ends +0.06% and
+    +0.02% of the candidate's at the smaller margin (+0.07% and +0.02% at the singles'). Forced onto the candidate's path,
+    the step cuts its pot by 34.21% and 16.77%. So the pot's fall is the step down.
+  - The extra tax is mostly not the step's. With the step undone, 80% and 90% of the tie arm's extra lifetime tax remains
+    (+£614,483 and +£379,403 at the smaller margin). Forced onto the candidate, the step adds only £55,427 and £98,212.
+  - On path 4468 the tie arm pays £45,150 to £84,478 a year in dividend tax from plan year 53, against the candidate's
+    £2,576 to £4,903, on the larger taxable account its earlier picks left. Its yearly tax is already higher in plan years
+    50 to 52.
 
-  So the fall is not the year's tax. The rule's earlier picks moved money between wrappers, and the later step down is the
-  tables' own choice at the state those picks led to. Why the tables step down there, with both partners far above their
-  caps, is a lead.
+  So on these two paths the rule's own picks, each the least tax that year, left more in the taxable account and raised
+  lifetime tax. The tables' later step down, at the state those picks led to, cut the pot. Why the tables step down there,
+  with both partners far above their caps, is a lead.
 - **The rule never changes the risk held at the decision it acts on, but its arm's path can change later.** The replay along
   the candidate's own path shows no differing decision at another level, tier pair or below a cap. Along the tie arms' own
   paths:
@@ -57,8 +68,8 @@ couples' tier test, 8,000 paths each.
 
 **So:** the couples' default stays as it is. By the rule the tie rule is closed and nothing is run again, and reopening it
 would be yours alone. It leaves one question for you, if you want to weigh it: whether a couple's pot of billions, far above
-its cap, should count against a rule like this. Here two such paths decided it, and on them the rule left a third and a
-sixth less and paid more tax.
+its cap, should count against a rule like this. Here two such paths decided it. On them the rule's own picks raised
+lifetime tax, and the tables' later step down left a third and a sixth less.
 
 ## The read
 
@@ -110,5 +121,5 @@ interval ends, and part 5 on S311F is decided by two paths, not by the last digi
 
 `TIE-C.md` (the rule), `audit-tie-couple.mjs`, `batch-tie-couple.sh`, `reduce-tie-couple.mjs`, `results-tie-couple.txt` (the
 read whole), `tie-couple-beside.mjs` and `results-tie-couple-beside.txt`, `tie-couple-trace.mjs` and
-`results-tie-couple-trace.txt` (beside it, written after the read), `reviews/2026-11-15-read-tie-couple.md` (the reviewer at
-the read).
+`results-tie-couple-trace.txt` (beside it, written after the read), `reviews/2026-11-15-read-tie-couple.md` and `-2.md`
+(the reviewer at the read, twice).

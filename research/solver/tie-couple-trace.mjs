@@ -6,7 +6,8 @@
  * each tie arm against CANDS it prints: the first plan year the two arms' moves differ; the first plan year the tiers held
  * differ, the tiers each person holds before and after it, the household's taxable account and ISA the year before and the
  * tax paid before and after; and what CANDS's own chooser picks at the tie arm's state in that year (does it take the same
- * tiers?).
+ * tiers?). Then, answering the reviewer's second round: the decomposition, the tie arm with the first person's tiers held
+ * where CANDS holds them from that year and CANDS with the step forced on it, and the dividend tax each year after the step.
  *   node research/solver/tie-couple-trace.mjs [paths, e.g. 4468,5461]
  */
 import * as E from '../engine.mjs';
@@ -41,10 +42,13 @@ console.log(`THE COUPLES' TIE RULE, ${ID}'S DECIDING PATHS TRACED (EXPLORATORY, 
 
 // one arm on one path, year by year: each year's move, the tiers held after it, the year's tax and the household's wrappers
 const ctxOf = cp => E.buildContext(CPL.withCouple({ ...cp.plan, demographics: { ...cp.plan.demographics, mpaaAgeSelf: aDemo.mpaaAgeSelf, mpaaAgePart: aDemo.mpaaAgePart } }, cp));
-function trace(arm, k) {
+// force = { from, self }: from plan year `from` the first person's tier fields in each move replaced by `self` (the
+// decomposition: the reviewer's second round, its one finding)
+function trace(arm, k, force = null) {
   const ctx = ctxOf(cps[arm]), T = ctx.totalYears, all = E.pathsForSeed(SEED, N, T), zs = Float64Array.from(all[k]), Y = T + 1, zPath = zs.length > Y ? zs[Y] : 0;
   const pol = ctx.policyOverride, choose = pol.choose.bind(pol), years = [];
-  let move = null; pol.choose = (s, t) => { move = choose(s, t); return move; };
+  let move = null;
+  pol.choose = (s, t) => { let mv = choose(s, t); if (force && mv && t >= force.from) mv = { ...mv, perOwner: { ...mv.perOwner, self: { ...mv.perOwner.self, ...force.self } } }; move = mv; return mv; };
   const state = E.freshState(ctx);
   let tax = 0, last = null;
   for (let t = 0; t <= T; t++) {
@@ -52,7 +56,7 @@ function trace(arm, k) {
     move = null;
     const row = E.stepYear(ctx, state, t, { z: zs[t], zPath });
     tax += row.taxPaid + (row.cgtPaid || 0); last = row;
-    years.push({ t, move, before, heldBefore: held, heldAfter: JSON.parse(JSON.stringify(state.tierHeld || {})), tax: row.taxPaid + (row.cgtPaid || 0), other: row.other, isa: row.isas, total: row.totalCombined, ageSelf: row.ageSelf });
+    years.push({ t, move, before, heldBefore: held, heldAfter: JSON.parse(JSON.stringify(state.tierHeld || {})), tax: row.taxPaid + (row.cgtPaid || 0), divTax: row.dividendTax || 0, other: row.other, isa: row.isas, total: row.totalCombined, ageSelf: row.ageSelf });
   }
   pol.choose = choose;
   return { ctx, years, wealth: Math.max(0, last.totalCombined), tax };
@@ -78,5 +82,14 @@ for (const k of PATHS) {
     // CANDS's own chooser handed the tie arm's state at the start of that year (the engine state before its step)
     const pick = cps.CANDS && CPL.couplePolicy(cps.CANDS).choose(y.before, t);
     console.log(`    CANDS's own chooser at the tie arm's state in plan year ${t} picks the tiers ${moveTiers(pick)}; the tie arm's own move ${moveTiers(y.move)}; CANDS on its own path ${moveTiers(b.move)}`);
+    // the decomposition: the tie arm with the first person's tiers held where CANDS holds them from plan year t (the rule's
+    // wrappers, CANDS's risk), and CANDS with them forced to the tie arm's stepped tiers from t (CANDS's wrappers, the step)
+    const tierFields = mv => { const o = mv.perOwner.self || {}; return { tierPen: o.tierPen || 0, tierIsa: o.tierIsa || 0, tierPenName: o.tierPenName, tierIsaName: o.tierIsaName }; };
+    const held0 = trace(arm, k, { from: t, self: tierFields(b.move) }), stepped = trace('CANDS', k, { from: t, self: tierFields(y.move) });
+    const pc = v => `${v >= base.wealth ? '+' : ''}${(100 * (v / base.wealth - 1)).toFixed(2)}%`, dt = v => `${v >= base.tax ? '+' : ''}${gbp(v - base.tax)}`;
+    const extra = r.tax - base.tax, remains = held0.tax - base.tax;
+    console.log(`    the decomposition: ${arm} with the first person's tiers held at CANDS's from plan year ${t}: the pot ${pc(held0.wealth)} of CANDS's, lifetime tax ${dt(held0.tax)}, so ${(100 * remains / extra).toFixed(0)}% of ${arm}'s extra tax remains with the step undone; CANDS with the step forced from plan year ${t}: the pot ${pc(stepped.wealth)}, lifetime tax ${dt(stepped.tax)}`);
+    const divs = Z => Z.slice(t).map(x => x.divTax);
+    console.log(`    dividend tax each year from plan year ${t}: ${arm} ${gbp(Math.min(...divs(Ys)))} to ${gbp(Math.max(...divs(Ys)))}, CANDS ${gbp(Math.min(...divs(base.years)))} to ${gbp(Math.max(...divs(base.years)))}; the year's tax in plan years ${t - 3} to ${t - 1}: ${arm} ${Ys.slice(t - 3, t).map(x => gbp(x.tax)).join(', ')}, CANDS ${base.years.slice(t - 3, t).map(x => gbp(x.tax)).join(', ')}`);
   }
 }

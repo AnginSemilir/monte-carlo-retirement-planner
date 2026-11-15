@@ -41,8 +41,15 @@ its read closed: "Plan out and add a test to the queue for an improved couples t
 `reports/2026-11-15-allowance-both-read.md`; beside it, `results-allowance-both-beside.txt`.
 - Offered the allowance at its old place as well as its new, the solver gains a hair of survival (+0.019 points pooled,
   beyond noise) with spending level, but leaves less below the cap: the capped pot -0.187% against the bar of 0.1%.
-- S090 carries 71.3% of that fall (-1.130%); without it the capped pot would be -0.061%.
+- S090 carries both effects: 54.2% of the survival gain and 71.3% of the capped fall (-1.130%). Without it the capped pot
+  would be -0.061% and the gain would go too: the rule would read NO GAIN.
+- On S090 the solver's own score takes the trade, a little survival for a little pot below the cap (+0.047, within noise).
+  So the FAIL is the rule's bar on the capped pot declining the trade the ceiling-lead test found, not the solver's own
+  objective rejecting it.
 - By the rule the offer is closed and nothing changes; the allowance step stays where the harvest ceiling put it.
+- The reviewer at the read: FAIL, one BLOCKING. The report's count of how often the new draw was taken was wrong: three
+  in four of the moves it counted are the old ladders. Answered in one fix with its five MINORs
+  (`reviews/2026-11-15-read-allowance-both.md`); the reviewer again next.
 
 **RULED (D104, 15 Nov, morning): the morning report's five decisions, "Go with your recommendations".** Each read is in
 full in its report: `reports/2026-11-15-other-order-read.md`, `reports/2026-11-15-speed-b-read.md`,

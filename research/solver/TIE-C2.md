@@ -3,7 +3,7 @@
 The plan, committed before anything is built or run. The maintainer reopened the couples' tie rule on 15 Nov, after
 `TIE-C.md`'s read failed and closed it: "Plan out and add a test to the queue for an improved couples tie rule based on
 learnings so far." On the plan's first choice, the same day: "1 - pass goes straight into default" (the
-outcomes below). The rule below is fixed now. The build, its test and the read's files come later, in the queue's order
+outcomes below); then, on its one exception and on judging the pot with an allowance for noise: "Agree". The rule below is fixed now. The build, its test and the read's files come later, in the queue's order
 (STATE.md action 3). A change to this file after the build starts is a dated amendment, made before the launch and before
 any unit runs.
 
@@ -185,8 +185,8 @@ An arm passes if all eight hold, against CANDS:
 - The forward look uses one median path, as a guide. It is not the expected end pot.
 - With the allowance for noise, a loss like S311F's in the first read, -0.7% on an average whose standard error is 0.7%,
   would pass part 5(b). This read cannot tell a loss that size from noise on a couple like that. What it relies on there
-  is the hold, which removes the step that caused the loss, by construction (part 7). If the maintainer would rather keep
-  the first read's point bar on the average pound for every couple, the rule is amended before the launch.
+  is the hold, which removes the step that caused the loss, by construction (part 7). The maintainer agreed to this
+  way of judging the pot on 15 Nov (D105).
 - The same misread reaches a single's chooser, whose tie-break has been in the candidate since D95. That is a lead for a
   later test, not part of this one.
 

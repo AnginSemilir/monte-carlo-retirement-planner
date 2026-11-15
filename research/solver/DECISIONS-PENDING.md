@@ -35,9 +35,8 @@ its read closed: "Plan out and add a test to the queue for an improved couples t
      becomes the couples' default, the reviewer on the change of default. One exception stands from the plan: if the
      version taken is the one with the forward look and it adds more than a quarter to a couple's path, it comes back to
      you as the speed trade.
-  2. Open, its default standing: the pot is judged with the allowance for noise (the agent's recommendation). Say before
-     the launch if you would rather keep the first read's point bar on every couple. Then a couple like S311F is decided by
-     its few paths worth billions.
+  2. RULED (15 Nov): "Agree", to the exception above and to the agent's recommendation here: the pot is judged with the
+     allowance for noise, not the first read's point bar on every couple.
 
 **FOR THE MAINTAINER (15 Nov, morning), to note: the allowance's step at both places reads FAILS, so it is closed.**
 `results-allowance-both.txt` (EXPLORATORY, seed 7002; `ALLOWANCE-BOTH.md`, D98); in plain words,

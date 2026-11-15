@@ -42,8 +42,9 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
       - a £15,000 a year DB pension of the first person's from the state pension age;
       - the same of the partner's;
       - the partner's state pension at 60% of the full amount.
-- **Seed:** TO COME: a held-out seed reserved in `check-prediction.mjs` for `share-rules*.md` (D93's unlock, named in its
-  commit), used nowhere before. The pilot runs on 7002.
+- **Seed:** 7023, reserved in `check-prediction.mjs` for `share-rules*.md` (D93's unlock, named in its commit). As a whole
+  number it appears nowhere before, on this branch or any other: only inside decimals in the archive (0.7023). The batch names
+  it on a line the launcher's seed check reads. The pilot runs on 7002.
 - **Paths:** TO COME. D34's size for each comparison (FLAT against TODAY, MEANS against TODAY, where their shares differ) at
   the pilot's discordance, its upper 95% bound, at most D61's 19,000. A comparison whose 1-point rate at its realised
   discordance falls below 0.90 is read there and named with its rate (D34 (4), as D61 ruled).

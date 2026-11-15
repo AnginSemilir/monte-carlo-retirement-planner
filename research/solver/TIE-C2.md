@@ -2,7 +2,8 @@
 
 The plan, committed before anything is built or run. The maintainer reopened the couples' tie rule on 15 Nov, after
 `TIE-C.md`'s read failed and closed it: "Plan out and add a test to the queue for an improved couples tie rule based on
-learnings so far." The rule below is fixed now. The build, its test and the read's files come later, in the queue's order
+learnings so far." On the plan's first choice, the same day: "1 - pass goes straight into default" (the
+outcomes below). The rule below is fixed now. The build, its test and the read's files come later, in the queue's order
 (STATE.md action 3). A change to this file after the build starts is a dated amendment, made before the launch and before
 any unit runs.
 
@@ -158,14 +159,13 @@ An arm passes if all eight hold, against CANDS:
 - If one passes, that one is taken.
 
 **The outcomes:**
-- **PASSES:**
-  - The arm taken comes to the maintainer with the read and the agent's recommendation to make it the couples' default:
-    `src/solverSettings.js` `APP_COUPLE`, with the decided-defaults block and the test that pins them. The reviewer looks at
-    the change of default before it is committed.
-  - If the maintainer says before the launch that a pass goes in without another word, as D97 (2) said for the first
-    rule, it goes in on that word.
-  - If the arm taken adds more than a quarter to a couple's path (the median over the twelve), it comes as the trade it
-    is, the time against the gain (D90 (2)'s form).
+- **PASSES:** by the maintainer's word of 15 Nov (D105: "1 - pass goes straight into default"), the ruling naming this run.
+  - The arm taken becomes the couples' default without another word: `src/solverSettings.js` `APP_COUPLE`, with the
+    decided-defaults block and the test that pins them. The reviewer looks at the change of default before it is
+    committed.
+  - One exception stands. If the arm taken adds more than a quarter to a couple's path (the median over the twelve), it
+    comes to the maintainer as the trade it is, the time against the gain (D90 (2)'s form). HOLD adds no time, so this can
+    only be LOOKHOLD.
 - **NO GAIN** (neither arm passes, and one holds parts 1 to 7 and fails only part 8): closed. Nothing measured changes,
   so nothing is added; reported.
 - **FAILS** (neither arm holds parts 1 to 7): closed and reported; nothing changes. Part 7 failing is a STOP, reported as

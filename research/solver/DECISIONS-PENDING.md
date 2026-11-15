@@ -30,11 +30,14 @@ its read closed: "Plan out and add a test to the queue for an improved couples t
   - built after the swap's change of default;
   - launched when the cores are free, after the fourth batch's gate and the share rules' pilot;
   - about a day to build, about five and a half hours on four cores, half a day to read.
-- **Two choices for you before the launch**, each with a default if you say nothing:
-  1. A pass comes back to you with a recommendation. Say if it should go straight into the couples' candidate instead, as
-     D97 (2) allowed for the first rule.
-  2. The pot is judged with the allowance for noise (the agent's recommendation). Say if you would rather keep the first
-     read's point bar on every couple. Then a couple like S311F is decided by its few paths worth billions.
+- **Your two choices before the launch:**
+  1. RULED (15 Nov): "1 - pass goes straight into default". A pass is the ruling naming the run: the arm the rule takes
+     becomes the couples' default, the reviewer on the change of default. One exception stands from the plan: if the
+     version taken is the one with the forward look and it adds more than a quarter to a couple's path, it comes back to
+     you as the speed trade.
+  2. Open, its default standing: the pot is judged with the allowance for noise (the agent's recommendation). Say before
+     the launch if you would rather keep the first read's point bar on every couple. Then a couple like S311F is decided by
+     its few paths worth billions.
 
 **FOR THE MAINTAINER (15 Nov, morning), to note: the allowance's step at both places reads FAILS, so it is closed.**
 `results-allowance-both.txt` (EXPLORATORY, seed 7002; `ALLOWANCE-BOTH.md`, D98); in plain words,

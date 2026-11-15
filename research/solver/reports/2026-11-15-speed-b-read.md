@@ -2,9 +2,10 @@
 
 EXPLORATORY, seed 7002 (D97 (3); `SPEED-B.md`, its rule committed before launch at a8a26e16). The read whole is
 `results-speed-b.txt`; the figures beside it, written after the read and deciding nothing, are `results-speed-b-beside.txt`
-(`speed-b-beside.mjs`, sections A to H). Every figure below is printed in one of those two files, or, for item 7's earlier
+(`speed-b-beside.mjs`, sections A to I). Every figure below is printed in one of those two files, or, for item 7's earlier
 read, in `results-tie-a.txt`. The read decides nothing by itself: it goes to you as the trade it is (D90 (2)). The reviewer
-at the read: `reviews/2026-11-15-read-speed-b.md` (FAIL, one BLOCKING, answered here in one fix).
+at the read: `reviews/2026-11-15-read-speed-b.md` (FAIL, one BLOCKING, answered in one fix); again,
+`reviews/2026-11-15-read-speed-b-2.md` (PASS, three MINORs, answered here).
 
 ## In plain words
 
@@ -19,16 +20,20 @@ dial's first position.
 - The engine's time for a path is about halved: the median is x0.54 (x0.39 to x0.67).
 - **The warning's figures come from item 7's read.** "About 2 in 10,000 on average, and at most about 2 in 1,000" are its
   pooled -0.019 and its S370's -0.175 (-0.310 to -0.040), measured on 16,000 paths (`results-tie-a.txt`).
-- **This read could hardly have seen a loss like S370's.** Its 20 singles all survive 92.58% to 99.20%, and only 27 of
-  their 80,000 paths part between the arms. S370 survived 83.94%, with 120 of 16,000 paths parting. Simulated at S370's own
-  rates, a loss of S370's size reads beyond noise in 22.8% of runs at this read's 4,000 paths, and in 70.8% at 16,000
-  (section E). So this read neither measures the warning's "at most" again nor contradicts it.
+- **This read rules such a loss out on its own singles, but none of them is a household like S370.** Every single's
+  interval has its lower end above -0.175, the lowest S326F's -0.163. But they all survive 92.58% to 99.20%, and only 27
+  of their 80,000 paths part between the arms, where S370 survived 83.94% with 120 of 16,000 parting. On a household like
+  S370, simulated at its own rates, a loss of S370's size reads beyond noise in 22.8% of runs at 4,000 paths and 70.8% at
+  16,000 (section E). So this read neither measures the warning's "at most" on such a household again nor contradicts
+  it.
 
 **Couples: it loses, on spending.**
 - Pooled spending delivered is lower by 0.0683%, against a bar of 0.05% either way. Leaving out any one couple, it still
   fails: the nearest is -0.0558% without S133.
-- Couple by couple the loss is larger: -0.122% with each couple weighted equally, since 62.8% of the pounds pooled are the
-  younger couples'. S133 spends 0.620% less (lower on 2,716 of its 4,000 paths), S097 0.278% and S031 0.216%.
+- Couple by couple the loss is larger: -0.122% with each couple weighted equally. The two cohorts pool to nearly the same
+  loss (-0.0698% and -0.0674%; -0.0686% weighted equally), so the gap is the small-spending couples' larger losses. S133
+  spends 0.620% less (lower on 2,716 of its 4,000 paths) and S097 0.278%, with 2.21% and 2.27% of the pounds; a couple's
+  pounds and its change in spending correlate +0.40. S031 spends 0.216% less.
 - Pooled survival holds at -0.023 (-0.084 to +0.038), but two couples lose beyond noise, each still beyond it after a
   Holm adjustment over the twelve (section F): S031 by 0.550 (-0.879 to -0.238) and S063 by 0.500 (-0.830 to -0.187). Both
   intervals' upper ends are above the rule's -0.3, so part 2 holds. Each loss is more than twice the singles' warning's
@@ -37,17 +42,21 @@ dial's first position.
   +0.173). But each cohort's figure rests on two couples: without S031 and S063 the library's four come to +0.037, and
   without S301F and S325F the younger four come to +0.019. S301F's and S325F's gains are not beyond noise after the Holm
   adjustment. So the cohort pattern is a lead.
-- The pot is higher, +1.169% pooled and +0.521% capped, but most of that is S063's: its pot is 10.33% higher, only 1.31%
-  with the cap. Without S063 the couples' pot is +0.336%. S063's lifetime tax doubles at the mean (+99.0%), and at the
-  median rises 14.1%.
+- The pot is higher, +1.169% pooled and +0.521% capped. The mean pot's rise is mostly S063's (+0.336% without it): its pot
+  is 10.33% higher, only 1.31% with the cap. The capped pot's is not (+0.449% without S063). S063's lifetime tax doubles at
+  the mean (+99.0%), and at the median rises 14.1%.
 - The engine's time for a path saves less than for a single: the median is x0.79 (x0.52 to x0.90).
 
 **By the rule:** for singles, to you with the time it saves; for couples, the warning stays and nothing changes.
 
 **My recommendation, for you to rule on (D90 (2), the trade):**
-- **Singles:** keep the speed mode a beta with its warning as it stands. This read adds a wider panel that shows no loss,
-  but not of the households where item 7 measured one. If you want the warning reconsidered, the read that could do it
-  would take households like S370 at 16,000 paths: a new test with its own rule, if you ask for it.
+- **Singles:** keep the speed mode a beta with its warning's figures on survival as they stand. This read adds a wider
+  panel that shows no loss, but not of the households where item 7 measured one. If you want the warning reconsidered, the
+  read that could do it would take households like S370 at 16,000 paths: a new test with its own rule, if you ask for it.
+- **The warnings' speed.** "About twice as fast" for singles and "nearly twice as fast" for couples rest on the engine's
+  time per path. With the solve counted as well, this read's ratio is x0.66 for singles and x0.82 for couples (the
+  median; section I). A user's wait has not been measured. Whether the words should say "faster" rather than "about twice
+  as fast" is yours, as the words are (D98).
 - **Couples:** keep it as it is, with one change for you to weigh. The couples' warning says nothing about survival, and
   here two couples lost half a point each. Its words are yours (D98), so whether it should say so, and how, is your call.
 
@@ -86,7 +95,8 @@ survival bars are on interval ends, and the couples' spending, -0.0683%, is clea
 
   The units ran four at a time at the lowest priority, WHOLE always timed before SPEED. The session's two traces of the
   couples' tie rule, a solve of S311F taking about two and a half minutes each time, ran on the same cores while this read
-  ran. A user's wait falls by less than these ratios.
+  ran. With each unit's solve added to its 4,000 paths, SPEED over WHOLE is the median x0.66 for singles (x0.48 to x0.76)
+  and x0.82 for couples (x0.58 to x0.92), section I. A user's wait falls by less than the per-path ratios.
 - **Lifetime tax and the time by unit** are in section C.
 
 ## How this read sits beside the earlier two
@@ -109,4 +119,4 @@ The earlier reads were made differently, so their figures are not one panel unde
 
 `SPEED-B.md` (the rule), `audit-speed-b.mjs`, `batch-speed-b.sh`, `reduce-speed-b.mjs`, `results-speed-b.txt` (the read
 whole), `speed-b-beside.mjs` and `results-speed-b-beside.txt` (beside it, written after the read),
-`reviews/2026-11-15-read-speed-b.md` (the reviewer at the read).
+`reviews/2026-11-15-read-speed-b.md` and `-2.md` (the reviewer at the read, twice).

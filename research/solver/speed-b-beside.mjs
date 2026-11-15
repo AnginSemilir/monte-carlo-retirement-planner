@@ -54,11 +54,16 @@ console.log(`\nD. The couples' part 3 (pooled spending delivered within 0.05%) w
 }
 
 // sections E to I, added in answer to the reviewer at the read (reviews/2026-11-15-read-speed-b.md, findings 1 to 4 and 7)
-console.log(`\nE. What the singles can show: this read's panel, and a loss of the size item 7 measured on S370 (results-tie-a.txt: the speed mode on S370, 83.94% and 83.76%, 46 saved and 74 lost of 16,000 paths, -0.175 (-0.310 to -0.040); the singles' warning's "at most about 2 in 1,000")`);
+console.log(`\nE. What the singles show, and what they do not: this read's panel, and a loss of the size item 7 measured on S370 (results-tie-a.txt: the speed mode on S370, 83.94% and 83.76%, 46 saved and 74 lost of 16,000 paths, -0.175 (-0.310 to -0.040); the singles' warning's "at most about 2 in 1,000")`);
 {
   const ss = byKind('single'), surv = ss.map(U => 100 * mean(U.arms.WHOLE.survived)), R = rule(ss);
   const disc = R.H.reduce((t, h) => t + h.cells.lost + h.cells.saved, 0);
   console.log(`  this read's ${ss.length} singles: survival under WHOLE from ${Math.min(...surv).toFixed(2)}% to ${Math.max(...surv).toFixed(2)}%; ${disc} paths of ${ss.length * ss[0].N} part between the arms`);
+  // the reviewer's second round, MINOR 1: on its own singles the read rules a loss of S370's size out, each interval's lower
+  // end above -0.175; what it cannot do is test a household like S370, whose own discordance the simulation below takes
+  const lowest = [...R.H].sort((a, b) => a.ch.lo - b.ch.lo)[0];
+  console.log(`  on each of them a loss of S370's size (-0.175) is ruled out: every interval's lower end is above it, the lowest ${lowest.id}'s ${f(lowest.ch.lo)}; none of them is a household like S370 (its survival 83.94%, 120 of 16,000 paths parting)`);
+  console.log(`  a household like S370, simulated at its own rates:`);
   // a seeded simulation: paired cells drawn at S370's probabilities, how often the change reads beyond noise, and how often
   // part 2 (the interval wholly below -0.3) fails, at 4,000 and 16,000 paths; and a true half-point loss at S370's discordance
   const { survivalChangeU } = await import('./stats.mjs');
@@ -67,7 +72,7 @@ console.log(`\nE. What the singles can show: this read's panel, and a loss of th
   const S370 = { a: 13356 / 16000, b: 74 / 16000, c: 46 / 16000 }, half = { a: 13356 / 16000, b: 0.00625, c: 0.00125 };
   for (const [name, p] of [["S370's measured loss (-0.175 points)", S370], ['a true half-point loss at the same discordance', half]]) {
     const r4 = sim(p, 4000), r16 = sim(p, 16000);
-    console.log(`  ${name}: read beyond noise in ${r4.beyond.toFixed(1)}% of 2,000 simulated runs at 4,000 paths and ${r16.beyond.toFixed(1)}% at 16,000; part 2 failing in ${r4.part2.toFixed(1)}% and ${r16.part2.toFixed(1)}%`);
+    console.log(`    ${name}: read beyond noise in ${r4.beyond.toFixed(1)}% of 2,000 simulated runs at 4,000 paths and ${r16.beyond.toFixed(1)}% at 16,000; part 2 failing in ${r4.part2.toFixed(1)}% and ${r16.part2.toFixed(1)}%`);
   }
 }
 
@@ -90,7 +95,12 @@ console.log(`\nG. The couples' spending couple by couple (SPEED against WHOLE), 
   const all = sum(per.map(p => p.w));
   console.log(`  each couple equally weighted: ${f(mean(per.map(p => p.sp)), 4)}%; pooled by pounds (part 3): ${f(100 * (sum(cs.map(U => sum(U.arms.SPEED.delivered))) / all - 1), 4)}%`);
   console.log(`  the share of WHOLE's pounds: ${[...new Set(per.map(p => p.cohort))].map(c => `${c} ${(100 * sum(per.filter(p => p.cohort === c).map(p => p.w)) / all).toFixed(1)}%`).join(', ')}; the largest one couple's ${[...per].sort((a, b) => b.w - a.w).slice(0, 1).map(p => `${p.id} ${(100 * p.w / all).toFixed(1)}%`)}`);
-  console.log(`  by couple: ${[...per].sort((a, b) => a.sp - b.sp).map(p => `${p.id} ${f(p.sp, 3)}% (lower on ${p.lower} of ${cs[0].N} paths)`).join('; ')}`);
+  console.log(`  by couple: ${[...per].sort((a, b) => a.sp - b.sp).map(p => `${p.id} ${f(p.sp, 3)}% (lower on ${p.lower} of ${cs[0].N} paths; ${(100 * p.w / all).toFixed(2)}% of the pounds)`).join('; ')}`);
+  // the reviewer's second round, MINOR 2: the cohorts pool to nearly the same loss, so the gap between the pooled and the
+  // equally weighted figure is the small-spending couples' larger losses, not the cohorts' shares
+  const cohorts = [...new Set(per.map(p => p.cohort))].map(c => { const us = cs.filter(U => U.cohort === c); return 100 * (sum(us.map(U => sum(U.arms.SPEED.delivered))) / sum(us.map(U => sum(U.arms.WHOLE.delivered))) - 1); });
+  const mw = mean(per.map(p => p.w)), msp = mean(per.map(p => p.sp)), cov = mean(per.map(p => (p.w - mw) * (p.sp - msp))), sw = Math.sqrt(mean(per.map(p => (p.w - mw) ** 2))), ss2 = Math.sqrt(mean(per.map(p => (p.sp - msp) ** 2)));
+  console.log(`  the two cohorts weighted equally: ${f(mean(cohorts), 4)}%; the correlation of a couple's pounds with its change in spending: ${f(cov / (sw * ss2), 2)}`);
 }
 
 console.log(`\nH. S063, the couple whose tax doubles: its pot with and without the cap, and its tax at the median and the mean`);
@@ -99,5 +109,11 @@ console.log(`\nH. S063, the couple whose tax doubles: its pot with and without t
   const capped = X => mean(Array.from(X.pot, v => Math.min(v, U.cap))), med = a => { const t = [...a].sort((x, y) => x - y); return t[t.length >> 1]; };
   console.log(`  the pot ${f(100 * (mean(s.pot) / mean(w.pot) - 1), 2)}%, capped at ${gbp(U.cap)} ${f(100 * (capped(s) / capped(w) - 1), 2)}%; lifetime tax at the median ${gbp(med(w.tax))} to ${gbp(med(s.tax))} (${f(100 * (med(s.tax) / med(w.tax) - 1), 1)}%), at the mean ${gbp(mean(w.tax))} to ${gbp(mean(s.tax))} (${f(100 * (mean(s.tax) / mean(w.tax) - 1), 1)}%)`);
   const cs = byKind('couple').filter(u => u.id !== 'S063'), R = rule(cs);
-  console.log(`  the couples' pooled pot without S063: ${f(R.potP)}% (all twelve ${f(rule(byKind('couple')).potP)}%)`);
+  console.log(`  the couples' pooled pot without S063: ${f(R.potP)}% (all twelve ${f(rule(byKind('couple')).potP)}%); the capped pot without S063 ${f(R.cappedP)}% (all twelve ${f(rule(byKind('couple')).cappedP)}%)`);
+}
+
+console.log(`\nI. The time with the solve: each unit's solve and its 4,000 paths' engine time, SPEED over WHOLE (the reviewer's second round, MINOR 3; the units ran four at a time at the lowest priority, WHOLE first: a guide):`);
+for (const k of GROUPS) {
+  const rs = byKind(k).map(U => { const t = a => U.arms[a].solveSecs + U.arms[a].ms * U.N / 1000; return t('SPEED') / t('WHOLE'); }).sort((a, b) => a - b);
+  console.log(`  ${k}s: the median x${rs[rs.length >> 1].toFixed(2)} (x${rs[0].toFixed(2)} to x${rs[rs.length - 1].toFixed(2)})`);
 }

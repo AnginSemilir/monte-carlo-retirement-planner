@@ -27,9 +27,13 @@ its read closed: "Plan out and add a test to the queue for an improved couples t
   - Each couple's pot is judged two ways: each path's own change averaged, and the average pound with an allowance for
     noise.
 - **In the queue:**
-  - built after the swap's change of default;
-  - launched when the cores are free, after the fourth batch's gate and the share rules' pilot;
-  - about a day to build, about five and a half hours on four cores, half a day to read.
+  - built (15 Nov), off in code, with its test and the read's files (STATE.md action 3);
+  - before the launch, deciding nothing (`results-tie-c2-precheck.txt`): S311F's two deciding paths of the first read
+    under each arm. The step down at 90 came from each person's shortlist reading a pot of billions at the table's top;
+    the move keeping the risk scored higher but was not on offer. The hold removes the step, and the look kept the pots
+    within 0.03% while cutting lifetime tax by £9,065 and £84,755;
+  - launched when the cores are free, after the share rules' pilot;
+  - about five and a half hours on four cores as planned (the first units' times to confirm), half a day to read.
 - **Your two choices before the launch:**
   1. RULED (15 Nov): "1 - pass goes straight into default". A pass is the ruling naming the run: the arm the rule takes
      becomes the couples' default, the reviewer on the change of default. One exception stands from the plan: if the

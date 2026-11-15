@@ -3832,6 +3832,7 @@
    "research/solver/results-planner-ui-couplehalf.txt",
    "research/solver/results-planner-ui-d5.txt",
    "research/solver/results-planner-ui-phase12.txt",
+   "research/solver/results-planner-ui-swap.txt",
    "research/solver/results-planner-ui.txt",
    "research/solver/results-pmap.txt",
    "research/solver/results-pol-overflow.txt",

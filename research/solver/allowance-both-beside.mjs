@@ -13,6 +13,8 @@
  *      moves to 'paraw' (BLOCKING 1);
  *   E  NOW's and RAWPA's units against the ceiling-lead units of 13 Nov (results/ceiling-lead-7002): each table digest and
  *      every stored array they share, byte for byte (MINOR 4).
+ *   F  RAWPA against NOW by household, the capped pot and lifetime tax (the second round's MINOR 2: the report gave two of
+ *      them as differences of the read's figures).
  *   node research/solver/allowance-both-beside.mjs [dir] [ceiling-lead dir]
  */
 import { readFileSync, readdirSync } from 'node:fs';
@@ -69,3 +71,8 @@ console.log(`\nE. NOW's and RAWPA's units against the ceiling-lead units of 13 N
 const rowsE = HOUSEHOLDS.map(id => { const U = raw.find(u => u.id === id), C = clOf(id); return `${id} ${['NOW', 'RAWPA'].map(a => `${a} ${KEYS.every(k => JSON.stringify(U.arms[a][k]) === JSON.stringify(C.arms[a][k])) ? 'the same' : 'DIFFERENT (' + KEYS.filter(k => JSON.stringify(U.arms[a][k]) !== JSON.stringify(C.arms[a][k])).join(', ') + ')'}`).join(', ')}`; });
 console.log(`  ${rowsE.join('\n  ')}`);
 console.log(`  stamps: this run ${raw[0].stamp ? JSON.stringify(raw[0].stamp) : '?'}; the ceiling-lead units ${JSON.stringify(clOf(HOUSEHOLDS[0]).stamp || '?')}`);
+
+// F: RAWPA against NOW by household (the engine-wide allowance as given, beside the rule), from the reducer's own compare
+const RW = compare(units, 'NOW', 'RAWPA');
+console.log(`\nF. RAWPA against NOW by household (the capped pot and lifetime tax, the means over each household's paths):`);
+for (const h of RW.H) console.log(`  ${h.id.padEnd(6)} the capped pot ${gbp(h.capB - h.capA)} (${f(100 * (h.capB / h.capA - 1))}%), lifetime tax ${gbp(h.taxB - h.taxA)}`);

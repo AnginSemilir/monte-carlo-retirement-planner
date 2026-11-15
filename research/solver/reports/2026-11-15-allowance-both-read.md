@@ -31,11 +31,11 @@ the review's eight households, 16,000 paths each.
     over the first 200 paths.
   - The read's count of years "drawing first through" the old allowance does not measure the new draw. It counts every
     move whose pension draws pass the new rung: 40 of the 60 base moves. Only 10 of those are the new draw. The other 30
-    are the old ladders with the rung between, and they draw exactly what they drew before. So S188's 1,510 such years
+    are the old ladders with the rung between, and on these runs they drew exactly what they drew before. So S188's 1,510 such years
     mix the two, and the units do not split them.
   - S188 re-wraps to the old place in 73 of 8,200 decision-years. Its capped pot is £4,624 lower and its tax higher, and
     the cause is not shown. The old engine-wide allowance (RAWPA, beside) moves S188's capped pot by -£24 and its tax by
-    +£268.
+    +£268 (beside, section F).
 - **RAWPA against the candidate is the ceiling-lead test's comparison again.** Both arms' tables and stored figures are
   those of the 13 Nov units byte for byte (beside, section E). Its +0.020 survival and -0.244% capped pot are that test's
   finding, not a new one.
@@ -94,6 +94,15 @@ pot's -0.187% is clear of its -0.1%, and the survival bars are on interval ends.
   - So BOTH's approximate solve over the old moves differs from NOW's as well as offering the new ones. How much of BOTH
     against NOW that accounts for is not shown; S188 is where it could show.
   - The read is of the option as the candidate's route solves it, which is what the rule asks, so the outcome stands.
+- **BOTH has no exact copy of the old band ladders.**
+  - Once a person's interest and dividends for the year pass the basic-rate band, a ladder through the new rung draws
+    pension to the allowance as given before going on. The old ladder stops lower.
+  - So in such a year BOTH has no move that draws as NOW's band ladder does, and the tables are solved on such cells too.
+    `ALLOWANCE-BOTH.md`'s "NOW's moves are BOTH's less the new ones" holds in what was drawn on these runs, not for the menu
+    as built.
+  - The reviewer's second round (its own probe, `reviews/2026-11-15-read-allowance-both-2.md`) found NOW's tables would
+    have taken a ladder BOTH lacks on S328F and S340F only, never on S090, which decides the FAIL. So the outcome does not
+    move.
 - **No forward run beside the engine.** The audit held its runs to the engine's own trial (`runPath` against
   `E.runTrial`) on the first 200 paths, on survival and lifetime tax. Both are the engine's year. That the forward run and
   the engine agree under the new moves rests on `allowance-both.test.mjs` checks 4 and 5: seeded random moves on that
@@ -104,4 +113,6 @@ pot's -0.187% is clear of its -0.1%, and the survival bars are on interval ends.
 `ALLOWANCE-BOTH.md` (the rule), `audit-allowance-both.mjs`, `batch-allowance-both.sh`, `reduce-allowance-both.mjs`,
 `results-allowance-both.txt` (the read whole), `allowance-both-beside.mjs` and `results-allowance-both-beside.txt` (beside
 it, written after the read; sections B to E added for the reviewer), `reviews/2026-11-15-read-allowance-both.md` (the
-reviewer at the read: FAIL, one BLOCKING, the take-up sentence, answered above with its five MINORs in one fix).
+reviewer at the read: FAIL, one BLOCKING, the take-up sentence, answered above with its five MINORs in one fix), and
+`-2.md` (the reviewer again: PASS, two MINORs, answered: "on these runs" above, the band ladders' line, and RAWPA by household
+printed in section F).

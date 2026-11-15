@@ -51,7 +51,7 @@ its read closed: "Plan out and add a test to the queue for an improved couples t
 - By the rule the offer is closed and nothing changes; the allowance step stays where the harvest ceiling put it.
 - The reviewer at the read: FAIL, one BLOCKING. The report's count of how often the new draw was taken was wrong: three
   in four of the moves it counted are the old ladders. Answered in one fix with its five MINORs
-  (`reviews/2026-11-15-read-allowance-both.md`); the reviewer again next.
+  (`reviews/2026-11-15-read-allowance-both.md`). The reviewer again: PASS, two MINORs, both answered (`-2.md`).
 
 **RULED (D104, 15 Nov, morning): the morning report's five decisions, "Go with your recommendations".** Each read is in
 full in its report: `reports/2026-11-15-other-order-read.md`, `reports/2026-11-15-speed-b-read.md`,

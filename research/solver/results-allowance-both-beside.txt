@@ -46,3 +46,13 @@ E. NOW's and RAWPA's units against the ceiling-lead units of 13 Nov (ceiling-lea
   S328F NOW the same, RAWPA the same
   S340F NOW the same, RAWPA the same
   stamps: this run {"code":"6b2dc56b2f82","audit":"07b1ad74d638","prediction":"none","node":"v22.23.4"}; the ceiling-lead units {"code":"7002a1fec94c","audit":"ffc1d7fd23c0","prediction":"none","node":"v22.23.4"}
+
+F. RAWPA against NOW by household (the capped pot and lifetime tax, the means over each household's paths):
+  S030   the capped pot -£753 (-0.068%), lifetime tax -£989
+  S050   the capped pot £4 (+0.001%), lifetime tax £2
+  S090   the capped pot -£26,501 (-1.948%), lifetime tax -£8,689
+  S368   the capped pot £337 (+0.011%), lifetime tax £39
+  S188   the capped pot -£24 (-0.001%), lifetime tax £268
+  S304F  the capped pot £61 (+0.004%), lifetime tax £5,043
+  S328F  the capped pot -£1,332 (-0.107%), lifetime tax £653
+  S340F  the capped pot £14 (+0.001%), lifetime tax £2,948

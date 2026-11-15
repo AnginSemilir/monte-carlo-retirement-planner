@@ -11,6 +11,25 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**FOR YOUR GO (D104 (5), 15 Nov, evening): the share rules' registered test, `registrations/share-rules.md`.** Complete,
+its design review PASS on the second round (`reviews/2026-11-15-share-rules-design-2.md`).
+- **What it tests:** two fixed rules for a couple's share against today's (the pots' share outside 40% to 60%, half
+  inside), each on the couples' candidate:
+  - FLAT: the pots' share for every couple, the band dropped;
+  - MEANS: each person's share of the two people's means.
+  On eight held-out couples (32 units: 45/55, 55/45, 90/10 and a feature where the means and the pots part), seed 7023,
+  16,000 paths a unit. A rule passes only with no unit harmed, a pooled survival gain beyond noise and spending held. A pass
+  makes it the couples' default.
+- **Cost:** 58.1 core-hours, about 14.5 hours on four cores. TIE-C2's run holds the cores until about 01:00 to 02:00 UK,
+  so a go tonight starts it then and it ends about mid-afternoon Monday.
+- **What the pilot shows** (EXPLORATORY, 1,000 paths of three couples, seed 7002): FLAT loses survival on all three 45/55
+  units, and MEANS on two of S023's units (0.70 and 2.40 points). Were those true, each would be flagged at 16,000 paths
+  with chance 0.93 to 1.00, so the run would most likely read NEITHER and today's split would stay. A loss of that size on
+  1,000 paths could still be noise.
+- **The agent's recommendation:** launch it. The machine does the work, mostly overnight, and the question is settled
+  properly either way. The work on the screens can start alongside it, since a passing rule changes one default and no
+  screen.
+
 **QUEUED (D105, 15 Nov, morning): a better tie rule for couples, `TIE-C2.md`.** You reopened the couples' tie rule that
 its read closed: "Plan out and add a test to the queue for an improved couples tie rule based on learnings so far".
 - **Two changes, each from what the first read found** (`results-tie-couple-trace.txt`):

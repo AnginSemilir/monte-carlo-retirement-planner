@@ -11,6 +11,14 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**FOR THE MAINTAINER (15 Nov, morning), to note: the allowance's step at both places reads FAILS, so it is closed.**
+`results-allowance-both.txt` (EXPLORATORY, seed 7002; `ALLOWANCE-BOTH.md`, D98); in plain words,
+`reports/2026-11-15-allowance-both-read.md`; beside it, `results-allowance-both-beside.txt`.
+- Offered the allowance at its old place as well as its new, the solver gains a hair of survival (+0.019 points pooled,
+  beyond noise) with spending level, but leaves less below the cap: the capped pot -0.187% against the bar of 0.1%.
+- S090 carries 71.3% of that fall (-1.130%); without it the capped pot would be -0.061%.
+- By the rule the offer is closed and nothing changes; the allowance step stays where the harvest ceiling put it.
+
 **RULED (D104, 15 Nov, morning): the morning report's five decisions, "Go with your recommendations".** Each read is in
 full in its report: `reports/2026-11-15-other-order-read.md`, `reports/2026-11-15-speed-b-read.md`,
 `reports/2026-11-15-tie-couple-read.md` and `reports/2026-11-14-share-choose-read.md`.

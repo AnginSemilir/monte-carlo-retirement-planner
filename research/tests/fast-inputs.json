@@ -627,6 +627,7 @@
  "e3pcls-guard.test.mjs": {
   "read": [
    "research/solver/STATE.md",
+   "research/solver/allowance-both-beside.mjs",
    "research/solver/audit-7ai.mjs",
    "research/solver/audit-7aj.mjs",
    "research/solver/audit-7ak.mjs",
@@ -2001,6 +2002,7 @@
    "research/policy-study/versus.mjs",
    "research/qa/engine-props.mjs",
    "research/simplePlan.mjs",
+   "research/solver/allowance-both-beside.mjs",
    "research/solver/audit-7ai.mjs",
    "research/solver/audit-7aj.mjs",
    "research/solver/audit-7ak.mjs",
@@ -3287,6 +3289,7 @@
    "research/solver/reports/2026-11-14-share-choose-read.md",
    "research/solver/reports/2026-11-14-share-ensemble.md",
    "research/solver/reports/2026-11-14-stage-c-read.md",
+   "research/solver/reports/2026-11-15-allowance-both-read.md",
    "research/solver/reports/2026-11-15-other-order-read.md",
    "research/solver/reports/2026-11-15-speed-b-read.md",
    "research/solver/reports/2026-11-15-tie-couple-read.md",
@@ -3371,6 +3374,8 @@
    "research/solver/results-adaptive-corner.txt",
    "research/solver/results-adaptive-step.txt",
    "research/solver/results-adoptpi.txt",
+   "research/solver/results-allowance-both-beside.txt",
+   "research/solver/results-allowance-both.txt",
    "research/solver/results-an-preflight-an.txt",
    "research/solver/results-an.txt",
    "research/solver/results-anchors-precheck.txt",

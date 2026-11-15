@@ -1,0 +1,15 @@
+BESIDE THE ALLOWANCE STEP'S READ (EXPLORATORY, written after the read, deciding nothing): 8 households of allowance-both-7002; part 4's capped pot, BOTH against NOW, pooled -0.187% (the bar -0.1%)
+
+Each household's capped pot (the pot held to its estate cap, the mean over its paths), BOTH against NOW:
+  S090   £1,360,242 to £1,344,874, -£15,369 (-1.130%), 71.3% of the summed change
+  S188   £1,830,308 to £1,825,684, -£4,624 (-0.253%), 21.4% of the summed change
+  S328F  £1,243,177 to £1,241,799, -£1,378 (-0.111%), 6.4% of the summed change
+  S030   £1,101,730 to £1,101,463, -£267 (-0.024%), 1.2% of the summed change
+  S368   £2,968,958 to £2,968,925, -£32 (-0.001%), 0.2% of the summed change
+  S050   £263,061 to £263,061, -£0 (-0.000%), 0.0% of the summed change
+  S304F  £1,481,623 to £1,481,646, £23 (+0.002%), -0.1% of the summed change
+  S340F  £1,292,571 to £1,292,653, £82 (+0.006%), -0.4% of the summed change
+
+The pooled capped pot without each household in turn (part 4 holds at -0.1% or above):
+  S030 -0.204%, S050 -0.191%, S090 -0.061%, S368 -0.251%, S188 -0.174%, S304F -0.215%, S328F -0.196%, S340F -0.211%
+  the households without whom part 4 would hold: S090

@@ -1,0 +1,44 @@
+THE SHARE RULES' TEST, THE PANEL (share-rules-panel.json, built 2026-11-15T10:57:28.496Z, code f5ee3a567425; the scan 310 ids, hash 40836a8ffa0a; the order frozen 2026-11-15T10:49:11.542Z)
+8 couples taken evenly over the untouched library order (99 couples), 32 units; passed over: none
+  place  0 S023 ages 68/65, retiring 66/66; library target 136500; its feature: db
+      S023-45     target 134400, arm A 85.1% (Bracket Fill Basic, lump sum); the first person holds 45.0% of the pots; the shares: today 0.500, the band dropped 0.450, the means 0.470
+      S023-55     target 134400, arm A 85.1% (Bracket Fill Basic, lump sum); the first person holds 55.0% of the pots; the shares: today 0.500, the band dropped 0.550, the means 0.556
+      S023-90     target 132300, arm A 86.0% (Bracket Fill Basic, lump sum); the first person holds 90.0% of the pots; the shares: today 0.900, the band dropped 0.900, the means 0.854
+      S023-db     target 145100, arm A 85.7% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots; the shares: today 0.500, the band dropped 0.600, the means 0.638
+  place  1 S061 ages 61/58, retiring 60/60; library target 6500; its feature: dbpart
+      S061-45     target 17300, arm A 84.4% (Bracket Fill Basic, lump sum); the first person holds 45.0% of the pots; the shares: today 0.500, the band dropped 0.450, the means 0.527
+      S061-55     target 17300, arm A 84.6% (Bracket Fill Basic, lump sum); the first person holds 55.0% of the pots; the shares: today 0.500, the band dropped 0.550, the means 0.569
+      S061-90     target 17300, arm A 84.8% (Bracket Fill, lump sum); the first person holds 90.0% of the pots; the shares: today 0.900, the band dropped 0.900, the means 0.717
+      S061-dbpart target 21400, arm A 85.2% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots; the shares: today 0.500, the band dropped 0.600, the means 0.385
+  place  2 S109 ages 61/58, retiring 60/60; library target 6500; its feature: sppart
+      S109-45     target 15800, arm A 84.9% (Bracket Fill Basic); the first person holds 45.0% of the pots; the shares: today 0.500, the band dropped 0.450, the means 0.527
+      S109-55     target 15800, arm A 84.7% (Bracket Fill Basic); the first person holds 55.0% of the pots; the shares: today 0.500, the band dropped 0.550, the means 0.569
+      S109-90     target 15800, arm A 84.7% (Bracket Fill Basic); the first person holds 90.0% of the pots; the shares: today 0.900, the band dropped 0.900, the means 0.717
+      S109-sppart target 14500, arm A 85.7% (Bracket Fill Basic); the first person holds 60.0% of the pots; the shares: today 0.500, the band dropped 0.600, the means 0.633
+  place  3 S147 ages 56/53, retiring 55/55; library target 13000; its feature: db
+      S147-45     target 30100, arm A 85.5% (ISA First); the first person holds 45.0% of the pots; the shares: today 0.500, the band dropped 0.450, the means 0.490
+      S147-55     target 30100, arm A 85.5% (ISA First); the first person holds 55.0% of the pots; the shares: today 0.500, the band dropped 0.550, the means 0.551
+      S147-90     target 30100, arm A 84.4% (ISA First, lump sum); the first person holds 90.0% of the pots; the shares: today 0.900, the band dropped 0.900, the means 0.765
+      S147-db     target 37400, arm A 84.1% (ISA First, lump sum); the first person holds 60.0% of the pots; the shares: today 0.500, the band dropped 0.600, the means 0.681
+  place  4 S191 ages 55/52, retiring 60/60; library target 180500; its feature: dbpart
+      S191-45     target 121400, arm A 85.2% (Bracket Fill Basic); the first person holds 45.0% of the pots; the shares: today 0.500, the band dropped 0.450, the means 0.470
+      S191-55     target 121400, arm A 85.1% (Bracket Fill Basic); the first person holds 55.0% of the pots; the shares: today 0.500, the band dropped 0.550, the means 0.551
+      S191-90     target 112900, arm A 85.4% (Bracket Fill Basic, lump sum); the first person holds 90.0% of the pots; the shares: today 0.900, the band dropped 0.900, the means 0.837
+      S191-dbpart target 129800, arm A 85.2% (Bracket Fill Basic); the first person holds 60.0% of the pots; the shares: today 0.500, the band dropped 0.600, the means 0.556
+  place  5 S227 ages 55/52, retiring 60/60; library target 176500; its feature: sppart
+      S227-45     target 126900, arm A 84.1% (Bracket Fill Basic); the first person holds 45.0% of the pots; the shares: today 0.500, the band dropped 0.450, the means 0.470
+      S227-55     target 126900, arm A 84.1% (Bracket Fill Basic); the first person holds 55.0% of the pots; the shares: today 0.500, the band dropped 0.550, the means 0.551
+      S227-90     target 121400, arm A 85.9% (Windfall to ISA, lump sum); the first person holds 90.0% of the pots; the shares: today 0.900, the band dropped 0.900, the means 0.837
+      S227-sppart target 121400, arm A 86.0% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots; the shares: today 0.500, the band dropped 0.600, the means 0.599
+  place  6 S271 ages 45/42, retiring 60/60; library target 107500; its feature: db
+      S271-45     target 94100, arm A 84.4% (Bracket Fill Basic, lump sum); the first person holds 45.0% of the pots; the shares: today 0.500, the band dropped 0.450, the means 0.502
+      S271-55     target 94100, arm A 84.2% (Bracket Fill Basic, lump sum); the first person holds 55.0% of the pots; the shares: today 0.500, the band dropped 0.550, the means 0.564
+      S271-90     target 90800, arm A 85.2% (Bracket Fill Basic, lump sum); the first person holds 90.0% of the pots; the shares: today 0.900, the band dropped 0.900, the means 0.783
+      S271-db     target 100800, arm A 85.5% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots; the shares: today 0.500, the band dropped 0.600, the means 0.638
+  place  7 S377 ages 50/47, retiring 50/50; library target 24000; its feature: dbpart
+      S377-45     target 21800, arm A 85.9% (Bracket Fill); the first person holds 45.0% of the pots; the shares: today 0.500, the band dropped 0.450, the means 0.487
+      S377-55     target 21800, arm A 85.9% (Bracket Fill); the first person holds 55.0% of the pots; the shares: today 0.500, the band dropped 0.550, the means 0.551
+      S377-90     target 22500, arm A 84.1% (Bracket Fill, lump sum); the first person holds 90.0% of the pots; the shares: today 0.900, the band dropped 0.900, the means 0.777
+      S377-dbpart target 25500, arm A 85.4% (Bracket Fill); the first person holds 60.0% of the pots; the shares: today 0.500, the band dropped 0.600, the means 0.470
+the units where a rule's share differs from today's: the band dropped 24 of 32, the means 32 of 32
+arm A's pick takes the full lump sum on 18 of 32 units (by its label)

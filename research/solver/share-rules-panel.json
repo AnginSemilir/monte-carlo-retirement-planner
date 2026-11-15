@@ -1,0 +1,291 @@
+{
+ "built": "2026-11-15T10:57:28.496Z",
+ "code": "f5ee3a567425",
+ "touched": {
+  "count": 310,
+  "hash": "40836a8ffa0a"
+ },
+ "passed": [],
+ "panel": [
+  {
+   "base": "S023",
+   "place": 0,
+   "feature": "db",
+   "units": [
+    {
+     "id": "S023-45",
+     "variant": "45",
+     "target": 134400,
+     "survival": 85.1,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S023-55",
+     "variant": "55",
+     "target": 134400,
+     "survival": 85.1,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S023-90",
+     "variant": "90",
+     "target": 132300,
+     "survival": 86,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S023-db",
+     "variant": "db",
+     "target": 145100,
+     "survival": 85.7,
+     "label": "Bracket Fill Basic, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S061",
+   "place": 1,
+   "feature": "dbpart",
+   "units": [
+    {
+     "id": "S061-45",
+     "variant": "45",
+     "target": 17300,
+     "survival": 84.39999999999999,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S061-55",
+     "variant": "55",
+     "target": 17300,
+     "survival": 84.6,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S061-90",
+     "variant": "90",
+     "target": 17300,
+     "survival": 84.8,
+     "label": "Bracket Fill, lump sum"
+    },
+    {
+     "id": "S061-dbpart",
+     "variant": "dbpart",
+     "target": 21400,
+     "survival": 85.2,
+     "label": "Bracket Fill Basic, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S109",
+   "place": 2,
+   "feature": "sppart",
+   "units": [
+    {
+     "id": "S109-45",
+     "variant": "45",
+     "target": 15800,
+     "survival": 84.89999999999999,
+     "label": "Bracket Fill Basic"
+    },
+    {
+     "id": "S109-55",
+     "variant": "55",
+     "target": 15800,
+     "survival": 84.7,
+     "label": "Bracket Fill Basic"
+    },
+    {
+     "id": "S109-90",
+     "variant": "90",
+     "target": 15800,
+     "survival": 84.7,
+     "label": "Bracket Fill Basic"
+    },
+    {
+     "id": "S109-sppart",
+     "variant": "sppart",
+     "target": 14500,
+     "survival": 85.7,
+     "label": "Bracket Fill Basic"
+    }
+   ]
+  },
+  {
+   "base": "S147",
+   "place": 3,
+   "feature": "db",
+   "units": [
+    {
+     "id": "S147-45",
+     "variant": "45",
+     "target": 30100,
+     "survival": 85.5,
+     "label": "ISA First"
+    },
+    {
+     "id": "S147-55",
+     "variant": "55",
+     "target": 30100,
+     "survival": 85.5,
+     "label": "ISA First"
+    },
+    {
+     "id": "S147-90",
+     "variant": "90",
+     "target": 30100,
+     "survival": 84.39999999999999,
+     "label": "ISA First, lump sum"
+    },
+    {
+     "id": "S147-db",
+     "variant": "db",
+     "target": 37400,
+     "survival": 84.1,
+     "label": "ISA First, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S191",
+   "place": 4,
+   "feature": "dbpart",
+   "units": [
+    {
+     "id": "S191-45",
+     "variant": "45",
+     "target": 121400,
+     "survival": 85.2,
+     "label": "Bracket Fill Basic"
+    },
+    {
+     "id": "S191-55",
+     "variant": "55",
+     "target": 121400,
+     "survival": 85.1,
+     "label": "Bracket Fill Basic"
+    },
+    {
+     "id": "S191-90",
+     "variant": "90",
+     "target": 112900,
+     "survival": 85.39999999999999,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S191-dbpart",
+     "variant": "dbpart",
+     "target": 129800,
+     "survival": 85.2,
+     "label": "Bracket Fill Basic"
+    }
+   ]
+  },
+  {
+   "base": "S227",
+   "place": 5,
+   "feature": "sppart",
+   "units": [
+    {
+     "id": "S227-45",
+     "variant": "45",
+     "target": 126900,
+     "survival": 84.1,
+     "label": "Bracket Fill Basic"
+    },
+    {
+     "id": "S227-55",
+     "variant": "55",
+     "target": 126900,
+     "survival": 84.1,
+     "label": "Bracket Fill Basic"
+    },
+    {
+     "id": "S227-90",
+     "variant": "90",
+     "target": 121400,
+     "survival": 85.9,
+     "label": "Windfall to ISA, lump sum"
+    },
+    {
+     "id": "S227-sppart",
+     "variant": "sppart",
+     "target": 121400,
+     "survival": 86,
+     "label": "Bracket Fill Basic, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S271",
+   "place": 6,
+   "feature": "db",
+   "units": [
+    {
+     "id": "S271-45",
+     "variant": "45",
+     "target": 94100,
+     "survival": 84.39999999999999,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S271-55",
+     "variant": "55",
+     "target": 94100,
+     "survival": 84.2,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S271-90",
+     "variant": "90",
+     "target": 90800,
+     "survival": 85.2,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S271-db",
+     "variant": "db",
+     "target": 100800,
+     "survival": 85.5,
+     "label": "Bracket Fill Basic, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S377",
+   "place": 7,
+   "feature": "dbpart",
+   "units": [
+    {
+     "id": "S377-45",
+     "variant": "45",
+     "target": 21800,
+     "survival": 85.9,
+     "label": "Bracket Fill"
+    },
+    {
+     "id": "S377-55",
+     "variant": "55",
+     "target": 21800,
+     "survival": 85.9,
+     "label": "Bracket Fill"
+    },
+    {
+     "id": "S377-90",
+     "variant": "90",
+     "target": 22500,
+     "survival": 84.1,
+     "label": "Bracket Fill, lump sum"
+    },
+    {
+     "id": "S377-dbpart",
+     "variant": "dbpart",
+     "target": 25500,
+     "survival": 85.39999999999999,
+     "label": "Bracket Fill"
+    }
+   ]
+  }
+ ]
+}

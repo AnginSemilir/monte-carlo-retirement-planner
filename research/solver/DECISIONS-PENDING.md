@@ -13,16 +13,20 @@ below this section says "the beta", read it as history. The order from here:
 
 **FOR THE MAINTAINER (15 Nov, morning): the speed mode's wider read, singles HOLDS and couples LOSES; the trade is yours (D90 (2)).**
 `results-speed-b.txt` (EXPLORATORY, seed 7002; `SPEED-B.md`, D97 (3)); in plain words, `reports/2026-11-15-speed-b-read.md`;
-beside it, `results-speed-b-beside.txt`.
+beside it, `results-speed-b-beside.txt`; the reviewer at the read, `reviews/2026-11-15-read-speed-b.md` (FAIL on the first
+write-up's recommendation, answered in one fix).
 - **Singles (20):** nothing lost beyond item 7's bars (pooled survival +0.001, -0.012 to +0.015; spending and the pot level),
-  a path's time about halved (the median x0.54). Item 7's twelve singles had a small loss beyond noise inside the bars
-  (-0.019, -0.034 to -0.005).
-- **Couples (12):** spending lower by 0.0683% pooled against the bar of 0.05%, with no one couple carrying it. Survival
-  pooled -0.023 holds, but the six library couples lose -0.150 beyond noise (S031 -0.550, S063 -0.500) while the younger six
-  gain. A path's time the median x0.79. Item 12's eight couples also failed on spending.
+  the engine's time for a path about halved (the median x0.54). But the singles' warning's "at most about 2 in 1,000" is
+  item 7's S370, and this read's singles (survival 92.58% to 99.20%, 27 of 80,000 paths parting) could hardly show a loss
+  that size: at S370's rates it reads beyond noise in 22.8% of runs at 4,000 paths.
+- **Couples (12):** spending lower by 0.0683% pooled against the bar of 0.05% (-0.122% with each couple weighted equally;
+  S133 -0.620%). Two couples lose survival beyond noise after Holm, S031 -0.550 and S063 -0.500, more than twice the
+  singles' warning's "at most"; the couples' warning says nothing of survival. The engine's time for a path the median
+  x0.79.
 
-The agent recommends: for singles, drop the singles' warning and keep the speed mode an opt-in, not the default; for
-couples, keep it as it is, with its warning. Each is your ruling; nothing changes until then.
+The agent recommends: for singles, keep the speed mode a beta with its warning as it stands (a read aimed at households
+like S370 at 16,000 paths is what could change it, if you ask for one); for couples, keep it as it is, and weigh whether
+its warning should say something of survival, in your words. Each is your ruling; nothing changes until then.
 
 **FOR THE MAINTAINER (15 Nov, early), to note: the couples' tie rule reads FAILS, so it is closed and nothing changes.**
 `results-tie-couple.txt` (EXPLORATORY, seed 7002; `TIE-C.md`, D97 (2)); in plain words, `reports/2026-11-15-tie-couple-read.md`;

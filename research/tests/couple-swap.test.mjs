@@ -139,24 +139,24 @@ const B = (() => {
   const cpl = couplePlans(E, A, { shareRule: 'pots' }), memo = new Map();
   const solveOne = (p, o) => { const k = JSON.stringify([p, o.partnerAge0]); if (!memo.has(k)) memo.set(k, solveForApp(E, M, p, { points: 4, research: LIGHT, ageWith: o.partnerAge0 })); return memo.get(k); };
   const cp = CPL.solveCouple(E, M, cpl.household, { shareRule: 'pots', solveOne });
-  const cA = ctxOf(cpl.household), cB = ctxOf(B), gap = cB.ageSelf0 - cA.ageSelf0, bad = [];
+  const cA = ctxOf(cpl.household), cB = ctxOf(B), gap = cB.ageSelf0 - cA.ageSelf0, ages = { self0: cB.ageSelf0, mirror0: cA.ageSelf0 }, bad = [];
   // the meta
   const meta = coupleMeta(cp), mB = ORD.backMeta(meta);
   if (!(mB.share === 1 - meta.share && JSON.stringify(mB.self) === JSON.stringify(meta.part) && JSON.stringify(mB.part) === JSON.stringify(meta.self))) bad.push('the meta');
   // this year's actions
-  const acts = coupleActionsOf(E, cp, A, { seed: 7002, n: 40 }), aB = ORD.backAnswer('actions', { actions: acts }, gap).actions;
+  const acts = coupleActionsOf(E, cp, A, { seed: 7002, n: 40 }), aB = ORD.backAnswer('actions', { actions: acts }, ages).actions;
   const whoCount = (x, w) => x.actions.filter(y => y.who === w).length;
   if (whoCount(aB, 'self') !== whoCount(acts, 'part') || whoCount(aB, 'part') !== whoCount(acts, 'self')) bad.push("the actions' persons");
   if (JSON.stringify(aB.move.parts.self) !== JSON.stringify(acts.move.parts.part) || (acts.move.parts.split !== undefined && aB.move.parts.split !== 1 - acts.move.parts.split)) bad.push("the move's parts or split");
   // the next years
-  const runs = strategyRuns(E, cp, A, { seed: 7002, from: 0, to: 40 }), ahead = coupleAheadOf(E, cp, A, runs, { years: 10 }), hB = ORD.backAnswer('ahead', { ahead }, gap).ahead;
+  const runs = strategyRuns(E, cp, A, { seed: 7002, from: 0, to: 40 }), ahead = coupleAheadOf(E, cp, A, runs, { years: 10 }), hB = ORD.backAnswer('ahead', { ahead }, ages).ahead;
   if (hB.rows.some(r => r.age !== cB.ageSelf0 + r.t)) bad.push('the next years\' ages not the entered first person\'s');
   // each person's moves in the next years under their own name, seen on a year where the two people's moves differ
   const js = x => JSON.stringify(x), twoAhead = ahead.rows.filter(r => r.parts && js(r.parts.self) !== js(r.parts.part));
   if (!twoAhead.length) bad.push('no year ahead where the two people\'s moves differ: the fixture cannot see the parts');
   if (ahead.rows.some((r, i) => r.parts && (js(hB.rows[i].parts.self) !== js(r.parts.part) || js(hB.rows[i].parts.part) !== js(r.parts.self)))) bad.push('the next years\' moves not under each person\'s own name');
   // the year rows and their verdict
-  const rows = coupleRowsOf(E, cp, 'expected'), rB = ORD.backAnswer('rows', { rows }, gap).rows;
+  const rows = coupleRowsOf(E, cp, 'expected'), rB = ORD.backAnswer('rows', { rows }, ages).rows;
   const idsB = new Set(cB.accounts.map(x => x.id));
   rB.rows.forEach((row, t) => {
     if (row.ageSelf !== cB.ageSelf0 + t || row.agePart !== cB.agePart0 + t) bad.push(`row ${t}'s ages`);
@@ -171,16 +171,16 @@ const B = (() => {
   if (!twoRows.length) bad.push('no year row where the two people\'s moves differ: the fixture cannot see the parts');
   if (rows.parts.some((pa, t) => pa && (js(rB.parts[t].self) !== js(pa.part) || js(rB.parts[t].part) !== js(pa.self)))) bad.push('the year rows\' moves not under each person\'s own name');
   // the failure age, on a run that fails: the year rows in a market at z -2.5 every year
-  const fail = coupleRowsOf(E, cp, { z: -2.5 }), fB = ORD.backAnswer('rows', { rows: fail }, gap).rows;
+  const fail = coupleRowsOf(E, cp, { z: -2.5 }), fB = ORD.backAnswer('rows', { rows: fail }, ages).rows;
   if (!(fail.verdict && fail.verdict.failAge !== null && fail.verdict.failAge !== undefined)) bad.push('the failing run survives: the fixture cannot see the failure age');
-  else if (fB.verdict.failAge !== fail.verdict.failAge + gap) bad.push(`the failure age ${fB.verdict.failAge}, not the entered first person's ${fail.verdict.failAge + gap}`);
-  if (rows.verdict && rows.verdict.failAge !== null && rows.verdict.failAge !== undefined && rB.verdict.failAge !== rows.verdict.failAge + gap) bad.push('the failure age on the expected market');
+  else if (fB.verdict.failAge !== cB.ageSelf0 + (fail.verdict.failAge - cA.ageSelf0)) bad.push(`the failure age ${fB.verdict.failAge}, not the entered first person's ${cB.ageSelf0 + (fail.verdict.failAge - cA.ageSelf0)}`);
+  if (rows.verdict && rows.verdict.failAge !== null && rows.verdict.failAge !== undefined && rB.verdict.failAge !== cB.ageSelf0 + (rows.verdict.failAge - cA.ageSelf0)) bad.push('the failure age on the expected market');
   ok(4, `the answers put back: S007 solved light, its meta, ${acts.actions.length} actions, ${ahead.rows.length} years ahead (${twoAhead.length} where the two people's moves differ) and ${rows.rows.length} year rows (${twoRows.length} so) put back for the couple written younger first, each in that couple's terms, and a failing run's failure age`,
     !bad.length, bad.slice(0, 4).join('; ') + (bad.length > 4 ? `; and ${bad.length - 4} more` : '') || `the gap ${gap} years; the failing run fails at ${fail.verdict.failAge} as the mirror reads it, ${fB.verdict.failAge} as entered`);
 
   // ---- 5. the Strategy tab's figures put back ----
   {
-    const sum = strategySummary(E, cp, strategyRuns(E, cp, B, { seed: 7002, from: 0, to: 40 })), sB = ORD.backAnswer('strategy', { strategy: sum }, gap).strategy, bad5 = [];
+    const sum = strategySummary(E, cp, strategyRuns(E, cp, B, { seed: 7002, from: 0, to: 40 })), sB = ORD.backAnswer('strategy', { strategy: sum }, ages).strategy, bad5 = [];
     const sp = sum.outlook.spend, spB = sB.outlook.spend;
     if (!sp.length) bad5.push('no outlook years');
     if (sp.some(x => x.age !== cA.ageSelf0 + x.t)) bad5.push('the mirror\'s outlook not in the elder\'s ages (the fixture)');

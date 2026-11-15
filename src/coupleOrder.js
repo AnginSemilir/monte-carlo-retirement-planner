@@ -11,16 +11,26 @@
  *     covers to the whole ages that cover exactly those years at the new first person's age, as couple.js singlePlanFor maps
  *     a band to the partner's plan; a blank end age stays blank, running to the plan's end.
  * Ages are taken as the engine reads them (a blank age 40 for the first person, the first person's for the partner; a blank
- * end age 100). The end age is the new first person's age plus the plan's whole years as the engine counts them (App.jsx
- * buildContext: the years between the first person's age and the end age, rounded), so the mirror runs the same years with
- * any ages (the reviewer on D104 (1)'s change of default, MINOR 2: with a first age of 60.5 the sum of the ages ran a year
- * short). Mirrored twice, a plan with whole ages is itself. research/tests/couple-order.test.mjs holds each person's year in
- * the mirror to the plan as entered, as the engine reads it; couple-horizon.test.mjs the years over fractional ages.
+ * end age 100). The end age is the plan's moved by the age gap, so a band or an income with no end age ends in the plan year
+ * it does as entered (the engine reads that end age unrounded), its count of years made the plan's (App.jsx buildContext:
+ * the years between the first person's age and the end age, rounded; src/solver/horizon.js sameYears), so the mirror runs
+ * the same years with any ages (the reviewer on D104 (1)'s change of default, MINOR 2: with a first age of 60.5 the moved end
+ * age ran a year short; its second round, finding 1: the new first person's age plus the whole years moved an open band's
+ * and an open income's last year where the years end in .5 or more). An income with no end age is read by its owner's rule
+ * (App.jsx planEndAge: the first person's end age, or the partner's age in the plan's last year where the partner is the
+ * older), which the swap changes: where the mirror's reading would pay it in other plan years than the plan as entered does
+ * (a horizon rounded up, its last year past the end age), the income takes the end age the plan as entered reads for it.
+ * Mirrored twice, a plan with whole ages is itself. research/tests/couple-order.test.mjs holds each person's year in the
+ * mirror to the plan as entered, as the engine reads it; couple-horizon.test.mjs the years and the last year over
+ * fractional ages.
  *   import { otherOrder, PAIRED } from './coupleOrder.js'; const q = otherOrder(E, plan);
  * PLANT.rule (tests only, a comma list): 'bandstay' leaves the bands where they were entered, as research/solver/couple-order.mjs
- * does; 'mirrorsum' sets the end age by the sum of the ages, as before; 'locksstay' leaves the limits per person where they
- * were entered; below, each answer's: 'noback', 'nostrategy', 'noaheadparts', 'norowsparts', 'noverdict'.
+ * does; 'mirrorsum' sets the end age by the sum of the ages as it falls, as before; 'wholeend' the new first person's age plus
+ * the whole years, the first form of the fix; 'incomeopen' leaves an open income's end blank whatever the mirror reads;
+ * 'locksstay' leaves the limits per person where they were entered; below, each answer's: 'noback', 'nostrategy',
+ * 'noaheadparts', 'norowsparts', 'noverdict', 'gapadd'.
  */
+import { sameYears } from './solver/horizon.js';
 export const PAIRED = ['currentAge', 'retireAge', 'salary', 'salaryGrowth', 'employment', 'cgtGainsUsed', 'cfBroughtForward', 'mpaaAge', 'statePension'];
 export const PLANT = { rule: '' };
 const planted = k => PLANT.rule.split(',').includes(k);
@@ -40,10 +50,12 @@ export function otherOrder(E, plan) {
   if (!d || d.planningMode === 'single') throw new Error('otherOrder takes a couple');
   const ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(plan)));
   for (const k of PAIRED) { const a = d[`${k}Self`], b = d[`${k}Part`]; d[`${k}Self`] = b; d[`${k}Part`] = a; }
-  // the ages as the engine reads them, swapped; the end age moved so the plan runs the same whole years from the new first
-  // person's age (plant 'mirrorsum': the sum of the ages, which can lose a year to rounding)
+  // the ages as the engine reads them, swapped; the end age moved by the age gap, its count of years the plan's (plants
+  // 'mirrorsum': the moved end age as it falls, which can lose a year to rounding; 'wholeend': the new first person's age plus
+  // the whole years, which can move an open band's or income's last year)
   d.currentAgeSelf = ctx.agePart0; d.currentAgePart = ctx.ageSelf0;
-  d.terminalAge = planted('mirrorsum') ? ctx.terminalAge - ctx.ageSelf0 + ctx.agePart0 : ctx.agePart0 + ctx.totalYears;
+  const movedEnd = ctx.terminalAge - ctx.ageSelf0 + ctx.agePart0;
+  d.terminalAge = planted('wholeend') ? ctx.agePart0 + ctx.totalYears : planted('mirrorsum') ? movedEnd : sameYears(movedEnd, ctx.agePart0, ctx.totalYears);
   // each account to the other person, its id's ending with it
   p.accounts = (p.accounts || []).map(a => ({ ...a, owner: swapOwner(a.owner), id: swapId(a.id) }));
   p.otherIncomes = (p.otherIncomes || []).map(i => ({ ...i, owner: swapOwner(i.owner) }));
@@ -55,7 +67,23 @@ export function otherOrder(E, plan) {
   // the limits per person (couple.js personLocks): the first person's ceiling and the partner's swap places
   const L = p.solver && p.solver.locks;
   if (L && 'tierCeilingPart' in L && !planted('locksstay')) { const a = L.tierCeiling, b = L.tierCeilingPart; L.tierCeiling = b; L.tierCeilingPart = a; }
-  return E.normalizePlan(p);
+  const q = E.normalizePlan(p);
+  // an income with no end age, read by its owner's rule in the mirror (the owner's role swapped), against the plan as entered:
+  // where some plan year pays it under one and not the other, it takes the end age the plan as entered reads for it
+  if (planted('incomeopen')) return q;
+  const m = E.buildContext(E.resolveMpaa(q)), as = ctx.otherIncomes, ms = m.otherIncomes, qs = q.otherIncomes || [];
+  if (as.length !== ms.length || ms.length !== qs.length) throw new Error('otherOrder: the incomes as entered and in the mirror do not pair');
+  let fixed = false;
+  const incomes = qs.map((i, k) => {
+    if (!E.isBlank(i.endAge)) return i;
+    const a = as[k], b = ms[k], age0 = a.owner === 'self' ? ctx.ageSelf0 : ctx.agePart0;
+    for (let t = 0; t <= ctx.totalYears; t++) {
+      const age = age0 + t;
+      if ((age >= a.startAge && age <= a.endAge) !== (age >= b.startAge && age <= b.endAge)) { fixed = true; return { ...i, endAge: a.endAge }; }
+    }
+    return i;
+  });
+  return fixed ? E.normalizePlan({ ...q, otherIncomes: incomes }) : q;
 }
 
 /*
@@ -63,11 +91,17 @@ export function otherOrder(E, plan) {
  * solved on its mirror, so each answer the page reads names the elder 'self' and the plan's years by the elder's age. Each
  * function below takes one kind of answer for the mirror and gives it back as the couple was entered: each person's figures
  * under their own name, the household's split of the year's spending the entered first person's fraction, and each age
- * the entered first person's (`gap`, the entered first person's age today less the mirror's first person's). Answers about
- * the household alone (survival, spending delivered, the pot, the tax) are the same in either order and pass through.
- * research/tests/couple-order.test.mjs holds each to the couple as entered.
+ * the entered first person's in the same plan year (`ages`: { self0, mirror0 }, the entered first person's age today and the
+ * mirror's first person's). Answers about the household alone (survival, spending delivered, the pot, the tax) are the same
+ * in either order and pass through. research/tests/couple-order.test.mjs and couple-swap.test.mjs hold each to the couple as
+ * entered.
  */
 const flipWho = w => (w === 'self' ? 'part' : w === 'part' ? 'self' : w);
+/* an age the mirror gives (its first person's age in a plan year, the engine's ageSelf0 + t) as the entered first person's age
+   in that plan year, the engine's own sum: the year read back from the age. Adding the gap instead carried the floating point
+   of two ages with tenths (63.99999999999999 for 64: the reviewer's second round on D104 (1)'s change of default, finding 2).
+   Plant 'gapadd': the gap added, as before */
+export const ageBack = (x, ages) => (planted('gapadd') ? x + (ages.self0 - ages.mirror0) : ages.self0 + Math.round(x - ages.mirror0));
 const flipKey = k => (/Self$/.test(k) ? k.replace(/Self$/, 'Part') : /Part$/.test(k) ? k.replace(/Part$/, 'Self') : k);
 /* a joint move taken apart (solverCouple.js jointParts): each person's part to the other, the split the other's fraction */
 export const backParts = jp => (jp ? { ...jp, ...(jp.split !== undefined && jp.split !== null ? { split: 1 - jp.split } : {}), self: jp.part, part: jp.self } : jp);
@@ -80,7 +114,7 @@ export const backActions = a => (a && a.couple ? {
 } : a);
 /* the next years (solverCouple.js coupleAheadOf): each row's age the entered first person's, each person's moves under their
    own name (plant 'noaheadparts': the parts left as the mirror's) */
-export const backAhead = (a, gap) => (a && a.couple ? { ...a, rows: (a.rows || []).map(r => ({ ...r, age: r.age + gap, parts: planted('noaheadparts') ? r.parts : backParts(r.parts) })) } : a);
+export const backAhead = (a, ages) => (a && a.couple ? { ...a, rows: (a.rows || []).map(r => ({ ...r, age: ageBack(r.age, ages), parts: planted('noaheadparts') ? r.parts : backParts(r.parts) })) } : a);
 /* one engine row of the mirror: each person's fields to the other's name, each account's id to the other's, the tiers the
    entered first person's (a row carries the first person's alone: taken from the year's move, `parts`, where given) */
 export function backRow(row, parts = null) {
@@ -95,26 +129,26 @@ export function backRow(row, parts = null) {
   return out;
 }
 /* a run's verdict (App.jsx evaluateRows): the failure age the entered first person's (plant 'noverdict': the mirror's) */
-export const backVerdict = (v, gap) => (v && v.failAge !== null && v.failAge !== undefined && !planted('noverdict') ? { ...v, failAge: v.failAge + gap } : v);
+export const backVerdict = (v, ages) => (v && v.failAge !== null && v.failAge !== undefined && !planted('noverdict') ? { ...v, failAge: ageBack(v.failAge, ages) } : v);
 /* the year rows (solverCouple.js coupleRowsOf); plant 'norowsparts': each year's parts left as the mirror's */
-export const backRows = (r, gap) => (r && r.couple ? { ...r, rows: r.rows.map((row, t) => backRow(row, r.parts[t])), parts: planted('norowsparts') ? r.parts : r.parts.map(backParts), verdict: backVerdict(r.verdict, gap) } : r);
+export const backRows = (r, ages) => (r && r.couple ? { ...r, rows: r.rows.map((row, t) => backRow(row, r.parts[t])), parts: planted('norowsparts') ? r.parts : r.parts.map(backParts), verdict: backVerdict(r.verdict, ages) } : r);
 /* the Strategy tab's figures (src/solverStrategy.js strategySummary, worked out on the mirror's context): the raise's age and
    each outlook year's age the entered first person's. The page reads the wealth chart's ages and the back mark's from the
    outlook's first year (src/PlannerPlan.jsx ageAt0Of), so those follow; the rest of the figures are the household's and pass
    through (the reviewer on D104 (1)'s change of default, BLOCKING 1). Plant 'nostrategy': left as the mirror's */
-export const backStrategy = (s, gap) => (s && !planted('nostrategy') ? {
+export const backStrategy = (s, ages) => (s && !planted('nostrategy') ? {
   ...s,
-  raise: s.raise ? { ...s.raise, age: s.raise.age + gap } : s.raise,
-  outlook: s.outlook ? { ...s.outlook, spend: (s.outlook.spend || []).map(p => ({ ...p, age: p.age + gap })) } : s.outlook
+  raise: s.raise ? { ...s.raise, age: ageBack(s.raise.age, ages) } : s.raise,
+  outlook: s.outlook ? { ...s.outlook, spend: (s.outlook.spend || []).map(p => ({ ...p, age: ageBack(p.age, ages) })) } : s.outlook
 } : s);
 /* one answer of the owner worker's (src/solverWorker.js), by its kind, put back as entered: the Strategy tab's figures, the
    year rows, the next years and this year's actions; the plant 'noback' leaves every one as the mirror's
    (research/tests/couple-swap.test.mjs) */
-export function backAnswer(kind, r, gap) {
+export function backAnswer(kind, r, ages) {
   if (!r || planted('noback')) return r;
-  if (kind === 'strategy') return { ...r, strategy: backStrategy(r.strategy, gap) };
-  if (kind === 'rows') return { ...r, rows: backRows(r.rows, gap) };
-  if (kind === 'ahead') return { ...r, ahead: backAhead(r.ahead, gap) };
+  if (kind === 'strategy') return { ...r, strategy: backStrategy(r.strategy, ages) };
+  if (kind === 'rows') return { ...r, rows: backRows(r.rows, ages) };
+  if (kind === 'ahead') return { ...r, ahead: backAhead(r.ahead, ages) };
   if (kind === 'actions') return { ...r, actions: backActions(r.actions) };
   return r;
 }

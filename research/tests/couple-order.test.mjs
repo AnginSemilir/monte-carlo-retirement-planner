@@ -4,8 +4,10 @@
  *   1. twice is itself: the library's 210 couples, and couples built with bands (whole ages, closed and open), incomes with
  *      blank and given end ages, deposits, one-off costs with an owner and a tier ceiling each, mirrored twice, the plan
  *      itself (normalised), to the bit
- *   2. each person's year: on the built couples (the partner older, younger, and younger by three and a half years), the plan
- *      as entered and its mirror read by the engine (buildContext) give the same horizon and, plan year by plan year, the
+ *   2. each person's year: on the built couples (the partner older, younger, and younger by three and a half years; and the
+ *      partner older with the plan's years ending in .5, by the end age 95.5 with the first person's annuity left open too,
+ *      and by a first age ending .5: the reviewer's second round on D104 (1)'s change of default, finding 1), the plan as
+ *      entered and its mirror read by the engine (buildContext) give the same horizon and, plan year by plan year, the
  *      same scheduled target (the bands), each person's incomes paid and their amounts, each person's pots and
  *      contributions, the one-off costs and the minimum pot, each person's fields in the other's place
  *   3. the research mirror (research/solver/couple-order.mjs, the other-order read's own) on the library's couples, none of
@@ -16,9 +18,15 @@
  *   5. the limits per person (the reviewer on D104 (1)'s change of default, MINOR 3: the built ceilings were written as
  *      strings, which normalising drops, so nothing saw the swap): on the built couples, each with a ceiling per person as the
  *      page writes them ({ pen, isa }, each a risk tier) and kept by normalising, the mirror's are the entered ones swapped
+ *   6. the ages put back over ages in tenths (the reviewer's second round, finding 2: adding the gap read 63.99999999999999
+ *      for 64): for a first person entered from 40 to 63 in tenths and an elder entered second 0.1 to 10 years older, the
+ *      mirror's answers (the next years, the Strategy tab's outlook and raise, a run's failure age), each age its first
+ *      person's in a plan year as the engine writes it, put back are the entered first person's age in that plan year exactly
  * Plants (--planted runs each and wants exactly its checks to fail): 'bandstay' (coupleOrder.js PLANT.rule: the bands left
  * where they were entered, as the research mirror leaves them) fails checks 2 and 4; 'locksstay' (the limits left where they
- * were entered) fails check 5.
+ * were entered) fails check 5; 'wholeend' (the end age the new first person's age plus the whole years, the first form of the
+ * fix) and 'incomeopen' (an open income left blank whatever the plan as entered reads) fail check 2; 'gapadd' (the gap
+ * added) fails check 6.
  *   node research/tests/couple-order.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -30,7 +38,7 @@ import { fileURLToPath } from 'node:url';
 const SELF = fileURLToPath(import.meta.url);
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['bandstay', ['2', '4']], ['locksstay', ['5']]]) {
+  for (const [plant, want] of [['bandstay', ['2', '4']], ['locksstay', ['5']], ['wholeend', ['2']], ['incomeopen', ['2']], ['gapadd', ['6']]]) {
     const r = spawnSync(process.execPath, [SELF], { env: { ...process.env, COUPLE_ORDER_PLANT: plant }, encoding: 'utf8' });
     const failed = [...new Set([...r.stdout.matchAll(/^FAIL {2}(\d)/gm)].map(m => m[1]))];
     const exact = failed.length === want.length && want.every(n => failed.includes(n));
@@ -64,6 +72,14 @@ function built(partAge) {
   return E.normalizePlan(p);
 }
 const CASES = [['the partner younger', built(null)], ['the partner older', built(c007.ageSelf0 + 4)], ['the partner 3.5 years younger', built(c007.ageSelf0 - 3.5)]];
+// the plan's years ending in .5, so its last year falls past the end age, which the engine reads unrounded for an open band and
+// an open income: by the end age (with the first person's annuity left open as well) and by the first age
+{
+  const older = built(c007.ageSelf0 + 4), withEnd = JSON.parse(JSON.stringify(older)), withFirst = JSON.parse(JSON.stringify(older));
+  withEnd.demographics.terminalAge = 95.5; withEnd.otherIncomes = withEnd.otherIncomes.map(i => (i.owner === 'Myself' ? { ...i, endAge: '' } : i));
+  withFirst.demographics.currentAgeSelf = c007.ageSelf0 + 0.5;
+  CASES.push(['the partner older, the end age 95.5, both incomes open', E.normalizePlan(withEnd)], ['the partner older, the first age ending .5', E.normalizePlan(withFirst)]);
+}
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 // ---- 1. twice is itself ----
@@ -148,6 +164,25 @@ function yearDiffs(p, q) {
     if (!(Q && same(Q.tierCeiling, L.tierCeilingPart) && same(Q.tierCeilingPart, L.tierCeiling))) bad.push(`${name}: the mirror's ceilings ${JSON.stringify(Q && Q.tierCeiling)} and ${JSON.stringify(Q && Q.tierCeilingPart)}, not the entered ones swapped`);
   }
   ok(5, `the limits per person: on the ${CASES.length} built couples, each person's ceiling kept by normalising, and the mirror's the entered ones swapped`, !bad.length, bad.slice(0, 2).join('; ') || 'each one');
+}
+
+// ---- 6. the ages put back, over ages in tenths ----
+{
+  const bad = []; let n = 0;
+  for (let a10 = 400; a10 <= 630; a10++) for (let d10 = 1; d10 <= 100; d10 += 3) {
+    // the entered first person a, the elder entered second b; the mirror's answers in b's ages as the engine writes them
+    const a = a10 / 10, b = (a10 + d10) / 10, ages = { self0: a, mirror0: b }, years = 40;
+    const rows = Array.from({ length: years }, (_, t) => ({ t, age: b + t, parts: null }));
+    const ahead = ORD.backAnswer('ahead', { ahead: { couple: true, rows } }, ages).ahead;
+    const strat = ORD.backAnswer('strategy', { strategy: { raise: { level: 1.1, age: b + 3, t: 3 }, outlook: { spend: rows.map(r => ({ t: r.t, age: r.age, p50: 1 })) } } }, ages).strategy;
+    const verdict = ORD.backAnswer('rows', { rows: { couple: true, rows: [], parts: [], verdict: { survived: false, failAge: b + 17 } } }, ages).rows.verdict;
+    n++;
+    const off = [...ahead.rows.filter(r => r.age !== a + r.t).map(r => `the year ahead at ${r.age}`), ...strat.outlook.spend.filter(x => x.age !== a + x.t).map(x => `the outlook at ${x.age}`),
+      ...(strat.raise.age !== a + 3 ? [`the raise at ${strat.raise.age}`] : []), ...(verdict.failAge !== a + 17 ? [`the failure age ${verdict.failAge}`] : [])];
+    if (off.length) bad.push(`${a} and ${b}: ${off[0]}, as entered ${a + (off[0].startsWith('the raise') ? 3 : off[0].startsWith('the failure') ? 17 : 0)}${off.length > 1 ? ` (and ${off.length - 1} more)` : ''}`);
+  }
+  ok(6, `the ages put back: over ${n} couples with ages in tenths, the next years, the outlook, the raise and the failure age each the entered first person's age in its plan year, exactly`,
+    !bad.length, bad.length ? `${bad.length} couples off (${bad.slice(0, 2).join('; ')})` : `${n} couples, ${n * 82} ages`);
 }
 
 console.log(`\ncouple-order: ${passed} passed, ${failed} failed${PLANT ? ` (planted: ${PLANT})` : ''}`);

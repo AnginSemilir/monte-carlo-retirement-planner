@@ -123,12 +123,12 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
   };
   // a couple whose elder is entered second (D104 (1); src/couplesSwitch.js swapOf): its two tables cut from its mirror
   // (src/coupleOrder.js otherOrder), the elder first as every couple tested, and each answer the page reads put back in the
-  // order the couple was entered (`gap`, the entered first person's age today less the mirror's first person's). The plan the
+  // order the couple was entered (`ages`, the entered first person's age today and the mirror's first person's). The plan the
   // page hands the Strategy tab's asks stays the plan as entered: "your plan" is the app's rules on it, as the page shows them.
   // Plant 'noback' (PLANNER_PLANT): the answers left as the mirror's, which the page harness's couple entered younger first fails
   const mirror = couple && couple.engine && swapOf(plan) ? otherOrder(couple.engine, plan) : null;
-  const gap = mirror ? (() => { const E = couple.engine, a = E.buildContext(E.resolveMpaa(E.normalizePlan(plan))), b = E.buildContext(E.resolveMpaa(E.normalizePlan(mirror))); return a.ageSelf0 - b.ageSelf0; })() : 0;
-  const back = !mirror || PLANNER_PLANT.has('noback') ? (kind, r) => r : (kind, r) => backAnswer(kind, r, gap);
+  const ages = mirror ? (() => { const E = couple.engine, a = E.buildContext(E.resolveMpaa(E.normalizePlan(plan))), b = E.buildContext(E.resolveMpaa(E.normalizePlan(mirror))); return { self0: a.ageSelf0, mirror0: b.ageSelf0 }; })() : null;
+  const back = !mirror || PLANNER_PLANT.has('noback') ? (kind, r) => r : (kind, r) => backAnswer(kind, r, ages);
   // a kept part's questions, answered by id as the owner's are
   let kept = [];
   let shared = null;   // a couple's parts (D5.6): { ws, both }, the first person's solve's, kept for the second's and the couple

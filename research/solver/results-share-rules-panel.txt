@@ -1,4 +1,4 @@
-THE SHARE RULES' TEST, THE PANEL (share-rules-panel.json, built 2026-11-15T10:57:28.496Z, code f5ee3a567425; the scan 310 ids, hash 40836a8ffa0a; the order frozen 2026-11-15T10:49:11.542Z)
+THE SHARE RULES' TEST, THE PANEL (share-rules-panel.json, built 2026-11-15T18:42:32.042Z, code c0dcfa9ef2f2; the scan 310 ids, hash 40836a8ffa0a; the order frozen 2026-11-15T10:49:11.542Z)
 8 couples taken evenly over the untouched library order (99 couples), 32 units; passed over: none
   place  0 S023 ages 68/65, retiring 66/66; library target 136500; its feature: db
       S023-45     target 134400, arm A 85.1% (Bracket Fill Basic, lump sum); the first person holds 45.0% of the pots; the shares: today 0.500, the band dropped 0.450, the means 0.470

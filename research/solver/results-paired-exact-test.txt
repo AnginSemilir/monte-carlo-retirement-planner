@@ -1,0 +1,8 @@
+paired-exact: a paired survival change against a bar, in whole paths
+PASS  1  S129-90's cells (ELDER 95.15%, YOUNGE 94.65%, 25 lost, 5 saved, of 4000): at the bar of -0.5 points exactly, where survivalChangeU's change (-0.5000000000000004) reads below it  -- cmpCells 0, cmpBar 0
+PASS  2  the sweep: 48050 cases (46 on a bar exactly); cmpBar and cmpCells each agree with the exact comparison on every one; survivalChangeU's floating comparison misreads 41  -- cmpBar wrong 0, cmpCells wrong 0
+PASS  3  pairedCounts: the cells of built arrays as by hand (3 both, 2 lost, 1 saved, 2 neither; the change -1), from plain and typed arrays; refused on arrays of unequal length or a value not 0 or 1  -- {"a":3,"b":2,"c":1,"d":2,"N":8,"k":-1}
+PASS  4  the refusals: a change not whole; paths not whole; no paths; a change larger than the paths; a bar not finite; a bar printed with an exponent; a bar of more than 9 decimals; a negative cell  -- each refused
+
+paired-exact: 4 passed, 0 failed
+plant float fails checks 1, 2 (expected 1, 2): exact

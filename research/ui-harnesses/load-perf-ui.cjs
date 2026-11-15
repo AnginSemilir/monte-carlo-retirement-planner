@@ -82,8 +82,15 @@ const JS_CEILING = 228;
  * the first load is the engine's own code moves this the same way, the measured figure plus one with a dated note,
  * reported at its merge; growth of any other kind (a dependency, a screen's code in the entry) still stops for the
  * maintainer.
+ *
+ * 237 on 15 Nov 2026, the maintainer's ruling on D94 (2)'s stop (D106): the fifth batch read 236KB at B1's gate (a07007f0,
+ * code-stamp:3b7461f2fa52324a; the fourth batch passed at 235). The growth is not the engine's: the solver client's chunk,
+ * which a switch-on build's first load carries, went from 3.8KB to 5.5KB compressed with the swap of a couple whose elder is
+ * entered second (src/coupleOrder.js, the mirror and each answer put back as entered, and src/solver/horizon.js; D104 (1)),
+ * and the entry grew 107 bytes. So the measured figure plus one; loading the mirror only when such a couple is solved is
+ * left for the work on the screens. D94 (2)'s rule stands for the next batch.
  */
-const JS_CEILING_SWITCH_ON = 235;
+const JS_CEILING_SWITCH_ON = 237;
 /*
  * The byte count is the load-bearing assertion and the ceiling below is the looser one, on purpose. Three
  * runs of the same build spread about 100ms either way - 2,011 to 2,080 after, 2,105 to 2,225 before - so

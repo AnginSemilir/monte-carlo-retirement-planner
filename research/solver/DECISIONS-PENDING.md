@@ -11,6 +11,31 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**QUEUED (D105, 15 Nov, morning): a better tie rule for couples, `TIE-C2.md`.** You reopened the couples' tie rule that
+its read closed: "Plan out and add a test to the queue for an improved couples tie rule based on learnings so far".
+- **Two changes, each from what the first read found** (`results-tie-couple-trace.txt`):
+  - **The hold.** The late step down in risk that cut S311F's pot came from a misread. Each person's table covers wealth
+    only up to six times what they opened with (or 60 years of spending), and any pot beyond that is read as the top. So a
+    pot of billions was read as one at about one and a half times the cap. Past twice the top, a person never steps down in
+    risk.
+  - **The forward look.** "This year's least tax" drew the ISAs down and left a taxable account that paid tax for decades.
+    Near-ties are ranked instead by what each move leaves at the plan's end, on a typical (median) market path.
+- **The test**, EXPLORATORY: the hold alone, and the hold with the look, each against the couples' candidate.
+  - Twelve couples not used in any earlier tie or speed read, seed 7001 (not the seed whose paths shaped the changes),
+    8,000 paths.
+  - The first rule runs beside the others and decides nothing.
+  - Each couple's pot is judged two ways: each path's own change averaged, and the average pound with an allowance for
+    noise.
+- **In the queue:**
+  - built after the swap's change of default;
+  - launched when the cores are free, after the fourth batch's gate and the share rules' pilot;
+  - about a day to build, about five and a half hours on four cores, half a day to read.
+- **Two choices for you before the launch**, each with a default if you say nothing:
+  1. A pass comes back to you with a recommendation. Say if it should go straight into the couples' candidate instead, as
+     D97 (2) allowed for the first rule.
+  2. The pot is judged with the allowance for noise (the agent's recommendation). Say if you would rather keep the first
+     read's point bar on every couple. Then a couple like S311F is decided by its few paths worth billions.
+
 **FOR THE MAINTAINER (15 Nov, morning), to note: the allowance's step at both places reads FAILS, so it is closed.**
 `results-allowance-both.txt` (EXPLORATORY, seed 7002; `ALLOWANCE-BOTH.md`, D98); in plain words,
 `reports/2026-11-15-allowance-both-read.md`; beside it, `results-allowance-both-beside.txt`.

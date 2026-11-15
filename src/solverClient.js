@@ -286,7 +286,7 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
       rejectDone(new Error('cancelled'));
     },
     ask: (kind, extra = {}) => ask(kind, extra).then(r => back(kind, r)),
-    strategy,
+    strategy: (...a) => strategy(...a).then(r => back('strategy', r)),
     actions: (...a) => actions(...a).then(r => back('actions', r)),
     close() { owner.terminate(); kept.forEach((_, i) => workers[i + 1] && workers[i + 1].terminate()); workers.splice(1).forEach(w => w.terminate()); kept = []; for (const p of pending.values()) p.reject(new Error('closed')); pending.clear(); release(); }
   };

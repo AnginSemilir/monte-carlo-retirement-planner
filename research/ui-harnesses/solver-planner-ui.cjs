@@ -74,8 +74,9 @@
  *      plan ends in the same year, each account's and each one-off cost's owner, each account's id): entered younger first it
  *      is solved, no couples card, every
  *      figure the reference's bit for bit (solved on the couple's mirror, src/coupleOrder.js otherOrder, as the page solves
- *      it, and run against the plan as entered); its next ten years the elder-first entry's with each age the entered first
- *      person's, and this year's actions the elder-first entry's with each person's under the other's name;
+ *      it, and run against the plan as entered, its ages put in the entered first person's by the harness's own hand); its next
+ *      ten years, its outlook and its raise the elder-first entry's with each age the entered first person's, and this year's
+ *      actions the elder-first entry's with each person's under the other's name;
  *  20  the speed mode (D97 (3), D98, on the main fixture): its box in the levers off by default with the single's warning,
  *      the maintainer's words; on, the plan carries `solver.speed` 'fast' and solves under a key of its own, every figure the
  *      reference's for that plan (the reference solving it in speed mode); off again, no field left on the plan and the plan's
@@ -229,15 +230,21 @@ const firstDiff = (a, b, at = '') => {
     return JSON.stringify(strategyOf(E, cp, pl, { trials, seed }));
   }, { pl, light: LIGHT, seed: SEED, trials: last }));
   // a couple whose elder is entered second (D104 (1)): solved as the page solves it, on its mirror (src/coupleOrder.js
-  // otherOrder), and run against the plan as entered, as the Strategy tab's asks keep it (src/solverClient.js)
+  // otherOrder), and run against the plan as entered, as the Strategy tab's asks keep it (src/solverClient.js); its ages, the
+  // raise's and each outlook year's, worked out on the mirror's first person, put in the entered first person's by this
+  // harness's own hand (the reviewer on the change of default, BLOCKING 1: a reference on the mirror's ages hid the page's)
   const refCoupleSwap = async pl => JSON.parse(await ref.run(async ({ pl, light, seed, trials }) => {
     const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
     const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
     const { couplePlans, assembleCouple } = await import('/src/solverCouple.js'), { APP_COUPLE } = await import('/src/solverSettings.js');
     const { otherOrder } = await import('/src/coupleOrder.js');
-    const cut = couplePlans(E, otherOrder(E, pl), { shareRule: APP_COUPLE.shareRule }), one = w => solveForApp(E, M, cut.plans[w], { ...light, ageWith: cut.ageWith[w] });
+    const mirror = otherOrder(E, pl), ctxOf = p => E.buildContext(E.resolveMpaa(E.normalizePlan(p))), gap = ctxOf(pl).ageSelf0 - ctxOf(mirror).ageSelf0;
+    const cut = couplePlans(E, mirror, { shareRule: APP_COUPLE.shareRule }), one = w => solveForApp(E, M, cut.plans[w], { ...light, ageWith: cut.ageWith[w] });
     const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
-    return JSON.stringify(strategyOf(E, cp, pl, { trials, seed }));
+    const s = strategyOf(E, cp, pl, { trials, seed });
+    if (s.raise) s.raise = { ...s.raise, age: s.raise.age + gap };
+    s.outlook = { ...s.outlook, spend: s.outlook.spend.map(x => ({ ...x, age: x.age + gap })) };
+    return JSON.stringify(s);
   }, { pl, light: LIGHT, seed: SEED, trials: last }));
   try {
     execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), COUPLES_OFF: '1', PLANNER_PLANT: PLANTED.join(',') } });
@@ -760,13 +767,18 @@ const firstDiff = (a, b, at = '') => {
             await p.context().close(); return { done, card, page, saw, acts, ahead, errs }; };
           const e75 = reheld(0.75), y75 = otherWayByHand(e75), gap = Number(y75.demographics.currentAgeSelf) - Number(e75.demographics.currentAgeSelf);
           const E1 = await pageOf(e75), Y = await pageOf(y75), wantY = Y.page ? await refCoupleSwap(Y.saw) : null;
-          ok(19, `couples on: the same couple re-held 75/25 and entered younger first by hand (D104 (1); its elder second, holding 75%): solved, no couples card, every figure the reference's bit for bit (solved on its mirror, run against the plan as entered)`,
+          ok(19, `couples on: the same couple re-held 75/25 and entered younger first by hand (D104 (1); its elder second, holding 75%): solved, no couples card, every figure the reference's bit for bit (solved on its mirror, run against the plan as entered, its ages the entered first person's)`,
             gap < 0 && Y.done && !Y.card && !!Y.page && JSON.stringify(Y.page) === JSON.stringify(wantY), `the age gap ${gap}; done ${Y.done}; card ${Y.card}; survival ${Y.page ? Y.page.headline.survival : '-'}% against ${wantY ? wantY.headline.survival : '-'}%`);
           const flip = a => a.replace(/^(self|part):/, (_, w) => `${w === 'self' ? 'part' : 'self'}:`);
           const aheadBack = E1.ahead ? E1.ahead.map(([age, spend]) => [age + gap, spend]) : null;
           ok(19, 'couples on, entered younger first: the next ten years the elder-first entry\'s, each age the entered first person\'s; this year\'s actions the elder-first entry\'s, each person\'s under the other\'s name',
             E1.done && !E1.card && !!Y.ahead && Y.ahead.length > 0 && JSON.stringify(Y.ahead) === JSON.stringify(aheadBack) && Y.acts.length > 0 && JSON.stringify([...Y.acts].sort()) === JSON.stringify(E1.acts.map(flip).sort()),
             `the first year ${Y.ahead && Y.ahead[0] ? JSON.stringify(Y.ahead[0]) : '-'} against ${aheadBack && aheadBack[0] ? JSON.stringify(aheadBack[0]) : '-'}; actions ${Y.acts.join(', ') || 'none'} against ${E1.acts.map(flip).join(', ') || 'none'}`);
+          // the outlook and the raise in the entered first person's ages: the elder-first entry's, each age moved by the gap
+          const outlookBack = E1.page ? E1.page.outlook.spend.map(x => ({ ...x, age: x.age + gap })) : null, raiseBack = E1.page && E1.page.raise ? { ...E1.page.raise, age: E1.page.raise.age + gap } : null;
+          ok(19, 'couples on, entered younger first: the outlook and the raise the elder-first entry\'s, each age the entered first person\'s (the charts, the back mark and the raise line read them)',
+            !!Y.page && !!outlookBack && JSON.stringify(Y.page.outlook.spend) === JSON.stringify(outlookBack) && JSON.stringify(Y.page.raise || null) === JSON.stringify(raiseBack),
+            `the first outlook year at ${Y.page && Y.page.outlook.spend[0] ? Y.page.outlook.spend[0].age : '-'} against ${outlookBack && outlookBack[0] ? outlookBack[0].age : '-'}; the raise from ${Y.page && Y.page.raise ? Y.page.raise.age : 'none'} against ${raiseBack ? raiseBack.age : 'none'}`);
           ok(19, 'couples on, entered either way: no page errors', E1.errs.length === 0 && Y.errs.length === 0, [...E1.errs, ...Y.errs].slice(0, 2).join(' | ')); }
       } finally { if (server3) server3.kill(); rmSync(OUT3, { recursive: true, force: true }); } }
   } finally {

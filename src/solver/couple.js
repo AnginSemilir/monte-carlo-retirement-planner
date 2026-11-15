@@ -114,7 +114,11 @@ export function singlePlanFor(plan, who, share = 0.5) {
   const k = who === 'self' ? 'Self' : 'Part';
   const label = who === 'self' ? 'Myself' : 'Partner';
   const age0 = Number(d[`currentAge${k}`]);
-  const years = Number(d.terminalAge) - Number(d.currentAgeSelf);   // the household's horizon, kept for both
+  // the household's horizon in the whole years the engine counts (App.jsx buildContext: the years between the first person's
+  // age and the end age, rounded), kept for both, so each person's table runs the couple's years with any ages (the reviewer
+  // on D104 (1)'s change of default, MINOR 2: with a first age of 60.5 the unrounded years left the partner's table a year
+  // short and the couple's assembly failed; research/tests/couple-horizon.test.mjs). Plant 'rawyears': unrounded, as before
+  const raw = Number(d.terminalAge) - Number(d.currentAgeSelf), years = planted('rawyears') ? raw : Math.max(1, Math.round(raw));
   const demographics = {
     ...d, planningMode: 'single',
     currentAgeSelf: age0, retireAgeSelf: d[`retireAge${k}`], salarySelf: d[`salary${k}`], salaryGrowthSelf: d[`salaryGrowth${k}`],

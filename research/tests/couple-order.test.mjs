@@ -13,8 +13,12 @@
  *   4. a couple written younger first by hand, not by the mirror: S007's two people's fields, accounts and incomes put in each
  *      other's places field by field, with a band at the first person's ages; its mirror read by the engine is the plan as
  *      written elder first, read by the engine (the ages, the horizon, each person's pots and incomes, the bands' years)
- * The plant 'bandstay' (coupleOrder.js PLANT.rule: the bands left where they were entered, as the research mirror leaves them)
- * fails checks 2 and 4.
+ *   5. the limits per person (the reviewer on D104 (1)'s change of default, MINOR 3: the built ceilings were written as
+ *      strings, which normalising drops, so nothing saw the swap): on the built couples, each with a ceiling per person as the
+ *      page writes them ({ pen, isa }, each a risk tier) and kept by normalising, the mirror's are the entered ones swapped
+ * Plants (--planted runs each and wants exactly its checks to fail): 'bandstay' (coupleOrder.js PLANT.rule: the bands left
+ * where they were entered, as the research mirror leaves them) fails checks 2 and 4; 'locksstay' (the limits left where they
+ * were entered) fails check 5.
  *   node research/tests/couple-order.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -25,13 +29,15 @@ import { fileURLToPath } from 'node:url';
 
 const SELF = fileURLToPath(import.meta.url);
 if (process.argv.includes('--planted')) {
-  const want = ['2', '4'];
-  const r = spawnSync(process.execPath, [SELF], { env: { ...process.env, COUPLE_ORDER_PLANT: 'bandstay' }, encoding: 'utf8' });
-  const failed = [...new Set([...r.stdout.matchAll(/^FAIL {2}(\d)/gm)].map(m => m[1]))];
-  const exact = failed.length === want.length && want.every(n => failed.includes(n));
-  console.log(`plant bandstay fails checks ${failed.join(', ') || 'none'} (expected ${want.join(', ')}): ${exact ? 'exact' : 'NOT EXACT'}`);
-  if (!exact) console.log(r.stdout + r.stderr);
-  process.exit(exact ? 0 : 1);
+  let bad = 0;
+  for (const [plant, want] of [['bandstay', ['2', '4']], ['locksstay', ['5']]]) {
+    const r = spawnSync(process.execPath, [SELF], { env: { ...process.env, COUPLE_ORDER_PLANT: plant }, encoding: 'utf8' });
+    const failed = [...new Set([...r.stdout.matchAll(/^FAIL {2}(\d)/gm)].map(m => m[1]))];
+    const exact = failed.length === want.length && want.every(n => failed.includes(n));
+    console.log(`plant ${plant} fails checks ${failed.join(', ') || 'none'} (expected ${want.join(', ')}): ${exact ? 'exact' : 'NOT EXACT'}`);
+    if (!exact) { console.log(r.stdout + r.stderr); bad++; }
+  }
+  process.exit(bad ? 1 : 0);
 }
 const { otherOrder } = ORD;
 const PLANT = process.env.COUPLE_ORDER_PLANT || '';
@@ -54,7 +60,7 @@ function built(partAge) {
     { id: 'an1', name: 'Annuity', owner: 'Myself', startAge: 70, endAge: 85, amount: 4000, incomeType: 'otherTaxable', notes: '' }];
   p.oneOffContributions = [{ id: 'd1', owner: 'Myself', category: 'ISA', year: y0 + 2, amount: 10000 }, { id: 'd2', owner: 'Partner', category: 'ISA', year: y0 + 3, amount: 8000 }];
   p.oneOffCosts = [{ id: 'c1', name: 'car', owner: 'Partner', date: `${y0 + 4}-06-01`, amount: 20000 }];
-  p.solver = { ...(p.solver || {}), locks: { ...((p.solver && p.solver.locks) || {}), tierCeiling: 'Medium Risk', tierCeilingPart: 'Medium/High Risk' } };
+  p.solver = { ...(p.solver || {}), locks: { ...((p.solver && p.solver.locks) || {}), tierCeiling: { pen: 'Medium Risk', isa: 'Medium/Low Risk' }, tierCeilingPart: { pen: 'Medium/High Risk', isa: 'Low Risk' } } };
   return E.normalizePlan(p);
 }
 const CASES = [['the partner younger', built(null)], ['the partner older', built(c007.ageSelf0 + 4)], ['the partner 3.5 years younger', built(c007.ageSelf0 - 3.5)]];
@@ -130,6 +136,18 @@ function yearDiffs(p, q) {
   const sameAsElder = (() => { const a = ctxOf(mirrored), b = ctxOf(elder); return a.ageSelf0 === b.ageSelf0 && a.agePart0 === b.agePart0 && a.totalYears === b.totalYears && JSON.stringify(a.spendBands) === JSON.stringify(b.spendBands) && JSON.stringify(a.otherIncomes) === JSON.stringify(b.otherIncomes); })();
   ok(4, "a couple written younger first by hand: the hand-written plan is the elder-first plan's household person for person, and its mirror, read by the engine, is the elder-first plan's (ages, horizon, bands, incomes)",
     !d1.length && !d2.length && sameAsElder, `${d1.length + d2.length} differences${d1.length + d2.length ? `: ${[...d1, ...d2].slice(0, 2).join('; ')}` : ''}; the mirror read as the elder-first plan: ${sameAsElder ? 'yes' : 'NO'}`);
+}
+
+// ---- 5. the limits per person ----
+{
+  const bad = [];
+  for (const [name, p] of CASES) {
+    const L = p.solver && p.solver.locks, q = otherOrder(E, p), Q = q.solver && q.solver.locks;
+    const kept = !!L && L.tierCeiling && L.tierCeiling.pen === 'Medium Risk' && L.tierCeilingPart && L.tierCeilingPart.isa === 'Low Risk';
+    if (!kept) { bad.push(`${name}: the built ceilings not kept by normalising`); continue; }
+    if (!(Q && same(Q.tierCeiling, L.tierCeilingPart) && same(Q.tierCeilingPart, L.tierCeiling))) bad.push(`${name}: the mirror's ceilings ${JSON.stringify(Q && Q.tierCeiling)} and ${JSON.stringify(Q && Q.tierCeilingPart)}, not the entered ones swapped`);
+  }
+  ok(5, `the limits per person: on the ${CASES.length} built couples, each person's ceiling kept by normalising, and the mirror's the entered ones swapped`, !bad.length, bad.slice(0, 2).join('; ') || 'each one');
 }
 
 console.log(`\ncouple-order: ${passed} passed, ${failed} failed${PLANT ? ` (planted: ${PLANT})` : ''}`);

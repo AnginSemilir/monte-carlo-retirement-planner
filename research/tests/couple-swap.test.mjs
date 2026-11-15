@@ -15,11 +15,16 @@
  *      entered elder first: each person's plan, the share, the household and the ages each table is solved with, to the bit
  *   4. the answers put back: S007 solved light, elder first; its answers (the meta, this year's actions, the next years, the
  *      year rows and their verdict) put back for the couple written younger first are in that couple's terms: each person's
- *      meta, actions and parts under their own name, the split the entered first person's fraction, each age the entered
- *      first person's, each account under its entered id with the other person's figures, the tiers the entered first
- *      person's, the failure age the entered first person's
- * Plants: 'capafter' (couplesSwitch.js PLANT: the age cap read on the mirror) fails check 2; 'noback' (coupleOrder.js PLANT:
- * the answers left as the mirror's) fails check 4.
+ *      meta, actions and parts under their own name (in the next years and in the year rows, each compared with the other
+ *      person's on a year where the two differ), the split the entered first person's fraction, each age the entered first
+ *      person's, each account under its entered id with the other person's figures, the tiers the entered first person's,
+ *      and the failure age the entered first person's, on a run that fails (the year rows in a market at z -2.5 every year)
+ *   5. the Strategy tab's figures put back (the reviewer on the change of default, BLOCKING 1): the summary worked out on the
+ *      mirror's solve against the couple written younger first, put back, has the raise's age and every outlook year's age
+ *      the entered first person's, where the mirror's are the elder's, and every other figure the mirror's as it was
+ * Plants: 'capafter' (couplesSwitch.js PLANT: the age cap read on the mirror) fails check 2; coupleOrder.js PLANT's 'noback'
+ * (every answer left as the mirror's) fails checks 4 and 5, 'noaheadparts', 'norowsparts' and 'noverdict' (each one put-back
+ * left out) fail check 4, 'nostrategy' check 5.
  *   node research/tests/couple-swap.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -28,7 +33,7 @@ import * as CPL from '../../src/solver/couple.js';
 import * as SW from '../../src/couplesSwitch.js';
 import * as ORD from '../../src/coupleOrder.js';
 import { couplePlans, coupleMeta, coupleActionsOf, coupleAheadOf, coupleRowsOf } from '../../src/solverCouple.js';
-import { strategyRuns } from '../../src/solverStrategy.js';
+import { strategyRuns, strategySummary } from '../../src/solverStrategy.js';
 import { solveForApp } from '../../src/solverApp.js';
 import { prepareForSolve } from '../../src/solverSettings.js';
 import { couplesOf } from '../solver/couple-panel.mjs';
@@ -40,7 +45,7 @@ import { fileURLToPath } from 'node:url';
 const SELF = fileURLToPath(import.meta.url);
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['capafter', ['2']], ['noback', ['4']]]) {
+  for (const [plant, want] of [['capafter', ['2']], ['noback', ['4', '5']], ['noaheadparts', ['4']], ['norowsparts', ['4']], ['noverdict', ['4']], ['nostrategy', ['5']]]) {
     const r = spawnSync(process.execPath, [SELF], { env: { ...process.env, COUPLE_SWAP_PLANT: plant }, encoding: 'utf8' });
     const failed = [...new Set([...r.stdout.matchAll(/^FAIL {2}(\d)/gm)].map(m => m[1]))];
     const exact = failed.length === want.length && want.every(n => failed.includes(n));
@@ -50,7 +55,7 @@ if (process.argv.includes('--planted')) {
   process.exit(bad ? 1 : 0);
 }
 const PLANT = process.env.COUPLE_SWAP_PLANT || '';
-if (PLANT === 'noback') ORD.PLANT.rule = 'noback';
+if (['noback', 'noaheadparts', 'norowsparts', 'noverdict', 'nostrategy'].includes(PLANT)) ORD.PLANT.rule = PLANT;
 let passed = 0, failed = 0;
 const ok = (n, label, c, detail = '') => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}  ${label}${detail ? '  -- ' + detail : ''}`); if (c) passed++; else failed++; };
 console.log(`couple-swap: a couple whose elder is entered second, handed to the solver elder first${PLANT ? `; planted: ${PLANT}` : ''}`);
@@ -146,6 +151,10 @@ const B = (() => {
   // the next years
   const runs = strategyRuns(E, cp, A, { seed: 7002, from: 0, to: 40 }), ahead = coupleAheadOf(E, cp, A, runs, { years: 10 }), hB = ORD.backAnswer('ahead', { ahead }, gap).ahead;
   if (hB.rows.some(r => r.age !== cB.ageSelf0 + r.t)) bad.push('the next years\' ages not the entered first person\'s');
+  // each person's moves in the next years under their own name, seen on a year where the two people's moves differ
+  const js = x => JSON.stringify(x), twoAhead = ahead.rows.filter(r => r.parts && js(r.parts.self) !== js(r.parts.part));
+  if (!twoAhead.length) bad.push('no year ahead where the two people\'s moves differ: the fixture cannot see the parts');
+  if (ahead.rows.some((r, i) => r.parts && (js(hB.rows[i].parts.self) !== js(r.parts.part) || js(hB.rows[i].parts.part) !== js(r.parts.self)))) bad.push('the next years\' moves not under each person\'s own name');
   // the year rows and their verdict
   const rows = coupleRowsOf(E, cp, 'expected'), rB = ORD.backAnswer('rows', { rows }, gap).rows;
   const idsB = new Set(cB.accounts.map(x => x.id));
@@ -157,9 +166,31 @@ const B = (() => {
     const pa = rows.parts[t];
     if (pa && pa.part && row.tierPen !== pa.part.tierPen) bad.push(`row ${t}'s tier not the entered first person's`);
   });
-  if (rows.verdict && rows.verdict.failAge !== null && rB.verdict.failAge !== rows.verdict.failAge + gap) bad.push('the failure age');
-  ok(4, `the answers put back: S007 solved light, its meta, ${acts.actions.length} actions, ${ahead.rows.length} years ahead and ${rows.rows.length} year rows put back for the couple written younger first, each in that couple's terms`,
-    !bad.length, bad.slice(0, 4).join('; ') + (bad.length > 4 ? `; and ${bad.length - 4} more` : '') || `the gap ${gap} years`);
+  // each person's moves in the year rows under their own name, seen on a year where the two differ
+  const twoRows = rows.parts.filter(pa => pa && js(pa.self) !== js(pa.part));
+  if (!twoRows.length) bad.push('no year row where the two people\'s moves differ: the fixture cannot see the parts');
+  if (rows.parts.some((pa, t) => pa && (js(rB.parts[t].self) !== js(pa.part) || js(rB.parts[t].part) !== js(pa.self)))) bad.push('the year rows\' moves not under each person\'s own name');
+  // the failure age, on a run that fails: the year rows in a market at z -2.5 every year
+  const fail = coupleRowsOf(E, cp, { z: -2.5 }), fB = ORD.backAnswer('rows', { rows: fail }, gap).rows;
+  if (!(fail.verdict && fail.verdict.failAge !== null && fail.verdict.failAge !== undefined)) bad.push('the failing run survives: the fixture cannot see the failure age');
+  else if (fB.verdict.failAge !== fail.verdict.failAge + gap) bad.push(`the failure age ${fB.verdict.failAge}, not the entered first person's ${fail.verdict.failAge + gap}`);
+  if (rows.verdict && rows.verdict.failAge !== null && rows.verdict.failAge !== undefined && rB.verdict.failAge !== rows.verdict.failAge + gap) bad.push('the failure age on the expected market');
+  ok(4, `the answers put back: S007 solved light, its meta, ${acts.actions.length} actions, ${ahead.rows.length} years ahead (${twoAhead.length} where the two people's moves differ) and ${rows.rows.length} year rows (${twoRows.length} so) put back for the couple written younger first, each in that couple's terms, and a failing run's failure age`,
+    !bad.length, bad.slice(0, 4).join('; ') + (bad.length > 4 ? `; and ${bad.length - 4} more` : '') || `the gap ${gap} years; the failing run fails at ${fail.verdict.failAge} as the mirror reads it, ${fB.verdict.failAge} as entered`);
+
+  // ---- 5. the Strategy tab's figures put back ----
+  {
+    const sum = strategySummary(E, cp, strategyRuns(E, cp, B, { seed: 7002, from: 0, to: 40 })), sB = ORD.backAnswer('strategy', { strategy: sum }, gap).strategy, bad5 = [];
+    const sp = sum.outlook.spend, spB = sB.outlook.spend;
+    if (!sp.length) bad5.push('no outlook years');
+    if (sp.some(x => x.age !== cA.ageSelf0 + x.t)) bad5.push('the mirror\'s outlook not in the elder\'s ages (the fixture)');
+    if (spB.some((x, i) => x.age !== cB.ageSelf0 + x.t || x.t !== sp[i].t || x.p50 !== sp[i].p50)) bad5.push('the outlook years not in the entered first person\'s ages, or a figure moved');
+    if (sum.raise && !(sB.raise.age === cB.ageSelf0 + sum.raise.t && sB.raise.level === sum.raise.level)) bad5.push('the raise\'s age not the entered first person\'s');
+    const rest = x => js({ ...x, raise: x.raise ? { ...x.raise, age: 0 } : x.raise, outlook: { ...x.outlook, spend: x.outlook.spend.map(y => ({ ...y, age: 0 })) } });
+    if (rest(sB) !== rest(sum)) bad5.push('a figure other than an age moved');
+    ok(5, `the Strategy tab's figures put back: the summary on the mirror's solve against the couple written younger first, ${sp.length} outlook years${sum.raise ? ' and the raise' : ''} in the entered first person's ages, every other figure the mirror's`,
+      !bad5.length, bad5.join('; ') || `the first outlook year at ${spB[0] && spB[0].age} as entered, ${sp[0] && sp[0].age} as the mirror reads it${sum.raise ? `; the raise from ${sB.raise.age} as entered, ${sum.raise.age} as the mirror reads it` : ''}`);
+  }
 }
 
 console.log(`\ncouple-swap: ${passed} passed, ${failed} failed${PLANT ? ` (planted: ${PLANT})` : ''}`);

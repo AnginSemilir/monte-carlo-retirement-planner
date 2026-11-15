@@ -11,7 +11,7 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**FOR YOUR GO (D104 (5), 15 Nov, evening): the share rules' registered test, `registrations/share-rules.md`.** Complete,
+**RULED (D107, 15 Nov, evening: "Launch it (Recommended)"): the share rules' registered test, `registrations/share-rules.md`.** Complete,
 its design review PASS on the second round (`reviews/2026-11-15-share-rules-design-2.md`).
 - **What it tests:** two fixed rules for a couple's share against today's (the pots' share outside 40% to 60%, half
   inside), each on the couples' candidate:

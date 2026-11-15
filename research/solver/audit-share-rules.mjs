@@ -105,7 +105,7 @@ async function planted() {
   cases.push(['the pilot\'s units: every unit of places 0, 4 and 6', pilotUnits([{ id: 'a', place: 0 }, { id: 'b', place: 1 }, { id: 'c', place: 4 }, { id: 'd', place: 6 }, { id: 'e', place: 6 }]).map(u => u.id).join(','), 'a,c,d,e']);
   { const tab = (meta = {}) => ({ meta: { ...meta }, worlds: [], mix: null });
     cases.push(['D80: a person\'s table with the tie-break is refused; one without it is not', `${d80Problems(d80Of(undefined, [tab({ tieAboveCap: 1e-4 })])).length > 0} ${d80Problems(d80Of(undefined, [tab()])).length}`, 'true 0']); }
-  { const f = stampFiles(), need = ['research/solver/reduce-phase4.mjs', 'research/solver/fair-gate.mjs', 'research/solver/stats.mjs', 'research/solver/paired-exact.mjs', 'research/solver/reduce-couples.mjs', 'src/solverApp.js', 'src/solverSettings.js', ...STAMP_DATA];
+  { const f = stampFiles(), need = ['research/solver/reduce-phase4.mjs', 'research/solver/fair-gate.mjs', 'research/solver/stats.mjs', 'research/solver/reduce-couples.mjs', 'src/solverApp.js', 'src/solverSettings.js', ...STAMP_DATA];
     cases.push(['the stamp holds every file the read decides with and the data files, and none of the code\'s own (code-id.mjs)', `${need.every(x => f.includes(x))} ${f.some(x => x === 'research/engine.mjs' || x.startsWith('src/solver/'))}`, 'true false']);
     const text = rel => readFileSync(join(REPO, rel), 'utf8');
     const q = name => ['\'', './', name, '\''].join(''), lines = ['\n', 'import', ' ', q('planted-dep.mjs'), ';\nconst x = await ', 'import', '(', q('planted-dyn.mjs'), ');\n'].join('');

@@ -66,7 +66,8 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   1. **no harm:** no unit flagged by D34's harm rule (`reduce-couples.mjs harmOf`): the loss in survival, paths TODAY keeps
      and the rule loses less those it saves, above the threshold its realised discordance sets, the threshold at which a
      true quarter-point loss reads as harm at most 5% of the time. The loss is compared with its threshold in whole paths
-     (`paired-exact.mjs`), so a loss on the threshold is read exactly;
+     (`reduce-share-rules.mjs` `harmExact`: the threshold taken back to whole paths by its own expression), so a loss on
+     the threshold is read exactly;
   2. **a gain:** the pooled survival change over those units has its 95% interval's lower end above 0;
   3. **spending:** the pooled change in spending delivered, each unit's in percent of TODAY's mean spending delivered and the
      units weighted equally (`reduce-phase4.mjs spendingItem`), its point estimate not below -0.05%.
@@ -99,12 +100,17 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
     - the fidelity gaps;
     - the solve times.
 - **The gate:** first the launch logs' stamps against the registration's git blob (`fair-gate.mjs requireFairLogs`), then
-  `reduce-share-rules.mjs gate`. Each refusal has its planted case (`--planted`, 16 checks): the logs stamped as the
-  launcher stamps them, one under an edited registration and one run by hand; FLAT missing where its share differs, and
-  run where its share is TODAY's; a share not the rule's; another seed, code or plan; D80's three; and each other refusal
-  on its own fault (16 faults). Also checked: the threshold in whole paths from 16,000 to 19,000 paths, TODAY's run standing
-  for FLAT's, and the choice between the rules. It requires:
-  - every unit in every arm, one code, audit, seed, prediction and Node version, every unit at its registered paths;
+  `reduce-share-rules.mjs gate`. Each refusal has its planted case (`--planted`, 17 checks):
+  - the read's own call run end to end on a log stamped as the launcher stamps it, and on one run by hand;
+  - the logs under an edited registration;
+  - FLAT missing where its share differs, and run where its share is TODAY's;
+  - a share not the rule's; another seed, code or plan; D80's three;
+  - each other refusal on its own fault (19), among them a person's settings line missing, a unit with no registered paths
+    and fewer launch logs than runs.
+  Also checked: the threshold in whole paths from 16,000 to 19,000 paths on losses about it, TODAY's run standing for FLAT's,
+  and the choice between the rules. It requires:
+  - every unit in every arm, one code, audit, seed, prediction and Node version, every unit at its registered paths, one
+    launch log a run;
   - each unit's arms on one plan, at the panel's target;
   - each arm's share as its rule gives it, read back from the solve;
   - the couples' settings as stage C's (`audit-couples.mjs wantProblems`);
@@ -123,8 +129,10 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   about 14.5 hours on four cores longest first, the longest run 0.82 hours, inside the 12-hour limit
   (`results-share-rules-sizing.txt`: measured from the pilot's units on this machine, D21, each unit scaled from the pilot
   couple nearest in horizon; the pilot's solves 75 to 102 s, the engine 107 to 164 ms a path).
-- **The launch:** the stamp `code c0dcfa9ef2f2 audit ba4f53953da5` (`audit-share-rules.mjs`: the code, and its files with
+- **The launch:** the stamp `code c0dcfa9ef2f2 audit 28712df5935f` (`audit-share-rules.mjs`: the code, and its files with
   the panel, its order and the paths). Launched only as above, from a git worktree at the commit that records the
   maintainer's go, its code and files these; a change of code before it (the couples' default, were TIE-C2.md's rule to
   take one, D105) waits until the run is launched, since the audit refuses a run on code other than the panel's.
-- **Design review:** TO COME: the `reviewer` agent's PASS before it goes to the maintainer.
+- **Design review:** `research/solver/reviews/2026-11-15-share-rules-design-2.md`: PASS, three MINORs, answered before
+  launch (the audit's planted list, the read's beside over the same units, the read's own call planted end to end). The first
+  round (`reviews/2026-11-15-share-rules-design.md`): FAIL, two BLOCKING and five MINOR, answered in one fix (16e49fcc).

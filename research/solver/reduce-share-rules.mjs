@@ -23,7 +23,9 @@
  *   node research/solver/reduce-share-rules.mjs --pilot [dir]                                        the pilot's units, no outcome
  *   node research/solver/reduce-share-rules.mjs --planted
  */
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { spawnSync, execSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -34,7 +36,7 @@ import { requireFairLogs, checkLogStamps } from './fair-gate.mjs';
 import { ARMS, RULE_OF, SEED, PILOT_SEED, REGISTRATION, PATHS_FILE, W, configOf, shareOfArm, flatRuns, stampFilesHash, pilotUnits } from './audit-share-rules.mjs';
 import { readSharePanel, PANEL } from './share-rules-panel.mjs';
 
-const HERE = dirname(fileURLToPath(import.meta.url));
+const HERE = dirname(fileURLToPath(import.meta.url)), SELF = fileURLToPath(import.meta.url), ROOT = join(HERE, '../..');
 export const TP_BAR = 0.9, POOL_BAR = 0, SPEND_BAR = -0.05;
 const f = (x, d = 3) => (x >= 0 ? '+' : '') + x.toFixed(d);
 const T = { survived: Uint8Array, wealth: Float32Array, estate: Float32Array, delivered: Float32Array, unmet: Float32Array, tax: Float32Array, failYear: Int16Array };
@@ -54,13 +56,16 @@ export const armsOf = u => ARMS.filter(a => a !== 'FLAT' || flatRuns(u.plan));
 export const personLine = (ran, who) => { const m = new RegExp(`${who}: (.*?)(?: \\| |$)`).exec(ran || ''); return m ? m[1] : ''; };
 const kv = s => Object.fromEntries((s.match(/(\S+) (\S+)/g) || []).map(x => x.split(' ')));
 /* the gate: refusals, each a line. `units` the panel's units (id, kind, target, label, plan); `paths` id -> N, or null (pilot) */
-export function gate(U, units, { seed, prediction = null, audit = null, paths = null, ptsFree = false, code = null } = {}) {
+export function gate(U, units, { seed, prediction = null, audit = null, paths = null, ptsFree = false, code = null, logs = null } = {}) {
   const P = [], all = [];
   for (const u of units) {
     for (const arm of armsOf(u)) { const r = U[u.id] && U[u.id][arm]; if (!r) P.push(`${u.id} ${arm}: missing`); else all.push(r); }
     // FLAT where its share is TODAY's would be a run the rule does not read: its presence is a fault of the batch
     if (!flatRuns(u.plan) && U[u.id] && U[u.id].FLAT) P.push(`${u.id} FLAT: run where its share is TODAY's`);
   }
+  // one launch log a run (the batch writes case<k>.txt for each), so the stamps' gate before this one cannot pass on no logs
+  // (the reviewer of the registration, second round, MINOR 3)
+  if (logs !== null && logs !== all.length) P.push(`${logs} launch logs for ${all.length} runs`);
   const one = (what, g) => { const vs = [...new Set(all.map(g))]; if (vs.length > 1) P.push(`more than one ${what}: ${vs.join(', ')}`); };
   one('code', r => r.stamp.code); one('audit', r => r.stamp.audit); one('seed', r => r.seed); one('prediction', r => r.stamp.prediction); one('estate weight', r => r.W); one('Node version', r => r.stamp.node);
   if (all.some(r => r.seed !== seed)) P.push(`a unit is not on seed ${seed}`);
@@ -184,10 +189,14 @@ function planted() {
       ['an audit not these files\'', null, { audit: 'b' }, /audit is not these files/],
       ['run under another prediction', null, { prediction: 'r' }, /not run under r/],
       ["a code not the panel's", null, { code: 'k' }, /not the code the panel was landed on/],
-      ["the registration's paths not run", null, { paths: Object.fromEntries(units.map(u => [u.id, 5])) }, /4 paths, not 5/]
+      ["the registration's paths not run", null, { paths: Object.fromEntries(units.map(u => [u.id, 5])) }, /4 paths, not 5/],
+      ['a unit with no registered paths', null, { paths: { [u90.id]: 4 } }, /no paths for it/],
+      ['a launch log short of the runs', null, { logs: 4 }, /4 launch logs for 5 runs/]
     ];
     const missed = faults.filter(([, mod, o, re]) => !G(build(mod), o).some(x => re.test(x))).map(([n]) => n);
-    cases.push([`the gate: every other refusal on its planted fault (${faults.length})`, missed.join(', ') || 'all fire', 'all fire']);
+    // a person's settings line missing: a record whose run line carries no person's section at all, unfiltered
+    if (!gate(build(U => { U[u45.id].TODAY.ran = 'config x flat true fast true shortlist none item12 none tieBreak none'; }), units, { seed: 1, ptsFree: true }).some(x => x.startsWith(`${u45.id} TODAY self: no settings line`))) missed.push('a person\'s settings line missing');
+    cases.push([`the gate: every other refusal on its planted fault (${faults.length + 1})`, missed.join(', ') || 'all fire', 'all fire']);
     // the stand-in: MEANS against FLAT on both units, TODAY's run standing for FLAT's at 90/10 (BLOCKING 2), where without it the
     // 90/10 unit dropped out; and none where FLAT should have run
     { const U = build(), V = withStandIn(U, units), W2 = withStandIn(build(X => { delete X[u45.id].FLAT; }), units);
@@ -201,14 +210,24 @@ function planted() {
     const oldForm = logProblems({ 'case0.txt': log(REGISTRATION, sha) }, { blob: () => '-', textAt: () => 'as launched', textNow: () => 'edited' });
     cases.push(["the launch logs: one stamped under the registration as it stands is fair; under an edited registration, run by hand, or read with the exploratory form's blob ('-'), refused",
       `${fair.length} ${edited.some(x => /PREDICTION EDITED/.test(x))} ${byHand.some(x => /outside run-from-snapshot/.test(x))} ${oldForm.some(x => /PREDICTION EDITED/.test(x))}`, '0 true true true']); }
+  // the read's own call on the launch logs, end to end (the reviewer's second round, MINOR 3: the cases above test the
+  // functions, not the call the read makes): the read run on a folder holding one log stamped as the launcher stamps it passes
+  // the stamps under the registration as it stands, and is refused at the gate (no units); a log stamped 'sha -' (a hand run
+  // under the registration) is refused at the stamps
+  { const blob = execSync(`git hash-object "${REGISTRATION}"`, { cwd: ROOT }).toString().trim();
+    const run = sha => { const d = mkdtempSync(join(tmpdir(), 'share-read-')); writeFileSync(join(d, 'case0.txt'), `stamp: code c0 audit a0 prediction ${REGISTRATION} sha ${sha}\nnode ${process.version}\n`); const r = spawnSync(process.execPath, [SELF, d], { encoding: 'utf8', cwd: ROOT }); rmSync(d, { recursive: true, force: true }); return (r.stdout || '') + (r.stderr || ''); };
+    const good = run(blob), bad = run('-');
+    cases.push(["the read's own call, end to end: a log stamped under the registration as it stands passes its stamps (refused at the gate, no units); one stamped 'sha -' is refused at the stamps",
+      `${!/FAILED \(stamps\)/.test(good) && /the gate: REFUSED/.test(good)} ${/FAILED \(stamps\)/.test(bad)}`, 'true true']); }
   // the threshold in whole paths at any count the sizing can give (D61's 19,000 the most): no throw, the flag harmOf's
-  { let thrown = 0, agree = 0, n = 0;
-    for (const N of [16000, 17000, 18000, 19000]) for (const k of [0, 40, 80, 160, 320]) {
+  { let thrown = 0, agree = 0, n = 0, flagged = 0;
+    for (const N of [16000, 17000, 18000, 19000]) for (const k of [0, 30, 55, 60, 61, 62, 63, 64, 65, 66, 67, 68, 70, 72, 75, 80, 160]) {
+      // the rule (c) losing k paths the base (o) keeps: losses about the threshold (its 0.38 points is 61 paths of 16,000)
       const c = { survived: new Uint8Array(N).fill(1) }, o = { survived: new Uint8Array(N).fill(1) };
-      for (let i = 0; i < k; i++) o.survived[i] = 0;
-      n++; try { const h = harmExact(c, o, N), g = harmOf(c, o, N); if (h.flag === g.flag) agree++; } catch { thrown++; }
+      for (let i = 0; i < k; i++) c.survived[i] = 0;
+      n++; try { const h = harmExact(c, o, N), g = harmOf(c, o, N); if (h.flag === g.flag) agree++; if (h.flag) flagged++; } catch { thrown++; }
     }
-    cases.push(['the threshold in whole paths at 16,000 to 19,000 paths: none throws, every flag harmOf\'s', `${thrown} ${agree === n}`, '0 true']); }
+    cases.push(['the threshold in whole paths at 16,000 to 19,000 paths, losses about it: none throws, every flag harmOf\'s, some flagged and some not', `${thrown} ${agree === n} ${flagged > 0 && flagged < n}`, '0 true true']); }
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
@@ -221,9 +240,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const PILOT = args[0] === '--pilot', dir = (PILOT ? args[1] : args[0]) || join(HERE, 'results', PILOT ? 'share-rules-pilot' : 'share-rules-run');
   const panel = readSharePanel(), units = PILOT ? pilotUnits(panel) : panel, U = loadDir(dir);
   const paths = PILOT ? null : JSON.parse(readFileSync(PATHS_FILE, 'utf8')).paths, code = JSON.parse(readFileSync(PANEL, 'utf8')).code;
-  if (!PILOT) requireFairLogs(existsSync(dir) ? Object.fromEntries(readdirSync(dir).filter(x => /^case\d+\.txt$/.test(x)).map(x => [x, readFileSync(join(dir, x), 'utf8')])) : {}, REGISTRATION);
+  const texts = existsSync(dir) ? Object.fromEntries(readdirSync(dir).filter(x => /^case\d+\.txt$/.test(x)).map(x => [x, readFileSync(join(dir, x), 'utf8')])) : {};
+  if (!PILOT) requireFairLogs(texts, REGISTRATION);
   // the pilot (EXPLORATORY, sizing only) is read on its own files' stamp: its units keep the audit they ran under
-  const P = gate(U, units, { seed: PILOT ? PILOT_SEED : SEED, prediction: PILOT ? null : REGISTRATION, audit: PILOT ? null : stampFilesHash(), paths, code });
+  const P = gate(U, units, { seed: PILOT ? PILOT_SEED : SEED, prediction: PILOT ? null : REGISTRATION, audit: PILOT ? null : stampFilesHash(), paths, code, logs: Object.keys(texts).length });
   console.log(`THE SHARE RULES' TEST${PILOT ? ' (THE PILOT: NOT AN OUTCOME)' : ''}: ${units.length} units of ${dir.split('/').slice(-1)[0]}; the gate: ${P.length ? 'REFUSED' : 'fair'}`);
   if (P.length) { for (const x of P.slice(0, 20)) console.log(`  ${x}`); process.exit(1); }
   const V = withStandIn(U, units), flat = compare(V, units, 'FLAT', 'TODAY'), means = compare(V, units, 'MEANS', 'TODAY'), mvf = compare(V, units, 'MEANS', 'FLAT');
@@ -244,12 +264,15 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   // beside, deciding nothing: each rule's figures over the units it ran, the rollout beside the engine and the solve times
   console.log('\nBESIDE, DECIDING NOTHING:');
+  // each rule over the same units (TODAY's run standing for FLAT's at 90/10, so the three are comparable: the reviewer of the
+  // registration, second round, MINOR 2); the fidelity gaps and the solve times from each rule's own runs
+  const same = units.filter(u => ARMS.every(a => V[u.id] && V[u.id][a])), mean = a => a.reduce((t, x) => t + x, 0) / a.length;
   for (const arm of ARMS) {
-    const recs = units.map(u => U[u.id] && U[u.id][arm]).filter(Boolean), mean = a => a.reduce((t, x) => t + x, 0) / a.length;
+    const recs = same.map(u => V[u.id][arm]), own = units.map(u => U[u.id] && U[u.id][arm]).filter(Boolean);
     if (!recs.length) continue;
     const pot = mean(recs.map(r => mean(r.main.wealth))), tax = mean(recs.map(r => mean(r.main.tax))), del = mean(recs.map(r => mean(r.main.delivered)));
-    const eo = recs.reduce((t, r) => t + (r.beside ? r.beside.engineOnly : 0), 0), mo = recs.reduce((t, r) => t + (r.beside ? r.beside.modelOnly : 0), 0), nb = recs.reduce((t, r) => t + (r.beside ? r.beside.N : 0), 0);
-    const ss = recs.map(r => r.solveSecs).sort((x, y) => x - y);
-    console.log(`  ${arm.padEnd(5)} over its ${recs.length} units: the mean pot left £${Math.round(pot).toLocaleString('en-GB')}, lifetime tax £${Math.round(tax).toLocaleString('en-GB')}, spending delivered £${Math.round(del).toLocaleString('en-GB')} a path; the rollout beside the engine on ${nb} paths: surviving in the engine alone ${eo}, in the model alone ${mo} (a fidelity gap where either is not nought); the solve ${Math.round(ss[0])} to ${Math.round(ss[ss.length - 1])} s`);
+    const eo = own.reduce((t, r) => t + (r.beside ? r.beside.engineOnly : 0), 0), mo = own.reduce((t, r) => t + (r.beside ? r.beside.modelOnly : 0), 0), nb = own.reduce((t, r) => t + (r.beside ? r.beside.N : 0), 0);
+    const ss = own.map(r => r.solveSecs).sort((x, y) => x - y);
+    console.log(`  ${arm.padEnd(5)} over the same ${recs.length} units${arm === 'FLAT' ? ' (TODAY\'s run standing for FLAT\'s at 90/10)' : ''}: the mean pot left £${Math.round(pot).toLocaleString('en-GB')}, lifetime tax £${Math.round(tax).toLocaleString('en-GB')}, spending delivered £${Math.round(del).toLocaleString('en-GB')} a path; over its own ${own.length} runs, the rollout beside the engine on ${nb} paths: surviving in the engine alone ${eo}, in the model alone ${mo} (a fidelity gap where either is not nought); the solve ${Math.round(ss[0])} to ${Math.round(ss[ss.length - 1])} s`);
   }
 }

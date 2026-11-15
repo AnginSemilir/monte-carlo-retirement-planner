@@ -2,7 +2,7 @@ the harness's build (the switch and PLANNER_BETA on, as the source has them) ser
   ok    14. the classic planner under SOLVER true: its own tabs, none of the solver's chunks fetched   12 requests
   ok    14. the classic planner: no page errors
   ok    1. four places in order, each with its data-place, none of the classic labels   Your plan | You | What if | Details; reached plan, you, whatif, details
-  ok    2. the strip: solving with its percentage rising, then simulating, then solved   solving > simulating > solved; 28% to 97%
+  ok    2. the strip: solving with its percentage rising, then simulating, then solved   solving > simulating > solved; 17% to 97%
   ok    2. the card: solving, then filling, then done   solving > filling > done
   ok    2. all 500 paths in, every figure the reference's bit for bit (the solved plan's, your current approach's, both arms' money bands)   start 80%, survival 83.40%, trials 500
   ok    2. the solved plan's survival and your current approach's are Node's   83.4 and 40 against Node's 83.4 and 40
@@ -21,7 +21,7 @@ the harness's build (the switch and PLANNER_BETA on, as the source has them) ser
   ok    1. the main fixture: no page errors
   ok    9. Details: the solved ledger with its action column, the history check, Assumptions with Display and the solver's settings, the docs section   {"ledger":true,"move":true,"hist":true,"assumptions":true,"docs":true}
   ok    17. the rename pass: no tournament word or classic tab name on any place, the full documentation open; Docs leads with how the solver decides, the coverage card lists the solver's approximations, the glossary's four words   none found; {"solver":true,"approx":8,"coverage":true,"glossary":true}
-  ok    18. the details for a bug report, on a solved plan: the whitelist's fields in order, completed, the grid and the solver's code named, and no number of 100 or more outside the counts' lines   fields 14; numbers of 100 or more none; completed yes; code solver-code:f11e6bf691a3ef2e
+  ok    18. the details for a bug report, on a solved plan: the whitelist's fields in order, completed, the grid and the solver's code named, and no number of 100 or more outside the counts' lines   fields 14; numbers of 100 or more none; completed yes; code solver-code:e2e8ecdd99a26e4e
   ok    20. the speed mode: off by default with the single's warning (D98); on, the plan carries it and solves under a key of its own, every figure the reference's for that plan   box off, the warning the single's; key moved; plan "fast"; figures the reference's
   ok    20. the speed mode off again: no field left on the plan, its own key back   key the plan's own; no speed field
   ok    5. S090: starting at its raise, no raise line under the chart (L13)   raise none
@@ -57,15 +57,16 @@ the harness's build (the switch and PLANNER_BETA on, as the source has them) ser
   ok    19. couples on: the speed mode offered with the couple's warning (D98)   the couple's
   ok    19. couples on: this year's actions each named for its person (or nothing to change)   household:level, self:harvest
   ok    19. couples on: no page errors
-  ok    19. couples on, reloaded: both people's tables restored from the store, the parts above one, every figure the reference's again, the actions per person   done true; times "solve 2.4s, restored from the store", parts 4; survival 100% against 100%
+  ok    19. couples on, reloaded: both people's tables restored from the store, the parts above one, every figure the reference's again, the actions per person   done true; times "solve 4.5s, restored from the store", parts 4; survival 100% against 100%
   ok    19. couples on, reloaded: no page errors
   ok    19. couples on: the limits per person, a ceiling row for each person's wrappers, the age and the lump sum said to hold for both   {"both":true,"part":["tier-part-pen","tier-part-isa"],"self":["tier-pen","tier-isa"]}
   ok    19. couples on: the same couple re-held 90/10, its elder holding 90%, is solved (the guard, D99): no couples card, every figure the reference's on the pots' share bit for bit   done true; card false; survival 100% against 100%
   ok    19. couples on, held 90/10: no page errors
   ok    19. couples on: the same couple re-held 25/75, its younger partner holding 75%, is shown the couples card, its reason the uneven holding and the share   the card says 'uneven', the share 0.25
   ok    19. couples on, held 25/75: no page errors
-  ok    19. couples on: the same couple re-held 75/25 and entered younger first by hand (D104 (1); its elder second, holding 75%): solved, no couples card, every figure the reference's bit for bit (solved on its mirror, run against the plan as entered)   the age gap -3; done true; card false; survival 100% against 100%
+  ok    19. couples on: the same couple re-held 75/25 and entered younger first by hand (D104 (1); its elder second, holding 75%): solved, no couples card, every figure the reference's bit for bit (solved on its mirror, run against the plan as entered, its ages the entered first person's)   the age gap -3; done true; card false; survival 100% against 100%
   ok    19. couples on, entered younger first: the next ten years the elder-first entry's, each age the entered first person's; this year's actions the elder-first entry's, each person's under the other's name   the first year [65,7700.000000000001] against [65,7700.000000000001]; actions household:level, part:harvest against household:level, part:harvest
+  ok    19. couples on, entered younger first: the outlook and the raise the elder-first entry's, each age the entered first person's (the charts, the back mark and the raise line read them)   the first outlook year at 65 against 65; the raise from 65 against 65
   ok    19. couples on, entered either way: no page errors
 
 all ok

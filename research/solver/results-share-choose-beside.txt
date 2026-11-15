@@ -1,0 +1,106 @@
+BESIDE THE SHARE CHOICE'S READ (EXPLORATORY, written after the read, deciding nothing): 14 units, code b7cd77e5ebec, audit 13446e2e2128, seed 7002, 4000 paths, 45 points
+
+A. MEANS less the pots' share, paired on the 4000 paths (the means' share, the pots' share; survival under each):
+  S211-75pdb  means 0.6089 (arm means), pots 0.75: 98.22% and 98.40%; MEANS less the pots' -0.175 (-0.477 to +0.116)
+  S129-75     means 0.7314 (arm means), pots 0.75: 97.70% and 97.92%; MEANS less the pots' -0.225 (-0.434 to -0.036) (wholly below nought)
+  S291-db     means 0.6542 (arm means), pots 0.5: 95.78% and 91.80%; MEANS less the pots' +3.975 (+3.361 to +4.636) (wholly above nought)
+  S265-spa67  means 0.5910 (arm means), pots 0.5: 94.75% and 94.80%; MEANS less the pots' -0.050 (-0.452 to +0.351)
+  S389-gain   means 0.5834 (arm means), pots 0.5: 97.28% and 96.90%; MEANS less the pots' +0.375 (+0.089 to +0.679) (wholly above nought)
+  S211-db     means 0.6468 (arm means), pots 0.5: 95.80% and 89.22%; MEANS less the pots' +6.575 (+5.810 to +7.390) (wholly above nought)
+  S237-90     means 0.8374 (arm means), pots 0.9: 96.75% and 96.08%; MEANS less the pots' +0.675 (+0.405 to +0.976) (wholly above nought)
+  S129-90     means 0.8643 (arm means), pots 0.9: 94.20% and 95.15%; MEANS less the pots' -0.950 (-1.384 to -0.537) (wholly below nought)
+  S129-db     means 0.6298 (arm means), pots 0.5: 98.00% and 96.85%; MEANS less the pots' +1.150 (+0.797 to +1.547) (wholly above nought)
+  S183-spa67  means 0.5747 (arm means), pots 0.5: 98.65% and 97.35%; MEANS less the pots' +1.300 (+0.947 to +1.708) (wholly above nought)
+  S265-90     means 0.7011 (arm s0.7), pots 0.9: 93.70% and 90.90%; MEANS less the pots' +2.800 (+2.278 to +3.358) (wholly above nought)
+  S015-db     means 0.6918 (arm means), pots 0.5: 99.40% and 97.70%; MEANS less the pots' +1.700 (+1.301 to +2.165) (wholly above nought)
+  S019-90     means 0.8048 (arm s0.8), pots 0.9: 97.67% and 96.45%; MEANS less the pots' +1.225 (+0.898 to +1.601) (wholly above nought)
+  S043-gain   means 0.5963 (arm s0.6), pots 0.5: 97.88% and 95.97%; MEANS less the pots' +1.900 (+1.419 to +2.426) (wholly above nought)
+  pooled over the 14: +1.448 (+1.331 to +1.568) points; units with the interval wholly below nought: S129-75 -0.225, S129-90 -0.950; wholly above: 10
+
+B. The simulation's pick (the share best on the first 1000 paths, a tie to the pots' share), scored on the other 3000, by unit:
+  S211-75pdb  pick 0.6: less the pots' share +0.067 (-0.298 to +0.436); less MEANS +0.233 (-0.019 to +0.512)
+  S129-75     pick 0.75: less the pots' share +0.000 (-0.123 to +0.123); less MEANS +0.167 (-0.054 to +0.407)
+  S291-db     pick 0.7: less the pots' share +4.267 (+3.563 to +5.035); less MEANS +0.333 (+0.015 to +0.669)
+  S265-spa67  pick 0.6: less the pots' share -0.167 (-0.649 to +0.311); less MEANS -0.033 (-0.447 to +0.379)
+  S389-gain   pick 0.5: less the pots' share +0.000 (-0.120 to +0.120); less MEANS -0.467 (-0.857 to -0.103)
+  S211-db     pick 0.7: less the pots' share +6.000 (+5.166 to +6.897); less MEANS -0.567 (-0.981 to -0.176)
+  S237-90     pick 0.8: less the pots' share +0.833 (+0.499 to +1.213); less MEANS +0.167 (-0.122 to +0.467)
+  S129-90     pick 0.9: less the pots' share +0.000 (-0.115 to +0.115); less MEANS +0.933 (+0.455 to +1.439)
+  S129-db     pick 0.7: less the pots' share +1.167 (+0.777 to +1.621); less MEANS +0.033 (-0.176 to +0.248)
+  S183-spa67  pick 0.6: less the pots' share +1.433 (+0.972 to +1.963); less MEANS +0.100 (-0.176 to +0.388)
+  S265-90     pick 0.7: less the pots' share +2.700 (+2.105 to +3.339); less MEANS +0.000 (-0.110 to +0.110)
+  S015-db     pick 0.8: less the pots' share +2.100 (+1.620 to +2.684); less MEANS +0.333 (+0.136 to +0.611)
+  S019-90     pick 0.8: less the pots' share +1.233 (+0.854 to +1.676); less MEANS +0.000 (-0.122 to +0.122)
+  S043-gain   pick 0.7: less the pots' share +2.033 (+1.511 to +2.625); less MEANS -0.100 (-0.476 to +0.269)
+  pooled: less the pots' share +1.548 (+1.420 to +1.679); less MEANS +0.081 (+0.003 to +0.159); a unit below the pots' share with its interval wholly below nought: none
+
+C. The cost of a pick by simulation, against one full solve at today's share, by the run's own clocks (the units ran 4 at a time, beside the pre-commit hook for part of the run: a guide), the median over the 14 units and the range:
+  the engine's 4000 paths at today's share x5.12 (x4.45 to x7.34); the grid's solves x4.93 (x3.67 to x8.04); 1000 paths a share on the grid x6.42 (x4.25 to x10.39); the grid's solves and 1000 paths a share x11.42 (x7.92 to x18.43); the same with the chosen share's 1000 paths counted as the headline's own run x10.04 (x7.26 to x16.92)
+  by unit, the grid's solves and 1000 paths a share: S211-75pdb x18.43; S129-75 x16.38; S291-db x8.84; S265-spa67 x7.92; S389-gain x10.64; S211-db x11.44; S237-90 x12.55; S129-90 x11.54; S129-db x10.58; S183-spa67 x11.09; S265-90 x11.96; S015-db x11.06; S019-90 x12.57; S043-gain x11.41
+
+D. The minimum pot. The household's minimum pot is cut between the two people by the share (couple.js singlePlanFor). The paths each comparison parts, by how the failing arm fails:
+  S211-75pdb  the pots £712,500 and £237,500; the minimum pot £68,600: at today's share (0.75) the first person £51,450, the second £17,150; at the means' (0.61) the first person £41,846, the second £26,754; at 0.5 the first person £34,300, the second £34,300
+      MEANS against today's share: 20 lost (19 at the minimum pot in the last year, 1 before), 13 saved (4 at it, 9 before); the simulation's pick 0.6 against today's, on the last 3000: 13 lost (12 at the minimum pot in the last year, 1 before), 15 saved (5 at it, 10 before)
+  S129-75     the pots £1,800,000 and £600,000; the minimum pot £1,080,000: at today's share (0.75) the first person £810,000, the second £270,000; at the means' (0.73) the first person £788,400, the second £291,600; at 0.5 the first person £540,000, the second £540,000
+      the forecast's pick 0.9 against the best tried 0.75: 118 lost (113 at the minimum pot in the last year, 5 before), 0 saved (0 at it, 0 before)
+      MEANS against today's share: 11 lost (11 at the minimum pot in the last year, 0 before), 2 saved (2 at it, 0 before); the simulation's pick 0.75 against today's, on the last 3000: 0 lost (0 at the minimum pot in the last year, 0 before), 0 saved (0 at it, 0 before)
+  S291-db     the pots £270,000 and £180,000; the minimum pot £65,000: at today's share (0.5) the first person £32,500, the second £32,500; at the means' (0.65) the first person £42,250, the second £22,750; at 0.5 the first person £32,500, the second £32,500
+      MEANS against today's share: 7 lost (7 at the minimum pot in the last year, 0 before), 166 saved (32 at it, 134 before); the simulation's pick 0.7 against today's, on the last 3000: 1 lost (1 at the minimum pot in the last year, 0 before), 129 saved (21 at it, 108 before)
+  S265-spa67  the pots £108,000 and £72,000; the minimum pot £31,900: at today's share (0.5) the first person £15,950, the second £15,950; at the means' (0.59) the first person £18,821, the second £13,079; at 0.5 the first person £15,950, the second £15,950
+      the forecast's pick 0.6 against the best tried 0.5: 34 lost (25 at the minimum pot in the last year, 9 before), 31 saved (14 at it, 17 before)
+      MEANS against today's share: 33 lost (23 at the minimum pot in the last year, 10 before), 31 saved (13 at it, 18 before); the simulation's pick 0.6 against today's, on the last 3000: 28 lost (20 at the minimum pot in the last year, 8 before), 23 saved (10 at it, 13 before)
+  S389-gain   the pots £270,000 and £180,000; the minimum pot £205,000: at today's share (0.5) the first person £102,500, the second £102,500; at the means' (0.58) the first person £118,900, the second £86,100; at 0.5 the first person £102,500, the second £102,500
+      MEANS against today's share: 9 lost (9 at the minimum pot in the last year, 0 before), 24 saved (20 at it, 4 before); the simulation's pick 0.5 against today's, on the last 3000: 0 lost (0 at the minimum pot in the last year, 0 before), 0 saved (0 at it, 0 before)
+  S211-db     the pots £570,000 and £380,000; the minimum pot £78,700: at today's share (0.5) the first person £39,350, the second £39,350; at the means' (0.65) the first person £51,155, the second £27,545; at 0.5 the first person £39,350, the second £39,350
+      the forecast's pick 0.7 against the best tried 0.6: 29 lost (28 at the minimum pot in the last year, 1 before), 28 saved (20 at it, 8 before)
+      MEANS against today's share: 6 lost (5 at the minimum pot in the last year, 1 before), 269 saved (47 at it, 222 before); the simulation's pick 0.7 against today's, on the last 3000: 2 lost (2 at the minimum pot in the last year, 0 before), 182 saved (31 at it, 151 before)
+  S237-90     the pots £2,160,000 and £240,000; the minimum pot £480,000: at today's share (0.9) the first person £432,000, the second £48,000; at the means' (0.84) the first person £403,200, the second £76,800; at 0.5 the first person £240,000, the second £240,000
+      MEANS against today's share: 2 lost (2 at the minimum pot in the last year, 0 before), 29 saved (26 at it, 3 before); the simulation's pick 0.8 against today's, on the last 3000: 1 lost (1 at the minimum pot in the last year, 0 before), 26 saved (23 at it, 3 before)
+  S129-90     the pots £2,160,000 and £240,000; the minimum pot £1,080,000: at today's share (0.9) the first person £972,000, the second £108,000; at the means' (0.86) the first person £928,800, the second £151,200; at 0.5 the first person £540,000, the second £540,000
+      MEANS against today's share: 55 lost (55 at the minimum pot in the last year, 0 before), 17 saved (17 at it, 0 before); the simulation's pick 0.9 against today's, on the last 3000: 0 lost (0 at the minimum pot in the last year, 0 before), 0 saved (0 at it, 0 before)
+  S129-db     the pots £1,440,000 and £960,000; the minimum pot £1,080,000: at today's share (0.5) the first person £540,000, the second £540,000; at the means' (0.63) the first person £680,400, the second £399,600; at 0.5 the first person £540,000, the second £540,000
+      the forecast's pick 0.8 against the best tried 0.7: 32 lost (30 at the minimum pot in the last year, 2 before), 3 saved (3 at it, 0 before)
+      MEANS against today's share: 5 lost (5 at the minimum pot in the last year, 0 before), 51 saved (48 at it, 3 before); the simulation's pick 0.7 against today's, on the last 3000: 2 lost (2 at the minimum pot in the last year, 0 before), 37 saved (35 at it, 2 before)
+  S183-spa67  the pots £270,000 and £180,000; the minimum pot £40,300: at today's share (0.5) the first person £20,150, the second £20,150; at the means' (0.57) the first person £22,971, the second £17,329; at 0.5 the first person £20,150, the second £20,150
+      the forecast's pick 0.7 against the best tried 0.6: 111 lost (17 at the minimum pot in the last year, 94 before), 4 saved (4 at it, 0 before)
+      MEANS against today's share: 3 lost (3 at the minimum pot in the last year, 0 before), 55 saved (27 at it, 28 before); the simulation's pick 0.6 against today's, on the last 3000: 6 lost (6 at the minimum pot in the last year, 0 before), 49 saved (22 at it, 27 before)
+  S265-90     the pots £162,000 and £18,000; the minimum pot £31,900: at today's share (0.9) the first person £28,710, the second £3,190; at the means' (0.70) the first person £22,330, the second £9,570; at 0.5 the first person £15,950, the second £15,950
+      MEANS against today's share: 5 lost (4 at the minimum pot in the last year, 1 before), 117 saved (6 at it, 111 before); the simulation's pick 0.7 against today's, on the last 3000: 4 lost (3 at the minimum pot in the last year, 1 before), 85 saved (5 at it, 80 before)
+  S015-db     the pots £270,000 and £180,000; the minimum pot £53,200: at today's share (0.5) the first person £26,600, the second £26,600; at the means' (0.69) the first person £36,708, the second £16,492; at 0.5 the first person £26,600, the second £26,600
+      the forecast's pick 0.7 against the best tried 0.8: 12 lost (12 at the minimum pot in the last year, 0 before), 0 saved (0 at it, 0 before)
+      MEANS against today's share: 4 lost (4 at the minimum pot in the last year, 0 before), 72 saved (38 at it, 34 before); the simulation's pick 0.8 against today's, on the last 3000: 1 lost (1 at the minimum pot in the last year, 0 before), 64 saved (36 at it, 28 before)
+  S019-90     the pots £855,000 and £95,000; the minimum pot £430,000: at today's share (0.9) the first person £387,000, the second £43,000; at the means' (0.80) the first person £344,000, the second £86,000; at 0.5 the first person £215,000, the second £215,000
+      MEANS against today's share: 0 lost (0 at the minimum pot in the last year, 0 before), 49 saved (49 at it, 0 before); the simulation's pick 0.8 against today's, on the last 3000: 0 lost (0 at the minimum pot in the last year, 0 before), 37 saved (37 at it, 0 before)
+  S043-gain   the pots £570,000 and £380,000; the minimum pot £65,900: at today's share (0.5) the first person £32,950, the second £32,950; at the means' (0.60) the first person £39,540, the second £26,360; at 0.5 the first person £32,950, the second £32,950
+      the forecast's pick 0.6 against the best tried 0.7: 20 lost (20 at the minimum pot in the last year, 0 before), 19 saved (18 at it, 1 before)
+      MEANS against today's share: 14 lost (14 at the minimum pot in the last year, 0 before), 90 saved (56 at it, 34 before); the simulation's pick 0.7 against today's, on the last 3000: 5 lost (5 at the minimum pot in the last year, 0 before), 66 saved (44 at it, 22 before)
+  over every solver arm of the 14 units: 18484 failing paths, 9444 of them in the last year below the minimum pot, 0 others in the last year
+
+E. Units with a full forecast above 1 (the joint move's score: the two tables' own chances multiplied, plus the estate term, less the cuts): 7 of 14 (S211-75pdb, S291-db, S265-spa67, S389-gain, S015-db, S019-90, S043-gain); the largest 1.059400
+
+F. The band. The first person's fraction of the pots and the pots' share without the 40%-to-60% band (the arm at that fraction where it falls inside the band, today's where it does not):
+  S211-75pdb  partnerdb the fraction 0.7500 (outside the band: today's 0.75); without the band less today's +0.000 (-0.093 to +0.093); MEANS less without the band -0.175 (-0.477 to +0.116)
+  S129-75     anchor    the fraction 0.7500 (outside the band: today's 0.75); without the band less today's +0.000 (-0.092 to +0.092); MEANS less without the band -0.225 (-0.434 to -0.036)
+  S291-db     db        the fraction 0.6000 (inside the band: today's 0.5, without it 0.6); without the band less today's +3.625 (+3.052 to +4.245); MEANS less without the band +0.350 (+0.020 to +0.692)
+  S265-spa67  plain     the fraction 0.6000 (inside the band: today's 0.5, without it 0.6); without the band less today's -0.075 (-0.480 to +0.328); MEANS less without the band +0.025 (-0.314 to +0.365)
+  S389-gain   plain     the fraction 0.6000 (inside the band: today's 0.5, without it 0.6); without the band less today's +0.275 (-0.060 to +0.621); MEANS less without the band +0.100 (-0.134 to +0.340)
+  S211-db     db        the fraction 0.6000 (inside the band: today's 0.5, without it 0.6); without the band less today's +6.150 (+5.407 to +6.941); MEANS less without the band +0.425 (+0.045 to +0.817)
+  S237-90     ninety    the fraction 0.9000 (outside the band: today's 0.9); without the band less today's +0.000 (-0.088 to +0.088); MEANS less without the band +0.675 (+0.405 to +0.976)
+  S129-90     ninety    the fraction 0.9000 (outside the band: today's 0.9); without the band less today's +0.000 (-0.087 to +0.087); MEANS less without the band -0.950 (-1.384 to -0.537)
+  S129-db     db        the fraction 0.6000 (inside the band: today's 0.5, without it 0.6); without the band less today's +0.925 (+0.584 to +1.303); MEANS less without the band +0.225 (+0.012 to +0.456)
+  S183-spa67  plain     the fraction 0.6000 (inside the band: today's 0.5, without it 0.6); without the band less today's +1.325 (+0.929 to +1.769); MEANS less without the band -0.025 (-0.269 to +0.217)
+  S265-90     ninety    the fraction 0.9000 (outside the band: today's 0.9); without the band less today's +0.000 (-0.078 to +0.078); MEANS less without the band +2.800 (+2.278 to +3.358)
+  S015-db     db        the fraction 0.6000 (inside the band: today's 0.5, without it 0.6); without the band less today's +1.475 (+1.113 to +1.903); MEANS less without the band +0.225 (+0.006 to +0.472)
+  S019-90     ninety    the fraction 0.9000 (outside the band: today's 0.9); without the band less today's +0.000 (-0.089 to +0.089); MEANS less without the band +1.225 (+0.898 to +1.601)
+  S043-gain   plain     the fraction 0.6000 (inside the band: today's 0.5, without it 0.6); without the band less today's +1.900 (+1.419 to +2.426); MEANS less without the band +0.000 (-0.092 to +0.092)
+  all (14): MEANS less today's +1.448 (+1.331 to +1.568); without the band less today's +1.114 (+1.016 to +1.215); MEANS less without the band +0.334 (+0.253 to +0.416); the simulation's pick less MEANS on the last 3000 +0.081 (+0.003 to +0.159)
+  the couples inside the band, where it changes the share (8): MEANS less today's +2.116 (+1.942 to +2.295); without the band less today's +1.950 (+1.780 to +2.126); MEANS less without the band +0.166 (+0.074 to +0.259); the simulation's pick less MEANS on the last 3000 -0.046 (-0.158 to +0.066)
+  the four plain couples (4): MEANS less today's +0.881 (+0.687 to +1.083); without the band less today's +0.856 (+0.652 to +1.067); MEANS less without the band +0.025 (-0.091 to +0.141); the simulation's pick less MEANS on the last 3000 -0.125 (-0.301 to +0.049)
+  the share ensemble's ten (10): MEANS less today's +1.675 (+1.531 to +1.823); without the band less today's +1.218 (+1.108 to +1.331); MEANS less without the band +0.457 (+0.353 to +0.564); the simulation's pick less MEANS on the last 3000 +0.163 (+0.079 to +0.249)
+  the fractions inside the band: 0.6000 (every in-band couple's first person the elder: true)
+
+G. Spending delivered, the pot left and lifetime tax, each design against today's share, paired by path (beyond noise: the mean change more than 1.96 of its standard errors from nought):
+  MEANS, on paths 0 to 3999: spending delivered up beyond noise on 11 and down on 3 (S211-db -0.98%, S129-90 -0.22%, S019-90 -0.05%), its mean change over units +0.31%; the mean pot left lower beyond noise on 7 (S389-gain -£62,820, se £4,511; S211-db -£567,268, se £17,332; S237-90 -£126,962, se £19,444; S129-db -£509,667, se £35,427; S183-spa67 -£136,497, se £5,196; S265-90 -£136,565, se £12,205; S043-gain -£271,655, se £8,406), higher on 4, its mean change over units -3.59%; lifetime tax higher beyond noise on 6, lower on 7
+  MEANS, on paths 1000 to 3999: spending delivered up beyond noise on 11 and down on 3 (S211-db -0.90%, S129-90 -0.17%, S019-90 -0.06%), its mean change over units +0.32%; the mean pot left lower beyond noise on 7 (S389-gain -£63,074, se £5,376; S211-db -£575,398, se £20,919; S237-90 -£112,294, se £22,588; S129-db -£539,541, se £44,077; S183-spa67 -£140,936, se £6,101; S265-90 -£137,412, se £14,561; S043-gain -£272,632, se £9,864), higher on 5, its mean change over units -3.60%; lifetime tax higher beyond noise on 6, lower on 7
+  the simulation's pick, on paths 1000 to 3999: spending delivered up beyond noise on 7 and down on 4 (S211-db -0.66%, S129-db -0.42%, S015-db -1.42%, S019-90 -0.06%), its mean change over units +0.05%; the mean pot left lower beyond noise on 6 (S211-db -£238,396, se £11,480; S237-90 -£224,987, se £22,229; S129-db -£332,450, se £32,154; S183-spa67 -£134,233, se £6,108; S265-90 -£137,412, se £14,561; S043-gain -£135,958, se £7,224), higher on 2, its mean change over units -2.37%; lifetime tax higher beyond noise on 6, lower on 5
+  the forecast's pick, on paths 1000 to 3999: spending delivered up beyond noise on 7 and down on 5 (S389-gain -0.17%, S211-db -0.66%, S129-db -0.11%, S183-spa67 -5.47%, S019-90 -0.06%), its mean change over units -0.18%; the mean pot left lower beyond noise on 5 (S389-gain -£68,792, se £5,863; S211-db -£238,396, se £11,480; S237-90 -£224,987, se £22,229; S265-90 -£137,412, se £14,561; S043-gain -£272,632, se £9,864), higher on 3, its mean change over units -1.55%; lifetime tax higher beyond noise on 8, lower on 5

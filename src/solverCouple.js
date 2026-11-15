@@ -11,7 +11,7 @@
  *   const { household, plans, ageWith, share, shareRule } = couplePlans(E, plan, { shareRule });   // in the worker
  *   const cp = assembleCouple(E, M, household, { self: tSelf, part: tPart }, { shareRule, solvedOn });
  */
-import { shareFor, singlePlanFor, solveCouple, chooseJoint, rankFor, ownerState } from './solver/couple.js';
+import { shareBy, SHARE_RULES, singlePlanFor, solveCouple, chooseJoint, rankFor, ownerState } from './solver/couple.js';
 import { vecOf } from './solver/grid.js';
 import { solvedContext, runPath, partsOf, retireYearOf, firstSweep, joinSkipRuns } from './solverStrategy.js';
 import { prepareForSolve } from './solverSettings.js';
@@ -47,7 +47,8 @@ export function householdPlan(E, plan) {
 export function couplePlans(E, plan, { shareRule = undefined } = {}) {
   const household = householdPlan(E, plan), ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(household)));
   if (!ctx.isCouple) throw new Error('couplePlans takes a couple');
-  const rule = shareRule === 'pots' ? 'pots' : 'half', share = rule === 'pots' ? shareFor(household) : 0.5;
+  // the share by its rule (couple.js shareBy: 'pots' the app's since D99; 'potsflat' and 'means' research options, D104 (4))
+  const rule = SHARE_RULES.includes(shareRule) ? shareRule : 'half', share = rule === 'half' ? 0.5 : shareBy(E, household, rule);
   const plans = {
     self: E.resolveMpaa(E.normalizePlan(singlePlanFor(household, 'self', share))),
     part: E.resolveMpaa(E.normalizePlan(singlePlanFor(household, 'part', 1 - share)))
@@ -65,7 +66,7 @@ export function couplePlans(E, plan, { shareRule = undefined } = {}) {
 export function assembleCouple(E, M, household, tables, { shareRule = undefined, solvedOn } = {}) {
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   return solveCouple(E, M, household, {
-    ...(shareRule === 'pots' ? { shareRule: 'pots' } : {}),
+    ...(SHARE_RULES.includes(shareRule) ? { shareRule } : {}),
     solveOne: (p, o) => {
       const who = PLANT.rule === 'swap' ? (o.who === 'self' ? 'part' : 'self') : o.who, on = solvedOn && solvedOn[o.who];
       if (!on) throw new Error(`assembleCouple: no record of the plan ${o.who}'s table was solved on`);

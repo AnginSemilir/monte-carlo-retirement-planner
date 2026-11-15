@@ -1,0 +1,57 @@
+BESIDE THE COUPLES' TIE RULE'S READ (EXPLORATORY, written after the read, deciding nothing): 8 couples of tie-couple-7002, 8000 paths each; the reducer's outcome FAILS
+
+A. The replay by couple (the first 100 paths, along CANDS's own path): decisions, those above both caps, and those where each tie arm's move differs
+  S309F  (young): 5921 decisions, 1378 above both caps (23.3%); TIE5 differs at 477, TIE4 differs at 486
+  S311F  (young): 5909 decisions, 1379 above both caps (23.3%); TIE5 differs at 671, TIE4 differs at 775
+  S317F  (young): 5945 decisions, 1316 above both caps (22.1%); TIE5 differs at 387, TIE4 differs at 398
+  S323F  (young): 5911 decisions, 1281 above both caps (21.7%); TIE5 differs at 381, TIE4 differs at 451
+  S189   (lib): 3990 decisions, 149 above both caps (3.7%); TIE5 differs at 89, TIE4 differs at 94
+  S293   (lib): 5066 decisions, 831 above both caps (16.4%); TIE5 differs at 214, TIE4 differs at 241
+  S011   (lib): 2678 decisions, 25 above both caps (0.9%); TIE5 differs at 6, TIE4 differs at 10
+  S083   (lib): 3464 decisions, 82 above both caps (2.4%); TIE5 differs at 7, TIE4 differs at 7
+
+B. The pot left and lifetime tax by cohort (each couple's mean, X over CANDS in percent; the cohort's couples averaged):
+  young (S309F, S311F, S317F, S323F), TIE5: the pot -0.007%, lifetime tax -2.21%
+  young (S309F, S311F, S317F, S323F), TIE4: the pot +0.002%, lifetime tax -2.58%
+  lib (S189, S293, S011, S083), TIE5: the pot +0.072%, lifetime tax -0.52%
+  lib (S189, S293, S011, S083), TIE4: the pot +0.101%, lifetime tax -0.29%
+
+C. S311F, the couple part 5 names: its pot's change path by path, each tie arm against CANDS (the pot left on each path, X less CANDS)
+  TIE5: the pot lower on 637 of 8000 paths and higher on 2657; the median change £0, the mean £-426,962 (CANDS's mean pot £61,720,523); the worst 1% of paths (80) carry £-608,480 of the mean change
+    lifetime tax lower on 2541 paths, by a mean £263,188 over them, and higher on 686, by a mean £68,334 over them
+    the paths paying more tax carry £-605,572 of the mean change in the pot (547 of them leaving less); those paying less carry £178,609 (59 of them leaving less)
+  TIE4: the pot lower on 1085 of 8000 paths and higher on 2454; the median change £0, the mean £-495,927 (CANDS's mean pot £61,720,523); the worst 1% of paths (80) carry £-771,366 of the mean change
+    lifetime tax lower on 2231 paths, by a mean £398,794 over them, and higher on 1222, by a mean £68,397 over them
+    the paths paying more tax carry £-608,218 of the mean change in the pot (1007 of them leaving less); those paying less carry £112,298 (40 of them leaving less)
+
+D. What decides part 5 on S311F (each tie arm against CANDS; the paths whose pot change carries most of the mean change):
+  TIE5: the change -0.692% (paired standard error 0.671% of CANDS's mean pot); without the largest-loss path -0.180%, without the two +0.263%, without the four +0.298%
+    path 4468: CANDS £7,434,464,191, TIE5 £4,895,665,052 (-34.1%), lifetime tax +£763,916, carrying £-317,350 of the mean change
+    path 5461: CANDS £12,657,338,786, TIE5 £10,536,312,756 (-16.8%), lifetime tax +£420,250, carrying £-265,128 of the mean change
+    path 658: CANDS £848,078,759, TIE5 £690,305,521 (-18.6%), lifetime tax +£138,838, carrying £-19,722 of the mean change
+    path 3593: CANDS £383,463,434, TIE5 £379,293,826 (-1.1%), lifetime tax +£657,154, carrying £-521 of the mean change
+  TIE4: the change -0.804% (paired standard error 0.720% of CANDS's mean pot); without the largest-loss path -0.294%, without the two +0.146%, without the four +0.456%
+    path 4468: CANDS £7,434,464,191, TIE4 £4,896,121,219 (-34.1%), lifetime tax +£795,657, carrying £-317,293 of the mean change
+    path 5461: CANDS £12,657,338,786, TIE4 £10,536,312,756 (-16.8%), lifetime tax +£420,250, carrying £-265,128 of the mean change
+    path 2900: CANDS £3,996,577,839, TIE4 £2,708,125,569 (-32.2%), lifetime tax £-360,506, carrying £-161,057 of the mean change
+    path 658: CANDS £848,078,759, TIE4 £691,006,080 (-18.5%), lifetime tax +£186,094, carrying £-19,634 of the mean change
+  CANDS's mean pot £61,720,523: its largest path £44,916,744,004, 9.1% of the couple's summed pots; its ten largest 30.4%
+  TIE5: the pot's change beyond two standard errors, higher on S309F, S317F, S323F, S189, S293, S011, S083; lower on none; within them on S311F
+  TIE4: the pot's change beyond two standard errors, higher on S309F, S317F, S323F, S189, S293, S011, S083; lower on none; within them on S311F
+  S309F: the paired standard error of the pot's change 0.014% and 0.016% (TIE5 and TIE4)
+  S317F: the paired standard error of the pot's change 0.018% and 0.019% (TIE5 and TIE4)
+  S323F: the paired standard error of the pot's change 0.013% and 0.014% (TIE5 and TIE4)
+  S189: the paired standard error of the pot's change 0.002% and 0.002% (TIE5 and TIE4)
+  S293: the paired standard error of the pot's change 0.016% and 0.022% (TIE5 and TIE4)
+  S011: the paired standard error of the pot's change 0.001% and 0.001% (TIE5 and TIE4)
+  S083: the paired standard error of the pot's change 0.002% and 0.002% (TIE5 and TIE4)
+
+E. Lifetime tax by couple, each tie arm against CANDS (the change in the couple's mean, with its paired standard error), and how much of the pooled change is S311F's:
+  TIE5: S309F £-9,328 (se £761), S311F £-77,735 (se £2,557), S317F +£959 (se £207), S323F £-24,488 (se £643), S189 £-399 (se £67), S293 £-1,919 (se £185), S011 £-86 (se £19), S083 £-209 (se £36)
+    S311F's share of the couples' summed change 68.7%; pooled lifetime tax -2.76%, without S311F -1.36%; couples whose tax change is beyond two standard errors: S309F, S311F, S317F, S323F, S189, S293, S011, S083
+  TIE4: S309F £-9,888 (se £809), S311F £-100,766 (se £3,249), S317F +£2,324 (se £245), S323F £-29,380 (se £756), S189 £-404 (se £67), S293 £-342 (se £220), S011 £-129 (se £21), S083 £-210 (se £38)
+    S311F's share of the couples' summed change 72.6%; pooled lifetime tax -3.39%, without S311F -1.46%; couples whose tax change is beyond two standard errors: S309F, S311F, S317F, S323F, S189, S011, S083
+
+F. On the tie arms' own paths: paths surviving in both arms whose spending delivered differs (so a spending level differs in some year), by couple:
+  TIE5: none
+  TIE4: S309F 9 (330, 1958, 2900, 3314, 3981, 4089, 5064, 7058, 7449); S293 2 (330, 1383)

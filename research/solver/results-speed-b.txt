@@ -1,0 +1,19 @@
+THE SPEED MODE ON MORE SINGLES AND COUPLES (EXPLORATORY; SPEED-B.md): 20 singles and 12 couples, code 6b2dc56b2f82, audit 7a7989082a7a, seed 7002, 4000 paths, 45 points; the gate: fair (every unit in both arms; one code, audit, seed, count of paths and points; each arm's speed mode as named; each person's table the same in both arms)
+
+Singles (20), SPEED against WHOLE:
+  1. pooled survival +0.001 (-0.012 to +0.015) points; its lower end above -0.1: HOLDS
+  2. no unit wholly below -0.3: none: HOLDS
+  3. pooled spending delivered +0.0004%; within 0.05% either way: HOLDS
+  4. the mean pot left +0.054% pooled (not lower by more than 0.5%), the capped pot +0.007% (not lower by more than 0.1%): HOLDS
+  HOLDS; a path's time SPEED over WHOLE, the median x0.54 (x0.39 to x0.67)
+  by unit: S026 +0.000 (1 saved, 1 lost), spending +0.001%, pot -0.02%, tax -4.87%, x0.39; S040 +0.025 (1 saved, 0 lost), spending +0.001%, pot -0.00%, tax +0.17%, x0.48; S062 +0.000 (0 saved, 0 lost), spending -0.001%, pot +0.01%, tax -0.14%, x0.60; S074 +0.000 (0 saved, 0 lost), spending -0.001%, pot -0.00%, tax +0.00%, x0.48; S096 +0.000 (0 saved, 0 lost), spending -0.000%, pot -0.00%, tax +0.00%, x0.53; S108 +0.000 (0 saved, 0 lost), spending +0.001%, pot +0.10%, tax +1.53%, x0.49; S132 +0.000 (1 saved, 1 lost), spending -0.003%, pot +0.03%, tax -46.83%, x0.52; S164 +0.000 (0 saved, 0 lost), spending +0.000%, pot +0.00%, tax -0.01%, x0.41; S204 +0.000 (0 saved, 0 lost), spending -0.002%, pot +0.33%, tax +0.23%, x0.53; S228 +0.000 (0 saved, 0 lost), spending -0.000%, pot +0.55%, tax +3.19%, x0.54; S306F +0.050 (4 saved, 2 lost), spending +0.004%, pot -0.00%, tax +0.08%, x0.63; S308F +0.000 (2 saved, 2 lost), spending +0.004%, pot -0.00%, tax +0.03%, x0.64; S310F +0.000 (2 saved, 2 lost), spending +0.002%, pot -0.02%, tax -0.14%, x0.53; S314F +0.000 (0 saved, 0 lost), spending +0.002%, pot +0.00%, tax -0.10%, x0.67; S316F +0.000 (1 saved, 1 lost), spending +0.000%, pot -0.00%, tax -0.00%, x0.66; S320F +0.000 (1 saved, 1 lost), spending -0.002%, pot +0.00%, tax +0.60%, x0.62; S322F -0.025 (0 saved, 1 lost), spending +0.000%, pot -0.00%, tax -0.00%, x0.63; S326F -0.050 (0 saved, 2 lost), spending -0.000%, pot +0.09%, tax -0.12%, x0.64; S332F +0.000 (0 saved, 0 lost), spending -0.002%, pot +0.01%, tax -0.02%, x0.56; S334F +0.025 (1 saved, 0 lost), spending -0.000%, pot +0.00%, tax -0.01%, x0.51
+
+Couples (12), SPEED against WHOLE:
+  1. pooled survival -0.023 (-0.084 to +0.038) points; its lower end above -0.1: HOLDS
+  2. no unit wholly below -0.3: none: HOLDS
+  3. pooled spending delivered -0.0683%; within 0.05% either way: FAILS
+  4. the mean pot left +1.169% pooled (not lower by more than 0.5%), the capped pot +0.521% (not lower by more than 0.1%): HOLDS
+  LOSES (3); a path's time SPEED over WHOLE, the median x0.79 (x0.52 to x0.90)
+  by unit: S031 -0.550 (9 saved, 31 lost), spending -0.216%, pot +1.11%, tax -3.88%, x0.52; S047 +0.050 (8 saved, 6 lost), spending +0.023%, pot -0.35%, tax -1.61%, x0.57; S063 -0.500 (10 saved, 30 lost), spending -0.020%, pot +10.33%, tax +99.00%, x0.58; S097 +0.075 (4 saved, 1 lost), spending -0.278%, pot +0.79%, tax +0.49%, x0.69; S115 +0.050 (20 saved, 18 lost), spending +0.094%, pot -0.32%, tax -6.30%, x0.59; S133 -0.025 (9 saved, 10 lost), spending -0.620%, pot +2.36%, tax -3.25%, x0.78; S301F +0.275 (14 saved, 3 lost), spending -0.061%, pot +0.05%, tax +0.04%, x0.90; S305F -0.025 (0 saved, 1 lost), spending -0.068%, pot +0.09%, tax +0.13%, x0.81; S307F +0.125 (10 saved, 5 lost), spending -0.011%, pot -0.00%, tax -0.02%, x0.79; S319F +0.050 (2 saved, 0 lost), spending -0.080%, pot -0.05%, tax -0.16%, x0.79; S321F -0.075 (3 saved, 6 lost), spending -0.072%, pot -0.16%, tax -0.03%, x0.80; S325F +0.275 (17 saved, 6 lost), spending -0.155%, pot +0.16%, tax +0.52%, x0.90
+
+SPEED-B OUTCOME: singles HOLDS; couples LOSES

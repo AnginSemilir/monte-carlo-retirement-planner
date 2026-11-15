@@ -13,7 +13,8 @@
  *               some wrappers only). A couple whose younger partner holds more, whose elder is entered second and holds more,
  *               whose elder holds over 90%, or whose two people are the same age and hold their money outside the band keeps
  *               the app's rules until a test of those reads. `share` the first person's share of the pots; `why` 'off' (the
- *               switch) or 'uneven' (outside the guard), null when on.
+ *               switch), 'uneven' (outside the guard) or 'ages' (a partner who would pass 120 before the plan ends, which a
+ *               person's table cannot run to: horizonFits), null when on.
  *   elderOf(plan)  'self', 'part' or null (the same age): each person's age today read as the engine reads it (App.jsx
  *               buildContext: a blank age the default, 40 for the first person and the first person's for the partner;
  *               clamped to 0 to 120), held to the engine's own context by research/tests/couple-default.test.mjs.
@@ -30,7 +31,8 @@ export const ELDER_UP_TO = 0.9;
 // couple whose elder is entered second and holds most would be solved at an estate weight several times any tested)
 export const ELDER_FIRST = true;
 // research/tests/couple-default.test.mjs only: 'firstnotelder' takes the first person for the elder, whatever the ages;
-// 'eldereither' lifts the guard for an elder entered second too, as the first draft of D99 did
+// 'eldereither' lifts the guard for an elder entered second too, as the first draft of D99 did; 'noagecap' runs a couple whose
+// partner would pass 120 before the plan ends, as before the age cap
 export const PLANT = { rule: '' };
 const ageOf = (v, fallback) => {
   if (v === '' || v === null || v === undefined || typeof v === 'boolean' || (typeof v === 'number' && !Number.isFinite(v))) return fallback;
@@ -41,10 +43,24 @@ export function elderOf(plan) {
   const d = (plan && plan.demographics) || {}, self = ageOf(d.currentAgeSelf, 40), part = ageOf(d.currentAgePart, self);
   return self > part ? 'self' : part > self ? 'part' : null;
 }
+/* whether the cut can give both people the couple's whole horizon (the reviewer on D99, second round, MINOR 1): couple.js
+   singlePlanFor gives each person the couple's years from their own age, and a single plan's end age stops at 120 (App.jsx
+   buildContext), so a partner who would pass 120 before the plan ends would get a shorter table, and the solve's figures fail.
+   The ages and end age are read as the engine reads them: a blank age 40 for the first person and the first person's for the
+   partner, a blank end age 100, clamped to 1 to 120, an end age at or below the first person's age a year past it. */
+export function horizonFits(plan) {
+  const d = (plan && plan.demographics) || {}, self = ageOf(d.currentAgeSelf, 40), part = ageOf(d.currentAgePart, self);
+  const t0 = d.terminalAge === '' || d.terminalAge === null || d.terminalAge === undefined || typeof d.terminalAge === 'boolean' || !Number.isFinite(Number(d.terminalAge)) ? 100 : Number(d.terminalAge);
+  let terminal = Math.min(120, Math.max(1, t0));
+  if (terminal <= self) terminal = self + 1;
+  return part + (terminal - self) <= 120 + 1e-9;
+}
 export function coupleSolverOn(plan, on = COUPLES) {
   const of = w => ((plan && plan.accounts) || []).filter(a => String(a.id).endsWith('_' + w)).reduce((t, a) => t + (Number(a.balance) || 0), 0);
   const a = of('self'), b = of('part'), share = a + b > 0 ? a / (a + b) : 0.5;
   if (!on) return { on: false, share, why: 'off' };
+  // a couple whose partner would pass 120 before the plan ends keeps the app's rules, whatever its holdings
+  if (PLANT.rule !== 'noagecap' && !horizonFits(plan)) return { on: false, share, why: 'ages' };
   const inside = share >= COUPLE_BAND[0] - 1e-9 && share <= COUPLE_BAND[1] + 1e-9;
   const elder = PLANT.rule === 'firstnotelder' ? 'self' : elderOf(plan);
   const held = elder === 'self' ? share : elder === 'part' && (!ELDER_FIRST || PLANT.rule === 'eldereither') ? 1 - share : null;

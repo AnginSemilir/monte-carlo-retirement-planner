@@ -12,7 +12,12 @@
  *   4. on a scratch git tree, a test walking a directory that holds an untracked cache: its record keeps the tracked file,
  *      the generated engine and a probe of an absent path, and leaves the cache out (the record the same in every clone);
  *      planted, the same trace without the filter names the cache.
- *   node research/tests/fast-skip.test.mjs [--fixture]     (--fixture: checks 1, 2 and 4)
+ *   5. on a scratch git tree, a test reading every file of a directory and one importing a module that imports another,
+ *      while the newest of each is untracked: the first run leaves them out of the records; once git tracks them as they
+ *      were, both tests run again and their records gain them (Full 259 of 14 Nov: settings.test.mjs read
+ *      batch-other-order.sh while it was new, and the commit adding it changed nothing the skip looked at); planted, the
+ *      skip as it was (--plant untracked): both skipped, the records never gaining them.
+ *   node research/tests/fast-skip.test.mjs [--fixture]     (--fixture: checks 1, 2, 4 and 5)
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync, appendFileSync } from 'node:fs';
@@ -93,6 +98,27 @@ if (!process.argv.includes('--fixture')) {
   const raw = recordOf((await traced(G, 't/walk.test.mjs')).traces), rawNames = [...raw.read, ...raw.probe, ...raw.list];
   ok(rawNames.some(p => p.startsWith('k/cache')), `4. planted, the same trace without the filter names the cache (${rawNames.filter(p => p.startsWith('k/cache')).join(', ')})`);
   rmSync(G, { recursive: true, force: true }); }
+
+// 5. a path a test touched while git did not track it reaches the record once git does
+for (const plant of [null, 'untracked']) {
+  const G = mkdtempSync(join(tmpdir(), 'fast-skip-new-'));
+  const g = (p, s) => { mkdirSync(dirname(join(G, p)), { recursive: true }); writeFileSync(join(G, p), s); };
+  g('k/a.txt', 'a\n'); g('k/n.txt', 'n\n'); g('m.mjs', "export { n } from './n.mjs';\n"); g('n.mjs', 'export const n = 1;\n');
+  g('t/each.test.mjs', "import { readdirSync, readFileSync } from 'node:fs'; const got = readdirSync('k').map(f => readFileSync(`k/${f}`, 'utf8').trim()); process.exit(got.includes('a') ? 0 : 1);\n");
+  g('t/import.test.mjs', "import { n } from '../m.mjs'; process.exit(n === 1 ? 0 : 1);\n");
+  execFileSync('git', ['init', '-q'], { cwd: G }); execFileSync('git', ['add', 'k/a.txt', 'm.mjs', 't/each.test.mjs', 't/import.test.mjs'], { cwd: G });
+  const run = (...extra) => spawnSync(process.execPath, [SKIP, '--root', G, '--tests', 't/each.test.mjs,t/import.test.mjs', '--inputs', join(G, 'inputs.json'), '--cache', join(G, 'cache.json'), ...(plant ? ['--plant', plant] : []), ...extra], { encoding: 'utf8' });
+  const recs = () => JSON.parse(readFileSync(join(G, 'inputs.json'), 'utf8')), has = rec => rec['t/each.test.mjs'].read.includes('k/n.txt') && rec['t/import.test.mjs'].read.includes('n.mjs');
+  const r1 = run(), rec1 = recs(), none1 = !rec1['t/each.test.mjs'].read.includes('k/n.txt') && !rec1['t/import.test.mjs'].read.includes('n.mjs');
+  execFileSync('git', ['add', 'k/n.txt', 'n.mjs'], { cwd: G });   // the new files, as they were, now tracked
+  const d = run('--dry'), r2 = run(), gained = has(recs());
+  if (!plant) {
+    ok(r1.status === 2 && none1, `5. while k/n.txt and n.mjs are untracked, the first run leaves them out of both records (exit ${r1.status})`);
+    ok(ran(d.stdout).join(',') === 't/each.test.mjs,t/import.test.mjs' && /now in git: k\/n\.txt/.test(d.stdout) && /now in git: n\.mjs/.test(d.stdout) && r2.status === 2 && gained,
+      `5. once git tracks them, both tests run again and their records gain them (${ran(d.stdout).join(', ')}; exit ${r2.status})`);
+  } else ok(r1.status === 2 && none1 && ran(d.stdout).length === 0 && !gained, `5. planted, the skip as it was: both tests skipped and the records never gain them (${ran(d.stdout).join(', ') || 'none run'})`);
+  rmSync(G, { recursive: true, force: true });
+}
 
 console.log(failed ? `FAILED: ${failed} of ${n + failed} checks` : `ALL PASS: ${n} checks`);
 process.exit(failed ? 1 : 0);

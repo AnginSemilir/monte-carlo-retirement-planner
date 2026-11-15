@@ -354,7 +354,9 @@ table shorter than the couple's horizon. The cut gives each person the couple's 
 plan's end age stops at 120. The solve's figures then fail with the failure card. It is loud, and no figure is wrong.
 - It is rare: it needs an age gap wider than 120 less the end age.
 - It predates D99.
-- Its fix, the guard keeping such a couple on the app's rules with a check of its class, goes with the next batch.
+- Its fix, the guard keeping such a couple on the app's rules (`src/couplesSwitch.js` `horizonFits`, its reason 'ages' and
+  the couples card's words for it), with a check of its class (`couple-default.test.mjs` check 6, its plant 'noagecap'), is
+  built on the working branch after the release branch's cut and goes with the next batch.
 
 Merged on B1's gate with batch 3 and the speed mode (D92), the plant `couplehalf`'s run alone recorded first.
 
@@ -380,6 +382,14 @@ person's age.
      for bit;
    - the weight is the same whichever partner a couple has first;
    - equal ages keep the first person's weight.
+
+   Built 14 Nov (`couple.js` `estateFrom` and `solveCouple`'s `estateWeight: 'elder'`, off in code; the plan entered the
+   other way by `couple-order.mjs` `otherOrder`). `couple-estate.test.mjs` (FAST_JOINING) passes all 7 checks, and its plant
+   `estatefirst` fails exactly checks 3, 4 and 5:
+   - with the option unset, S007's joint value at the start and its engine runs are the code before's, bit for bit;
+   - all 76 couples tested (stage C's 36 units, the re-run's 40) are entered elder first, so the option keeps their weight;
+   - S007 entered younger first weighs its estate 1.5 times as much without the option. Under it, the joint score at the
+     start is the elder-first order's, to the bit.
 2. The read. Stage C's twelve couples are entered both ways: the elder first as tested, and the younger first with the
    horizon held to the same year. Each is held so the elder holds 75% and 90%, each order is solved with and without the
    option, and all are run on the same paths. One couple is entered with an age gap wide enough that the partner entered
@@ -403,3 +413,58 @@ person's age.
 **Not in it.** A couple whose younger partner holds more than 60% is still untested, in either order; the same machinery
 could cover it in a later run. Also untested: a couple whose elder holds over 90%, and a couple whose two people are the
 same age outside the band.
+
+## D8. The solver chooses a couple's share (planned; D102)
+
+The maintainer, 14 Nov, on the share ensemble's read (THE SHARE'S MEASURE; `reports/2026-11-14-share-ensemble.md`), offered a
+fixed share from each person's means or the solver choosing the share: "Option 2."
+
+**In plain words.** A couple's plan is two plans, one for each partner, and the household's spending is split between them.
+Today the split follows the savings each holds, half each between 40% and 60%. The ensemble found better splits on most of
+the couples it tried, and no single rule that fits them all. So the solver is to choose each couple's split itself: it
+works the couple out at a few splits and keeps the one its own forecast rates best.
+
+**The build (EXPLORATORY; after the read).** The read came first (`SHARE-CHOOSE.md`, launched 14 Nov 17:37 UK from
+4380aa81). It works the forecast out itself, as the rollout scores a joint move. The option is then built with D103's speed
+work, in the form the read supports. As planned:
+- `shareRule: 'choose'` in `src/solver/couple.js`, a research option, off in code.
+- Each couple is solved at a few first-person shares around its own, and the solver keeps the share whose assembled couple
+  its own forecast at the start rates best. The forecast is the joint value the rollout maximises at the household's
+  opening state. Every share's forecast is kept in the record.
+- A light first pass, at fewer wealth points, chooses; the chosen share is then solved in full, so a couple's solve in the
+  app stays near today's time.
+- The test of its class:
+  - the pick is the best forecast;
+  - with the option unset everything is bit for bit as now;
+  - the light pass's pick is recorded beside the full one's.
+
+**The exploratory read** (`SHARE-CHOOSE.md`; stage A), its rule committed first:
+- the units: the share ensemble's ten, and plain 60/40 couples without a DB (the reviewer's finding 1);
+- the arms, all on the same paths: the solver's pick, the full-means share (pots, contributions to come, state and DB
+  pensions), the pots' share (D99) and each share tried;
+- seed 7002;
+- what it reads:
+  - whether the forecast ranks the shares as the simulation does;
+  - the pick's gain over the pots' share and over the means' share, against D4's targets;
+  - the solve time with the light pass and without it.
+
+**Then speed work (D103: "But after that run speed work to try to gain back that added time").** Choosing among a few
+shares solves a couple several times. Before the registered test, so that the test is of what would ship, the choice is
+made faster:
+- the target: a couple's solve with the choice at most a quarter more than today's, gate 5's measure (D11), timed on the
+  read's couples on this machine with nothing else running;
+- the routes, tried in turn:
+  - a light first pass that chooses the share at fewer wealth points, with only the chosen share solved in full; its read
+    says how often the light pick is the full one's;
+  - fewer candidates, by a bracketing search on the forecast;
+  - work shared between the candidates' solves where a table's parts do not depend on the share;
+- each cut exact, or where approximate a large saving for a small measured loss (D65), each with its test.
+
+**Then a registered test** of whichever holds up, with the speed work in it: a new held-out seed, its design review, its
+registration to the maintainer before launch. Only that can change the default. D99 stands until then.
+
+**Leads carried beside it.**
+- The 90/10 holding costs points no share recovers: S129-90 against S129-75, -2.775 at its best share, against -0.325
+  under the app's rules.
+- The joint estate weight follows the first person's table (D7's stage A).
+

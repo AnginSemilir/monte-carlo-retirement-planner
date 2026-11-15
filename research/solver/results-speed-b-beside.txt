@@ -1,0 +1,49 @@
+BESIDE THE SPEED MODE'S WIDER READ (EXPLORATORY, written after the read, deciding nothing): 32 units of speed-b-7002, 4000 paths each
+
+A. Each unit's survival change, SPEED less WHOLE, with its 95% interval (part 2: no interval wholly below -0.3):
+  singles: S026 +0.000 (-0.115 to +0.115); S040 +0.025 (-0.076 to +0.130); S062 +0.000 (-0.094 to +0.094); S074 +0.000 (-0.092 to +0.092); S096 +0.000 (-0.093 to +0.093); S108 +0.000 (-0.092 to +0.092); S132 +0.000 (-0.117 to +0.117); S164 +0.000 (-0.088 to +0.088); S204 +0.000 (-0.088 to +0.088); S228 +0.000 (-0.091 to +0.091); S306F +0.050 (-0.096 to +0.201); S308F +0.000 (-0.134 to +0.134); S310F +0.000 (-0.132 to +0.132); S314F +0.000 (-0.088 to +0.088); S316F +0.000 (-0.111 to +0.111); S320F +0.000 (-0.109 to +0.109); S322F -0.025 (-0.125 to +0.072); S326F -0.050 (-0.163 to +0.058); S332F +0.000 (-0.083 to +0.083); S334F +0.025 (-0.069 to +0.121)
+    the three intervals whose upper end is lowest: S326F +0.058, S322F +0.072, S332F +0.083
+  couples: S031 -0.550 (-0.879 to -0.238); S047 +0.050 (-0.152 to +0.256); S063 -0.500 (-0.830 to -0.187); S097 +0.075 (-0.054 to +0.235); S115 +0.050 (-0.263 to +0.364); S133 -0.025 (-0.257 to +0.206); S301F +0.275 (+0.063 to +0.504); S305F -0.025 (-0.128 to +0.075); S307F +0.125 (-0.080 to +0.337); S319F +0.050 (-0.059 to +0.164); S321F -0.075 (-0.246 to +0.092); S325F +0.275 (+0.031 to +0.530)
+    the three intervals whose upper end is lowest: S031 -0.238, S063 -0.187, S305F +0.075
+
+B. Each group's cohorts apart (SPEED against WHOLE):
+  singles, lib (10: S026, S040, S062, S074, S096, S108, S132, S164, S204, S228): survival +0.003 (-0.012 to +0.017), spending -0.0003%, the pot +0.099%, the capped pot +0.007%, a path's time the median x0.52
+  singles, fire (10: S306F, S308F, S310F, S314F, S316F, S320F, S322F, S326F, S332F, S334F): survival +0.000 (-0.025 to +0.025), spending +0.0005%, the pot +0.009%, the capped pot +0.007%, a path's time the median x0.63
+  couples, lib (6: S031, S047, S063, S097, S115, S133): survival -0.150 (-0.254 to -0.048), spending -0.0698%, the pot +2.323%, the capped pot +0.823%, a path's time the median x0.59
+  couples, young (6: S301F, S305F, S307F, S319F, S321F, S325F): survival +0.104 (+0.036 to +0.173), spending -0.0674%, the pot +0.015%, the capped pot +0.219%, a path's time the median x0.81
+
+C. Each unit's lifetime tax (the mean a path) and the engine's milliseconds a path, WHOLE and SPEED (the units ran four at a time: the times are a guide):
+  singles: S026 £1,558 to £1,482, 42.4 to 16.6 ms; S040 £26,663 to £26,707, 33.3 to 16.0 ms; S062 £613 to £612, 40.2 to 24.2 ms; S074 £0 to £0, 35.9 to 17.4 ms; S096 £373 to £373, 37.4 to 19.8 ms; S108 £486 to £493, 42.2 to 20.8 ms; S132 £3 to £1, 35.4 to 18.2 ms; S164 £2,568 to £2,568, 46.0 to 18.8 ms; S204 £3,319 to £3,327, 44.9 to 23.9 ms; S228 £2,975 to £3,070, 45.9 to 24.8 ms; S306F £339,431 to £339,693, 47.8 to 30.1 ms; S308F £230,362 to £230,426, 46.0 to 29.4 ms; S310F £1,407,180 to £1,405,223, 50.6 to 26.6 ms; S314F £919 to £918, 51.1 to 34.4 ms; S316F £16,684 to £16,683, 51.9 to 34.2 ms; S320F £40,945 to £41,192, 56.5 to 34.9 ms; S322F £263,473 to £263,472, 55.6 to 35.1 ms; S326F £46,160 to £46,104, 58.6 to 37.4 ms; S332F £505,583 to £505,495, 57.6 to 32.4 ms; S334F £1,897,652 to £1,897,502, 53.0 to 26.8 ms
+  couples: S031 £37,571 to £36,112, 92.4 to 48.2 ms; S047 £106,063 to £104,357, 90.2 to 51.2 ms; S063 £11,390 to £22,666, 101.8 to 59.1 ms; S097 £3,615 to £3,633, 81.4 to 56.3 ms; S115 £14,595 to £13,675, 113.7 to 67.2 ms; S133 £2,595 to £2,511, 95.1 to 73.8 ms; S301F £38,625 to £38,639, 163.8 to 147.7 ms; S305F £160,487 to £160,696, 187.6 to 152.9 ms; S307F £385,158 to £385,078, 176.1 to 138.7 ms; S319F £426,114 to £425,453, 161.7 to 128.2 ms; S321F £674,042 to £673,842, 171.1 to 136.9 ms; S325F £62,208 to £62,533, 172.5 to 155.4 ms
+
+D. The couples' part 3 (pooled spending delivered within 0.05%) without each couple in turn:
+  all 12: -0.0683%
+  without one: S031 -0.0569%, S047 -0.0820%, S063 -0.0706%, S097 -0.0634%, S115 -0.0823%, S133 -0.0558%, S301F -0.0686%, S305F -0.0683%, S307F -0.0756%, S319F -0.0667%, S321F -0.0669%, S325F -0.0643%
+  the couples without whom part 3 would hold: none
+  pooled survival again, from the couples' cells: -0.023 (-0.084 to +0.038)
+
+E. What the singles show, and what they do not: this read's panel, and a loss of the size item 7 measured on S370 (results-tie-a.txt: the speed mode on S370, 83.94% and 83.76%, 46 saved and 74 lost of 16,000 paths, -0.175 (-0.310 to -0.040); the singles' warning's "at most about 2 in 1,000")
+  this read's 20 singles: survival under WHOLE from 92.58% to 99.20%; 27 paths of 80000 part between the arms
+  on each of them a loss of S370's size (-0.175) is ruled out: every interval's lower end is above it, the lowest S326F's -0.163; none of them is a household like S370 (its survival 83.94%, 120 of 16,000 paths parting)
+  a household like S370, simulated at its own rates:
+    S370's measured loss (-0.175 points): read beyond noise in 22.8% of 2,000 simulated runs at 4,000 paths and 70.8% at 16,000; part 2 failing in 0.1% and 0.0%
+    a true half-point loss at the same discordance: read beyond noise in 97.0% of 2,000 simulated runs at 4,000 paths and 100.0% at 16,000; part 2 failing in 26.8% and 83.2%
+
+F. The couples one by one: an exact two-sided McNemar test of each couple's change, Holm-adjusted over the twelve
+  S031 -0.550 (9 saved, 31 lost; p 6.8e-4, Holm 8.2e-3); S047 +0.050 (8 saved, 6 lost; p 7.9e-1, Holm 1.0e+0); S063 -0.500 (10 saved, 30 lost; p 2.2e-3, Holm 2.4e-2); S097 +0.075 (4 saved, 1 lost; p 3.8e-1, Holm 1.0e+0); S115 +0.050 (20 saved, 18 lost; p 8.7e-1, Holm 1.0e+0); S133 -0.025 (9 saved, 10 lost; p 1.0e+0, Holm 1.0e+0); S301F +0.275 (14 saved, 3 lost; p 1.3e-2, Holm 1.3e-1); S305F -0.025 (0 saved, 1 lost; p 1.0e+0, Holm 1.0e+0); S307F +0.125 (10 saved, 5 lost; p 3.0e-1, Holm 1.0e+0); S319F +0.050 (2 saved, 0 lost; p 5.0e-1, Holm 1.0e+0); S321F -0.075 (3 saved, 6 lost; p 5.1e-1, Holm 1.0e+0); S325F +0.275 (17 saved, 6 lost; p 3.5e-2, Holm 3.1e-1)
+  beyond noise after Holm at 0.05: S031, S063
+  the library's couples without S031 and S063: +0.037 (-0.071 to +0.147); the younger couples without S301F and S325F: +0.019 (-0.048 to +0.086)
+
+G. The couples' spending couple by couple (SPEED against WHOLE), and whose pounds part 3 pools:
+  each couple equally weighted: -0.1220%; pooled by pounds (part 3): -0.0683%
+  the share of WHOLE's pounds: lib 37.2%, young 62.8%; the largest one couple's S321F 25.3%
+  by couple: S133 -0.620% (lower on 2716 of 4000 paths; 2.21% of the pounds); S097 -0.278% (lower on 2208 of 4000 paths; 2.27% of the pounds); S031 -0.216% (lower on 1358 of 4000 paths; 7.19% of the pounds); S325F -0.155% (lower on 1013 of 4000 paths; 4.36% of the pounds); S319F -0.080% (lower on 840 of 4000 paths; 12.00% of the pounds); S321F -0.072% (lower on 861 of 4000 paths; 25.25% of the pounds); S305F -0.068% (lower on 479 of 4000 paths; 6.13% of the pounds); S301F -0.061% (lower on 438 of 4000 paths; 3.69% of the pounds); S063 -0.020% (lower on 1577 of 4000 paths; 4.62% of the pounds); S307F -0.011% (lower on 653 of 4000 paths; 11.38% of the pounds); S047 +0.023% (lower on 1128 of 4000 paths; 12.97% of the pounds); S115 +0.094% (lower on 1098 of 4000 paths; 7.93% of the pounds)
+  the two cohorts weighted equally: -0.0686%; the correlation of a couple's pounds with its change in spending: +0.40
+
+H. S063, the couple whose tax doubles: its pot with and without the cap, and its tax at the median and the mean
+  the pot +10.33%, capped at £1,800,000 +1.31%; lifetime tax at the median £8,079 to £9,219 (+14.1%), at the mean £11,390 to £22,666 (+99.0%)
+  the couples' pooled pot without S063: +0.336% (all twelve +1.169%); the capped pot without S063 +0.449% (all twelve +0.521%)
+
+I. The time with the solve: each unit's solve and its 4,000 paths' engine time, SPEED over WHOLE (the reviewer's second round, MINOR 3; the units ran four at a time at the lowest priority, WHOLE first: a guide):
+  singles: the median x0.66 (x0.48 to x0.76)
+  couples: the median x0.82 (x0.58 to x0.92)

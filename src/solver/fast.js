@@ -28,7 +28,7 @@
  * year's: a forward run carries them in slot 11 as the engine does; a grid cell, with no slot, is charged them in the year.
  */
 
-export const STEP = { penPA: 0, penBasic: 1, penAny: 2, cash: 3, other: 4, isa: 5, penHR: 6, penPAm: 7, penBm: 8 };   // 6 to 8: N4's research ceilings (the engine's N4_PEN)
+export const STEP = { penPA: 0, penBasic: 1, penAny: 2, cash: 3, other: 4, isa: 5, penHR: 6, penPAm: 7, penBm: 8, penPAr: 9 };   // 6 to 8: N4's research ceilings (the engine's N4_PEN); 9: D98's allowance as given (research only, the engine's N4_RAW)
 const N4_TOKENS = ['penHR', 'penPAm', 'penBm'];
 // N4's plants, for its test only (research/tests/n4-menu.test.mjs): 'hrtop' the taper ceiling read as the higher band's top,
 // 'midband' the basic band's midpoint read as the higher band's, 'nobasis' the CGT sale's buy-back left at no cost; '' none
@@ -332,6 +332,7 @@ export function compile(m, actions) {
   };
   const harvestCeilOf = h => {
     if (h === 'basic') return P.higherRateStartsAt;
+    if (h === 'paraw') return P.pa;   // D98: the allowance as given (the move's harvestRaw keeps pensionCeiling off it)
     if (h === 'hr' || h === 'pam' || h === 'bm') {
       if (!E.N4_HARVEST) throw new Error(`fast.compile: harvest ceiling ${h} needs the engine's N4_HARVEST`);
       return n4plant && n4plant[0] === h ? n4plant[2] : E.N4_HARVEST[h](P);
@@ -346,7 +347,7 @@ export function compile(m, actions) {
     return {
       steps: Int8Array.from(a.steps.map(codeOf)),
       costSteps: Int8Array.from((a.costSteps || a.steps).map(codeOf)),
-      harvest: a.harvest ? 1 : 0, harvestCeil: harvestCeilOf(a.harvestCeil), cgtSale: a.cgtSale ? 1 : 0,
+      harvest: a.harvest ? 1 : 0, harvestCeil: harvestCeilOf(a.harvestCeil), harvestRaw: a.harvest && a.harvestCeil === 'paraw' ? 1 : 0, cgtSale: a.cgtSale ? 1 : 0,
       lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1, sweepIsa: a.sweepIsa ? 1 : 0, windfall: a.windfall || 0, save: a.save || 0,
       // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
       level: a.spendLevel !== undefined ? a.spendLevel : 1,
@@ -510,13 +511,14 @@ export function flow(c, t, ai, s) {
   // a draw's taxable part added to the stack: the interest's and dividends' tax re-priced, and what the old net misses of it
   const restack = stack ? (taxBefore) => { const was = bill; bill = billOf(); savingsTax = bill.onInterest; dividendTax = bill.onDividends; return (bill.total - was.total) - (E.incomeTax(taxable, P) - taxBefore); } : null;
 
-  /* Draw `need` net from the pension without taking taxable income past `ceiling`. */
-  const drawPension = (need, ceiling) => {
+  /* Draw `need` net from the pension without taking taxable income past `ceiling`; `raw` (D98's 'penPAr' and 'paraw', research
+     only) takes the ceiling as given, on the non-savings income alone, as the engine's draw does (N4.plant 'noraw': not so). */
+  const drawPension = (need, ceiling, raw = false) => {
     if (need <= 0 || !access || pen <= 0) return 0;
     const fully = a.lump && lumpTaken;
     const headroom = fully ? 0 : Math.max(0, P.lsa - cumPcls);
     const T0 = pay + taxable;
-    if (interest > 0 || dividends > 0) ceiling = E.pensionCeiling(P, ceiling, T0, interest, dividends);   // on the year's whole taxable income, as the engine's
+    if ((!raw || N4.plant === 'noraw') && (interest > 0 || dividends > 0)) ceiling = E.pensionCeiling(P, ceiling, T0, interest, dividends);   // on the year's whole taxable income, as the engine's
     if (T0 >= ceiling) return 0;
     const gross = Math.min(pen, stack ? grossKnock(need, T0, fully, headroom, ceiling) : grossForNet(c, need, T0, fully, headroom, ceiling));
     if (gross <= 0) return 0;
@@ -537,6 +539,7 @@ export function flow(c, t, ai, s) {
       case 3: { const pull = Math.min(cash, need); cash -= pull; return pull; }
       case 4: return sellGia(need);
       case 6: case 7: case 8: return drawPension(need, c.n4cap[step - 6]);
+      case 9: return drawPension(need, P.pa, true);
       default: { const pull = Math.min(isa, need); isa -= pull; return pull; }
     }
   };
@@ -624,7 +627,7 @@ export function flow(c, t, ai, s) {
   }
   // 7b. harvest beyond the need and re-wrap: ISA first, then the GIA at cost
   if (a.harvest && retired && access && pen > 0 && taxable < a.harvestCeil) {
-    const net = drawPension(1e12, a.harvestCeil);
+    const net = drawPension(1e12, a.harvestCeil, a.harvestRaw === 1);
     if (net > 0) {
       const room = Math.max(0, P.isaAllowance - isaContrib);
       const toIsa = Math.min(net, room);

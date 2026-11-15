@@ -75,6 +75,39 @@ export function shareFor(plan) {
   return Math.min(SHARE_HOLD[1], Math.max(SHARE_HOLD[0], f));
 }
 
+/*
+ * THE FIXED SHARE RULES (D104 (4): their registered test against today's split; research options, off in code, until it
+ * reads; research/tests/couple-share-rules.test.mjs). The share by rule, the first person's:
+ *   'pots'      shareFor, as the app solves a couple since D99;
+ *   'potsflat'  the first person's share of the pots with the 40% to 60% band dropped, held to 5% to 95%;
+ *   'means'     the first person's share of the two people's means, held to 5% to 95%: each person's pots, the contributions
+ *               paid until each retires, the state pension from the state pension age and other incomes in their owner's
+ *               ages, each year's at a real rate of 2.5% over the plan's years (the share ensemble's read and the share
+ *               choice's, research/solver/audit-share-choose.mjs meansOf, the same to the bit).
+ * Plants (COUPLE.plant): 'flatband' keeps the band under 'potsflat'; 'meansnoinc' leaves the other incomes out of the means.
+ */
+export const SHARE_RULES = ['pots', 'potsflat', 'means'], MEANS_RATE = 0.025;
+const held = f => Math.min(SHARE_HOLD[1], Math.max(SHARE_HOLD[0], f));
+export function meansOf(E, plan, disc = MEANS_RATE) {
+  const c = E.buildContext(E.resolveMpaa(plan)), T = c.totalYears, df = t => Math.pow(1 + disc, -t);
+  const out = { self: 0, part: 0 };
+  for (const a of c.accounts) { const o = c.owners.find(x => x.key === a.owner); out[a.owner] += a.balance; for (let t = 0; t <= T; t++) if (o.age0 + t < o.retireAge) out[a.owner] += (a.contrib || 0) * df(t); }
+  for (const o of c.owners) for (let t = 0; t <= T; t++) if (o.age0 + t >= c.spa) out[o.key] += (o.statePension || 0) * df(t);
+  if (!planted('meansnoinc')) for (const i of c.otherIncomes || []) for (let t = 0; t <= T; t++) { const age = (i.owner === 'self' ? c.ageSelf0 : c.agePart0) + t; if (age >= i.startAge && age <= i.endAge) out[i.owner] += i.amount * df(t); }
+  return { self: out.self, part: out.part, share: out.self / (out.self + out.part) };
+}
+export function shareBy(E, plan, rule) {
+  if (rule === 'pots') return shareFor(plan);
+  if (rule === 'potsflat') {
+    if (planted('flatband')) return shareFor(plan);
+    const of = w => (plan.accounts || []).filter(a => String(a.id).endsWith('_' + w)).reduce((t, a) => t + (Number(a.balance) || 0), 0);
+    const a = of('self'), b = of('part');
+    return a + b > 0 ? held(a / (a + b)) : 0.5;
+  }
+  if (rule === 'means') { const m = meansOf(E, plan); return m.self + m.part > 0 ? held(m.share) : 0.5; }
+  throw new Error(`shareBy: the rule '${rule}' is none of ${SHARE_RULES.join(', ')}`);
+}
+
 /* One person's plan, cut from the couple's: their wrappers and incomes, `share` of the household's spending. */
 export function singlePlanFor(plan, who, share = 0.5) {
   const d = plan.demographics;
@@ -92,17 +125,41 @@ export function singlePlanFor(plan, who, share = 0.5) {
   const accounts = plan.accounts.filter(a => a.owner === label).map(a => ({ ...a, owner: 'Myself', id: rename(a.id) }));
   const otherIncomes = (plan.otherIncomes || []).filter(i => i.owner === label).map(i => ({ ...i, owner: 'Myself' }));
   const scale = (v) => (v === '' || v === undefined || v === null ? v : Math.round(Number(v) * share));
+  // the bands are entered in the first person's ages (App.jsx: "Myself" ages) and the household's year reads them at the first
+  // person's age, while each person's plan reads them at its own: so the partner's plan takes each band at the partner's age in
+  // the same plan year (the reviewer at D100's stage A read, finding 6; research/tests/couple-cut.test.mjs). A blank end age
+  // stays blank, running to the plan's end. Plant 'bandage': the bands at the first person's ages, as before
+  // The engine reads a band's ages rounded and compares them with the age that year, so the band is mapped through the plan
+  // years it covers: the first person is in it from plan year ceil(from - their age today) to floor(to - their age today), and
+  // the partner's band is the whole ages that cover exactly those years at the partner's age, floor(partner's age + the
+  // first year) to ceil(partner's age + the last). With whole ages it is the band moved by the age gap; with a fractional
+  // gap, moved and rounded, an edge would fall a year apart (the reviewer's second round, finding 2)
+  const self0 = Number(d.currentAgeSelf), moved = who !== 'self' && !planted('bandage') && age0 !== self0;
+  const given = (v) => v !== '' && v !== undefined && v !== null && Number.isFinite(Number(v));
+  const bandAt = (b) => {
+    if (!moved || !given(b.fromAge)) return b;
+    // plant 'bandround': the band moved by the age gap alone, as the first form of this fix (couple-cut.test.mjs check 1's
+    // fractional gap)
+    if (planted('bandround')) return { ...b, fromAge: Number(b.fromAge) + age0 - self0, ...(given(b.toAge) ? { toAge: Number(b.toAge) + age0 - self0 } : {}) };
+    const from = Math.floor(age0 + Math.ceil(Math.round(Number(b.fromAge)) - self0));
+    return given(b.toAge) ? { ...b, fromAge: from, toAge: Math.ceil(age0 + Math.floor(Math.round(Number(b.toAge)) - self0)) } : { ...b, fromAge: from };
+  };
   const spending = {
     ...plan.spending, targetSpend: scale(plan.spending.targetSpend),
     floorSpend: plan.spending.floorSpend ? scale(plan.spending.floorSpend) : plan.spending.floorSpend,
-    spendBands: (plan.spending.spendBands || []).map(b => ({ ...b, amount: scale(b.amount) }))
+    spendBands: (plan.spending.spendBands || []).map(b => ({ ...bandAt(b), amount: scale(b.amount) }))
   };
   const oneOffCosts = (plan.oneOffCosts || []).map(c => ({ ...c, amount: scale(c.amount) }));
+  // the household's gifts and its regular gift from surplus income are the year's costs (App.jsx buildContext folds both into
+  // its one-off costs), so each person's plan carries its share of them, as of every other cost (couple-cut.test.mjs check 2).
+  // Plant 'giftwhole': both plans carry them whole, as before
+  const inh = plan.inheritance;
+  const inheritance = inh && !planted('giftwhole') ? { ...inh, ...(Array.isArray(inh.gifts) ? { gifts: inh.gifts.map(g => ({ ...g, amount: scale(g.amount) })) } : {}), ...(inh.surplusGift ? { surplusGift: { ...inh.surplusGift, annual: scale(inh.surplusGift.annual) } } : {}) } : inh;
   const oneOffContributions = (plan.oneOffContributions || []).filter(c => (c.owner || 'Myself') === label).map(c => ({ ...c, owner: 'Myself' }));
   // the household's minimum pot at the plan's end cut to the share too (Part D, D2: before it each person's table was asked to
   // end with the household's whole minimum pot on their own, 84 of the library's 210 couples setting one); plant 'fullfloor'
   const config = plan.config && Number(plan.config.solvencyFloor) > 0 && !planted('fullfloor') ? { ...plan.config, solvencyFloor: scale(plan.config.solvencyFloor) } : plan.config;
-  return { ...plan, config, demographics, accounts, otherIncomes, spending, oneOffCosts, oneOffContributions, ...personLocks(plan.solver, who) };
+  return { ...plan, config, demographics, accounts, otherIncomes, spending, oneOffCosts, oneOffContributions, ...(inh ? { inheritance } : {}), ...personLocks(plan.solver, who) };
 }
 /* The limits per person (Part D, D5; research/tests/couple-limits.test.mjs): where the household's locks carry the partner's
    own ceilings on the riskiest tier (`tierCeilingPart`), the partner's plan takes them as its `tierCeiling` and the first
@@ -113,6 +170,21 @@ function personLocks(solver, who) {
   if (!L || !('tierCeilingPart' in L) || planted('nopartlock')) return {};
   const { tierCeilingPart, ...rest } = L;
   return { solver: { ...solver, locks: who === 'part' ? { ...rest, tierCeiling: tierCeilingPart || {} } : rest } };
+}
+
+/*
+ * THE JOINT ESTATE WEIGHT (Part D, D7's stage A; D100: an option, off in code). The joint move weighs the two people's estates
+ * at one table's weight `wB` (solve.js: 0.02 of that person's own opening wealth), the first person's, as stage C tested it:
+ * so a couple entered the other way round, the younger first and holding little, weighs its estate three to nine times more
+ * than any couple tested (the deep review of stage C, section 2). opts.estateWeight 'elder' takes the elder's table's weight
+ * whichever person is entered first, by the engine's ages today, equal ages keeping the first person's: a couple entered
+ * elder first is solved as before, bit for bit. Plant 'estatefirst': the option keeps the first person's weight
+ * (research/tests/couple-estate.test.mjs)
+ */
+export function estateFrom(ctx, rule) {
+  if (rule === undefined) return 'self';
+  if (rule !== 'elder') throw new Error(`solveCouple: estateWeight '${rule}' is not 'elder'`);
+  return ctx.agePart0 > ctx.ageSelf0 && !planted('estatefirst') ? 'part' : 'self';
 }
 
 /* The couple's model state seen as one person's single-plan state, without copying the pots' values twice. */
@@ -135,10 +207,12 @@ export function ownerState(state, who) {
 export function solveCouple(E, M, plan, opts = {}) {
   const m0 = M.prepare(E, plan);
   if (!m0.ctx.isCouple) throw new Error('solveCouple takes a couple');
-  if (opts.shareRule !== undefined && opts.shareRule !== 'pots') throw new Error(`solveCouple: shareRule '${opts.shareRule}' is not 'pots'`);
-  if (opts.shareRule === 'pots' && opts.share !== undefined) throw new Error('solveCouple: share and shareRule both given');
-  const shareRule = opts.shareRule === 'pots' ? 'pots' : 'half';
-  const share = opts.share !== undefined ? opts.share : shareRule === 'pots' ? shareFor(plan) : 0.5;
+  if (opts.shareRule !== undefined && !SHARE_RULES.includes(opts.shareRule)) throw new Error(`solveCouple: shareRule '${opts.shareRule}' is none of ${SHARE_RULES.join(', ')}`);
+  if (opts.shareRule !== undefined && opts.share !== undefined) throw new Error('solveCouple: share and shareRule both given');
+  const from = estateFrom(m0.ctx, opts.estateWeight);
+  if (opts.tieJoint !== undefined && !(opts.tieJoint >= 0 && opts.tieJoint <= 0.01)) throw new Error(`solveCouple: tieJoint ${opts.tieJoint}: a margin in score units, from 0 to 0.01 (1e-4 is 0.01 points of survival)`);
+  const shareRule = SHARE_RULES.includes(opts.shareRule) ? opts.shareRule : 'half';
+  const share = opts.share !== undefined ? opts.share : shareRule === 'half' ? 0.5 : shareBy(E, plan, shareRule);
   const plans = {
     self: E.resolveMpaa(E.normalizePlan(singlePlanFor(plan, 'self', share))),
     part: E.resolveMpaa(E.normalizePlan(singlePlanFor(plan, 'part', 1 - share)))
@@ -163,7 +237,9 @@ export function solveCouple(E, M, plan, opts = {}) {
   // D2.4: each person's floor bills ahead to their pension access, where their table reads the bridge (the reader's years)
   const needOf = (tab) => (tab.g && tab.g.reader ? bridgeTable(E, tab.m, tab.c, Math.min(...tab.levelOf), 2).need : null);
   const need = { self: needOf(tables.self), part: needOf(tables.part) };
-  return { E, M, m, plan: planH, plans, tables, share, tiersBelow, switchCost: scA, need, splits: opts.splits || SPLITS, topK: opts.topK || 2, meta: { ms: Date.now() - t0, mixture: tables.self.meta.mixture || 0, points: tables.self.meta.points, share, shareRule } };
+  // the joint estate weight: the first person's table's, or under opts.estateWeight 'elder' the elder's (estateFrom)
+  const wB = tables[from].wB;
+  return { E, M, m, plan: planH, plans, tables, share, tiersBelow, switchCost: scA, need, splits: opts.splits || SPLITS, topK: opts.topK || 2, wB, ...(opts.tieJoint > 0 ? { tieJoint: opts.tieJoint } : {}), meta: { ms: Date.now() - t0, mixture: tables.self.meta.mixture || 0, points: tables.self.meta.points, share, shareRule, ...(opts.estateWeight !== undefined ? { estateWeight: opts.estateWeight, estateFrom: from } : {}), ...(opts.tieJoint !== undefined ? { tieJoint: opts.tieJoint } : {}) } };
 }
 
 /*
@@ -380,7 +456,7 @@ function flatAt(cp, q, F, j, t, o) {
   flatVec(F, 0, q.vA); flatVec(F, 1, q.vB);
   flatRead(q, q.mixA[j], q.vA, t + 1, q.LA[j], q.rA); flatRead(q, q.mixB[j], q.vB, t + 1, q.LB[j], q.rB);
   const rA = q.rA, rB = q.rB, h = (rA[3] + rB[3]) / 2;
-  o[0] = rA[0] * rB[0] + A.wR * rA[2] * rB[2] + A.wB * (rA[1] + rB[1]) - h; o[1] = rA[0] * rB[0]; o[2] = h;
+  o[0] = rA[0] * rB[0] + A.wR * rA[2] * rB[2] + cp.wB * (rA[1] + rB[1]) - h; o[1] = rA[0] * rB[0]; o[2] = h;
   return o[0];
 }
 /* sharedState on the flat position: x of the second person's accessible money to the first (below 0 the other way),
@@ -507,12 +583,13 @@ function expectedValueSlow(cp, post, t, out = null, pick = null) {
       M.grow(m, g, t, rates);
       // each person read at the tier pair their move goes to (D2: the tier state's layer; `pick` the two moves)
       const LA = pick ? layerOf(mixA[j], pick.ia) : null, LB = pick ? layerOf(mixB[j], pick.ib) : null;
-      // both must last: survival multiplies; the resilience term likewise; the bequest is the household's; one cut, counted once
+      // both must last: survival multiplies; the resilience term likewise; the bequest is the household's, at the joint estate
+      // weight (cp.wB: the first person's table's, or the elder's, estateFrom); one cut, counted once
       const at = (gg, o) => {
         const sA = vecOf(mixA[j].m, ownerState(gg, 'self')), sB = vecOf(mixB[j].m, ownerState(gg, 'part'));
         const vA = mixA[j].value(sA, t + 1, LA), vB = mixB[j].value(sB, t + 1, LB);
         const h = cut ? (cutAhead(mixA[j], sA, t + 1, LA) + cutAhead(mixB[j], sB, t + 1, LB)) / 2 : 0;
-        o[0] = vA.survival * vB.survival + A.wR * vA.resilience * vB.resilience + A.wB * (vA.bequest + vB.bequest) - h; o[1] = vA.survival * vB.survival; o[2] = h;
+        o[0] = vA.survival * vB.survival + A.wR * vA.resilience * vB.resilience + cp.wB * (vA.bequest + vB.bequest) - h; o[1] = vA.survival * vB.survival; o[2] = h;
         return o[0];
       };
       // D2.4: in a bridge year, the two people's accessible money shared between them as best serves both (shareBridge)
@@ -622,6 +699,28 @@ function sweepOf(aA, aB) {
   if (!!aA.sweepIsa !== !!aB.sweepIsa) throw new Error('couple: one person\'s table sweeps cash ISA money to the ISA and the other\'s to the taxable account (sweepCashIsaTo): solve both alike');
   return aA.sweepIsa && !planted('nosweepisa') ? { sweepIsa: true } : {};
 }
+/* both people above their estate caps: each person's wealth as their table's estate term would take it if the plan ended now
+   (net of the pension's death tax, as solve.js chooseAction's tieAboveCap reads a single's), against their table's cap; no
+   cap on either table (an estate shape without one), never. Plant 'tieanywhere': always */
+export function aboveCaps(tables, sA, sB) {
+  if (planted('tieanywhere')) return true;
+  const one = (tab, s) => tab.estateCap > 0 && Math.max(0, s[0] + s[1] + s[2] - s[0] * ((tab.terminal && tab.terminal.deathTax) || 0)) > tab.estateCap;
+  return one(tables.self, sA) && one(tables.part, sB);
+}
+/* the tie rule's pick among `cands` ({ joint, score, tax, wealth }) given the best: at the best's spending level and each
+   person's tier pair, within `margin` of its score, the least tax this year, then the larger household wealth after the move;
+   the best where none is better. Plant 'tieanylevel': any level and tier pair (research/tests/couple-tie.test.mjs check 6) */
+const tiersOfJoint = j => ['self', 'part'].map(w => `${(j.perOwner[w] && j.perOwner[w].tierPen) || 0}/${(j.perOwner[w] && j.perOwner[w].tierIsa) || 0}`).join(' ');
+export function tiePick(cands, best, margin) {
+  const any = planted('tieanylevel'), lvB = best.joint.spendLevel, tB = tiersOfJoint(best.joint);
+  let pick = best;
+  for (const c of cands) {
+    if (c.joint === best.joint || c.score < best.score - margin) continue;
+    if (!any && (c.joint.spendLevel !== lvB || tiersOfJoint(c.joint) !== tB)) continue;
+    if (c.tax < pick.tax - 1e-9 || (Math.abs(c.tax - pick.tax) <= 1e-9 && c.wealth > pick.wealth)) pick = c;
+  }
+  return pick;
+}
 export function chooseJoint(cp, state, t) {
   const { m, M, tables, splits, topK } = cp;
   const T = m.ctx.totalYears;
@@ -638,7 +737,9 @@ export function chooseJoint(cp, state, t) {
   const first = planted('firstlevel'), cut = !planted('nocut'), raiseSurv = !!tables.self.raiseSurvival;
   const ev = new Float64Array(2);
   if (cp._flat) cp._flat.nm = 0;   // COUPLE.flat: a new decision, nothing valued yet
-  let best = null, bestScore = -Infinity;
+  let best = null, bestScore = -Infinity, bestTax = 0, bestWealth = 0;
+  // the tie rule above the estate caps (cp.tieJoint, below): every joint move that funds the year, kept where the rule can act
+  const tj = cp.tieJoint > 0 && t < T && aboveCaps(tables, sA, sB) ? [] : null;
   for (const split of splits) for (const ia of kA) for (const ib of kB) {
     const aA = A.actions[ia], aB = B.actions[ib];
     // D1: the household's level from either person's ranked move (the first person's first), each valued by both tables
@@ -667,8 +768,28 @@ export function chooseJoint(cp, state, t) {
       // a move that funds the year reads finite tables, so a non-finite score is a bug: it would never win, and the year would
       // fall to the fallback below in silence (solve.js nonFiniteScore's rule; the follow-up review of 22 Oct, answer 6)
       if (!Number.isFinite(score)) throw new Error(`couple: non-finite score in the joint move, year ${t}, split ${split}, moves ${ia} and ${ib}: ${score}`);
-      if (score > bestScore) { bestScore = score; best = joint; best.score = score; }
+      const tax = tj ? row.taxPaid + row.cgtPaid : 0, wealth = tj ? Object.values(st.pots).reduce((a, b) => a + b, 0) : 0;
+      if (tj) tj.push({ joint, score, tax, wealth });
+      if (score > bestScore) { bestScore = score; best = joint; best.score = score; bestTax = tax; bestWealth = wealth; }
     }
+  }
+  /*
+   * THE TIE RULE ABOVE THE ESTATE CAPS (D97 (2); research/solver/TIE-C.md; an option, off in code: cp.tieJoint, solveCouple's
+   * opts.tieJoint, a margin in score units). A single's chooser has it since D95 (solve.js chooseAction, tieAboveCap), and it
+   * cannot reach a couple: rankFor ranks each person's moves from their chooser's scores, and the joint move takes the first
+   * strictly best (the deep review of the couples' read). Each person's estate term puts no value on a pound above their
+   * table's cap, four times their opening wealth, so where both people's wealth, as the estate term would take it if the plan
+   * ended now, is above their caps, the joint move breaks near-ties by nothing and can pay tax that buys nothing. There: among
+   * the joint moves at the best move's spending level and each person's tier pair that score within the margin of it, the
+   * one paying the least tax this year (the exact model's row, as the rollout counts it); then the larger household wealth
+   * after the move. Only the split and each person's draw order and re-wrap can change, never what the household spends or
+   * the risk either holds; at or below either cap nothing changes, nor in the plan's last year, whose score counts every
+   * pound left (1e-9 a pound) whatever the caps. Forward only: no table reads it. COUPLE.plant
+   * (research/tests/couple-tie.test.mjs): 'tieanylevel' drops the level and tier-pair rule, 'tieanywhere' the caps' test.
+   */
+  if (tj && best) {
+    const p = tiePick(tj, { joint: best, score: bestScore, tax: bestTax, wealth: bestWealth }, cp.tieJoint);
+    if (p.joint !== best) { best = p.joint; best.score = p.score; }
   }
   if (!best) {
     // nothing funds the year: the even split with each person's first-ranked move, and the year fails on its own terms

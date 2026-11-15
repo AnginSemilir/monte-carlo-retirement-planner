@@ -1,0 +1,24 @@
+income-end.test.mjs (15 Nov; the reviewer at D100's stage A read, second round, finding 1; CHECKLIST 7): an income with its end age left blank runs to the end of the plan, whoever owns it (src/App.jsx buildContext)
+
+== the engine before the fix (the plant 'incomeend': its one line put back) ==
+income-end: an income with its end age left blank runs to the end of the plan, whoever owns it; planted: incomeend
+FAIL  1  the context: each blank-end income reaches its owner's age in the plan's last year; the first person's, a single's and a younger partner's at the first person's end age, as before  -- the partner older: the partner's income ends at 95, before its owner's 99 in the plan's last year
+FAIL  2  the engine's year: S129 with the partner four years older (56/60, 39 years), the partner's £12,000 DB pension from 66 with its end blank paid in every plan year to the last  -- 4 years short: plan year 36 (the partner 96): £0 beside the state pension; plan year 37 (the partner 97): £0 beside the state pension; plan year 38 (the partner 98): £0 beside the state pension
+FAIL  3  the cut: each person's plan, and by the page's route, pays each blank-end income in the household's plan years  -- the partner older, part's plan: paid in 34 plan years, the household's year 30; the partner older, part's plan by the page's route
+FAIL  4  the other order: each income paid in the same plan years whichever partner is entered first  -- the partner older: the plan as entered pays the incomes in 30 and 30 plan years, entered the other way round in 30 and 34; the partner younger: the plan as entered pays the incomes in 30 and 27 plan years, entered the other way round in 27 and 27
+PASS  5  the library: 210 couples, 0 with the partner older; the incomes of all 420 plans in their contexts the code before's, bit for bit  -- f93e40ef6a9f9ae0 against the code before's f93e40ef6a9f9ae0
+
+income-end: 1 passed, 4 failed (planted: incomeend)
+
+== on the fix ==
+income-end: an income with its end age left blank runs to the end of the plan, whoever owns it
+PASS  1  the context: each blank-end income reaches its owner's age in the plan's last year; the first person's, a single's and a younger partner's at the first person's end age, as before  -- the partner older part 99, the partner older self 95, the partner younger part 95, the partner younger self 95, a single (S000) self 95
+PASS  2  the engine's year: S129 with the partner four years older (56/60, 39 years), the partner's £12,000 DB pension from 66 with its end blank paid in every plan year to the last  -- from plan year 6 to 39
+PASS  3  the cut: each person's plan, and by the page's route, pays each blank-end income in the household's plan years  -- both couples, both people, both routes
+PASS  4  the other order: each income paid in the same plan years whichever partner is entered first  -- both couples
+PASS  5  the library: 210 couples, 0 with the partner older; the incomes of all 420 plans in their contexts the code before's, bit for bit  -- f93e40ef6a9f9ae0 against the code before's f93e40ef6a9f9ae0
+
+income-end: 5 passed, 0 failed
+
+== the plant (--planted) ==
+plant incomeend fails checks 1, 2, 3, 4 (expected 1, 2, 3, 4): exact

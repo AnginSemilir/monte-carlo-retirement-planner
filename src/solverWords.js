@@ -63,8 +63,8 @@ export function dialLineWords(h, fmt) {
 }
 
 /* this year's actions and the next years', in the playbook's words (the launch plan's Phase 9, items 4 and 5) */
-const DRAW = { 'pa-half': 'up to half your personal allowance', pa: 'up to your personal allowance', 'basic-mid': 'up to the middle of the basic-rate band', basic: 'up to the basic-rate limit', hr: 'up to the higher-rate taper threshold' };
-const WRAP = { pa: 'your personal allowance', basic: 'the basic-rate limit', hr: 'the higher-rate taper threshold', pam: 'half your personal allowance', bm: 'the middle of the basic-rate band' };
+const DRAW = { 'pa-half': 'up to half your personal allowance', pa: 'up to your personal allowance', 'pa-raw': 'up to your personal allowance, not counting your interest and dividends', 'basic-mid': 'up to the middle of the basic-rate band', basic: 'up to the basic-rate limit', hr: 'up to the higher-rate taper threshold' };
+const WRAP = { pa: 'your personal allowance', paraw: 'your personal allowance, not counting your interest and dividends', basic: 'the basic-rate limit', hr: 'the higher-rate taper threshold', pam: 'half your personal allowance', bm: 'the middle of the basic-rate band' };
 const steps = k => `${k} step${k > 1 ? 's' : ''}`;
 export const PART_WORDS = {
   level: (v, { target, fmt }) => (v < 1 ? `Spend ${fmt(v * target)} this year, ${pct(100 * v)} of your target` : `Spend up to ${fmt(v * target)} this year, ${pct(100 * v)} of your target`),
@@ -134,8 +134,8 @@ export function aheadRowsWords(rows, ctx) {
 }
 /* the audit table's action column (Phase 10, item 7): one year's move, short, the spending first where the year has a target;
    null in a year the table chose no move */
-const SHORT_DRAW = { 'pa-half': 'half the personal allowance', pa: 'the personal allowance', 'basic-mid': 'mid basic rate', basic: 'the basic-rate limit', hr: 'the taper threshold' };
-const SHORT_WRAP = { pa: 'the personal allowance', basic: 'the basic-rate limit', hr: 'the taper threshold', pam: 'half the personal allowance', bm: 'mid basic rate' };
+const SHORT_DRAW = { 'pa-half': 'half the personal allowance', pa: 'the personal allowance', 'pa-raw': 'the personal allowance before interest and dividends', 'basic-mid': 'mid basic rate', basic: 'the basic-rate limit', hr: 'the taper threshold' };
+const SHORT_WRAP = { pa: 'the personal allowance', paraw: 'the personal allowance before interest and dividends', basic: 'the basic-rate limit', hr: 'the taper threshold', pam: 'half the personal allowance', bm: 'mid basic rate' };
 export function ledgerWords(p, spending, row = null) {
   if (!p) return null;
   const w = [];
@@ -149,13 +149,14 @@ export function ledgerWords(p, spending, row = null) {
   else if (row && row.sweptFromGia >= 0.5) w.push(`taxable ${Math.round(row.sweptFromGia).toLocaleString('en-GB')} to cash`);
   return w.join(' · ') || 'as planned';
 }
-/* THE SPEED MODE'S WORDS (D97 (3); its two warnings the maintainer's, word for word, D98; src/SolverConfig.jsx SolverAims):
+/* THE SPEED MODE'S WORDS (D97 (3); its two warnings the maintainer's, word for word, D98, and their words since D104, on the
+   speed mode's wider read, results-speed-b.txt; src/SolverConfig.jsx SolverAims):
    a single's, and a couple's whom the solver runs (src/couplesSwitch.js) */
 export const SPEED_WORDS = Object.freeze({
   title: 'Beta \u2013 speed mode',
   label: 'Work out the figures in speed mode',
-  single: 'Speed mode works out your figures about twice as fast by looking at fewer options in each simulated year. In our tests it very slightly lowered the chance your money lasts: about 2 in 10,000 on average, and at most about 2 in 1,000. This year\'s recommended actions still use every option.',
-  couple: 'For couples, speed mode is less tested. It ranged from slightly slower to nearly twice as fast, and it spent a little less and held slightly less in shares than the full calculation. Use the full calculation for decisions.'
+  single: 'Speed mode works out your figures faster by looking at fewer options in each simulated year. In our tests it very slightly lowered the chance your money lasts: about 2 in 10,000 on average, and at most about 2 in 1,000. This year\'s recommended actions still use every option.',
+  couple: 'For couples, speed mode is less tested. It was usually only a little faster, it spent a little less, and for some couples it lowered the chance your money lasts by about 5 in 1,000. Use the full calculation for decisions.'
 });
 export const COME_BACK = 'Come back next year: the plan is worked out again from where your money then stands.';
 

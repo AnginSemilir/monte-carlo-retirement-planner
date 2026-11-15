@@ -11,6 +11,61 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**FOR THE MAINTAINER (15 Nov, morning), to note: the allowance's step at both places reads FAILS, so it is closed.**
+`results-allowance-both.txt` (EXPLORATORY, seed 7002; `ALLOWANCE-BOTH.md`, D98); in plain words,
+`reports/2026-11-15-allowance-both-read.md`; beside it, `results-allowance-both-beside.txt`.
+- Offered the allowance at its old place as well as its new, the solver gains a hair of survival (+0.019 points pooled,
+  beyond noise) with spending level, but leaves less below the cap: the capped pot -0.187% against the bar of 0.1%.
+- S090 carries 71.3% of that fall (-1.130%); without it the capped pot would be -0.061%.
+- By the rule the offer is closed and nothing changes; the allowance step stays where the harvest ceiling put it.
+
+**RULED (D104, 15 Nov, morning): the morning report's five decisions, "Go with your recommendations".** Each read is in
+full in its report: `reports/2026-11-15-other-order-read.md`, `reports/2026-11-15-speed-b-read.md`,
+`reports/2026-11-15-tie-couple-read.md` and `reports/2026-11-14-share-choose-read.md`.
+1. **Couples entered the other way round (D100):** a couple whose elder is entered second is handed to the solver elder
+   first, and its figures are shown back the way it was entered. It replaces D100's stage B.
+   - Every field read in the first person's terms is mirrored, and the age cap is read on the plan as entered.
+   - Its tests: each partner's year in the swapped plan against the plan as entered; the guard on the plan as entered; an
+     identity on plans entered younger first independently of the mirror; planted faults (a band left unmoved, the swap
+     before the cap, an income's end read the old way, the mapping back left out).
+   - The reviewer on the change of default. About three days with its tests.
+   - Stage A's read stands as printed (NEITHER, its tie at the bar noted): the route does not rest on which reading holds.
+2. **The speed mode for singles:** it stays a beta, its warning's figures on survival as they stand.
+3. **The speed mode's words** (the maintainer's to change), as the agent drafted them:
+   - the singles' "about twice as fast" made "faster";
+   - the couples': "For couples, speed mode is less tested. It was usually only a little faster, it spent a little less,
+     and for some couples it lowered the chance your money lasts by about 5 in 1,000. Use the full calculation for
+     decisions."
+4. **The couples' share:** a registered test of the two fixed rules against today's split, the 40%-to-60% band dropped and
+   the means' split. Its registration comes to the maintainer before launch.
+   - D103's speed work lapses: the fixed rules add no solve time.
+   - The forecast test offered on 14 Nov is not run unless asked.
+5. **The couples' tie rule** (to note): FAILS, closed, nothing changes; reopening it is the maintainer's alone.
+
+**RULED (D103, 14 Nov, evening): speed work to gain back the share choice's time.** The maintainer, on D102: "But after
+that run speed work to try to gain back that added time". After D102's build and its exploratory read, and before its
+registered test (so the test is of what would ship), the share choice is made faster:
+- the target: a couple's solve with the choice at most a quarter more than today's (gate 5's measure);
+- each cut exact or, where approximate, a large saving for a small measured loss (D65), each with its test;
+- the routes to try: a light first pass choosing the share, fewer candidates by a bracketing search, and work shared
+  between the candidates' solves (`PART-D.md` D8).
+
+**RULED (D102, 14 Nov, evening): the solver chooses a couple's share ("Option 2.").** The share ensemble
+(`results-share-ensemble.txt`, EXPLORATORY; in plain words and in full, `reports/2026-11-14-share-ensemble.md`) read THE
+SHARE'S MEASURE.
+- On 7 of 10 couples another share beat the pots' share, by about 2 points on average.
+- Every share of every couple was above the app's rules.
+- No single rule fitted every couple. The reviewer at the read (PASS, eight MINORs) found that the 40% to 60% band itself may
+  be the cost for 60/40 couples.
+
+Of a fixed share from each person's means and the solver choosing the share, the maintainer chose the second. In full in
+`PART-D.md` D8:
+- built as an option, off in code;
+- read EXPLORATORY beside the means' share and the pots';
+- then a registered test, its registration to the maintainer before launch.
+
+D99 stands until then.
+
 **RULED (D101, 14 Nov, afternoon): the new planner's first-load ceiling to 240KB.** B1's gate on the third batch found the
 new planner's first load on an empty plan at 239KB against its ceiling of 237KB, a saved plan at 235KB. The growth since
 batch 3's first gate is about 1.2KB compressed: the speed mode's and the couples' screens' code, not the engine's, so by
@@ -192,6 +247,8 @@ twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/20
      share rule, the guard on the elder's share and the switch, in one commit with the D-line naming the run
      (`couple-default.test.mjs`; `PART-D.md` D6), the reviewer on the change of default, then one gate for batch 3, the
      speed mode and couples on; then the share ensemble (`SHARE-ENSEMBLE.md`, its rule committed, EXPLORATORY) and
+     the solver choosing a couple's share (D102: `PART-D.md` D8, built off, read EXPLORATORY), then speed work to gain back
+     its time (D103), then its registered test;
      couples in the other order (D100: `PART-D.md` D7, stage A EXPLORATORY, then stage B registered, its PASS opening the
      guard for the elder entered second); the guard's age cap (a partner who would pass 120 before the plan ends kept on the
      app's rules, with its check: the reviewer on D99, second round, MINOR 1), with the next batch; a couple's solve
@@ -203,6 +260,12 @@ twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/20
      reported; (e) the harvest ceiling's allowance step offered at both places, the solver choosing (D98): built off
      with its test, read EXPLORATORY by its rule committed first; passing, it joins the candidate without another word,
      the reviewer on the change of default; failing, closed and reported.
+   - **Where they stand (14 Nov, evening).** D102's stage A running (`SHARE-CHOOSE.md`, launched 17:37 UK, its read near
+     midnight); then three reads in turn, each with its rule committed: couples in the other order (D100's stage A,
+     `OTHER-ORDER.md`; its option `estateWeight: 'elder'` built off in code), a couple's tie rule (`TIE-C.md`; `tieJoint`
+     built off in code) and the speed mode on more singles and couples (`SPEED-B.md`). Found at D100's smoke, for the
+     maintainer: some of a couple's household choices follow whoever is entered first (whether the lump sum is taken, the
+     order a one-off cost is met in), so the other order parts from the tested one even at the same estate weight.
    - **Whenever cores are free:** the research queue (B7), the windfall factorial then the savings factorial,
      EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test.
    - **Open with the maintainer** (below): M3, M6, the cash buffer's size as a lever, `survivalChangeU`'s interval.

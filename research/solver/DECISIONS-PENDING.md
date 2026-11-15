@@ -11,128 +11,28 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**FOR THE MAINTAINER (15 Nov, morning): the speed mode's wider read, singles HOLDS and couples LOSES; the trade is yours (D90 (2)).**
-`results-speed-b.txt` (EXPLORATORY, seed 7002; `SPEED-B.md`, D97 (3)); in plain words, `reports/2026-11-15-speed-b-read.md`;
-beside it, `results-speed-b-beside.txt`; the reviewer at the read, `reviews/2026-11-15-read-speed-b.md` (FAIL on the first
-write-up's recommendation, answered in one fix) and `-2.md` (PASS, three MINORs, answered).
-- **Singles (20):** nothing lost beyond item 7's bars (pooled survival +0.001, -0.012 to +0.015; spending and the pot level),
-  the engine's time for a path about halved (the median x0.54; x0.66 with the solve counted). On each of its singles a
-  loss of S370's size is ruled out, but none of them is like S370 (survival 92.58% to 99.20%, 27 of 80,000 paths parting),
-  and the singles' warning's "at most about 2 in 1,000" is item 7's S370: on a household like it, simulated at its rates,
-  such a loss reads beyond noise in 22.8% of runs at 4,000 paths.
-- **Couples (12):** spending lower by 0.0683% pooled against the bar of 0.05% (-0.122% with each couple weighted equally;
-  S133 -0.620%). Two couples lose survival beyond noise after Holm, S031 -0.550 and S063 -0.500, more than twice the
-  singles' warning's "at most"; the couples' warning says nothing of survival. The engine's time for a path the median
-  x0.79 (x0.82 with the solve counted).
-
-The agent recommends: for singles, keep the speed mode a beta with its warning's figures on survival as they stand (a
-read aimed at households like S370 at 16,000 paths is what could change them, if you ask for one); for couples, keep it as
-it is, and weigh whether its warning should say something of survival. Both warnings' "about twice as fast" and "nearly
-twice as fast" rest on the engine's time per path, not a user's wait; whether they should say "faster" is yours too. The
-words are yours (D98); each is your ruling and nothing changes until then.
-
-**FOR THE MAINTAINER (15 Nov, early), to note: the couples' tie rule reads FAILS, so it is closed and nothing changes.**
-`results-tie-couple.txt` (EXPLORATORY, seed 7002; `TIE-C.md`, D97 (2)); in plain words, `reports/2026-11-15-tie-couple-read.md`;
-beside it, `results-tie-couple-beside.txt` and `results-tie-couple-trace.txt`; the reviewer at the read,
-`reviews/2026-11-15-read-tie-couple.md` (FAIL on the first write-up, answered in one fix) and `-2.md` (FAIL again, one new
-BLOCKING: the tax's half of one sentence; answered from a decomposition, not reviewed again, so by D81 (F) yours).
-- **Pooled:** survival and spending are unchanged, the pot a little higher, and lifetime tax falls by 2.76% and 3.39% at the
-  two margins, but most of that is one couple's (S311F's): without it, 1.36% and 1.46%.
-- **It fails part 5 on S311F,** whose average pot left is lower by 0.692% and 0.804% against the bar of 0.1%. Two paths
-  decide that, ending a third and a sixth lower and paying more tax. Without them S311F's change is +0.263% and +0.146%, and
-  its standard error is about the size of the change.
-- **On those two paths** (traced) the tie arm's earlier picks left more in the taxable account. At 90, the tables step the
-  first partner's pension and ISA three risk tiers down there, the candidate's own chooser making the same step at that
-  state.
-  - The pot's fall is that step: undone, the pot ends within 0.07% of the candidate's.
-  - The extra tax is mostly the rule's own: with the step undone, 80% and 90% of it remains, as dividend tax on the larger
-    taxable account.
-  - Why the tables step down there is a lead.
-- By the rule nothing is run again; reopening it is yours alone. The question it leaves, if you want to weigh it: whether a
-  couple's pot of billions far above its cap should count against a rule like this.
-
-**FOR THE MAINTAINER (15 Nov, early): couples entered the other way round read NEITHER, on a tie at the bar; which way on?**
-`results-other-order.txt` (EXPLORATORY, seed 7002; `OTHER-ORDER.md`, D100's stage A); in plain words and in full,
-`reports/2026-11-15-other-order-read.md`; beside it, `results-other-order-beside.txt`; the reviewer at the read,
-`reviews/2026-11-15-read-other-order.md` (FAIL on the first write-up's recommendation, answered in one fix) and `-2.md`
-(FAIL again, one new BLOCKING: a third field the swap must mirror; answered but not reviewed again, so by D81 (F) yours).
-- **As the code stands, the order changes what the solver aims for.** Entered younger first, the money left at the end
-  counts 3 or 9 times as much (it is weighed against the first partner's own savings), so the solver spends less on all 24
-  couples: -0.905% pooled, against the bar of 0.1%. Survival +0.143 points.
-- **With the option (the estate at the older partner's weight either way), spending is level (+0.075%) and survival
-  -0.048 points pooled:** a small loss beyond noise, inside its bar. S129-90 loses 20 paths net of 4,000, exactly the
-  half-point bar, every one of them by the plan's last-year pot against the couple's own minimum pot.
-- **The tie has two readings. Which stands is yours; nothing was changed or read again.**
-  - The committed sentence fails a couple "below -0.5"; -20 paths is at the bar, not below it, so the outcome would be THE
-    OPTION. The reducer's floating point put the change a hair below (-0.50000000000000044) and printed NEITHER.
-  - The rule names its bars as D4's targets, and D4 says "under 0.5 on every household": a loss of exactly 0.5 is not under
-    it, so by the rule's named source the outcome is NEITHER.
-- **Some dependence on the order remains with the option.** Each partner's own plan is the same either way on 23 of 24
-  couples, so it lies in the joint plan and the engine's year. The app's own rules depend on the order too (S237-90, beyond
-  noise, under the same policy).
-
-Three ways on, the agent recommending the first:
-1. **take the order out of the question, done in full:** when the older partner is entered second, the app hands the
-   solver the couple older partner first and shows every figure back the way it was entered.
-   - The same couple then gets the plan the app gives it entered older first, but only once the swap mirrors every field
-     read in the first partner's terms. Three found so far, the list not shown complete: the spending bands (today's
-     mirror misses them), the age cap (to be read before any swap) and an income's blank end age (an engine defect, now
-     fixed).
-   - Its tests: each partner's year in the swapped plan against the plan as entered, as the engine reads it; the guard on
-     the plan as entered; an identity on plans entered younger first independently of the mirror (through the page
-     harness, or by hand); planted faults: a band left unmoved, the swap before the cap, an income's end read the old way,
-     the mapping back left out.
-   - Stage C's PASS then covers the swapped solve exactly, and its comparison with the app's younger-first rules by
-     inference: the solver beats those by at least +6.400 points on every couple here.
-   - The guard would open for the older partner entered second without stage B's registered run, the reviewer on the
-     change of default; it also covers couples inside the band entered younger first.
-   - About three days with its tests; the list may grow as the build checks each field.
-2. **stage B on the option,** registered on a new held-out seed (THE OPTION by the committed sentence, not by D4's wording).
-3. **take the order out of the joint plan and the engine's year,** cause by cause, then read again and register stage B.
-
-**Found on the way, fixed, each with a test of its class:** two defects on `main`, both going with the next batch.
-- A couple's cut gave the partner's plan the spending bands at the first partner's ages, and both plans the household's
-  gifts whole (`couple-cut.test.mjs`, `results-couple-cut.txt`).
-- An income with its end age left blank stopped before the plan's end when its owner is the older partner, in the app's
-  own rules too (`income-end.test.mjs`, `results-income-end.txt`).
-
-No tested couple holds a band or a gift or has its partner older. Two leads are not changed, their effects unmeasured: a
-partner still working spends nothing in their own plan while the household spends its whole target, and the cash buffer is
-split evenly by the engine but by share in the plans.
-
-Separately, after the couples' tie rule's read: a paired change formed from the counts, so a whole-path tie reads by each
-part's words, with a test planting a unit exactly at each such bar. It is for the reads to come; on this read it would give
-THE OPTION, so this read's tie stays your ruling.
-
-**FOR THE MAINTAINER (14 Nov, night): the share choice's read is THE FORECAST MISSES; which way on?**
-`results-share-choose.txt` (EXPLORATORY, seed 7002; `SHARE-CHOOSE.md`); in plain words and in full,
-`reports/2026-11-14-share-choose-read.md`; beside it, `results-share-choose-beside.txt`.
-- **The forecast cannot choose the split.** On two of 14 couples its pick was clearly worse than the best split tried:
-  S129-75 by 2.950 points (mostly the plan ending below its minimum pot) and S183-spa67 by 2.675 (running out mid-plan).
-  The best split beat its pick by 0.464 points overall, against a bar of 0.2. By the rule nothing is built for the app.
-- **The fixed split by each partner's full means does better: +1.448 points over today's split.** Most of that, +1.114 of
-  it pooled, is simply dropping the 40%-to-60% band: +1.950 on the eight couples holding 60/40, the only holding inside the
-  band that was tried. On the four plain couples the means' split is level with dropping the band.
-  It loses on S129-90 (-0.950) and S129-75 (-0.225), every lost path ending below the minimum pot. Its average pot left is
-  lower beyond noise on 7 of 14 couples.
-- **A choice by short simulation is best measured (+0.081 over the means' split) but costs ten to eleven times a couple's
-  solve today** (x11.42 by the run's clocks), against D103's target of a quarter more.
-
-Three ways on, the agent recommending the first:
-1. **a registered test of two fixed rules against today's split:** the band dropped, and the means' split. Neither adds
-   solve time, so D103's speed work is not needed. Its couples would include:
-   - ones where the two differ: 90/10 holdings, final-salary pensions, different state pension ages;
-   - holdings inside the band other than 60/40, the first person under half among them, or the rule scoped to what it
-     tested.
-
-   Its registration comes to you before launch;
-2. **speed work on a choice by simulation** (D103), then an exploratory read of a smaller version;
-3. **keep today's split.**
-
-D99 stands meanwhile. The reviewer at the read:
-- first FAIL, one BLOCKING: the first draft costed a choice by simulation at its solves alone. It was answered in one fix
-  with its four MINORs;
-- then PASS, two MINORs, both answered (`reviews/2026-11-14-read-share-choose.md`, `-2.md`).
+**RULED (D104, 15 Nov, morning): the morning report's five decisions, "Go with your recommendations".** Each read is in
+full in its report: `reports/2026-11-15-other-order-read.md`, `reports/2026-11-15-speed-b-read.md`,
+`reports/2026-11-15-tie-couple-read.md` and `reports/2026-11-14-share-choose-read.md`.
+1. **Couples entered the other way round (D100):** a couple whose elder is entered second is handed to the solver elder
+   first, and its figures are shown back the way it was entered. It replaces D100's stage B.
+   - Every field read in the first person's terms is mirrored, and the age cap is read on the plan as entered.
+   - Its tests: each partner's year in the swapped plan against the plan as entered; the guard on the plan as entered; an
+     identity on plans entered younger first independently of the mirror; planted faults (a band left unmoved, the swap
+     before the cap, an income's end read the old way, the mapping back left out).
+   - The reviewer on the change of default. About three days with its tests.
+   - Stage A's read stands as printed (NEITHER, its tie at the bar noted): the route does not rest on which reading holds.
+2. **The speed mode for singles:** it stays a beta, its warning's figures on survival as they stand.
+3. **The speed mode's words** (the maintainer's to change), as the agent drafted them:
+   - the singles' "about twice as fast" made "faster";
+   - the couples': "For couples, speed mode is less tested. It was usually only a little faster, it spent a little less,
+     and for some couples it lowered the chance your money lasts by about 5 in 1,000. Use the full calculation for
+     decisions."
+4. **The couples' share:** a registered test of the two fixed rules against today's split, the 40%-to-60% band dropped and
+   the means' split. Its registration comes to the maintainer before launch.
+   - D103's speed work lapses: the fixed rules add no solve time.
+   - The forecast test offered on 14 Nov is not run unless asked.
+5. **The couples' tie rule** (to note): FAILS, closed, nothing changes; reopening it is the maintainer's alone.
 
 **RULED (D103, 14 Nov, evening): speed work to gain back the share choice's time.** The maintainer, on D102: "But after
 that run speed work to try to gain back that added time". After D102's build and its exploratory read, and before its

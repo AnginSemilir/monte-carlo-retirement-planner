@@ -104,7 +104,7 @@ Verdict: FAIL
      - the spending chart's axis and the "Age" column of its table (`PlannerPlan.jsx` l.241, l.255);
      - the wealth chart and its table, at `ageAt0 + t`, where `ageAt0` comes from `spend[0]` (l.237, l.263);
      - the back mark (l.245);
-     - the chart's sentence, "to 72 ... from 73 ... from about 70" (l.286);
+     - the chart's sentence, the ages of its stretches and its "from about" age (l.242, l.286);
      - the raise line, "you could spend up to 10% above your target from about age 70" (`solverWords.js` l.34).
    - Measured (`probe-ages.mjs`): S007 entered younger first, its first person 65 and the elder 68.
      - The next ten years, put back, read ages 65, 66, 67.
@@ -197,4 +197,4 @@ Verdict: FAIL
      under their own name ... the failure age the entered first person's"); they are not.
    - To clear: one check on each, and a fixture that fails on its expected path for the failure age, each with its plant.
 
-The fast tier, `node research/tests/run-all.mjs fast` on 8099d75b: FAST_TIER_RESULT.
+The fast tier, `node research/tests/run-all.mjs fast` on 8099d75b: "74 files found, 74 run, 74 passed" (69 minutes). It holds with the findings above, none of which it reaches.

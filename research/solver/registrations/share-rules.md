@@ -25,8 +25,10 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   - each person's table with the partner's age, arm A's MPAA ages;
   - the couples' rollout with COUPLE.flat and COUPLE.fast.
   TODAY's configuration is stage C's CANDS. Since D104 (1) a couple whose elder is entered second runs on its mirror, so the
-  first person is the elder in every arm. Where two rules give one share on a unit (TODAY and FLAT at 90/10), the two arms
-  take one solve and must agree path for path: the gate's identity check.
+  first person is the elder in every arm. Where FLAT's share is TODAY's (the 90/10 units), FLAT is not run: its solve would
+  be TODAY's to the bit (the same share on the same plan), so TODAY's run stands for FLAT's there (`reduce-share-rules.mjs`
+  `withStandIn`), and MEANS against FLAT is read on all 32 units. The gate requires FLAT exactly where the two shares
+  differ, and refuses it where they do not.
 - **Households:** the panel (`share-rules-panel.json`, `results-share-rules-panel.txt`): S023, S061, S109, S147, S191,
   S227, S271 and S377, 32 units, arm A from 84.1% to 86.0%; their features by place: db, dbpart, sppart, db, dbpart, sppart,
   db, dbpart. The scan 310 ids, hash 40836a8ffa0a, the order frozen 15 Nov 10:49 UTC. Landed on code c0dcfa9ef2f2 (15 Nov
@@ -66,16 +68,26 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
      true quarter-point loss reads as harm at most 5% of the time. The loss is compared with its threshold in whole paths
      (`paired-exact.mjs`), so a loss on the threshold is read exactly;
   2. **a gain:** the pooled survival change over those units has its 95% interval's lower end above 0;
-  3. **spending:** pooled spending delivered is not lower than TODAY's by more than 0.05% of target.
+  3. **spending:** the pooled change in spending delivered, each unit's in percent of TODAY's mean spending delivered and the
+     units weighted equally (`reduce-phase4.mjs spendingItem`), its point estimate not below -0.05%.
 - **Which is taken:**
-  - If both hold, MEANS is taken only if, against FLAT on the units where their shares differ, its pooled survival change
-    has its lower end above 0. Otherwise FLAT is taken, the simpler rule: it needs no incomes.
+  - If both hold, MEANS is taken only if, against FLAT on every unit where their shares differ (all 32, TODAY's run
+    standing for FLAT's at 90/10), its pooled survival change has its lower end above 0. Otherwise FLAT is taken, the
+    simpler rule: it needs no incomes.
   - If one holds, that one is taken.
 - **Outcomes:** a rule that passes becomes the couples' default; if neither passes, today's split stays. In full:
   - **A RULE PASSES:** it becomes the couples' default (`src/solverSettings.js` `APP_COUPLE.shareRule`, the
     decided-defaults block's couples entry, `couple-default.test.mjs` pinning it), in the commit of the D-line naming this
     run, with the reviewer on the change of default. What it reaches beyond the panel is by inference, said in the D-line:
-    holdings between the panel's, and couples uneven in some wrappers only.
+    - holdings between the panel's, and couples uneven in some wrappers only;
+    - an elder holding 40% to 45% of the pots, whom FLAT would give 0.40 to 0.45, below the panel's lowest share (0.45) and
+      in the direction the pilot shows losing;
+    - couples of equal age (every panel couple's first person is three years older);
+    - means' shares further from the pots' own than the panel's range (MEANS's share less FLAT's, -0.215 to +0.081;
+      `results-share-rules-pilot-power.txt`);
+    - the 'lower' estate aim (the panel runs 'standard');
+    - TIE-C2's rule, were it to become the couples' default (D105), with either rule.
+    S191 also appears in the policy study's confirmed results, under the app's rules only: never in a solver read.
   - **NEITHER:** today's split stays; reported.
   - **A couple that loses:** a rule with any unit flagged does not become the default, whatever its pooled gain, as
     S129-90's 55 paths under the means' split would be flagged. The flagged unit goes to investigation (D34 (3)) and is
@@ -86,20 +98,32 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
     - spending, the mean pot left and lifetime tax by rule;
     - the fidelity gaps;
     - the solve times.
-- **The gate:** `reduce-share-rules.mjs gate`, each refusal with its planted case (`--planted`, 12 checks: FLAT missing where
-  its share differs, FLAT run where its share is TODAY's, a share not the rule's, another seed, code or plan, a tie-break
-  on; the harm flag in whole paths and the choice between the rules). It requires:
+- **The gate:** first the launch logs' stamps against the registration's git blob (`fair-gate.mjs requireFairLogs`), then
+  `reduce-share-rules.mjs gate`. Each refusal has its planted case (`--planted`, 16 checks): the logs stamped as the
+  launcher stamps them, one under an edited registration and one run by hand; FLAT missing where its share differs, and
+  run where its share is TODAY's; a share not the rule's; another seed, code or plan; D80's three; and each other refusal
+  on its own fault (16 faults). Also checked: the threshold in whole paths from 16,000 to 19,000 paths, TODAY's run standing
+  for FLAT's, and the choice between the rules. It requires:
   - every unit in every arm, one code, audit, seed, prediction and Node version, every unit at its registered paths;
   - each unit's arms on one plan, at the panel's target;
   - each arm's share as its rule gives it, read back from the solve;
   - the couples' settings as stage C's (`audit-couples.mjs wantProblems`);
   - D80's three (a shortlist, item 12's options, a tie-break) none;
-  - where two arms share a solve, the same on every path.
+  - FLAT run exactly where its share differs from TODAY's; where it does not, TODAY's run stands for it (above).
+- **What the pilot shows** (`results-share-rules-pilot-power.txt`; EXPLORATORY, seed 7002, 1,000 paths a unit, deciding
+  nothing; the maintainer should weigh it before the 58 core-hours below):
+  - FLAT loses survival on all three of the pilot's 45 units (0.70, 0.50 and 0.80 points). MEANS loses 0.70 points on
+    S023-45 and 2.40 on S023-90.
+  - Were those losses true, D34's rule would flag each at 16,000 paths with chance 0.93 to 1.00 (S191-45 under FLAT 0.93,
+    the others 1.00). A flag on any unit stops a rule, so the run would most likely read NEITHER.
+  - MEANS against FLAT on the pilot: +0.167 points (-0.032 to +0.365) on the 12 units, with TODAY's run standing for FLAT's
+    at 90/10.
+  - The pilot is 1,000 paths of three couples, and the run is 16,000 of eight: a loss this size could also be noise.
 - **Budget:** 58.1 core-hours over 88 runs (32 units: TODAY and MEANS on each, FLAT on the 24 where its share differs),
   about 14.5 hours on four cores longest first, the longest run 0.82 hours, inside the 12-hour limit
   (`results-share-rules-sizing.txt`: measured from the pilot's units on this machine, D21, each unit scaled from the pilot
   couple nearest in horizon; the pilot's solves 75 to 102 s, the engine 107 to 164 ms a path).
-- **The launch:** the stamp `code c0dcfa9ef2f2 audit 45a34b0c61dc` (`audit-share-rules.mjs`: the code, and its files with
+- **The launch:** the stamp `code c0dcfa9ef2f2 audit ba4f53953da5` (`audit-share-rules.mjs`: the code, and its files with
   the panel, its order and the paths). Launched only as above, from a git worktree at the commit that records the
   maintainer's go, its code and files these; a change of code before it (the couples' default, were TIE-C2.md's rule to
   take one, D105) waits until the run is launched, since the audit refuses a run on code other than the panel's.

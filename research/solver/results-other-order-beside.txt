@@ -1,0 +1,31 @@
+BESIDE THE OTHER ORDER'S READ (EXPLORATORY, written after the read, deciding nothing): 24 units of other-order-7002, 4000 paths each; the reducer's outcome NEITHER
+
+A. The tie at the bar. Part (b) reads a unit as below -0.5 points when its change, in floating point, is below -0.5 and its interval wholly below nought. On 4000 paths -0.5 points is -20 paths exactly; a unit's change is a whole number of paths (saved less lost):
+  YOUNG: no unit named by (b) and none at the bar
+  YOUNGE S129-90: 25 paths lost and 5 saved, a change of -20 paths against the bar's -20; in floating point -0.50000000000000044 points, which IS below -0.5; in whole paths AT the bar, not below it; its interval -0.790 to -0.228
+  YOUNG with (b) in whole paths: (a) HOLDS; (b) none: HOLDS; (c) FAILS: NOT WITHIN THEM
+  YOUNGE with (b) in whole paths: (a) HOLDS; (b) none: HOLDS; (c) HOLDS: WITHIN THE TARGETS
+  the outcome with (b) taken in whole paths, as the rule's words put it ("below"): THE OPTION; the reducer printed NEITHER. Which stands is the maintainer's.
+
+B. Arm A's policy in each order (the solver arms solve each order's plan under its own arm A's policy name, as stage C did):
+  S155-75: elder first "Bracket Fill Basic, lump sum", younger first "Windfall to ISA, lump sum"; APP 85.60%, APPY 85.58%; each person's table DIFFERS in the two orders
+  S237-75: elder first "Bracket Fill Basic, lump sum", younger first "Bracket Fill, lump sum"; APP 84.47%, APPY 85.97%; each person's table the same in the two orders
+  the same policy in both orders on 22 of 24 units; each person's table the same in both orders on 23 of 24, and on every unit whose policy is the same: yes
+
+C. The estate weight's pull (the mean pot left and the spending delivered, each arm against ELDER, by unit):
+  YOUNG (the joint estate weight x9.00 and 3.00 ELDER's): the mean pot left higher on 24 of 24 units (from +0.13% to +6.11%, the units' mean +2.57%); the spending delivered lower on 24 of 24 (from -3.922% to -0.066%)
+  YOUNGE (the joint estate weight x1.00 ELDER's): the mean pot left higher on 9 of 24 units (from -1.17% to +0.65%, the units' mean -0.17%); the spending delivered lower on 7 of 24 (from -0.087% to +0.365%)
+
+D. What is left with the option (YOUNGE against ELDER; YOUNG beside):
+  YOUNGE: the interval wholly below nought on 3 units (S129-90 -0.500 (-0.790 to -0.228); S389-90 -0.400 (-0.627 to -0.198); S389-75 -0.275 (-0.552 to -0.013)); wholly above on 0 (none); pooled 182 paths lost and 136 saved of 96000; the paths whose run parts from ELDER's at all 74490 of 96000
+  YOUNG: the interval wholly below nought on 3 units (S265-90 -0.275 (-0.506 to -0.052); S389-90 -0.425 (-0.667 to -0.206); S389-75 -0.375 (-0.671 to -0.098)); wholly above on 8 (S129-90 +1.775, S183-90 +0.325, S237-90 +0.400, S019-90 +0.575, S103-75 +0.275, S155-75 +0.625, S183-75 +0.250, S265-75 +0.225); pooled 186 paths lost and 323 saved of 96000; the paths whose run parts from ELDER's at all 91641 of 96000
+
+E. The rule as the reducer takes it, on the 22 units whose order left arm A's policy the same (without S155-75 and S237-75):
+  YOUNG: (a) +0.130 (+0.083 to +0.177) points: HOLDS; (b) none: HOLDS; (c) -0.886%: FAILS: NOT WITHIN THEM
+  YOUNGE: (a) -0.064 (-0.099 to -0.028) points: HOLDS; (b) S129-90: FAILS; (c) +0.049%: HOLDS: NOT WITHIN THEM
+  the outcome on them by the reducer: NEITHER
+
+F. The order every tested couples' panel enters its couples in (each person's age today as the engine reads it):
+  couples-panel-d4b.json (the couples' re-run): 40 couples; the first person the elder 40, the younger 0, the same age 0
+  couples-panel.json (the couples' first registered run): 40 couples; the first person the elder 40, the younger 0, the same age 0
+  couples-share-panel.json (stage C): 36 units; the first person the elder 36, the younger 0, the same age 0; this read's 24 re-held units among them, the first person the elder 24, the younger 0, the same age 0

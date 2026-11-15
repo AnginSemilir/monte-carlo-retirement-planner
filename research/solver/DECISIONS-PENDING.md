@@ -11,6 +11,32 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**FOR THE MAINTAINER (15 Nov, early): couples entered the other way round read NEITHER, on a tie at the bar; which way on?**
+`results-other-order.txt` (EXPLORATORY, seed 7002; `OTHER-ORDER.md`, D100's stage A); in plain words and in full,
+`reports/2026-11-15-other-order-read.md`; beside it, `results-other-order-beside.txt`.
+- **As the code stands, the order changes what the solver aims for.** Entered younger first, the money left at the end
+  counts 3 or 9 times as much (it is weighed against the first partner's own savings), so the solver spends less on all 24
+  couples: -0.905% pooled, against the bar of 0.1%. Survival +0.143 points.
+- **With the option (the estate at the older partner's weight either way), spending is level (+0.075%) and survival
+  -0.048 points pooled,** inside its bar. S129-90 loses 20 paths net of 4,000: exactly the half-point bar. The reducer's
+  floating point put it a hair below (-0.50000000000000044) and printed NEITHER. Counted in whole paths it is at the bar,
+  not below it, and the outcome would be THE OPTION. **Which reading stands is yours;** nothing was changed or read again.
+- **Some dependence on the order remains with the option:** each partner's own plan is the same either way on 23 of 24
+  couples, but the joint plan takes the lump sum and a one-off cost's order from the first partner, and the year's draws
+  run the first partner first.
+
+Three ways on, the agent recommending the first:
+1. **take the order out of the question:** when the older partner is entered second, the app hands the solver the couple
+   older partner first and shows every figure back the way it was entered. The same couple then gets the plan stage C
+   tested, bit for bit. Its tests: an identity on stage C's 24 couples entered both ways, the couples' screens in the page
+   harness, and a planted mapping fault. The guard would then open for the older partner entered second without stage B's
+   registered run, the reviewer on the change of default; it also covers couples inside the band entered younger first.
+   About a day with its tests.
+2. **stage B on the option,** registered on a new held-out seed, as the rule's words would have it.
+3. **take the order out of the joint plan and the engine's year,** cause by cause, then read again and register stage B.
+
+Separately, once the tie is ruled: the reads still to launch compare at their bars in whole paths, with a test of the class.
+
 **FOR THE MAINTAINER (14 Nov, night): the share choice's read is THE FORECAST MISSES; which way on?**
 `results-share-choose.txt` (EXPLORATORY, seed 7002; `SHARE-CHOOSE.md`); in plain words and in full,
 `reports/2026-11-14-share-choose-read.md`; beside it, `results-share-choose-beside.txt`.

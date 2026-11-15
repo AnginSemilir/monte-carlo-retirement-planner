@@ -92,17 +92,28 @@ export function singlePlanFor(plan, who, share = 0.5) {
   const accounts = plan.accounts.filter(a => a.owner === label).map(a => ({ ...a, owner: 'Myself', id: rename(a.id) }));
   const otherIncomes = (plan.otherIncomes || []).filter(i => i.owner === label).map(i => ({ ...i, owner: 'Myself' }));
   const scale = (v) => (v === '' || v === undefined || v === null ? v : Math.round(Number(v) * share));
+  // the bands are entered in the first person's ages (App.jsx: "Myself" ages) and the household's year reads them at the first
+  // person's age, while each person's plan reads them at its own: so the partner's plan takes each band at the partner's age in
+  // the same plan year (the reviewer at D100's stage A read, finding 6; research/tests/couple-cut.test.mjs). A blank end age
+  // stays blank, running to the plan's end. Plant 'bandage': the bands at the first person's ages, as before
+  const gap = who === 'self' || planted('bandage') ? 0 : age0 - Number(d.currentAgeSelf);
+  const atAge = (v) => (gap === 0 || v === '' || v === undefined || v === null || !Number.isFinite(Number(v)) ? v : Number(v) + gap);
   const spending = {
     ...plan.spending, targetSpend: scale(plan.spending.targetSpend),
     floorSpend: plan.spending.floorSpend ? scale(plan.spending.floorSpend) : plan.spending.floorSpend,
-    spendBands: (plan.spending.spendBands || []).map(b => ({ ...b, amount: scale(b.amount) }))
+    spendBands: (plan.spending.spendBands || []).map(b => ({ ...b, fromAge: atAge(b.fromAge), toAge: atAge(b.toAge), amount: scale(b.amount) }))
   };
   const oneOffCosts = (plan.oneOffCosts || []).map(c => ({ ...c, amount: scale(c.amount) }));
+  // the household's gifts and its regular gift from surplus income are the year's costs (App.jsx buildContext folds both into
+  // its one-off costs), so each person's plan carries its share of them, as of every other cost (couple-cut.test.mjs check 2).
+  // Plant 'giftwhole': both plans carry them whole, as before
+  const inh = plan.inheritance;
+  const inheritance = inh && !planted('giftwhole') ? { ...inh, ...(Array.isArray(inh.gifts) ? { gifts: inh.gifts.map(g => ({ ...g, amount: scale(g.amount) })) } : {}), ...(inh.surplusGift ? { surplusGift: { ...inh.surplusGift, annual: scale(inh.surplusGift.annual) } } : {}) } : inh;
   const oneOffContributions = (plan.oneOffContributions || []).filter(c => (c.owner || 'Myself') === label).map(c => ({ ...c, owner: 'Myself' }));
   // the household's minimum pot at the plan's end cut to the share too (Part D, D2: before it each person's table was asked to
   // end with the household's whole minimum pot on their own, 84 of the library's 210 couples setting one); plant 'fullfloor'
   const config = plan.config && Number(plan.config.solvencyFloor) > 0 && !planted('fullfloor') ? { ...plan.config, solvencyFloor: scale(plan.config.solvencyFloor) } : plan.config;
-  return { ...plan, config, demographics, accounts, otherIncomes, spending, oneOffCosts, oneOffContributions, ...personLocks(plan.solver, who) };
+  return { ...plan, config, demographics, accounts, otherIncomes, spending, oneOffCosts, oneOffContributions, ...(inh ? { inheritance } : {}), ...personLocks(plan.solver, who) };
 }
 /* The limits per person (Part D, D5; research/tests/couple-limits.test.mjs): where the household's locks carry the partner's
    own ceilings on the riskiest tier (`tierCeilingPart`), the partner's plan takes them as its `tierCeiling` and the first

@@ -366,3 +366,4 @@
 14 Nov 14:57 UK | main | none: EXPLORATORY: the share ensemble (SHARE-ENSEMBLE.md) | code b7cd77e5ebec | edb5f861 | load 1.11 1.51 1.93 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-share-ensemble.sh
 14 Nov 17:37 UK | main | none: EXPLORATORY: the solver choosing a couple's share, stage A (SHARE-CHOOSE.md) | code b7cd77e5ebec | 4380aa81 | load 1.03 1.00 0.69 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-share-choose.sh
 14 Nov 21:57 UK | main | none: EXPLORATORY: couples in the other order, stage A (OTHER-ORDER.md) | code df5511a96f99 | f82fec86 | load 1.15 1.19 1.64 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-other-order.sh
+15 Nov 01:21 UK | main | none: EXPLORATORY: a couple's tie rule above the estate caps (TIE-C.md) | code be2f925c8252 | bb2c48dd | load 1.16 1.17 1.97 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-tie-couple.sh

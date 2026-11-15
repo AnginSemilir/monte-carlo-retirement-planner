@@ -53,7 +53,8 @@ three ways and run on the same 4,000 paths:
 **What I recommend: take the order out of the question.** When the older partner is entered second, the app would hand the
 solver the couple with the older partner first, and show every figure back the way the couple entered it ("you" stays you).
 - A couple entered younger first then gets, bit for bit, the plan the app already gives the same couple entered older
-  first, which stage C's PASS covers.
+  first with its accounts listed in the same order (`couple-order.mjs` keeps the list's order; swapping twice gives the
+  plan back, `couple-estate.test.mjs` check 6). Stage C's PASS covers that plan as it covers the older-first couples.
 - It needs no change to the solver and costs no solve time.
 - What needs testing is the swap and the mapping back:
   - an identity: each of stage C's 24 couples, entered younger first, gets the older-first plan's moves and figures exactly,

@@ -1,10 +1,12 @@
 /*
  * A COUPLE WHOSE ELDER IS ENTERED SECOND, HANDED TO THE SOLVER ELDER FIRST (D104 (1); src/couplesSwitch.js SWAP_ELDER and
- * swapOf, built off in code; src/solverClient.js the swap and the answers put back; src/coupleOrder.js otherOrder and its
- * back* functions).
- *   1. off in code: SWAP_ELDER off, no plan is swapped, and the guard's decisions ({ on, share, why }) on the library's 210
- *      couples, each as entered and mirrored, are the code before's to the bit (a digest taken on 1dc3afea)
- *   2. the guard with the swap on (the plant 'swapon'): a couple whose elder is entered second and holds 75% or 90% (stage C's
+ * swapOf, on since its change of default of 15 Nov; src/solverClient.js the swap and the answers put back; src/coupleOrder.js
+ * otherOrder and its back* functions).
+ *   1. the switch and its rollback: SWAP_ELDER on as shipped, a library couple entered younger first swapped; and with the
+ *      swap taken off (the plant 'swapoff', the rollback's one line), no plan is swapped and the guard's decisions ({ on,
+ *      share, why }) on the library's 210 couples, each as entered and mirrored, are the code before the swap's to the bit (a
+ *      digest taken on 1dc3afea, when the swap was built off in code)
+ *   2. the guard with the swap on, as shipped: a couple whose elder is entered second and holds 75% or 90% (stage C's
  *      re-held units, mirrored) is on and swapped, where today it keeps the app's rules; a library couple entered younger
  *      first (inside the band) on and swapped; a couple of one age not swapped; and the age cap read on the plan as entered:
  *      a couple entered at 50 and 80 with its plan to 95 keeps the app's rules (its mirror's end age would pass 120)
@@ -56,9 +58,14 @@ const ctxOf = p => E.buildContext(E.resolveMpaa(E.normalizePlan(p)));
 const library = couplesOf();
 const pick = o => ({ on: o.on, share: o.share, why: o.why });
 
-// ---- 1. off in code ----
+// ---- 1. the switch on as shipped, and its rollback ----
 {
   const BEFORE = 'e18be1b36a22a4b81928063addc43692d505b391c25241aa15dfeaefcde8c34e';   // taken on 1dc3afea, the code before the swap
+  // as shipped: a library couple (its elder entered first, as every one) mirrored, so entered younger first, is swapped
+  const mirrored = library.map(s => ORD.otherOrder(E, E.normalizePlan(s.plan))).filter(q => SW.elderOf(q) === 'part');
+  const shipped = SW.SWAP_ELDER && mirrored.length > 0 && mirrored.every(q => SW.swapOf(q));
+  // the rollback: the swap taken off, the guard the code before's
+  SW.PLANT.rule = 'swapoff';
   const h = createHash('sha256');
   let swapped = 0;
   for (const s of library) {
@@ -66,14 +73,15 @@ const pick = o => ({ on: o.on, share: o.share, why: o.why });
     h.update(JSON.stringify([s.id, pick(SW.coupleSolverOn(p, true)), pick(SW.coupleSolverOn(q, true))]));
     if (SW.swapOf(p) || SW.swapOf(q)) swapped++;
   }
+  SW.PLANT.rule = '';
   const dig = h.digest('hex');
-  ok(1, `off in code: SWAP_ELDER ${SW.SWAP_ELDER ? 'ON' : 'off'}, ${swapped} plans swapped; the guard's decisions on the library's ${library.length} couples, as entered and mirrored, the code before's to the bit`,
-    !SW.SWAP_ELDER && swapped === 0 && dig === BEFORE, `${dig.slice(0, 16)} against the code before's ${BEFORE.slice(0, 16)}`);
+  ok(1, `the switch: SWAP_ELDER ${SW.SWAP_ELDER ? 'on' : 'OFF'}, the ${mirrored.length} library couples mirrored with an elder second ${shipped ? 'all swapped' : 'NOT all swapped'}; taken off (the rollback), ${swapped} plans swapped and the guard's decisions on the library's ${library.length} couples, as entered and mirrored, the code before's to the bit`,
+    shipped && swapped === 0 && dig === BEFORE, `${dig.slice(0, 16)} against the code before's ${BEFORE.slice(0, 16)}`);
 }
 
-// ---- 2. the guard with the swap on ----
+// ---- 2. the guard with the swap on, as shipped ----
 {
-  SW.PLANT.rule = ['swapon', ...(PLANT === 'capafter' ? ['capafter'] : [])].join(',');
+  SW.PLANT.rule = PLANT === 'capafter' ? 'capafter' : '';
   const bad = [], units = readSharePanel().filter(u => u.kind === 'reheld');
   let elderSecond = 0;
   for (const u of units) {
@@ -88,8 +96,10 @@ const pick = o => ({ on: o.on, share: o.share, why: o.why });
   if (gw.on || gw.why !== 'ages') bad.push(`the couple entered at 50 and 80 to 95: ${gw.on ? 'on' : `off (${gw.why})`}`);
   if (sameAge) bad.push('a couple of one age swapped');
   if (inBand !== library.length) bad.push(`${inBand} of ${library.length} library couples entered younger first on and swapped`);
-  SW.PLANT.rule = '';
+  // the same couples without the swap (the rollback, as the code before it): each keeps the app's rules
+  SW.PLANT.rule = 'swapoff';
   const today = units.filter(u => SW.coupleSolverOn(ORD.otherOrder(E, E.normalizePlan(u.plan)), true).on).length;
+  SW.PLANT.rule = '';
   ok(2, `the guard with the swap on: stage C's ${units.length} re-held couples entered younger first on and swapped (${elderSecond}; today ${today} on); the library's couples entered younger first on and swapped (${inBand}); one age not swapped; the age cap on the plan as entered`,
     !bad.length && today === 0, bad.slice(0, 3).join('; ') || 'every case');
 }

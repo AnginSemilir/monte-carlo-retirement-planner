@@ -1812,10 +1812,15 @@ function buildContext(rawPlan) {
     const from = Math.max(0, num(i.startAge, 0));
     if (from < floor) warnings.push(`${i.name ? `${i.name}: ` : ''}income starting at ${from} is counted from ${floor}, the age ${i.owner === 'Partner' ? 'your partner retires' : 'you retire'} — nothing is drawn or saved before then.`);
   });
+  // a blank end age runs the income "to the end of the plan" (the field's own hint) in its owner's age: the first person's end
+  // age for the first person's, and for the partner's their age in the plan's last year where they are the older, so a partner
+  // older than the first person keeps it to the end (the reviewer of 15 Nov; research/tests/income-end.test.mjs). A partner
+  // younger keeps the first person's end age, as before, past the plan's end
+  const planEndAge = (owner) => (owner === 'Partner' ? Math.max(terminalAge, agePart0 + terminalAge - ageSelf0) : terminalAge);
   const otherIncomes = plan.otherIncomes.filter(i => isCouple || i.owner === 'Myself').map(i => ({
     owner: i.owner === 'Partner' ? 'part' : 'self',
     startAge: Math.max(incomeFloor(i), num(i.startAge, 0)),
-    endAge: isBlank(i.endAge) ? terminalAge : num(i.endAge, terminalAge),
+    endAge: isBlank(i.endAge) ? planEndAge(i.owner) : num(i.endAge, planEndAge(i.owner)),
     amount: Math.max(0, num(i.amount, 0)),
     taxFree: !incomeTypeOf(i.incomeType).taxable,
     isEarnings: incomeTypeOf(i.incomeType).relevantEarnings

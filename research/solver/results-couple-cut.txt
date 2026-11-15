@@ -1,23 +1,24 @@
-couple-cut.test.mjs (15 Nov; the reviewer at D100's stage A read, finding 6; CHECKLIST 7): a couple's plan cut into one plan for each person (src/solver/couple.js singlePlanFor), each spending its share of the household's, plan year by plan year
+couple-cut.test.mjs (15 Nov; the reviewer at D100's stage A read, finding 6, and its second round, finding 2; CHECKLIST 7): a couple's plan cut into one plan for each person (src/solver/couple.js singlePlanFor), each carrying its share of the household's scheduled spending and one-off costs, plan year by plan year
 
-== on the code before the fix (bb2c48dd's couple.js) ==
-couple-cut: a couple's plan cut into one plan for each person, each spending its share of the household's
-FAIL  1  the schedule: each person's plan spends its share of the household's scheduled target in each plan year, on 6 couples with bands at 3 shares each, and by the page's route  -- the partner younger, a closed band, part at 0.50: 6 plan years off (from plan year 15); the partner younger, a closed band, part at 0.40: 6 plan years off (from plan year 15); the partner younger, a closed band, part at 0.25: 6 plan years off (from plan year 15); the partner younger, an open band, part at 0.50: 3 plan years off (from plan year 20); and 20 more
-FAIL  2  the costs: each person's one-off costs (a cost, a gift and a regular gift) each year their share of the household's  -- the partner younger, a closed band, self at 0.50: 7 years off (in 2028 £2001 against its share £1001); the partner younger, a closed band, part at 0.50: 7 years off (in 2028 £2001 against its share £1001); the partner younger, a closed band, self at 0.60: 7 years off (in 2028 £2001 against its share £1201); and 33 more
-FAIL  3  the two plans together: each year's scheduled target and one-off costs sum to the household's  -- the partner younger, a closed band at 0.50: the schedule off in 6 plan years, the costs in 7; the partner younger, a closed band at 0.60: the schedule off in 6 plan years, the costs in 7; the partner younger, a closed band at 0.75: the schedule off in 6 plan years, the costs in 7; and 15 more
+== the code before the fix, as the plants 'bandage' and 'giftwhole' put it back (check 4: the code before's cut plans, bit for bit) ==
+couple-cut: a couple's plan cut into one plan for each person, each spending its share of the household's; planted: bandage,giftwhole
+FAIL  1  the schedule: each person's plan spends its share of the household's scheduled target in each plan year, on 9 couples with bands at 3 shares each, and by the page's route  -- the partner younger, a closed band, part at 0.50: 6 plan years off (from plan year 15); the partner younger, a closed band, part at 0.40: 6 plan years off (from plan year 15); the partner younger, a closed band, part at 0.25: 6 plan years off (from plan year 15); the partner younger, an open band, part at 0.50: 3 plan years off (from plan year 20); and 32 more
+FAIL  2  the costs: each person's one-off costs (a cost, a gift and a regular gift) each year their share of the household's  -- the partner younger, a closed band, self at 0.50: 7 years off (in 2028 £2001 against its share £1001); the partner younger, a closed band, part at 0.50: 7 years off (in 2028 £2001 against its share £1001); the partner younger, a closed band, self at 0.60: 7 years off (in 2028 £2001 against its share £1201); and 51 more
+FAIL  3  the two plans together: each year's scheduled target and one-off costs sum to the household's  -- the partner younger, a closed band at 0.50: the schedule off in 6 plan years, the costs in 7; the partner younger, a closed band at 0.60: the schedule off in 6 plan years, the costs in 7; the partner younger, a closed band at 0.75: the schedule off in 6 plan years, the costs in 7; and 24 more
 PASS  4  the library: 210 couples, 0 holding a band, a gift or a regular gift; the 840 cut plans the code before's, bit for bit  -- 3a6a0a04f7af558b against the code before's 3a6a0a04f7af558b
 
-couple-cut: 1 passed, 3 failed
+couple-cut: 1 passed, 3 failed (planted: bandage,giftwhole)
 
 == on the fix ==
 couple-cut: a couple's plan cut into one plan for each person, each spending its share of the household's
-PASS  1  the schedule: each person's plan spends its share of the household's scheduled target in each plan year, on 6 couples with bands at 3 shares each, and by the page's route  -- 36 cut plans and 12 by the page, every plan year
-PASS  2  the costs: each person's one-off costs (a cost, a gift and a regular gift) each year their share of the household's  -- 36 cut plans, every year
-PASS  3  the two plans together: each year's scheduled target and one-off costs sum to the household's  -- 18 couples and shares, every year
+PASS  1  the schedule: each person's plan spends its share of the household's scheduled target in each plan year, on 9 couples with bands at 3 shares each, and by the page's route  -- 54 cut plans and 18 by the page, every plan year
+PASS  2  the costs: each person's one-off costs (a cost, a gift and a regular gift) each year their share of the household's  -- 54 cut plans, every year
+PASS  3  the two plans together: each year's scheduled target and one-off costs sum to the household's  -- 27 couples and shares, every year
 PASS  4  the library: 210 couples, 0 holding a band, a gift or a regular gift; the 840 cut plans the code before's, bit for bit  -- 3a6a0a04f7af558b against the code before's 3a6a0a04f7af558b
 
 couple-cut: 4 passed, 0 failed
 
-== the plants (--planted) ==
+== the plants (--planted; 'bandround' the first form of the fix, the band moved by the age gap alone) ==
 plant bandage fails checks 1, 3 (expected 1, 3): exact
 plant giftwhole fails checks 2, 3 (expected 2, 3): exact
+plant bandround fails checks 1, 3 (expected 1, 3): exact

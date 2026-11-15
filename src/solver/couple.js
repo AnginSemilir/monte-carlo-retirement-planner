@@ -96,12 +96,25 @@ export function singlePlanFor(plan, who, share = 0.5) {
   // person's age, while each person's plan reads them at its own: so the partner's plan takes each band at the partner's age in
   // the same plan year (the reviewer at D100's stage A read, finding 6; research/tests/couple-cut.test.mjs). A blank end age
   // stays blank, running to the plan's end. Plant 'bandage': the bands at the first person's ages, as before
-  const gap = who === 'self' || planted('bandage') ? 0 : age0 - Number(d.currentAgeSelf);
-  const atAge = (v) => (gap === 0 || v === '' || v === undefined || v === null || !Number.isFinite(Number(v)) ? v : Number(v) + gap);
+  // The engine reads a band's ages rounded and compares them with the age that year, so the band is mapped through the plan
+  // years it covers: the first person is in it from plan year ceil(from - their age today) to floor(to - their age today), and
+  // the partner's band is the whole ages that cover exactly those years at the partner's age, floor(partner's age + the
+  // first year) to ceil(partner's age + the last). With whole ages it is the band moved by the age gap; with a fractional
+  // gap, moved and rounded, an edge would fall a year apart (the reviewer's second round, finding 2)
+  const self0 = Number(d.currentAgeSelf), moved = who !== 'self' && !planted('bandage') && age0 !== self0;
+  const given = (v) => v !== '' && v !== undefined && v !== null && Number.isFinite(Number(v));
+  const bandAt = (b) => {
+    if (!moved || !given(b.fromAge)) return b;
+    // plant 'bandround': the band moved by the age gap alone, as the first form of this fix (couple-cut.test.mjs check 1's
+    // fractional gap)
+    if (planted('bandround')) return { ...b, fromAge: Number(b.fromAge) + age0 - self0, ...(given(b.toAge) ? { toAge: Number(b.toAge) + age0 - self0 } : {}) };
+    const from = Math.floor(age0 + Math.ceil(Math.round(Number(b.fromAge)) - self0));
+    return given(b.toAge) ? { ...b, fromAge: from, toAge: Math.ceil(age0 + Math.floor(Math.round(Number(b.toAge)) - self0)) } : { ...b, fromAge: from };
+  };
   const spending = {
     ...plan.spending, targetSpend: scale(plan.spending.targetSpend),
     floorSpend: plan.spending.floorSpend ? scale(plan.spending.floorSpend) : plan.spending.floorSpend,
-    spendBands: (plan.spending.spendBands || []).map(b => ({ ...b, fromAge: atAge(b.fromAge), toAge: atAge(b.toAge), amount: scale(b.amount) }))
+    spendBands: (plan.spending.spendBands || []).map(b => ({ ...bandAt(b), amount: scale(b.amount) }))
   };
   const oneOffCosts = (plan.oneOffCosts || []).map(c => ({ ...c, amount: scale(c.amount) }));
   // the household's gifts and its regular gift from surplus income are the year's costs (App.jsx buildContext folds both into

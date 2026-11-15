@@ -1,14 +1,20 @@
 /*
- * A COUPLE'S PLAN CUT INTO ONE PLAN FOR EACH PERSON (couple.js singlePlanFor): EACH PERSON'S PLAN SPENDS ITS SHARE OF THE
- * HOUSEHOLD'S, PLAN YEAR BY PLAN YEAR (the reviewer at D100's stage A read, 15 Nov, finding 6; CHECKLIST 7: the class).
+ * A COUPLE'S PLAN CUT INTO ONE PLAN FOR EACH PERSON (couple.js singlePlanFor): EACH PERSON'S PLAN CARRIES ITS SHARE OF THE
+ * HOUSEHOLD'S SCHEDULED SPENDING AND ONE-OFF COSTS, PLAN YEAR BY PLAN YEAR (the reviewer at D100's stage A read, 15 Nov,
+ * finding 6, and its second round, finding 2; CHECKLIST 7: the class).
  * A couple's spending bands are entered in the first person's ages ("Myself" ages, App.jsx) and the household's year reads
  * them at the first person's age; each person's plan reads its bands at its own person's age. Before this fix the cut sent
  * the bands to the partner's plan with their ages unchanged, so the partner's plan spent each band in other plan years, by
  * the age gap. It also sent the household's gifts and its regular gift from surplus income (inheritance.gifts and
  * surplusGift, which the engine folds into the year's one-off costs) whole into both plans, where every other cost is cut to
- * the share.
+ * the share. The engine also reads a band's ages rounded, so a band moved by a fractional age gap fell a year apart at an
+ * edge; the band is mapped through the plan years it covers.
+ * Not covered, leads the second round named, each to measure before any change: a person still working spends nothing in
+ * their own plan while the household spends its whole target once either has retired; the engine splits the household's
+ * cash buffer evenly where each table holds its own share's.
  *   1. the schedule: on couples built with bands (a closed band, an open one running to the plan's end, two bands; the
- *      partner younger and older), each person's plan spends, in each plan year, its share of the household's scheduled
+ *      partner younger, older, and younger by three and a half years), each person's plan spends, in each plan year, its
+ *      share of the household's scheduled
  *      target to the pound (the cut's own rounding), at the first person's shares 0.5, 0.6 and 0.75; and through the page's
  *      own route (solverCouple.js couplePlans, the pots' share)
  *   2. the costs: on the same couples with a one-off cost, a gift and a regular gift, each person's one-off costs each year
@@ -18,7 +24,8 @@
  *      own share and at the half share, is the code before's bit for bit (the 840 cut plans' digest with the two plants on,
  *      which put the code before back, equal to it with them off)
  * Plants (COUPLE.plant): 'bandage' sends the bands at the first person's ages, as before (fails checks 1 and 3); 'giftwhole'
- * sends the gifts whole, as before (fails checks 2 and 3). --planted runs each and reads which fail.
+ * sends the gifts whole, as before (fails checks 2 and 3); 'bandround' moves the bands by the age gap alone, the first form of
+ * the fix, which a fractional gap puts a year apart at an edge (fails checks 1 and 3). --planted runs each and reads which fail.
  *   node research/tests/couple-cut.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -32,7 +39,7 @@ import { fileURLToPath } from 'node:url';
 const SELF = fileURLToPath(import.meta.url);
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['bandage', ['1', '3']], ['giftwhole', ['2', '3']]]) {
+  for (const [plant, want] of [['bandage', ['1', '3']], ['giftwhole', ['2', '3']], ['bandround', ['1', '3']]]) {
     const r = spawnSync(process.execPath, [SELF], { env: { ...process.env, COUPLE_CUT_PLANT: plant }, encoding: 'utf8' });
     const failed = [...new Set([...r.stdout.matchAll(/^FAIL {2}(\d)/gm)].map(m => m[1]))];
     const exact = failed.length === want.length && want.every(n => failed.includes(n));
@@ -56,7 +63,8 @@ const S129 = E.normalizePlan(library.find(s => s.id === 'S129').plan);
 function couples() {
   const c0 = ctxOf(S129), out = [];
   const older = JSON.parse(JSON.stringify(S129)); older.demographics.currentAgePart = c0.ageSelf0 + 4;
-  for (const [who, base] of [['the partner younger', S129], ['the partner older', E.normalizePlan(older)]]) {
+  const half = JSON.parse(JSON.stringify(S129)); half.demographics.currentAgePart = c0.ageSelf0 - 3.5;
+  for (const [who, base] of [['the partner younger', S129], ['the partner older', E.normalizePlan(older)], ['the partner 3.5 years younger', E.normalizePlan(half)]]) {
     const c = ctxOf(base), a = c.ageSelf0, tgt = Number(base.spending.targetSpend), y0 = c.baseYear;
     const sets = {
       'a closed band': [{ id: 'b1', fromAge: a + 15, toAge: a + 25, amount: Math.round(0.7 * tgt) }],

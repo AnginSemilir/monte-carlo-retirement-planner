@@ -3,8 +3,9 @@
 EXPLORATORY, seed 7002 (D100; `PART-D.md` D7; `OTHER-ORDER.md`, its rule committed before launch at 159898ef). The read
 whole is `results-other-order.txt`; the figures beside it, written after the read and deciding nothing, are
 `results-other-order-beside.txt` (`other-order-beside.mjs`, sections A to L). Every figure below is printed in one of those
-two files. The reviewer at the read: `reviews/2026-11-15-read-other-order.md` (FAIL, one BLOCKING, answered here in one
-fix).
+two files. The reviewer at the read: `reviews/2026-11-15-read-other-order.md` (FAIL, one BLOCKING, answered in one fix);
+again, `reviews/2026-11-15-read-other-order-2.md` (FAIL, one new BLOCKING: a third field the swap must mirror). The second
+is answered below but not reviewed again: by D81 (F) a FAIL standing after one fix is yours.
 
 ## In plain words
 
@@ -77,7 +78,8 @@ would hand the solver the couple with the older partner first, and show every fi
 ("you" stays you).
 - The couple would then get, bit for bit, the plan the app gives the same couple entered older first, **provided the swap
   mirrors every field the engine and the solver read in the first partner's terms.** Today's mirror (`couple-order.mjs`)
-  does not yet do that. Two things must change first:
+  does not yet do that. Three things found so far must change first; the list is what the two reviews found, not shown
+  complete:
   - **The spending bands.** They are entered in the first partner's ages, and the mirror leaves them where they are. A
     couple with a band would be planned with it in the wrong years: on S129-90 with one band, the plan and its mirror spend
     differently in 6 plan years (section K). No couple in the library or in any panel has a band, so no test so far could
@@ -86,15 +88,28 @@ would hand the solver the couple with the older partner first, and show every fi
     plan ends. It has to be read on the plan as entered, before any swap. A couple entered at 50 and 80 with its plan to 95
     is kept to the app's rules today; swapped first, the guard says on, and the engine runs 40 years where the plan has 45
     (section L).
+  - **An income's blank end age.** The field says "Leave blank to run to the end of the plan". But the engine read a blank
+    end as the first partner's end age against the owner's own age, so an older partner's income stopped before the plan's
+    end. On S129 with the partner four years older and a £12,000 DB pension of theirs, its end blank, the pension stopped
+    4 years short (`results-income-end.txt`), where the partner's own plan and the mirror pay it to the end. That is a
+    defect on `main` in the app's own rules too, now fixed in the engine with its test (below), so the mirror needs
+    nothing more for it.
 - **The figures shown back need mapping too,** not only each partner's own figures:
   - the yearly rows' ages;
   - the age at which a plan fails;
   - the bands;
   - a stored solve and its restore.
 - **What it would be tested by:**
+  - each partner's year in the swapped plan against the plan as entered, as the engine reads it (the incomes, the bands and
+    the costs, plan year by plan year), so the test covers the fields the mirror leaves as well as those it moves;
+  - the guard read on the plan as entered;
   - an identity on plans entered younger first independently of the mirror, entered both ways through the page harness or
     written by hand, so the test does not rest on the mirror it checks;
-  - planted faults failing it: a band left unmoved, the swap made before the age cap, the mapping back left out.
+  - planted faults failing it: a band left unmoved, the swap made before the age cap, an income's end read the old way,
+    the mapping back left out.
+
+  The identity alone, as first drafted, could not fail on two of these: the cap read after the swap, and the income's end,
+  since it never ran the plan as entered.
 - **What stage C's PASS would then cover.** It covers the swapped solve exactly. Its comparison with the app's rules covers
   a couple entered younger first by inference only, because such a couple, with the solver off, gets the app's rules in
   that order, and those differ a little (above). On this read the solver beats the app's younger-first rules by at least
@@ -103,9 +118,9 @@ would hand the solver the couple with the older partner first, and show every fi
   registered run, the reviewer on the change of default. It also covers couples inside the 40%-to-60% band who are entered
   younger first, who run the solver today in an order no registered test has covered, so the reviewer should look at that
   change too.
-- **It replaces D100's stage B, so it is your call.** The rule names this route for a NEITHER. My estimate is about two days
-  with its tests: the mirror completed, the cap read first, the page's solve of a couple, every figure mapped back, the
-  identity, and the plants.
+- **It replaces D100's stage B, so it is your call.** The rule names this route for a NEITHER. My estimate is about three
+  days with its tests: the mirror completed, the cap read first, the page's solve of a couple, every figure mapped back, the
+  checks on the plan as entered, the identity and the plants. The list above may grow as the build checks each field.
 
 **The other ways on:**
 1. **Stage B on the option:** a registered run on a new held-out seed, the candidate with the option against the app's
@@ -125,15 +140,31 @@ would hand the solver the couple with the older partner first, and show every fi
 - **My proposal.** Form the paired change from the counts in `survivalChangeU`, so it is exact at a tie, with a test planting
   a unit exactly at each such bar on the side its words give: exactly -0.2 pooled fails "above -0.2", and exactly -20 of
   4,000 holds "below -0.5".
-- **When.** It would go in after the tie rule's read, since `stats.mjs` is in that run's launch stamp. It moves no printed
-  figure beyond the last digit.
+- **When.** It would go in after the tie rule's read, since `stats.mjs` is in that run's launch stamp. It decides ties for
+  the reads to come.
+- **It is not neutral to this read.** Formed from the counts, this read's rule gives THE OPTION, one of the two readings you
+  are asked to choose between. Its reducer would also refuse its own units at the gate, since `stats.mjs` is in its stamp.
+  So this read stays as printed, and its tie is your ruling.
 
-**Separately: a defect on `main` found while checking the mirror, now fixed with its test.** A couple's plan is cut into one
-plan for each partner. The cut sent the household's spending bands to the partner's plan at the partner's own ages, where
-the household spends by the first partner's. It also sent the household's gifts, and its regular gift from surplus income,
-whole into both plans, where every other cost is shared. It reached every couple with a band or a gift that the solver has
-planned for since D99. No couple in the library or any panel has either, so no tested figure moves. The fix and its test
-are in their own commit, `couple-cut.test.mjs`, its plants failing.
+**Separately: two defects on `main`, found by the two reviews, each fixed with a test of its class.**
+- **A couple's cut.** A couple's plan is cut into one plan for each partner. The cut sent the household's spending bands to
+  the partner's plan at the partner's own ages, where the household spends by the first partner's. It also sent the
+  household's gifts, and its regular gift from surplus income, whole into both plans, where every other cost is shared. It
+  reached every couple with a band or a gift that the solver has planned for since D99. A first form of the fix moved each
+  band by the age gap, which a fractional gap puts a year apart at one edge; the band is now mapped through the plan years
+  it covers (`couple-cut.test.mjs`, its three plants failing; `results-couple-cut.txt`).
+- **An income's blank end age.** It stopped before the plan's end when its owner is the older partner, in the app's own
+  projection and in the household's year under the solver (`income-end.test.mjs`, its plant failing four of its five
+  checks; `results-income-end.txt`).
+
+No couple in the library or any panel holds a band or a gift, or has its partner older, so no tested figure moves. Both go
+to `main` with the next batch.
+
+Two leads the second review named are not changed; their effect is not measured, and each would be measured before any
+change:
+- a partner still working spends nothing in their own plan, while the household spends its whole target once either has
+  retired;
+- the engine splits the household's cash buffer evenly, where each partner's plan holds its own share's.
 
 ## The read
 
@@ -193,4 +224,4 @@ No other part sits at a bar. The next units under YOUNGE are S389-90 at -16 path
 
 `OTHER-ORDER.md` (the rule), `audit-other-order.mjs`, `batch-other-order.sh`, `reduce-other-order.mjs`, `couple-order.mjs`
 (the other order), `results-other-order.txt` (the read whole), `other-order-beside.mjs` and `results-other-order-beside.txt`
-(beside it, written after the read), `reviews/2026-11-15-read-other-order.md` (the reviewer at the read).
+(beside it, written after the read), `reviews/2026-11-15-read-other-order.md` and `-2.md` (the reviewer at the read, twice); `couple-cut.test.mjs` and `income-end.test.mjs` with `results-couple-cut.txt` and `results-income-end.txt` (the two defects).

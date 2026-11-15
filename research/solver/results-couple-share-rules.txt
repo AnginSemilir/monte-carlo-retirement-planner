@@ -1,0 +1,12 @@
+couple-share-rules: the fixed share rules, 'potsflat' and 'means', off in code
+PASS  1  without the rules, as before: the library's 210 couples cut by the page's route under 'pots' and with no rule, the code before's to the bit; shareBy 'pots' shareFor's on 210 of 210  -- dda86da9972ea445 against the code before's dda86da9972ea445
+PASS  2  'potsflat': on every library couple the first person's share of the pots, held to 5% to 95%; inside the band too (210 couples there, 210 of them off the half)  -- 210 of 210 as by hand
+PASS  3  'means': the research meansOf, held, on 210 of 210 library couples to the bit; by hand on S007, the partner's £10,000 DB pension from 66 adding its discounted sum to the partner's means (£194,640)  -- the partner's means £551,859 to £746,499; the first person's share 0.5963 to 0.5220
+PASS  4  the solve: solveCouple under 'potsflat' and 'means' records the rule and cuts each person's plan at its share; the page's route the same  -- S007, both rules
+PASS  5  the refusals: an unknown rule, and a rule with a share, each before any solve  -- solveCouple: shareRule 'income' is none of pots, potsflat, m | solveCouple: share and shareRule both given
+
+couple-share-rules: 5 passed, 0 failed
+
+== the plants (--planted) ==
+plant flatband fails checks 2 (expected 2): exact
+plant meansnoinc fails checks 3 (expected 3): exact

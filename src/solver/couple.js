@@ -75,6 +75,39 @@ export function shareFor(plan) {
   return Math.min(SHARE_HOLD[1], Math.max(SHARE_HOLD[0], f));
 }
 
+/*
+ * THE FIXED SHARE RULES (D104 (4): their registered test against today's split; research options, off in code, until it
+ * reads; research/tests/couple-share-rules.test.mjs). The share by rule, the first person's:
+ *   'pots'      shareFor, as the app solves a couple since D99;
+ *   'potsflat'  the first person's share of the pots with the 40% to 60% band dropped, held to 5% to 95%;
+ *   'means'     the first person's share of the two people's means, held to 5% to 95%: each person's pots, the contributions
+ *               paid until each retires, the state pension from the state pension age and other incomes in their owner's
+ *               ages, each year's at a real rate of 2.5% over the plan's years (the share ensemble's read and the share
+ *               choice's, research/solver/audit-share-choose.mjs meansOf, the same to the bit).
+ * Plants (COUPLE.plant): 'flatband' keeps the band under 'potsflat'; 'meansnoinc' leaves the other incomes out of the means.
+ */
+export const SHARE_RULES = ['pots', 'potsflat', 'means'], MEANS_RATE = 0.025;
+const held = f => Math.min(SHARE_HOLD[1], Math.max(SHARE_HOLD[0], f));
+export function meansOf(E, plan, disc = MEANS_RATE) {
+  const c = E.buildContext(E.resolveMpaa(plan)), T = c.totalYears, df = t => Math.pow(1 + disc, -t);
+  const out = { self: 0, part: 0 };
+  for (const a of c.accounts) { const o = c.owners.find(x => x.key === a.owner); out[a.owner] += a.balance; for (let t = 0; t <= T; t++) if (o.age0 + t < o.retireAge) out[a.owner] += (a.contrib || 0) * df(t); }
+  for (const o of c.owners) for (let t = 0; t <= T; t++) if (o.age0 + t >= c.spa) out[o.key] += (o.statePension || 0) * df(t);
+  if (!planted('meansnoinc')) for (const i of c.otherIncomes || []) for (let t = 0; t <= T; t++) { const age = (i.owner === 'self' ? c.ageSelf0 : c.agePart0) + t; if (age >= i.startAge && age <= i.endAge) out[i.owner] += i.amount * df(t); }
+  return { self: out.self, part: out.part, share: out.self / (out.self + out.part) };
+}
+export function shareBy(E, plan, rule) {
+  if (rule === 'pots') return shareFor(plan);
+  if (rule === 'potsflat') {
+    if (planted('flatband')) return shareFor(plan);
+    const of = w => (plan.accounts || []).filter(a => String(a.id).endsWith('_' + w)).reduce((t, a) => t + (Number(a.balance) || 0), 0);
+    const a = of('self'), b = of('part');
+    return a + b > 0 ? held(a / (a + b)) : 0.5;
+  }
+  if (rule === 'means') { const m = meansOf(E, plan); return m.self + m.part > 0 ? held(m.share) : 0.5; }
+  throw new Error(`shareBy: the rule '${rule}' is none of ${SHARE_RULES.join(', ')}`);
+}
+
 /* One person's plan, cut from the couple's: their wrappers and incomes, `share` of the household's spending. */
 export function singlePlanFor(plan, who, share = 0.5) {
   const d = plan.demographics;
@@ -174,12 +207,12 @@ export function ownerState(state, who) {
 export function solveCouple(E, M, plan, opts = {}) {
   const m0 = M.prepare(E, plan);
   if (!m0.ctx.isCouple) throw new Error('solveCouple takes a couple');
-  if (opts.shareRule !== undefined && opts.shareRule !== 'pots') throw new Error(`solveCouple: shareRule '${opts.shareRule}' is not 'pots'`);
-  if (opts.shareRule === 'pots' && opts.share !== undefined) throw new Error('solveCouple: share and shareRule both given');
+  if (opts.shareRule !== undefined && !SHARE_RULES.includes(opts.shareRule)) throw new Error(`solveCouple: shareRule '${opts.shareRule}' is none of ${SHARE_RULES.join(', ')}`);
+  if (opts.shareRule !== undefined && opts.share !== undefined) throw new Error('solveCouple: share and shareRule both given');
   const from = estateFrom(m0.ctx, opts.estateWeight);
   if (opts.tieJoint !== undefined && !(opts.tieJoint >= 0 && opts.tieJoint <= 0.01)) throw new Error(`solveCouple: tieJoint ${opts.tieJoint}: a margin in score units, from 0 to 0.01 (1e-4 is 0.01 points of survival)`);
-  const shareRule = opts.shareRule === 'pots' ? 'pots' : 'half';
-  const share = opts.share !== undefined ? opts.share : shareRule === 'pots' ? shareFor(plan) : 0.5;
+  const shareRule = SHARE_RULES.includes(opts.shareRule) ? opts.shareRule : 'half';
+  const share = opts.share !== undefined ? opts.share : shareRule === 'half' ? 0.5 : shareBy(E, plan, shareRule);
   const plans = {
     self: E.resolveMpaa(E.normalizePlan(singlePlanFor(plan, 'self', share))),
     part: E.resolveMpaa(E.normalizePlan(singlePlanFor(plan, 'part', 1 - share)))

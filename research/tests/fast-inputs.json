@@ -3831,6 +3831,7 @@
    "research/solver/results-planner-figures.txt",
    "research/solver/results-planner-ui-couplehalf.txt",
    "research/solver/results-planner-ui-d5.txt",
+   "research/solver/results-planner-ui-noback.txt",
    "research/solver/results-planner-ui-phase12.txt",
    "research/solver/results-planner-ui-swap.txt",
    "research/solver/results-planner-ui.txt",

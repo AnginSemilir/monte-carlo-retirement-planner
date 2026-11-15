@@ -1,0 +1,10 @@
+couple-swap: a couple whose elder is entered second, handed to the solver elder first
+PASS  1  off in code: SWAP_ELDER off, 0 plans swapped; the guard's decisions on the library's 210 couples, as entered and mirrored, the code before's to the bit  -- e18be1b36a22a4b8 against the code before's e18be1b36a22a4b8
+PASS  2  the guard with the swap on: stage C's 24 re-held couples entered younger first on and swapped (24; today 0 on); the library's couples entered younger first on and swapped (210); one age not swapped; the age cap on the plan as entered  -- every case
+PASS  3  the identity: the couple written younger first by hand, cut through its mirror by the page's route, is cut as the same couple entered elder first (each person's plan, the share, the household, the ages) to the bit  -- the share 0.5 and 0.5
+PASS  4  the answers put back: S007 solved light, its meta, 3 actions, 10 years ahead and 28 year rows put back for the couple written younger first, each in that couple's terms  -- the gap -3 years
+
+couple-swap: 4 passed, 0 failed
+
+plant capafter fails checks 2 (expected 2): exact
+plant noback fails checks 4 (expected 4): exact

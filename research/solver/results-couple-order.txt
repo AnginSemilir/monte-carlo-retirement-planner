@@ -1,0 +1,9 @@
+couple-order: the app's mirror of a couple entered the other way round
+PASS  1  twice is itself: the library's 210 couples and the built couples with whole ages, mirrored twice, the plan itself to the bit  -- 212 plans
+PASS  2  each person's year: on 3 built couples the plan as entered and its mirror, read by the engine, give each person the same year, plan year by plan year  -- every plan year, both people
+PASS  3  the research mirror: on the library's 210 couples (0 holding a band) the same plan to the bit  -- 210 plans
+PASS  4  a couple written younger first by hand: the hand-written plan is the elder-first plan's household person for person, and its mirror, read by the engine, is the elder-first plan's (ages, horizon, bands, incomes)  -- 0 differences; the mirror read as the elder-first plan: yes
+
+couple-order: 4 passed, 0 failed
+
+plant bandstay fails checks 2, 4 (expected 2, 4): exact

@@ -1,0 +1,28 @@
+THE SHARE RULES' SIZING from its pilot (results/share-rules-pilot; 12 units of 3 couples, seed 7002, 1000 paths a unit, code c0dcfa9ef2f2; EXPLORATORY, no outcome)
+  S023-45      FLAT  against TODAY (share 0.500 to 0.450): -0.70 points on 1000; discordant 7 (0.70%, upper 95% 1.44%): D34's size 16000
+  S023-45      MEANS against TODAY (share 0.500 to 0.470): -0.70 points on 1000; discordant 7 (0.70%, upper 95% 1.44%): D34's size 16000
+  S023-55      FLAT  against TODAY (share 0.500 to 0.550): +0.60 points on 1000; discordant 10 (1.00%, upper 95% 1.83%): D34's size 16000
+  S023-55      MEANS against TODAY (share 0.500 to 0.556): +1.10 points on 1000; discordant 11 (1.10%, upper 95% 1.96%): D34's size 16000
+  S023-90      MEANS against TODAY (share 0.900 to 0.854): -2.40 points on 1000; discordant 30 (3.00%, upper 95% 4.26%): D34's size 16000
+  S023-db      FLAT  against TODAY (share 0.500 to 0.600): +1.60 points on 1000; discordant 16 (1.60%, upper 95% 2.59%): D34's size 16000
+  S023-db      MEANS against TODAY (share 0.500 to 0.638): +2.20 points on 1000; discordant 22 (2.20%, upper 95% 3.31%): D34's size 16000
+  S191-45      FLAT  against TODAY (share 0.500 to 0.450): -0.50 points on 1000; discordant 7 (0.70%, upper 95% 1.44%): D34's size 16000
+  S191-45      MEANS against TODAY (share 0.500 to 0.470): -0.30 points on 1000; discordant 3 (0.30%, upper 95% 0.87%): D34's size 16000
+  S191-55      FLAT  against TODAY (share 0.500 to 0.550): +0.40 points on 1000; discordant 8 (0.80%, upper 95% 1.57%): D34's size 16000
+  S191-55      MEANS against TODAY (share 0.500 to 0.551): +0.50 points on 1000; discordant 9 (0.90%, upper 95% 1.70%): D34's size 16000
+  S191-90      MEANS against TODAY (share 0.900 to 0.837): +0.10 points on 1000; discordant 11 (1.10%, upper 95% 1.96%): D34's size 16000
+  S191-dbpart  FLAT  against TODAY (share 0.500 to 0.600): +0.50 points on 1000; discordant 11 (1.10%, upper 95% 1.96%): D34's size 16000
+  S191-dbpart  MEANS against TODAY (share 0.500 to 0.556): -0.10 points on 1000; discordant 13 (1.30%, upper 95% 2.21%): D34's size 16000
+  S271-45      FLAT  against TODAY (share 0.500 to 0.450): -0.80 points on 1000; discordant 16 (1.60%, upper 95% 2.59%): D34's size 16000
+  S271-45      MEANS against TODAY (share 0.500 to 0.502): +0.20 points on 1000; discordant 6 (0.60%, upper 95% 1.30%): D34's size 16000
+  S271-55      FLAT  against TODAY (share 0.500 to 0.550): +1.20 points on 1000; discordant 18 (1.80%, upper 95% 2.83%): D34's size 16000
+  S271-55      MEANS against TODAY (share 0.500 to 0.564): +0.90 points on 1000; discordant 13 (1.30%, upper 95% 2.21%): D34's size 16000
+  S271-90      MEANS against TODAY (share 0.900 to 0.783): +2.30 points on 1000; discordant 23 (2.30%, upper 95% 3.43%): D34's size 16000
+  S271-db      FLAT  against TODAY (share 0.500 to 0.600): +2.00 points on 1000; discordant 22 (2.20%, upper 95% 3.31%): D34's size 16000
+  S271-db      MEANS against TODAY (share 0.500 to 0.638): +2.50 points on 1000; discordant 27 (2.70%, upper 95% 3.90%): D34's size 16000
+the run: every unit at 16000 paths (the largest of the pilot's sizes, at most D61's 19000); at 16000 a true 1-point loss reads as harm at least 90% of the time up to a discordance (its upper bound) of 10.50%
+the budget (D21: measured from the pilot's units on this machine), over 32 units and 88 runs: 58.1 core-hours; on 4 cores longest first 14.5 hours; the longest run 0.82 hours
+  pilot S023 (28 years): TODAY the solve 75 s, the engine 107.1 ms a path, beside 44 s
+  pilot S191 (41 years): TODAY the solve 98 s, the engine 145.5 ms a path, beside 59 s
+  pilot S271 (52 years): TODAY the solve 102 s, the engine 163.9 ms a path, beside 67 s
+written: share-rules-paths.json (32 units at 16000)

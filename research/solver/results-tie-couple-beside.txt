@@ -1,0 +1,21 @@
+BESIDE THE COUPLES' TIE RULE'S READ (EXPLORATORY, written after the read, deciding nothing): 8 couples of tie-couple-7002, 8000 paths each; the reducer's outcome FAILS
+
+A. The replay by couple (the first 100 paths, along CANDS's own path): decisions, those above both caps, and those where each tie arm's move differs
+  S309F  (young): 5921 decisions, 1378 above both caps (23.3%); TIE5 differs at 477, TIE4 differs at 486
+  S311F  (young): 5909 decisions, 1379 above both caps (23.3%); TIE5 differs at 671, TIE4 differs at 775
+  S317F  (young): 5945 decisions, 1316 above both caps (22.1%); TIE5 differs at 387, TIE4 differs at 398
+  S323F  (young): 5911 decisions, 1281 above both caps (21.7%); TIE5 differs at 381, TIE4 differs at 451
+  S189   (lib): 3990 decisions, 149 above both caps (3.7%); TIE5 differs at 89, TIE4 differs at 94
+  S293   (lib): 5066 decisions, 831 above both caps (16.4%); TIE5 differs at 214, TIE4 differs at 241
+  S011   (lib): 2678 decisions, 25 above both caps (0.9%); TIE5 differs at 6, TIE4 differs at 10
+  S083   (lib): 3464 decisions, 82 above both caps (2.4%); TIE5 differs at 7, TIE4 differs at 7
+
+B. The pot left and lifetime tax by cohort (each couple's mean, X over CANDS in percent; the cohort's couples averaged):
+  young (S309F, S311F, S317F, S323F), TIE5: the pot -0.007%, lifetime tax -2.21%
+  young (S309F, S311F, S317F, S323F), TIE4: the pot +0.002%, lifetime tax -2.58%
+  lib (S189, S293, S011, S083), TIE5: the pot +0.072%, lifetime tax -0.52%
+  lib (S189, S293, S011, S083), TIE4: the pot +0.101%, lifetime tax -0.29%
+
+C. S311F, the couple part 5 names: its pot's change path by path, each tie arm against CANDS (the pot left on each path, X less CANDS)
+  TIE5: the pot lower on 637 of 8000 paths and higher on 2657; the median change £0, the mean £-426,962 (CANDS's mean pot £61,720,523); the worst 1% of paths (80) carry £-608,480 of the mean change; lifetime tax lower on 2541 paths, by a mean £77,735
+  TIE4: the pot lower on 1085 of 8000 paths and higher on 2454; the median change £0, the mean £-495,927 (CANDS's mean pot £61,720,523); the worst 1% of paths (80) carry £-771,366 of the mean change; lifetime tax lower on 2231 paths, by a mean £100,766

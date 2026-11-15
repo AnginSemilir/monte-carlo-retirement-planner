@@ -1,0 +1,25 @@
+A COUPLE'S TIE RULE ABOVE THE ESTATE CAPS, STAGE A (EXPLORATORY; TIE-C.md): 8 couples of the couples' tier test, code be2f925c8252, audit 7b9df3fbbd4b, seed 7002, 8000 paths, 45 points, estate weight 0.02, the couples' candidate af001697ce1b; the gate: fair (every unit in every arm; one code, audit, seed, count of paths and points; each arm's margin as named; each person's table the same before the first arm and after the last)
+
+TIE5 (within 0.00001 of score) against CANDS:
+  1. pooled survival +0.000 (-0.005 to +0.005) points; its lower end above -0.1: HOLDS
+  2. no couple wholly below -0.3: none: HOLDS
+  3. pooled spending delivered +0.0000%; within 0.05% either way: HOLDS
+  4. the capped pot -0.000% pooled (not lower by more than 0.1%); a couple lower by more than 0.5%: none: HOLDS
+  5. a couple's mean pot left lower by more than 0.1%: S311F -0.692% (pooled +0.032%): FAILS
+  6. pooled lifetime tax £511,945 to £497,794 (-2.76%); not higher: HOLDS
+  7. the replay: 38884 decisions (6441 above both caps), a different move at 2232; at another level 0, at another tier pair 0, at or below a cap 0 (beside the rule: with more tax that year 0): HOLDS
+  FAILS 5
+  by couple: S309F survival +0.000, pot +0.223%, capped -0.000%, tax £646,034 to £636,706, replay 477 differing; S311F survival +0.000, pot -0.692%, capped -0.000%, tax £1,492,322 to £1,414,586, replay 671 differing; S317F survival +0.000, pot +0.149%, capped -0.000%, tax £193,943 to £194,901, replay 387 differing; S323F survival +0.000, pot +0.290%, capped -0.000%, tax £909,139 to £884,650, replay 381 differing; S189 survival +0.000, pot +0.011%, capped -0.000%, tax £321,908 to £321,509, replay 89 differing; S293 survival +0.000, pot +0.262%, capped +0.000%, tax £165,316 to £163,398, replay 214 differing; S011 survival +0.000, pot +0.003%, capped -0.000%, tax £340,240 to £340,154, replay 6 differing; S083 survival +0.000, pot +0.012%, capped +0.000%, tax £26,656 to £26,447, replay 7 differing
+
+TIE4 (within 0.0001 of score) against CANDS:
+  1. pooled survival +0.000 (-0.005 to +0.005) points; its lower end above -0.1: HOLDS
+  2. no couple wholly below -0.3: none: HOLDS
+  3. pooled spending delivered +0.0000%; within 0.05% either way: HOLDS
+  4. the capped pot -0.000% pooled (not lower by more than 0.1%); a couple lower by more than 0.5%: none: HOLDS
+  5. a couple's mean pot left lower by more than 0.1%: S311F -0.804% (pooled +0.051%): FAILS
+  6. pooled lifetime tax £511,945 to £494,595 (-3.39%); not higher: HOLDS
+  7. the replay: 38884 decisions (6441 above both caps), a different move at 2462; at another level 0, at another tier pair 0, at or below a cap 0 (beside the rule: with more tax that year 0): HOLDS
+  FAILS 5
+  by couple: S309F survival +0.000, pot +0.239%, capped +0.000%, tax £646,034 to £636,145, replay 486 differing; S311F survival +0.000, pot -0.804%, capped -0.004%, tax £1,492,322 to £1,391,556, replay 775 differing; S317F survival +0.000, pot +0.179%, capped -0.000%, tax £193,943 to £196,267, replay 398 differing; S323F survival +0.000, pot +0.393%, capped +0.002%, tax £909,139 to £879,759, replay 451 differing; S189 survival +0.000, pot +0.011%, capped -0.000%, tax £321,908 to £321,504, replay 94 differing; S293 survival +0.000, pot +0.373%, capped -0.000%, tax £165,316 to £164,974, replay 241 differing; S011 survival +0.000, pot +0.006%, capped -0.000%, tax £340,240 to £340,111, replay 10 differing; S083 survival +0.000, pot +0.012%, capped -0.000%, tax £26,656 to £26,446, replay 7 differing
+
+TIE-C OUTCOME: FAILS

@@ -11,6 +11,17 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**FOR THE MAINTAINER (15 Nov, early), to note: the couples' tie rule reads FAILS, so it is closed and nothing changes.**
+`results-tie-couple.txt` (EXPLORATORY, seed 7002; `TIE-C.md`, D97 (2)); in plain words, `reports/2026-11-15-tie-couple-read.md`;
+beside it, `results-tie-couple-beside.txt`.
+- **Pooled it works:** lifetime tax -2.76% and -3.39% at the two margins, the pot a little higher, survival, spending and
+  the capped pot unchanged, no decision at another spending level or risk.
+- **It fails part 5 on one couple, S311F,** whose average pot left is lower by 0.692% and 0.804% against the bar of 0.1%.
+  That average is carried by a few paths far above the cap: the median path's pot is unchanged, and the pot is higher on
+  2,657 of 8,000 paths and lower on 637.
+- By the rule nothing is run again to pass it. A test of the same tie rule with another measure of the pot would be a new
+  test with its own rule, if you want it.
+
 **FOR THE MAINTAINER (15 Nov, early): couples entered the other way round read NEITHER, on a tie at the bar; which way on?**
 `results-other-order.txt` (EXPLORATORY, seed 7002; `OTHER-ORDER.md`, D100's stage A); in plain words and in full,
 `reports/2026-11-15-other-order-read.md`; beside it, `results-other-order-beside.txt`; the reviewer at the read,

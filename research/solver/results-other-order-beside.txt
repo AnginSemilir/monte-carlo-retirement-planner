@@ -5,7 +5,8 @@ A. The tie at the bar. Part (b) reads a unit as below -0.5 points when its chang
   YOUNGE S129-90: 25 paths lost and 5 saved, a change of -20 paths against the bar's -20; in floating point -0.50000000000000044 points, which IS below -0.5; in whole paths AT the bar, not below it; its interval -0.790 to -0.228
   YOUNG with (b) in whole paths: (a) HOLDS; (b) none: HOLDS; (c) FAILS: NOT WITHIN THEM
   YOUNGE with (b) in whole paths: (a) HOLDS; (b) none: HOLDS; (c) HOLDS: WITHIN THE TARGETS
-  the outcome with (b) taken in whole paths, as the rule's words put it ("below"): THE OPTION; the reducer printed NEITHER. Which stands is the maintainer's.
+  the outcome with (b) taken in whole paths by the committed sentence ("below"): THE OPTION; by D4's wording, which the rule names as the source of its bars ("under 0.5 on every household"), a loss of exactly 0.5 is outside the target, and the outcome is the reducer's NEITHER. Which stands is the maintainer's.
+  (the change is formed as the difference of two rounded proportions, stats.mjs survivalChangeU; from the counts, 100 x -20/4000 is -0.5 exactly)
 
 B. Arm A's policy in each order (the solver arms solve each order's plan under its own arm A's policy name, as stage C did):
   S155-75: elder first "Bracket Fill Basic, lump sum", younger first "Windfall to ISA, lump sum"; APP 85.60%, APPY 85.58%; each person's table DIFFERS in the two orders
@@ -29,3 +30,35 @@ F. The order every tested couples' panel enters its couples in (each person's ag
   couples-panel-d4b.json (the couples' re-run): 40 couples; the first person the elder 40, the younger 0, the same age 0
   couples-panel.json (the couples' first registered run): 40 couples; the first person the elder 40, the younger 0, the same age 0
   couples-share-panel.json (stage C): 36 units; the first person the elder 36, the younger 0, the same age 0; this read's 24 re-held units among them, the first person the elder 24, the younger 0, the same age 0
+
+G. Which person's table differs where arm A's pick differs, and where each order's plan puts the deposits (each order's plan under its own arm A policy, its context built, nothing solved):
+  S155-75: the elder's table DIFFERS in the two orders, the younger's the same
+    elder first, under "Bracket Fill Basic": 2030: £3,600 to the elder's pen, £429,120 to the elder's other
+    younger first, under "Windfall to ISA": 2030: £20,000 to the elder's isa, £412,000 to the elder's other
+  S237-75: the elder's table the same in the two orders, the younger's the same
+    elder first, under "Bracket Fill Basic": no deposit
+    younger first, under "Bracket Fill": no deposit
+
+H. The app's own rules in the two orders, and the solver against them (APPY less APP; ELDER, YOUNG and YOUNGE less APPY; by unit, paired):
+  APPY parts from APP on survival on 9 of 24 units, 7 of them under the same policy in both orders (S155-90 +0.125, S237-90 -0.200, S291-90 -0.050, S043-75 +0.050, S183-75 -0.100, S211-75 +0.025, S291-75 -0.100); beyond noise on 2 (S237-90 -0.200 (-0.356 to -0.049), 8 lost and 0 saved; the policy the same; S237-75 +1.500 (+0.971 to +2.039), 29 lost and 89 saved; the policy differs)
+  ELDER less APPY: from +6.400 (S265-90) to +13.600 points by unit; its interval's lower end above nought on 24 of 24
+  YOUNG less APPY: from +6.125 (S265-90) to +13.600 points by unit; its interval's lower end above nought on 24 of 24
+  YOUNGE less APPY: from +6.200 (S265-90) to +13.600 points by unit; its interval's lower end above nought on 24 of 24
+
+I. How the paths that part on survival are decided, YOUNGE against ELDER on the units part (b) or D names (each path's failure year against the horizon; the pot against the couple's own minimum pot):
+  S129-90 (the minimum pot £1,080,000, 39 years): 25 lost (25 in the last year below the minimum pot, 0 running out before it, 0 otherwise), 5 saved (ELDER 5 in the last year below the minimum pot, 0 running out before it, 0 otherwise); on the lost paths ELDER's pot over the floor a median £26,244 (£777 to £212,302), YOUNGE's under it a median £44,145 (£256 to £495,940)
+  S389-90 (the minimum pot £205,000, 45 years): 16 lost (13 in the last year below the minimum pot, 3 running out before it, 0 otherwise), 0 saved (ELDER 0 in the last year below the minimum pot, 0 running out before it, 0 otherwise); on the lost paths ELDER's pot over the floor a median £44,321 (£441 to £202,733), YOUNGE's under it a median £67,450 (£5,119 to £201,309)
+  S389-75 (the minimum pot £205,000, 45 years): 19 lost (13 in the last year below the minimum pot, 6 running out before it, 0 otherwise), 8 saved (ELDER 8 in the last year below the minimum pot, 0 running out before it, 0 otherwise); on the lost paths ELDER's pot over the floor a median £22,659 (£1,306 to £87,687), YOUNGE's under it a median £49,483 (£8 to £192,997)
+
+J. What the read's couples hold (each plan as tested, elder first): the features stage C kept apart
+  a spending band: 0 of 24
+  a DB pension: 0 of 24
+  a gain held in the taxable account: 0 of 24
+  a state pension from 67: 0 of 24
+
+K. The mirror and a spending band (couple-order.mjs otherOrder; each plan's context built, nothing solved): S129-90 with one band at the first person's ages, the plan and its mirror's scheduled target plan year by plan year
+  the band at the first person's 71 to 81 (ages 56/53): the plan and its mirror spend differently in 6 plan years (15, 16, 17, 26, 27, 28); the mirror twice gives the plan back: yes
+
+L. The guard's age cap read after a swap (src/couplesSwitch.js coupleSolverOn, the switch on): S015-90 entered younger first at 50 and 80, its plan to 95
+  as entered: 50/80 to 95, 45 years; the guard off (ages)
+  swapped to the elder first: 80/50, its end age entered 125, the engine's horizon 40 years; the guard ON

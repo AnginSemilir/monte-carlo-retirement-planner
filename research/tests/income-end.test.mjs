@@ -12,12 +12,16 @@
  *      pension of the partner's from 66, its end blank: the partner's other taxable income is the pension in every plan
  *      year from 66 to the plan's last
  *   3. the cut: each person's plan (couple.js singlePlanFor, and the page's route, solverCouple.js couplePlans) pays each
- *      blank-end income in the same plan years as the household's year
+ *      blank-end income in the same plan years as the household's year; also with the plan's years ending in .5 (S129's end
+ *      age half a year on), where the plan's last year falls past the younger partner's own plan's end age, so the partner's
+ *      plan, reading a blank end as its own end age, stopped the income a year early (the reviewer's second round on D104
+ *      (1)'s change of default measured it: a younger first person's income in the mirror; the cut's the same class)
  *   4. the other order: the couple entered the other way round (couple-order.mjs otherOrder) pays each income in the same
  *      plan years as the couple as entered
  *   5. the library: no couple of the 210 has its partner older, and every library plan's incomes in its context (the 210
  *      couples and the singles) are the code before's, bit for bit (against the engine with the line before the fix)
- * The plant 'incomeend' (the engine's line as before, in a copy of research/engine.mjs) fails checks 1 to 4.
+ * Plants: 'incomeend' (the engine's line as before, in a copy of research/engine.mjs) fails checks 1 to 4; 'incomeopen'
+ * (couple.js COUPLE.plant: a blank end left blank in the person's plan whatever the household reads) fails check 3.
  *   node research/tests/income-end.test.mjs [--planted]
  */
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
@@ -29,13 +33,15 @@ import { createHash } from 'node:crypto';
 
 const SELF = fileURLToPath(import.meta.url), HERE = dirname(SELF);
 if (process.argv.includes('--planted')) {
-  const want = ['1', '2', '3', '4'];
-  const r = spawnSync(process.execPath, [SELF], { env: { ...process.env, INCOME_END_PLANT: 'incomeend' }, encoding: 'utf8' });
-  const failed = [...new Set([...r.stdout.matchAll(/^FAIL {2}(\d)/gm)].map(m => m[1]))];
-  const exact = failed.length === want.length && want.every(n => failed.includes(n));
-  console.log(`plant incomeend fails checks ${failed.join(', ') || 'none'} (expected ${want.join(', ')}): ${exact ? 'exact' : 'NOT EXACT'}`);
-  if (!exact) console.log(r.stdout + r.stderr);
-  process.exit(exact ? 0 : 1);
+  let bad = 0;
+  for (const [plant, want] of [['incomeend', ['1', '2', '3', '4']], ['incomeopen', ['3']]]) {
+    const r = spawnSync(process.execPath, [SELF], { env: { ...process.env, INCOME_END_PLANT: plant }, encoding: 'utf8' });
+    const failed = [...new Set([...r.stdout.matchAll(/^FAIL {2}(\d)/gm)].map(m => m[1]))];
+    const exact = failed.length === want.length && want.every(n => failed.includes(n));
+    console.log(`plant ${plant} fails checks ${failed.join(', ') || 'none'} (expected ${want.join(', ')}): ${exact ? 'exact' : 'NOT EXACT'}`);
+    if (!exact) { console.log(r.stdout + r.stderr); bad++; }
+  }
+  process.exit(bad ? 1 : 0);
 }
 // the engine as it is, and as it was before the fix (its one line put back, in a copy)
 const FIXED = 'endAge: isBlank(i.endAge) ? planEndAge(i.owner) : num(i.endAge, planEndAge(i.owner)),';
@@ -47,7 +53,8 @@ writeFileSync(join(tmp, 'engine.mjs'), src.replace(FIXED, BEFORE));
 const OLD = await import(pathToFileURL(join(tmp, 'engine.mjs')).href);
 const PLANT = process.env.INCOME_END_PLANT || '';
 const E = PLANT === 'incomeend' ? OLD : await import('../engine.mjs');
-const { singlePlanFor } = await import('../../src/solver/couple.js');
+const { singlePlanFor, COUPLE } = await import('../../src/solver/couple.js');
+if (PLANT === 'incomeopen') COUPLE.plant = 'incomeopen';
 const { couplePlans } = await import('../../src/solverCouple.js');
 const { otherOrder } = await import('../solver/couple-order.mjs');
 const { couplesOf } = await import('../solver/couple-panel.mjs');
@@ -68,6 +75,8 @@ const withIncomes = (p, ageGap) => {
   return E.normalizePlan(q);
 };
 const OLDER = withIncomes(S129, 4), YOUNGER = withIncomes(S129, null);
+// the same with the end age half a year on: the plan's years end in .5 and round up, so its last year falls past the end age
+const YOUNGER_HALF = (() => { const q = JSON.parse(JSON.stringify(YOUNGER)); q.demographics.terminalAge = c129.terminalAge + 0.5; return E.normalizePlan(q); })();
 const single = (() => { const s = buildScenarios().find(x => x.plan.demographics.planningMode === 'single'); const q = JSON.parse(JSON.stringify(E.normalizePlan(s.plan))); q.otherIncomes = [{ id: 'a1', name: 'Annuity', owner: 'Myself', startAge: 66, endAge: '', amount: 8000, incomeType: 'otherTaxable', notes: '' }]; return { id: s.id, plan: E.normalizePlan(q) }; })();
 // the plan years an owner's incomes are paid in, by the context's own rule (the engine's year: the owner's age that year)
 const paidYears = (ctx, owner, id) => { const out = []; const inc = ctx.otherIncomes.filter(i => i.owner === owner); for (let t = 0; t <= ctx.totalYears; t++) { const age = (owner === 'self' ? ctx.ageSelf0 : ctx.agePart0) + t; if (inc.some(i => age >= i.startAge && age <= i.endAge)) out.push(t); } return out; };
@@ -105,7 +114,7 @@ const paidYears = (ctx, owner, id) => { const out = []; const inc = ctx.otherInc
 // ---- 3. the cut ----
 {
   const bad = [];
-  for (const [name, p] of [['the partner older', OLDER], ['the partner younger', YOUNGER]]) {
+  for (const [name, p] of [['the partner older', OLDER], ['the partner younger', YOUNGER], ['the partner younger, the years ending in .5', YOUNGER_HALF]]) {
     const h = ctxOf(E, p);
     for (const [who, owner] of [['self', 'self'], ['part', 'part']]) {
       const q = ctxOf(E, singlePlanFor(p, who, 0.5)), a = paidYears(h, owner).join(), b = paidYears(q, 'self').join();
@@ -114,7 +123,7 @@ const paidYears = (ctx, owner, id) => { const out = []; const inc = ctx.otherInc
     const cp = couplePlans(E, p, { shareRule: 'pots' }), hh = ctxOf(E, cp.household);
     for (const who of ['self', 'part']) if (paidYears(hh, who).join() !== paidYears(ctxOf(E, cp.plans[who]), 'self').join()) bad.push(`${name}, ${who}'s plan by the page's route`);
   }
-  ok(3, "the cut: each person's plan, and by the page's route, pays each blank-end income in the household's plan years", !bad.length, bad.join('; ') || 'both couples, both people, both routes');
+  ok(3, "the cut: each person's plan, and by the page's route, pays each blank-end income in the household's plan years, also where the plan's years end in .5", !bad.length, bad.join('; ') || `three couples (the third ${ctxOf(E, YOUNGER_HALF).ageSelf0} and ${ctxOf(E, YOUNGER_HALF).agePart0} to ${ctxOf(E, YOUNGER_HALF).terminalAge}, ${ctxOf(E, YOUNGER_HALF).totalYears} years), both people, both routes`);
 }
 
 // ---- 4. the other order ----

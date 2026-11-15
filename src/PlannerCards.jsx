@@ -11,12 +11,14 @@ import { SectionTabs } from './tabs.jsx';
 import { SolverAges, SolverTargets, SolverScenarios } from './SolverFigures.jsx';
 import { SolverPlanAnswers } from './SolverSimple.jsx';
 import { solverApproximations } from './solverApproximations.js';
+import { SWAP_ELDER } from './couplesSwitch.js';
 import { DiagnosticCopy } from './DiagnosticCopy.jsx';
 
 /* a couple's plan the solver does not run (LAYOUT.md section 6; Part D, D5): the classic planner, or a plan for one person.
    `why` 'off': couples are not on in the solver (src/couplesSwitch.js COUPLES off, the rollback), the words as before D5;
    'uneven': couples are on (D99), and this one is outside the guard: its first person holding neither 40% to 60% of the pots
-   nor, as the elder, more than 60% and at most 90%, which keeps the app's rules until a test of those holdings reads
+   nor, as the elder, more than 60% and at most 90% (since D104 (1), with SWAP_ELDER on, the elder entered either way), which
+   keeps the app's rules until a test of those holdings reads; the card's words on who was tested follow SWAP_ELDER
    (src/couplesSwitch.js coupleSolverOn); 'ages': couples are on, and this one's partner would pass 120 before the plan ends,
    which a person's table cannot run to (src/couplesSwitch.js horizonFits); `share` the first person's share of the pots */
 export function Couples({ isPhone, onClassic, onOnePerson, why = 'off', share = null }) {
@@ -31,7 +33,7 @@ export function Couples({ isPhone, onClassic, onOnePerson, why = 'off', share = 
       <p className="text-sm text-slate-600">Your plan runs until your partner would be past 120, which the new planner cannot plan for yet. Ending the plan at an earlier age brings it within reach; until then your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
     </> : uneven ? <>
       <h2 className="text-[15px] font-semibold text-slate-900">The new planner does not work out a split like yours yet</h2>
-      <p className="text-sm text-slate-600" data-couple-share={share}>Your plan has {pc(share)} of your money with you and {pc(1 - share)} with your partner. The solver has been tested on couples who hold their money about evenly, 40% to 60% each, and on couples where you are the older of the two and hold up to 90% of it. A split like yours is still to be tested, so for now your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+      <p className="text-sm text-slate-600" data-couple-share={share}>Your plan has {pc(share)} of your money with you and {pc(1 - share)} with your partner. The solver has been tested on couples who hold their money about evenly, 40% to 60% each, and on couples where {SWAP_ELDER ? 'the older of you two holds' : 'you are the older of the two and hold'} up to 90% of it. A split like yours is still to be tested, so for now your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
     </> : <>
     <h2 className="text-[15px] font-semibold text-slate-900">The new planner works out plans for one person for now</h2>
     <p className="text-sm text-slate-600">Your plan is for two people. Until the solver plans for couples, which is being built, a couple&apos;s plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>

@@ -53,6 +53,7 @@ import { solve, solveMixture, rankActions, scoreMoves, chooseAction, NODES, WEIG
 import { foldedVol } from './fast.js';
 import { vecOf, readValues, bridgeTable, locateVec, interpPair, READER_PROBE } from './grid.js';
 import { profileOf as M_profileOf } from './model.js';
+import { sameYears } from './horizon.js';
 
 export const SPLITS = [0, 0.25, 0.5, 0.75, 1];
 export const COUPLE = { plant: '', fast: true, check: false, flat: true, flatCheck: false };
@@ -114,17 +115,40 @@ export function singlePlanFor(plan, who, share = 0.5) {
   const k = who === 'self' ? 'Self' : 'Part';
   const label = who === 'self' ? 'Myself' : 'Partner';
   const age0 = Number(d[`currentAge${k}`]);
-  const years = Number(d.terminalAge) - Number(d.currentAgeSelf);   // the household's horizon, kept for both
+  // each person's end age is the household's moved by the age gap, so a band or an income with no end age ends in the plan
+  // year it does in the household's (the engine reads that end age unrounded); and each person's table runs the household's
+  // years, the whole years the engine counts (App.jsx buildContext: the years between the first person's age and the end age,
+  // rounded): where floating point rounds the moved end age's count away from the household's (a first age of 60.5 left the
+  // partner's table a year short and the couple's assembly failed: the reviewer on D104 (1)'s change of default, MINOR 2),
+  // horizon.js sameYears moves it by the fewest steps that give the household's count. research/tests/couple-horizon.test.mjs.
+  // Plants: 'rawyears', the moved end age as it falls, as before; 'wholeend', the person's age plus the whole years, the first
+  // form of the fix, which moved an open band's or income's last year where the years end in .5 or more (the reviewer's
+  // second round, finding 1)
+  const raw = Number(d.terminalAge) - Number(d.currentAgeSelf), years = Math.max(1, Math.round(raw));
+  const end = planted('wholeend') ? age0 + years : planted('rawyears') ? age0 + raw : sameYears(age0 + raw, age0, years);
   const demographics = {
     ...d, planningMode: 'single',
     currentAgeSelf: age0, retireAgeSelf: d[`retireAge${k}`], salarySelf: d[`salary${k}`], salaryGrowthSelf: d[`salaryGrowth${k}`],
     employmentSelf: d[`employment${k}`], cgtGainsUsedSelf: d[`cgtGainsUsed${k}`], cfBroughtForwardSelf: d[`cfBroughtForward${k}`],
-    mpaaAgeSelf: d[`mpaaAge${k}`], statePensionSelf: d[`statePension${k}`], terminalAge: age0 + years
+    mpaaAgeSelf: d[`mpaaAge${k}`], statePensionSelf: d[`statePension${k}`], terminalAge: end
   };
   const rename = (id) => String(id).replace(/_(self|part)$/, '_self');
   const accounts = plan.accounts.filter(a => a.owner === label).map(a => ({ ...a, owner: 'Myself', id: rename(a.id) }));
-  const otherIncomes = (plan.otherIncomes || []).filter(i => i.owner === label).map(i => ({ ...i, owner: 'Myself' }));
-  const scale = (v) => (v === '' || v === undefined || v === null ? v : Math.round(Number(v) * share));
+  // an income with no end age runs, in the household's year, to its owner's end of the plan (App.jsx planEndAge: the first
+  // person's end age, or a partner's age in the plan's last year where the partner is the older), and here to this plan's
+  // own end age; where the two would pay it in other plan years (a partner younger than the first person whose plan's years
+  // end in .5 or more, the last year past this plan's end age; or the floating point of the two sums), it takes the end age
+  // the household reads for it (income-end.test.mjs check 3; couple-horizon.test.mjs check 4). Plant 'incomeopen': left
+  // blank whatever the household reads, as before
+  const T0 = Number(d.terminalAge), S0 = Number(d.currentAgeSelf), hEnd = who === 'self' ? T0 : Math.max(T0, age0 + T0 - S0);
+  const isBlank = (v) => v === '' || v === null || v === undefined || (typeof v === 'number' && !Number.isFinite(v));
+  const openEnd = (i) => {
+    if (planted('incomeopen') || !isBlank(i.endAge)) return i;
+    for (let t = 0; t <= years; t++) { const a = age0 + t; if ((a <= hEnd) !== (a <= end)) return { ...i, endAge: hEnd }; }
+    return i;
+  };
+  const otherIncomes = (plan.otherIncomes || []).filter(i => i.owner === label).map(i => openEnd({ ...i, owner: 'Myself' }));
+  const scale =(v) => (v === '' || v === undefined || v === null ? v : Math.round(Number(v) * share));
   // the bands are entered in the first person's ages (App.jsx: "Myself" ages) and the household's year reads them at the first
   // person's age, while each person's plan reads them at its own: so the partner's plan takes each band at the partner's age in
   // the same plan year (the reviewer at D100's stage A read, finding 6; research/tests/couple-cut.test.mjs). A blank end age

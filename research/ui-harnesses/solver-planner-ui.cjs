@@ -68,7 +68,15 @@
  *      the guard (D99): the same couple re-held 90/10, its elder holding 90%, is solved to the end, no couples card, every
  *      figure the reference's on the couples' default share rule bit for bit (the reference solves on APP_COUPLE's); re-held 25/75, its
  *      younger partner holding 75%, the couples card with its reason ('uneven') and the share; and check 10's card, couples
- *      off, gives its reason 'off'; the speed mode offered to the couple with the couple's warning (D98);
+ *      off, gives its reason 'off'; the speed mode offered to the couple with the couple's warning (D98); a couple entered
+ *      younger first (D104 (1), src/couplesSwitch.js SWAP_ELDER): the same couple re-held 75/25, its elder holding 75%,
+ *      entered elder first and then the other way round by this harness's own hand (each person's fields, the end age so the
+ *      plan ends in the same year, each account's and each one-off cost's owner, each account's id): entered younger first it
+ *      is solved, no couples card, every
+ *      figure the reference's bit for bit (solved on the couple's mirror, src/coupleOrder.js otherOrder, as the page solves
+ *      it, and run against the plan as entered, its ages put in the entered first person's by the harness's own hand); its next
+ *      ten years, its outlook and its raise the elder-first entry's with each age the entered first person's, and this year's
+ *      actions the elder-first entry's with each person's under the other's name;
  *  20  the speed mode (D97 (3), D98, on the main fixture): its box in the levers off by default with the single's warning,
  *      the maintainer's words; on, the plan carries `solver.speed` 'fast' and solves under a key of its own, every figure the
  *      reference's for that plan (the reference solving it in speed mode); off again, no field left on the plan and the plan's
@@ -88,7 +96,9 @@
  * card), coupleage (19: each person's table solved without their partner's age, which the couple's assembly refuses),
  * speedoff (20: the speed mode's box writes nothing to the plan), speedcouple (10: the speed mode offered to a couple the
  * solver does not run), couplehalf (19: the page solving a couple on the half share, as before D99; alone, it fails only the
- * 90/10 couple's figures against the reference on the pots' share: PLANNER_PLANT=couplehalf).
+ * 90/10 couple's figures against the reference on the pots' share: PLANNER_PLANT=couplehalf), noback (19: a couple entered
+ * younger first shown the answers of its mirror, src/solverClient.js; alone, it fails only that couple's next ten years and
+ * actions: PLANNER_PLANT=noback).
  *   node research/ui-harnesses/solver-planner-ui.cjs [port] [--plants]      (the build is served on port + 11, the rollback on + 12, couples on + 13)
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
@@ -108,8 +118,8 @@ const SPEED_SINGLE = 'Speed mode works out your figures faster by looking at few
 const SPEED_COUPLE = 'For couples, speed mode is less tested. It was usually only a little faster, it spent a little less, and for some couples it lowered the chance your money lasts by about 5 in 1,000. Use the full calculation for decisions.';
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -218,6 +228,23 @@ const firstDiff = (a, b, at = '') => {
     const cut = couplePlans(E, pl, { shareRule: APP_COUPLE.shareRule }), one = w => solveForApp(E, M, cut.plans[w], { ...light, ageWith: cut.ageWith[w] });
     const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
     return JSON.stringify(strategyOf(E, cp, pl, { trials, seed }));
+  }, { pl, light: LIGHT, seed: SEED, trials: last }));
+  // a couple whose elder is entered second (D104 (1)): solved as the page solves it, on its mirror (src/coupleOrder.js
+  // otherOrder), and run against the plan as entered, as the Strategy tab's asks keep it (src/solverClient.js); its ages, the
+  // raise's and each outlook year's, worked out on the mirror's first person, put in the entered first person's by this
+  // harness's own hand (the reviewer on the change of default, BLOCKING 1: a reference on the mirror's ages hid the page's)
+  const refCoupleSwap = async pl => JSON.parse(await ref.run(async ({ pl, light, seed, trials }) => {
+    const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
+    const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
+    const { couplePlans, assembleCouple } = await import('/src/solverCouple.js'), { APP_COUPLE } = await import('/src/solverSettings.js');
+    const { otherOrder } = await import('/src/coupleOrder.js');
+    const mirror = otherOrder(E, pl), ctxOf = p => E.buildContext(E.resolveMpaa(E.normalizePlan(p))), gap = ctxOf(pl).ageSelf0 - ctxOf(mirror).ageSelf0;
+    const cut = couplePlans(E, mirror, { shareRule: APP_COUPLE.shareRule }), one = w => solveForApp(E, M, cut.plans[w], { ...light, ageWith: cut.ageWith[w] });
+    const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
+    const s = strategyOf(E, cp, pl, { trials, seed });
+    if (s.raise) s.raise = { ...s.raise, age: s.raise.age + gap };
+    s.outlook = { ...s.outlook, spend: s.outlook.spend.map(x => ({ ...x, age: x.age + gap })) };
+    return JSON.stringify(s);
   }, { pl, light: LIGHT, seed: SEED, trials: last }));
   try {
     execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), COUPLES_OFF: '1', PLANNER_PLANT: PLANTED.join(',') } });
@@ -715,6 +742,44 @@ const firstDiff = (a, b, at = '') => {
           ok(19, 'couples on: the same couple re-held 25/75, its younger partner holding 75%, is shown the couples card, its reason the uneven holding and the share', st.why === 'uneven' && st.share !== null && Math.abs(st.share - 0.25) < 1e-9, `the card ${st.why === null ? 'missing' : `says '${st.why}', the share ${st.share}`}`);
           ok(19, 'couples on, held 25/75: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
           await p.context().close(); }
+        // (e) a couple entered younger first (D104 (1)): the same couple re-held 75/25, its elder holding 75%, entered elder first
+        // and then the other way round by this harness's own hand, not the app's mirror: each person's fields, the end age so the
+        // plan ends in the same year, each account's owner and id, and each one-off cost's owner (S001 holds one, the first
+        // person's); the library couple has no bands, gifts, other incomes, deposits or limits, which the app's mirror also
+        // moves, and is refused here if it has
+        { const PAIRED = ['currentAge', 'retireAge', 'salary', 'salaryGrowth', 'employment', 'cgtGainsUsed', 'cfBroughtForward', 'mpaaAge', 'statePension'];
+          const otherWayByHand = pl => { const q = JSON.parse(JSON.stringify(pl)), d = q.demographics;
+            const bare = !((q.spending && q.spending.spendBands || []).length) && !(q.otherIncomes || []).length && !(q.oneOffContributions || []).length && !(q.solver && q.solver.locks);
+            if (!bare) throw new Error('check 19 (e): the fixture holds a field the hand swap leaves out');
+            const self0 = Number(d.currentAgeSelf), part0 = Number(d.currentAgePart), end0 = d.terminalAge === '' || d.terminalAge === undefined || d.terminalAge === null ? 100 : Number(d.terminalAge);
+            for (const k of PAIRED) { const a = d[`${k}Self`], c = d[`${k}Part`]; d[`${k}Self`] = c; d[`${k}Part`] = a; }
+            d.terminalAge = end0 - self0 + part0;
+            const other = o => (o === 'Myself' ? 'Partner' : o === 'Partner' ? 'Myself' : o);
+            q.accounts = q.accounts.map(a => ({ ...a, owner: other(a.owner), id: String(a.id).replace(/_(self|part)$/, (_, w) => (w === 'self' ? '_part' : '_self')) }));
+            q.oneOffCosts = (q.oneOffCosts || []).map(c => (c.owner ? { ...c, owner: other(c.owner) } : c));
+            return q; };
+          const pageOf = async pl => { const { p, errs } = await open(b, pl, { port: COUPLES_PORT });
+            const done = await waitCard(p, 'done', WAIT_MS), card = !!(await p.$('[data-place="plan"] [data-planner-couple]'));
+            const page = done ? await figs(p) : null, saw = await saved(p);
+            await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
+            const acts = await p.$$eval('[data-strategy-action]', els => els.map(e => e.dataset.strategyAction));
+            const ahead = await p.evaluate(() => { const el = document.querySelector('[data-ahead-spend]'); return el ? JSON.parse(el.dataset.aheadSpend) : null; });
+            await p.context().close(); return { done, card, page, saw, acts, ahead, errs }; };
+          const e75 = reheld(0.75), y75 = otherWayByHand(e75), gap = Number(y75.demographics.currentAgeSelf) - Number(e75.demographics.currentAgeSelf);
+          const E1 = await pageOf(e75), Y = await pageOf(y75), wantY = Y.page ? await refCoupleSwap(Y.saw) : null;
+          ok(19, `couples on: the same couple re-held 75/25 and entered younger first by hand (D104 (1); its elder second, holding 75%): solved, no couples card, every figure the reference's bit for bit (solved on its mirror, run against the plan as entered, its ages the entered first person's)`,
+            gap < 0 && Y.done && !Y.card && !!Y.page && JSON.stringify(Y.page) === JSON.stringify(wantY), `the age gap ${gap}; done ${Y.done}; card ${Y.card}; survival ${Y.page ? Y.page.headline.survival : '-'}% against ${wantY ? wantY.headline.survival : '-'}%`);
+          const flip = a => a.replace(/^(self|part):/, (_, w) => `${w === 'self' ? 'part' : 'self'}:`);
+          const aheadBack = E1.ahead ? E1.ahead.map(([age, spend]) => [age + gap, spend]) : null;
+          ok(19, 'couples on, entered younger first: the next ten years the elder-first entry\'s, each age the entered first person\'s; this year\'s actions the elder-first entry\'s, each person\'s under the other\'s name',
+            E1.done && !E1.card && !!Y.ahead && Y.ahead.length > 0 && JSON.stringify(Y.ahead) === JSON.stringify(aheadBack) && Y.acts.length > 0 && JSON.stringify([...Y.acts].sort()) === JSON.stringify(E1.acts.map(flip).sort()),
+            `the first year ${Y.ahead && Y.ahead[0] ? JSON.stringify(Y.ahead[0]) : '-'} against ${aheadBack && aheadBack[0] ? JSON.stringify(aheadBack[0]) : '-'}; actions ${Y.acts.join(', ') || 'none'} against ${E1.acts.map(flip).join(', ') || 'none'}`);
+          // the outlook and the raise in the entered first person's ages: the elder-first entry's, each age moved by the gap
+          const outlookBack = E1.page ? E1.page.outlook.spend.map(x => ({ ...x, age: x.age + gap })) : null, raiseBack = E1.page && E1.page.raise ? { ...E1.page.raise, age: E1.page.raise.age + gap } : null;
+          ok(19, 'couples on, entered younger first: the outlook and the raise the elder-first entry\'s, each age the entered first person\'s (the charts, the back mark and the raise line read them)',
+            !!Y.page && !!outlookBack && JSON.stringify(Y.page.outlook.spend) === JSON.stringify(outlookBack) && JSON.stringify(Y.page.raise || null) === JSON.stringify(raiseBack),
+            `the first outlook year at ${Y.page && Y.page.outlook.spend[0] ? Y.page.outlook.spend[0].age : '-'} against ${outlookBack && outlookBack[0] ? outlookBack[0].age : '-'}; the raise from ${Y.page && Y.page.raise ? Y.page.raise.age : 'none'} against ${raiseBack ? raiseBack.age : 'none'}`);
+          ok(19, 'couples on, entered either way: no page errors', E1.errs.length === 0 && Y.errs.length === 0, [...E1.errs, ...Y.errs].slice(0, 2).join(' | ')); }
       } finally { if (server3) server3.kill(); rmSync(OUT3, { recursive: true, force: true }); } }
   } finally {
     await ref.close(); await b.close();

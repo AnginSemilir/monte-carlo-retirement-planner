@@ -10,9 +10,10 @@
  *               household's spending), or its first person the elder by age and holding more than 60% and at most 90%
  *               (ELDER_UP_TO, ELDER_FIRST), the holdings stage C tested, the elder entered first holding 75% and 90%
  *               (registrations/couples-share.md: what a PASS reaches is by inference from 60% to 75%, and a couple uneven in
- *               some wrappers only). A couple whose younger partner holds more, whose elder is entered second and holds more,
- *               whose elder holds over 90%, or whose two people are the same age and hold their money outside the band keeps
- *               the app's rules until a test of those reads. `share` the first person's share of the pots; `why` 'off' (the
+ *               some wrappers only). Since D104 (1) a couple whose elder is entered second is read the same way, the elder's
+ *               holding whichever partner is entered first, and handed to the solver on its mirror (SWAP_ELDER, swapOf). A
+ *               couple whose younger partner holds more, whose elder holds over 90%, or whose two people are the same age and
+ *               hold their money outside the band keeps the app's rules until a test of those reads. `share` the first person's share of the pots; `why` 'off' (the
  *               switch), 'uneven' (outside the guard) or 'ages' (a partner who would pass 120 before the plan ends, which a
  *               person's table cannot run to: horizonFits), null when on.
  *   elderOf(plan)  'self', 'part' or null (the same age): each person's age today read as the engine reads it (App.jsx
@@ -30,10 +31,20 @@ export const ELDER_UP_TO = 0.9;
 // joint move weighs both people's estates at the first person's table's weight, 0.02 of that person's own opening wealth, so a
 // couple whose elder is entered second and holds most would be solved at an estate weight several times any tested)
 export const ELDER_FIRST = true;
+// D104 (1): a couple whose elder is entered second handed to the solver elder first, on its mirror (src/coupleOrder.js), and
+// its figures shown back as entered (src/solverClient.js); the guard then reads the elder's holding whichever partner is
+// entered first, and the age cap still on the plan as entered. On since its change of default (15 Nov), the reviewer on it;
+// pinned by research/tests/couple-default.test.mjs and couple-swap.test.mjs. Off (the rollback), a couple whose elder is
+// entered second keeps the app's rules, as before
+export const SWAP_ELDER = true;
 // research/tests/couple-default.test.mjs only: 'firstnotelder' takes the first person for the elder, whatever the ages;
-// 'eldereither' lifts the guard for an elder entered second too, as the first draft of D99 did; 'noagecap' runs a couple whose
-// partner would pass 120 before the plan ends, as before the age cap
+// 'eldereither' lifts the guard for an elder entered second without the swap, solving the couple in the order entered, as the
+// first draft of D99 did; 'noagecap' runs a couple whose partner would pass 120 before the plan ends, as before the age cap.
+// research/tests/couple-swap.test.mjs only: 'swapon' takes the swap on and 'swapoff' takes it off, whatever SWAP_ELDER says
+// (the rollback's identity); 'capafter' reads the age cap on the mirror, after the swap
 export const PLANT = { rule: '' };
+const planted = k => PLANT.rule.split(',').includes(k);
+const swapOn = () => (SWAP_ELDER || planted('swapon')) && !planted('swapoff');
 const ageOf = (v, fallback) => {
   if (v === '' || v === null || v === undefined || typeof v === 'boolean' || (typeof v === 'number' && !Number.isFinite(v))) return fallback;
   const n = Number(v);
@@ -55,15 +66,26 @@ export function horizonFits(plan) {
   if (terminal <= self) terminal = self + 1;
   return part + (terminal - self) <= 120 + 1e-9;
 }
+/* whether a couple is handed to the solver on its mirror (D104 (1)): its elder entered second, SWAP_ELDER on */
+export const swapOf = plan => swapOn() && elderOf(plan) === 'part' && PLANT.rule !== 'eldereither';
 export function coupleSolverOn(plan, on = COUPLES) {
   const of = w => ((plan && plan.accounts) || []).filter(a => String(a.id).endsWith('_' + w)).reduce((t, a) => t + (Number(a.balance) || 0), 0);
   const a = of('self'), b = of('part'), share = a + b > 0 ? a / (a + b) : 0.5;
   if (!on) return { on: false, share, why: 'off' };
-  // a couple whose partner would pass 120 before the plan ends keeps the app's rules, whatever its holdings
-  if (PLANT.rule !== 'noagecap' && !horizonFits(plan)) return { on: false, share, why: 'ages' };
+  // a couple whose partner would pass 120 before the plan ends keeps the app's rules, whatever its holdings: read on the plan
+  // as entered, before any swap (plant 'capafter': on the mirror, whose end age the swap moves past 120)
+  const swap = swapOf(plan), capPlan = swap && PLANT.rule.split(',').includes('capafter') ? mirrorAges(plan) : plan;
+  if (PLANT.rule !== 'noagecap' && !horizonFits(capPlan)) return { on: false, share, why: 'ages' };
   const inside = share >= COUPLE_BAND[0] - 1e-9 && share <= COUPLE_BAND[1] + 1e-9;
   const elder = PLANT.rule === 'firstnotelder' ? 'self' : elderOf(plan);
-  const held = elder === 'self' ? share : elder === 'part' && (!ELDER_FIRST || PLANT.rule === 'eldereither') ? 1 - share : null;
+  const held = elder === 'self' ? share : elder === 'part' && (swap || !ELDER_FIRST || PLANT.rule === 'eldereither') ? 1 - share : null;
   const elderMore = held !== null && held > COUPLE_BAND[1] + 1e-9 && held <= ELDER_UP_TO + 1e-9;
-  return inside || elderMore ? { on: true, share, why: null } : { on: false, share, why: 'uneven' };
+  return inside || elderMore ? { on: true, share, why: null, swap } : { on: false, share, why: 'uneven', swap: false };
+}
+/* the plant 'capafter' alone: the plan's ages and end age as the mirror has them (src/coupleOrder.js otherOrder moves the end
+   age so the plan ends in the same year), the module having no imports */
+function mirrorAges(plan) {
+  const d = (plan && plan.demographics) || {}, self = ageOf(d.currentAgeSelf, 40), part = ageOf(d.currentAgePart, self);
+  const t0 = d.terminalAge === '' || d.terminalAge === null || d.terminalAge === undefined || !Number.isFinite(Number(d.terminalAge)) ? 100 : Number(d.terminalAge);
+  return { ...plan, demographics: { ...d, currentAgeSelf: part, currentAgePart: self, terminalAge: Math.min(120, Math.max(1, t0)) - self + part } };
 }

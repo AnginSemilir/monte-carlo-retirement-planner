@@ -28,6 +28,8 @@ export { ensureIsolation } from './isolation.js';
 import { solveKey } from './solverKey.js';
 import { dialBase, APP_COUPLE } from './solverSettings.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
+import { swapOf } from './couplesSwitch.js';
+import { otherOrder, backMeta, backAnswer } from './coupleOrder.js';
 
 export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs); 'halfdefault' solves a couple on the half share unless asked otherwise, as before D99 (couple-default.test.mjs)
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
@@ -119,6 +121,14 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
     const id = ++seq;
     return new Promise((resolve, reject) => { pending.set(id, { resolve, reject }); owner.postMessage({ id, kind, ...extra }); });
   };
+  // a couple whose elder is entered second (D104 (1); src/couplesSwitch.js swapOf): its two tables cut from its mirror
+  // (src/coupleOrder.js otherOrder), the elder first as every couple tested, and each answer the page reads put back in the
+  // order the couple was entered (`ages`, the entered first person's age today and the mirror's first person's). The plan the
+  // page hands the Strategy tab's asks stays the plan as entered: "your plan" is the app's rules on it, as the page shows them.
+  // Plant 'noback' (PLANNER_PLANT): the answers left as the mirror's, which the page harness's couple entered younger first fails
+  const mirror = couple && couple.engine && swapOf(plan) ? otherOrder(couple.engine, plan) : null;
+  const ages = mirror ? (() => { const E = couple.engine, a = E.buildContext(E.resolveMpaa(E.normalizePlan(plan))), b = E.buildContext(E.resolveMpaa(E.normalizePlan(mirror))); return { self0: a.ageSelf0, mirror0: b.ageSelf0 }; })() : null;
+  const back = !mirror || PLANNER_PLANT.has('noback') ? (kind, r) => r : (kind, r) => backAnswer(kind, r, ages);
   // a kept part's questions, answered by id as the owner's are
   let kept = [];
   let shared = null;   // a couple's parts (D5.6): { ws, both }, the first person's solve's, kept for the second's and the couple
@@ -225,7 +235,7 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
       if (couple) {
         // plant 'couplehalf' (solver-planner-ui check 19, a build's PLANNER_PLANT): the page solving a couple on the half share, as before D99
         const shareRule = couple.shareRule !== undefined ? couple.shareRule : PLANT.rule === 'halfdefault' || PLANNER_PLANT.has('couplehalf') ? undefined : APP_COUPLE.shareRule;
-        const cpl = await ask('couple-plans', { plan, shareRule });
+        const cpl = await ask('couple-plans', { plan: mirror || plan, shareRule });
         if (finished) return;
         let secs = 0, restored = true;
         for (const who of ['self', 'part']) {
@@ -236,7 +246,8 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
           const pKey = key || PLANT.rule === 'keyvariant' ? await solveKey(couple.engine, cpl.plans[who], pOpts) : null;
           const pBase = await baseOf(couple.engine, cpl.plans[who], pOpts);
           if (finished) return;
-          phaseWho = who;
+          // the progress names whose table it is as the couple was entered (the mirror's 'self' is the entered partner)
+          phaseWho = mirror && !PLANNER_PLANT.has('noback') ? (who === 'self' ? 'part' : 'self') : who;
           const b = pBase ? await phase('base', pBase.plan, pBase.key, null, pOpts) : null;
           if (finished || (pBase && !b)) return;
           const m = await phase('solve', cpl.plans[who], pKey, pBase, pOpts, who);
@@ -255,7 +266,8 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
         } else if (shared) { shared.ws.forEach(w => { w.terminate(); const j = workers.indexOf(w); if (j > 0) workers.splice(j, 1); }); }
         shared = null;
         finished = true;
-        resolve({ meta: c.meta, secs, parts: n, restored, base: null, code: null, couple: { share: cpl.share, shareRule: cpl.shareRule } });
+        resolve({ meta: mirror && !PLANNER_PLANT.has('noback') ? backMeta(c.meta) : c.meta, secs, parts: n, restored, base: null, code: null,
+          couple: { share: mirror && !PLANNER_PLANT.has('noback') ? 1 - cpl.share : cpl.share, shareRule: cpl.shareRule, ...(mirror ? { mirrored: true } : {}) } });
         return;
       }
       const b = base ? await phase('base', base.plan, base.key, null) : null;
@@ -273,9 +285,9 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
       stop();
       rejectDone(new Error('cancelled'));
     },
-    ask,
-    strategy,
-    actions,
+    ask: (kind, extra = {}) => ask(kind, extra).then(r => back(kind, r)),
+    strategy: (...a) => strategy(...a).then(r => back('strategy', r)),
+    actions: (...a) => actions(...a).then(r => back('actions', r)),
     close() { owner.terminate(); kept.forEach((_, i) => workers[i + 1] && workers[i + 1].terminate()); workers.splice(1).forEach(w => w.terminate()); kept = []; for (const p of pending.values()) p.reject(new Error('closed')); pending.clear(); release(); }
   };
 }

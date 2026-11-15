@@ -11,13 +11,47 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**QUEUED (D105, 15 Nov, morning): a better tie rule for couples, `TIE-C2.md`.** You reopened the couples' tie rule that
+its read closed: "Plan out and add a test to the queue for an improved couples tie rule based on learnings so far".
+- **Two changes, each from what the first read found** (`results-tie-couple-trace.txt`):
+  - **The hold.** The late step down in risk that cut S311F's pot came from a misread. Each person's table covers wealth
+    only up to six times what they opened with (or 60 years of spending), and any pot beyond that is read as the top. So a
+    pot of billions was read as one at about one and a half times the cap. Past twice the top, a person never steps down in
+    risk.
+  - **The forward look.** "This year's least tax" drew the ISAs down and left a taxable account that paid tax for decades.
+    Near-ties are ranked instead by what each move leaves at the plan's end, on a typical (median) market path.
+- **The test**, EXPLORATORY: the hold alone, and the hold with the look, each against the couples' candidate.
+  - Twelve couples not used in any earlier tie or speed read, seed 7001 (not the seed whose paths shaped the changes),
+    8,000 paths.
+  - The first rule runs beside the others and decides nothing.
+  - Each couple's pot is judged two ways: each path's own change averaged, and the average pound with an allowance for
+    noise.
+- **In the queue:**
+  - built after the swap's change of default;
+  - launched when the cores are free, after the fourth batch's gate and the share rules' pilot;
+  - about a day to build, about five and a half hours on four cores, half a day to read.
+- **Your two choices before the launch:**
+  1. RULED (15 Nov): "1 - pass goes straight into default". A pass is the ruling naming the run: the arm the rule takes
+     becomes the couples' default, the reviewer on the change of default. One exception stands from the plan: if the
+     version taken is the one with the forward look and it adds more than a quarter to a couple's path, it comes back to
+     you as the speed trade.
+  2. RULED (15 Nov): "Agree", to the exception above and to the agent's recommendation here: the pot is judged with the
+     allowance for noise, not the first read's point bar on every couple.
+
 **FOR THE MAINTAINER (15 Nov, morning), to note: the allowance's step at both places reads FAILS, so it is closed.**
 `results-allowance-both.txt` (EXPLORATORY, seed 7002; `ALLOWANCE-BOTH.md`, D98); in plain words,
 `reports/2026-11-15-allowance-both-read.md`; beside it, `results-allowance-both-beside.txt`.
 - Offered the allowance at its old place as well as its new, the solver gains a hair of survival (+0.019 points pooled,
   beyond noise) with spending level, but leaves less below the cap: the capped pot -0.187% against the bar of 0.1%.
-- S090 carries 71.3% of that fall (-1.130%); without it the capped pot would be -0.061%.
+- S090 carries both effects: 54.2% of the survival gain and 71.3% of the capped fall (-1.130%). Without it the capped pot
+  would be -0.061% and the gain would go too: the rule would read NO GAIN.
+- On S090 the solver's own score takes the trade, a little survival for a little pot below the cap (+0.047, within noise).
+  So the FAIL is the rule's bar on the capped pot declining the trade the ceiling-lead test found, not the solver's own
+  objective rejecting it.
 - By the rule the offer is closed and nothing changes; the allowance step stays where the harvest ceiling put it.
+- The reviewer at the read: FAIL, one BLOCKING. The report's count of how often the new draw was taken was wrong: three
+  in four of the moves it counted are the old ladders. Answered in one fix with its five MINORs
+  (`reviews/2026-11-15-read-allowance-both.md`). The reviewer again: PASS, two MINORs, both answered (`-2.md`).
 
 **RULED (D104, 15 Nov, morning): the morning report's five decisions, "Go with your recommendations".** Each read is in
 full in its report: `reports/2026-11-15-other-order-read.md`, `reports/2026-11-15-speed-b-read.md`,

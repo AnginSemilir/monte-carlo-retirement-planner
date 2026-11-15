@@ -6,22 +6,25 @@
  * entered first (the deep review of 14 Nov: the joint move weighs both estates at the first person's table's weight). This holds
  * the code to that and to STATE.md's decided-defaults block:
  *   1. the decided-defaults block's `couples` entry is the code's: the switch on (src/couplesSwitch.js COUPLES), the couples'
- *      share rule (src/solverSettings.js APP_COUPLE), the band (COUPLE_BAND), the elder's limit (ELDER_UP_TO) and the elder
- *      entered first (ELDER_FIRST); a block without the entry, or with another rule, fails it;
+ *      share rule (src/solverSettings.js APP_COUPLE), the band (COUPLE_BAND), the elder's limit (ELDER_UP_TO), the elder
+ *      entered first (ELDER_FIRST) and the swap of a couple whose elder is entered second (SWAP_ELDER, D104 (1)); a block
+ *      without the entry, or with another rule, fails it;
  *   2. the guard (coupleSolverOn): over the library's 210 couples, each re-held at twelve shares of its first person's from 5%
  *      to 95% (every wrapper alike), with their ages as entered, swapped (the first person the younger), the same, and the
  *      partner's age left blank, on exactly where the first person holds 40% to 60% of the pots, or the first person is the
  *      elder by the engine's own reading of their ages (App.jsx buildContext's ageSelf0 and agePart0) and holds more than 60%
- *      and at most 90%; its `why` 'uneven' everywhere else (an elder entered second and holding 60% to 90% among them), and
- *      'off' with the switch off;
+ *      and at most 90%, or, with the swap on (SWAP_ELDER, D104 (1)), the partner is the elder and holds that much; swapped
+ *      (`swap`) exactly where it is on and its elder is entered second; its `why` 'uneven' everywhere else, and 'off' with the
+ *      switch off;
  *   3. the page's solve of a couple (src/solverClient.js startSolve, its workers in-process stand-ins that record what each is
  *      asked): a couple held 90/10 is cut and assembled on the pots' share, each person's plan cut on 90% and 10% of the
  *      household's spending, the job's record naming 'pots' and 0.9; a rule the caller names ('half') is kept; and the
  *      solver's own default stays the half share (src/solverCouple.js couplePlans unasked), the app's default living in the
  *      app's settings as the candidate's do;
- *   4. what the page tells a user about couples follows the switch (the reviewer on D99, finding 1): the solver's coverage
+ *   4. what the page tells a user about couples follows the switches (the reviewer on D99, finding 1): the solver's coverage
  *      list (src/solverApproximations.js, the coverage card and the documentation) says which couples it plans for and that any
- *      other keeps the app's rules, with couples on; with them off (the rollback), the line before D99; eight lines either way;
+ *      other keeps the app's rules, with couples on: the older partner holding up to 90% with the swap on, the older partner
+ *      entered first with it off; with couples off (the rollback), the line before D99; eight lines each way;
  *   5. a couple's cut gives each person what the couple's own run reads (the reviewer on D99, finding 4): over 30 of the
  *      library's couples, with each person's age, each retirement age or the plan's end age left blank, the ages as text, or
  *      the end age at the first person's age, each person's plan (src/solverCouple.js couplePlans) has the age today, the
@@ -32,8 +35,8 @@
  *      older, the guard 'ages' exactly where the engine's own ages put the partner past 120 by the plan's end, and every
  *      couple the guard runs cut to the couple's horizon for both people; the reviewer's two cases among them.
  * Plants (--planted runs each and wants its checks to fail): 'firstnotelder' (src/couplesSwitch.js: the first person taken for
- * the elder whatever the ages: check 2), 'eldereither' (src/couplesSwitch.js: the guard lifted for an elder entered second too,
- * as D99's first draft: check 2), 'halfdefault' (src/solverClient.js: a couple solved on the half share unless asked otherwise,
+ * the elder whatever the ages: check 2), 'eldereither' (src/couplesSwitch.js: the guard lifted for an elder entered second
+ * without the swap, the couple solved in the order entered, as D99's first draft: check 2), 'halfdefault' (src/solverClient.js: a couple solved on the half share unless asked otherwise,
  * as before D99: check 3), 'oldcouples' (src/solverApproximations.js: the line before D99 with couples on: check 4), 'rawages'
  * (src/solverCouple.js householdPlan: a blank age or end age left as the plan has it: check 5), 'noagecap'
  * (src/couplesSwitch.js: a couple run whose partner would pass 120 before the plan ends: check 6). Check 1's planted blocks
@@ -45,7 +48,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { COUPLES, COUPLE_BAND, ELDER_UP_TO, ELDER_FIRST, coupleSolverOn, elderOf, horizonFits, PLANT as SWITCH_PLANT } from '../../src/couplesSwitch.js';
+import { COUPLES, COUPLE_BAND, ELDER_UP_TO, ELDER_FIRST, SWAP_ELDER, coupleSolverOn, elderOf, horizonFits, PLANT as SWITCH_PLANT } from '../../src/couplesSwitch.js';
 import { APP_COUPLE } from '../../src/solverSettings.js';
 import { couplePlans, PLANT as COUPLE_PLANT } from '../../src/solverCouple.js';
 import { solverApproximations, COUPLES_LINE, PLANT as WORDS_PLANT } from '../../src/solverApproximations.js';
@@ -73,12 +76,12 @@ const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS
 
 // 1. the decided-defaults block's couples entry against the code
 { const blockOf = text => { const m = /<!-- decided-defaults([\s\S]*?)-->/.exec(text); return m ? JSON.parse(m[1]) : null; };
-  const code = { on: COUPLES, shareRule: APP_COUPLE.shareRule, band: [...COUPLE_BAND], elderUpTo: ELDER_UP_TO, elderFirst: ELDER_FIRST };
+  const code = { on: COUPLES, shareRule: APP_COUPLE.shareRule, band: [...COUPLE_BAND], elderUpTo: ELDER_UP_TO, elderFirst: ELDER_FIRST, swapElder: SWAP_ELDER };
   const agrees = D => !!(D && D.couples) && JSON.stringify(D.couples) === JSON.stringify(code);
   const D = blockOf(readFileSync(join(HERE, '../solver/STATE.md'), 'utf8'));
   const without = D ? { ...D } : null; if (without) delete without.couples;
   const half = D ? { ...D, couples: { ...D.couples, shareRule: 'half' } } : null;
-  ok('1. the decided-defaults block\'s couples entry is the code\'s (the switch, the share rule, the band, the elder\'s limit, the elder entered first); planted, a block without it or with the half share fails',
+  ok('1. the decided-defaults block\'s couples entry is the code\'s (the switch, the share rule, the band, the elder\'s limit, the elder entered first, the swap); planted, a block without it or with the half share fails',
     agrees(D) && !agrees(without) && !agrees(half), `the block ${JSON.stringify(D && D.couples)}; the code ${JSON.stringify(code)}`); }
 
 // 2. the guard over the library's couples, re-held, under four arrangements of their ages
@@ -103,17 +106,18 @@ const withAges = (plan, how) => { const re = JSON.parse(JSON.stringify(plan)), d
     for (const f of SHARES) {
       const p = reheld(aged, f), of = w => p.accounts.filter(a => a.id.endsWith('_' + w)).reduce((t, a) => t + (Number(a.balance) || 0), 0);
       const share = of('self') / (of('self') + of('part'));
-      // the elder entered first: only the first person, the elder, holding more lifts the guard
-      const held = engineElder === 'self' ? share : null, inBand = share >= 0.4 - 1e-9 && share <= 0.6 + 1e-9;
-      const want = inBand || (held !== null && held > 0.6 + 1e-9 && held <= 0.9 + 1e-9);
+      // only the elder holding more lifts the guard: the first person as the elder, or with the swap on (D104 (1)) the partner,
+      // the couple then handed to the solver on its mirror wherever it runs
+      const held = engineElder === 'self' ? share : engineElder === 'part' && SWAP_ELDER ? 1 - share : null, inBand = share >= 0.4 - 1e-9 && share <= 0.6 + 1e-9;
+      const want = inBand || (held !== null && held > 0.6 + 1e-9 && held <= 0.9 + 1e-9), wantSwap = want && SWAP_ELDER && engineElder === 'part';
       if (engineElder === 'part' && !inBand && 1 - share > 0.6 + 1e-9 && 1 - share <= 0.9 + 1e-9) elderSecond++;
       const got = coupleSolverOn(p, true);
       n++; if (got.on) on++;
-      if (got.on !== want || got.why !== (want ? null : 'uneven')) { differ++; if (first.length < 3) first.push(`${c.id} ${how} ${f}: ${got.on} against ${want}`); }
+      if (got.on !== want || got.why !== (want ? null : 'uneven') || !!got.swap !== wantSwap) { differ++; if (first.length < 3) first.push(`${c.id} ${how} ${f}: ${got.on} (swap ${!!got.swap}) against ${want} (swap ${wantSwap})`); }
       if (coupleSolverOn(p, false).why !== 'off') offWhy++;
     }
   }
-  ok('2. the guard: on exactly where the first person holds 40% to 60%, or is the elder by the engine\'s ages and holds more than 60% and at most 90%; \'uneven\' elsewhere, an elder entered second among them; \'off\' with the switch off',
+  ok(`2. the guard: on exactly where the first person holds 40% to 60%, or the elder by the engine's ages holds more than 60% and at most 90% (${SWAP_ELDER ? 'entered either way, swapped exactly where on and entered second' : 'entered first'}); 'uneven' elsewhere; 'off' with the switch off`,
     couples.length === 210 && n === 210 * 4 * 12 && differ === 0 && mismatchAge === 0 && offWhy === 0 && elderSeen.part > 0 && elderSeen.self > 0 && elderSeen.none > 0 && elderSecond > 0,
     `${n} plans, ${on} on, ${differ} differing${first.length ? ` (${first.join('; ')})` : ''}; the switch's elder against the engine's ages ${mismatchAge} differing; the elder the first person ${elderSeen.self}, the partner ${elderSeen.part}, neither ${elderSeen.none} (couple-arrangements); an elder entered second holding more than 60% and at most 90%, kept off: ${elderSecond} plans; 'off' wrong ${offWhy}`); }
 
@@ -155,10 +159,11 @@ const withAges = (plan, how) => { const re = JSON.parse(JSON.stringify(plan)), d
 // 4. the words the page shows about couples follow the switch
 { const on = solverApproximations(), off = solverApproximations({ couples: false });
   const lineOn = on.find(l => /couple/i.test(l)), lineOff = off.find(l => /couple/i.test(l));
-  const saysWho = !!lineOn && /40% to 60%/.test(lineOn) && /entered first/.test(lineOn) && new RegExp(`${Math.round(100 * ELDER_UP_TO)}%`).test(lineOn) && /Any other couple's plan keeps the app's own rules/.test(lineOn);
-  ok('4. the coverage list says which couples the solver plans for and that any other keeps the app\'s rules (couples on); the line before D99 with couples off; eight lines either way',
-    COUPLES && on.length === 8 && off.length === 8 && saysWho && lineOn === COUPLES_LINE.on && lineOff === COUPLES_LINE.off && !on.includes(COUPLES_LINE.off),
-    `on: "${lineOn}"; off: "${lineOff}"`); }
+  const first = solverApproximations({ swap: false }), lineFirst = first.find(l => /couple/i.test(l));
+  const says = (l, entered) => !!l && /40% to 60%/.test(l) && /older partner/.test(l) && entered === /entered first/.test(l) && new RegExp(`${Math.round(100 * ELDER_UP_TO)}%`).test(l) && /Any other couple's plan keeps the app's own rules/.test(l);
+  ok(`4. the coverage list says which couples the solver plans for and that any other keeps the app's rules (couples on: the older partner ${SWAP_ELDER ? 'either way, the swap on' : 'entered first'}); the elder entered first with the swap off; the line before D99 with couples off; eight lines each way`,
+    COUPLES && on.length === 8 && off.length === 8 && first.length === 8 && says(lineOn, !SWAP_ELDER) && says(lineFirst, true) && lineOn === (SWAP_ELDER ? COUPLES_LINE.on : COUPLES_LINE.onFirst) && lineFirst === COUPLES_LINE.onFirst && lineOff === COUPLES_LINE.off && !on.includes(COUPLES_LINE.off),
+    `on: "${lineOn}"; the swap off: "${lineFirst}"; off: "${lineOff}"`); }
 
 // 5. a couple's cut against the couple's own context, whatever is left blank
 { const FIELDS = ['currentAgeSelf', 'currentAgePart', 'retireAgeSelf', 'retireAgePart', 'terminalAge'];

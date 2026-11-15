@@ -12,4 +12,47 @@ Each household's capped pot (the pot held to its estate cap, the mean over its p
 
 The pooled capped pot without each household in turn (part 4 holds at -0.1% or above):
   S030 -0.204%, S050 -0.191%, S090 -0.061%, S368 -0.251%, S188 -0.174%, S304F -0.215%, S328F -0.196%, S340F -0.211%
-  the households without whom part 4 would hold: S090
+  the households without whom part 4's capped half would hold: S090
+
+B. Part 4's two halves without each household in turn (the mean pot at -0.5% or above, the capped pot at -0.1% or above):
+  without S030   the pot -0.161%, the capped pot -0.204%: part 4 fails
+  without S050   the pot -0.157%, the capped pot -0.191%: part 4 fails
+  without S090   the pot -0.162%, the capped pot -0.061%: part 4 holds
+  without S368   the pot -0.188%, the capped pot -0.251%: part 4 fails
+  without S188   the pot -0.147%, the capped pot -0.174%: part 4 fails
+  without S304F  the pot -0.191%, the capped pot -0.215%: part 4 fails
+  without S328F  the pot +0.029%, the capped pot -0.196%: part 4 fails
+  without S340F  the pot -0.257%, the capped pot -0.211%: part 4 fails
+  the households without whom part 4 would hold, both halves: S090
+
+C. Each household's survival change, BOTH against NOW (points), and its share of the summed change (+0.150):
+  S030 +0.025 (16.7%), S050 +0.000 (0.0%), S090 +0.081 (54.2%), S368 +0.000 (0.0%), S188 +0.000 (0.0%), S304F +0.006 (4.2%), S328F +0.038 (25.0%), S340F +0.000 (0.0%)
+  S090 alone: survival +0.081 (-0.010 to +0.172); the whole score +0.047 (-0.044 to +0.138); the capped pot -1.130%
+  the seven without S090, by the rule's parts: 1. pooled survival +0.010 (-0.004 to +0.023): holds; 2. no household wholly below: holds; 3. spending +0.0056: holds; 4. the pot -0.162%, the capped pot -0.061%: holds; 5. the whole score +0.009 (-0.005 to +0.023), survival's lower end -0.004: fails; the rule would read NO GAIN
+
+D. BOTH's base moves (solve.js buildActions, menuPlus hr and paraw; one spending level, one tier pair): 60
+  whose leading pension run passes 'penPAr' (the audit's draw count counts these): 40
+  of them the new draw itself, the run 'penPA', 'penPAr' and no further pension step: 10; the rest, 30, are NOW's ladders ('penPA' then 'penBasic' and on) with 'penPAr' between
+  the leading runs counted: penPA+penPAr; penPA+penPAr+penBasic; penPA+penPAr+penBasic+penHR; penPA+penPAr+penBasic+penHR+penAny
+  re-wrapping to 'paraw' (the audit's re-wrap count counts these): 12
+
+E. NOW's and RAWPA's units against the ceiling-lead units of 13 Nov (ceiling-lead-7002): the table digest and the arrays survived, delivered, target, pot, tax, byte for byte:
+  S030 NOW the same, RAWPA the same
+  S050 NOW the same, RAWPA the same
+  S090 NOW the same, RAWPA the same
+  S368 NOW the same, RAWPA the same
+  S188 NOW the same, RAWPA the same
+  S304F NOW the same, RAWPA the same
+  S328F NOW the same, RAWPA the same
+  S340F NOW the same, RAWPA the same
+  stamps: this run {"code":"6b2dc56b2f82","audit":"07b1ad74d638","prediction":"none","node":"v22.23.4"}; the ceiling-lead units {"code":"7002a1fec94c","audit":"ffc1d7fd23c0","prediction":"none","node":"v22.23.4"}
+
+F. RAWPA against NOW by household (the capped pot and lifetime tax, the means over each household's paths):
+  S030   the capped pot -£753 (-0.068%), lifetime tax -£989
+  S050   the capped pot £4 (+0.001%), lifetime tax £2
+  S090   the capped pot -£26,501 (-1.948%), lifetime tax -£8,689
+  S368   the capped pot £337 (+0.011%), lifetime tax £39
+  S188   the capped pot -£24 (-0.001%), lifetime tax £268
+  S304F  the capped pot £61 (+0.004%), lifetime tax £5,043
+  S328F  the capped pot -£1,332 (-0.107%), lifetime tax £653
+  S340F  the capped pot £14 (+0.001%), lifetime tax £2,948

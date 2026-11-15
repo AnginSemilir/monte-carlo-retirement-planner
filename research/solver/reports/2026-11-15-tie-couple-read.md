@@ -1,8 +1,13 @@
 # A couple's tie rule above the estate caps, read (15 Nov): FAILS
 
 EXPLORATORY, seed 7002 (D97 (2); `TIE-C.md`, its rule committed before launch at af04f0f4). The read whole is
-`results-tie-couple.txt`; the figures beside it, written after the read and deciding nothing, are
-`results-tie-couple-beside.txt` (`tie-couple-beside.mjs`). Every figure below is printed in one of those two files.
+`results-tie-couple.txt`. Beside it, written after the read and deciding nothing:
+- `results-tie-couple-beside.txt` (`tie-couple-beside.mjs`, sections A to F, from the stored arrays);
+- `results-tie-couple-trace.txt` (`tie-couple-trace.mjs`: S311F solved again as the run solved it, and its two deciding paths
+  traced year by year, each path's pot and tax matching the stored arrays to the penny).
+
+Every figure below is printed in one of those files. The reviewer at the read: `reviews/2026-11-15-read-tie-couple.md`
+(FAIL, two BLOCKING, answered here in one fix).
 
 ## In plain words
 
@@ -14,27 +19,46 @@ one that pays the least tax this year. It was tried at two margins of "almost th
 couples' tier test, 8,000 paths each.
 
 **What it found:**
-- **Pooled, it does what it is meant to.** Survival and spending are unchanged, the capped pot is within 0.004% on every
-  couple, and in the replay no decision changes the spending level or the risk held. Pooled lifetime tax falls by 2.76% at
-  the smaller margin and 3.39% at the singles' margin, and the pooled pot rises a little (+0.032% and +0.051%).
-- **Couple by couple, six of the eight leave more and pay less.** S317F's pot is higher but its tax a little higher too, the
-  only couple whose tax rises.
-- **It fails on one couple's pot, S311F.** Its average pot left is lower by 0.692% and 0.804%, against the rule's bar of
-  0.1%. So both margins fail part 5, and by the rule the tie rule is closed and nothing changes. Nothing is run again to pass
-  it.
-- **Why S311F's average falls, from the figures beside the rule:** the fall sits on a few paths with enormous pots, far
-  above the cap. Its average pot under the candidate is £61,720,523.
-  - The median path's pot is unchanged.
-  - The pot is higher on 2,657 of the 8,000 paths and lower on 637 (at the smaller margin).
-  - The 80 worst paths alone account for -£608,480 of the per-path average change, more than the whole fall of -£426,962;
-    across the other paths the pot is higher on balance.
-  - Its lifetime tax is lower on 2,541 paths, by £77,735 on average.
+- **Pooled, survival and spending are unchanged and tax falls, but most of the tax saved is one couple's.**
+  - The capped pot is within 0.004% on every couple. The pooled pot is a little higher (+0.032% and +0.051%).
+  - Pooled lifetime tax falls by 2.76% at the smaller margin and 3.39% at the singles' margin. S311F is 68.7% and 72.6% of
+    that; without it the fall is 1.36% and 1.46%.
+- **Couple by couple:**
+  - The pot is higher beyond noise on seven couples at both margins. S311F's change is within noise.
+  - Tax falls beyond noise on seven couples at the smaller margin; S317F's rises. At the singles' margin S317F's rises and
+    S293's change is within noise.
+- **It fails part 5 on S311F, and two paths decide that.** S311F's average pot left is lower by 0.692% and 0.804%, against
+  the rule's bar of 0.1%.
+  - Two paths carry more than the whole fall: path 4468 ends 34.1% lower and path 5461 16.8% lower, each paying more lifetime
+    tax (+£763,916 and +£420,250 at the smaller margin).
+  - Without those two, S311F's change is +0.263% and +0.146%, and both margins would have passed.
+  - The change's paired standard error (0.671% and 0.720%) is about its own size. S311F's average is dominated by paths
+    worth billions: its ten largest are 30.4% of its summed pots. So the bar, a point bar, is decided on this couple by two
+    paths.
+  - Where the rule pays less tax on S311F (2,541 paths at the smaller margin), the pot is higher on balance. The fall sits on
+    the paths that pay more tax.
+- **What happens on those two paths** (traced):
+  - The two arms' moves first part in plan year 23 (plan year 12 at the singles' margin on path 4468).
+  - The risk held stays the same until plan year 53, when the first partner is 90. Then, on the tie arm's path, the first
+    partner's pension and ISA step three tiers down, where the candidate keeps them.
+  - The candidate's own chooser, handed the tie arm's state that year, makes the same step. That state holds more in the
+    taxable account and less in the ISAs: £7,078,624 against £1,435,943, and £22,000,985 against £25,504,839, on path 4468.
+  - After the step the tie arm pays more tax (£896,660 against £120,439 to the end, on path 4468) and ends far lower.
 
-  Why paying less tax this year leaves less on those few paths is not traced: the run kept no year-by-year trace.
+  So the fall is not the year's tax. The rule's earlier picks moved money between wrappers, and the later step down is the
+  tables' own choice at the state those picks led to. Why the tables step down there, with both partners far above their
+  caps, is a lead.
+- **The rule never changes the risk held at the decision it acts on, but its arm's path can change later.** The replay along
+  the candidate's own path shows no differing decision at another level, tier pair or below a cap. Along the tie arms' own
+  paths:
+  - S311F's two deciding paths hold another tier pair from plan year 53;
+  - at the singles' margin the spending level differs in some year on 11 paths that survive in both arms (9 of S309F's and 2
+    of S293's).
 
-**So:** the couples' default stays as it is. Since part 5 failed on a mean that a few far-above-the-cap paths carry, you may
-want the question looked at again with a different measure of the pot. That would be a new test with its own rule, decided
-before it runs, not a re-read of this one.
+**So:** the couples' default stays as it is. By the rule the tie rule is closed and nothing is run again, and reopening it
+would be yours alone. It leaves one question for you, if you want to weigh it: whether a couple's pot of billions, far above
+its cap, should count against a rule like this. Here two such paths decided it, and on them the rule left a third and a
+sixth less and paid more tax.
 
 ## The read
 
@@ -52,8 +76,8 @@ code, its runs done 03:52 UK, no unit exiting with an error.
 | 6. pooled lifetime tax | not higher | £511,945 to £497,794 (-2.76%): holds | £511,945 to £494,595 (-3.39%): holds |
 | 7. the replay | no differing decision at another level, tier pair or below a cap | 2,232 differing, none so: holds | 2,462 differing, none so: holds |
 
-**TIE-C OUTCOME: FAILS.** By hand, no figure sits at its bar: the survival bars are on interval ends, and S311F's -0.692% and
--0.804% are far past part 5's.
+**TIE-C OUTCOME: FAILS.** By hand, no figure sits at a bar where floating point could decide it. The survival bars are on
+interval ends, and part 5 on S311F is decided by two paths, not by the last digit.
 
 ## Beside the rule, deciding nothing
 
@@ -69,16 +93,22 @@ code, its runs done 03:52 UK, no unit exiting with an error.
   | the library's four | TIE5 | +0.072% | -0.52% |
   | the library's four | TIE4 | +0.101% | -0.29% |
 
-- **Each couple's figures** in each arm are in the read. S317F's tax is a little higher under both arms (£193,943 to
-  £194,901 and £196,267), with its pot higher (+0.149% and +0.179%).
+- **S311F's other large losses** (section D): path 658 ends 18.6% and 18.5% lower at the two margins, and path 2900 32.2%
+  lower at the singles' margin. These are not traced.
+- **Each couple's tax change with its standard error** (section E), and each couple's figures in each arm in the read.
 
 ## What it does not show
 
-- It covers eight couples, 8,000 paths of the tuning seed, one estate weight.
-- It does not trace why the least tax this year leaves less in the pot on S311F's largest paths.
+- It covers eight couples, 8,000 paths of the tuning seed and one estate weight.
+- The replay covers only the candidate's own path, on the first 100 paths. It says nothing of the decisions the tie arms take
+  on their own paths, where the risk held and the spending level can differ later (above). Neither of S311F's deciding paths
+  is among the 100.
+- It does not show why the tables step down at 90 on those paths, with both partners far above their caps.
 - It says nothing of singles, whose tie-break has been in the candidate since D95.
 
 ## Files
 
 `TIE-C.md` (the rule), `audit-tie-couple.mjs`, `batch-tie-couple.sh`, `reduce-tie-couple.mjs`, `results-tie-couple.txt` (the
-read whole), `tie-couple-beside.mjs` and `results-tie-couple-beside.txt` (beside it, written after the read).
+read whole), `tie-couple-beside.mjs` and `results-tie-couple-beside.txt`, `tie-couple-trace.mjs` and
+`results-tie-couple-trace.txt` (beside it, written after the read), `reviews/2026-11-15-read-tie-couple.md` (the reviewer at
+the read).

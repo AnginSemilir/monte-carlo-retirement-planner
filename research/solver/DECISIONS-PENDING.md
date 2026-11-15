@@ -13,14 +13,19 @@ below this section says "the beta", read it as history. The order from here:
 
 **FOR THE MAINTAINER (15 Nov, early), to note: the couples' tie rule reads FAILS, so it is closed and nothing changes.**
 `results-tie-couple.txt` (EXPLORATORY, seed 7002; `TIE-C.md`, D97 (2)); in plain words, `reports/2026-11-15-tie-couple-read.md`;
-beside it, `results-tie-couple-beside.txt`.
-- **Pooled it works:** lifetime tax -2.76% and -3.39% at the two margins, the pot a little higher, survival, spending and
-  the capped pot unchanged, no decision at another spending level or risk.
-- **It fails part 5 on one couple, S311F,** whose average pot left is lower by 0.692% and 0.804% against the bar of 0.1%.
-  That average is carried by a few paths far above the cap: the median path's pot is unchanged, and the pot is higher on
-  2,657 of 8,000 paths and lower on 637.
-- By the rule nothing is run again to pass it. A test of the same tie rule with another measure of the pot would be a new
-  test with its own rule, if you want it.
+beside it, `results-tie-couple-beside.txt` and `results-tie-couple-trace.txt`; the reviewer at the read,
+`reviews/2026-11-15-read-tie-couple.md` (FAIL on the first write-up, answered in one fix).
+- **Pooled:** survival and spending are unchanged, the pot a little higher, and lifetime tax falls by 2.76% and 3.39% at the
+  two margins, but most of that is one couple's (S311F's): without it, 1.36% and 1.46%.
+- **It fails part 5 on S311F,** whose average pot left is lower by 0.692% and 0.804% against the bar of 0.1%. Two paths
+  decide that, ending a third and a sixth lower and paying more tax. Without them S311F's change is +0.263% and +0.146%, and
+  its standard error is about the size of the change.
+- **On those two paths** (traced) the tie arm's earlier picks left more in the taxable account. At 90, the tables step the
+  first partner's pension and ISA three risk tiers down there, the candidate's own chooser making the same step at that
+  state. So the rule's earlier picks led, through the tables' later choice of risk, to more tax and a smaller pot. Why the
+  tables step down there is a lead.
+- By the rule nothing is run again; reopening it is yours alone. The question it leaves, if you want to weigh it: whether a
+  couple's pot of billions far above its cap should count against a rule like this.
 
 **FOR THE MAINTAINER (15 Nov, early): couples entered the other way round read NEITHER, on a tie at the bar; which way on?**
 `results-other-order.txt` (EXPLORATORY, seed 7002; `OTHER-ORDER.md`, D100's stage A); in plain words and in full,

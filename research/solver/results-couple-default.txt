@@ -1,0 +1,22 @@
+research/tests/couple-default.test.mjs on 6cf5a2c8 (16 Nov 12:48 UK): the test, then each plant (--planted)
+
+PASS  1. the decided-defaults block's couples entry is the code's (the switch, the share rule, the band, the elder's limit, the elder entered first, the swap, the joint move); planted, a block without it, with the half share or without the joint move fails  -- the block {"on":true,"shareRule":"pots","band":[0.4,0.6],"elderUpTo":0.9,"elderFirst":true,"swapElder":true,"tieJoint":0.0001,"tieLook":true,"holdPast":2}; the code {"on":true,"shareRule":"pots","band":[0.4,0.6],"elderUpTo":0.9,"elderFirst":true,"swapElder":true,"tieJoint":0.0001,"tieLook":true,"holdPast":2}
+PASS  2. the guard: on exactly where the first person holds 40% to 60%, or the elder by the engine's ages holds more than 60% and at most 90% (entered either way, swapped exactly where on and entered second); 'uneven' elsewhere; 'off' with the switch off  -- 10080 plans, 3780 on, 0 differing; the switch's elder against the engine's ages 0 differing; the elder the first person 210, the partner 210, neither 420 (couple-arrangements); an elder entered second holding more than 60% and at most 90%, kept off: 630 plans; 'off' wrong 0
+PASS  3. the page solves a couple on the pots' share: held 90/10, cut and assembled on 'pots', each person on 90% and 10% of the spending, the record naming it; a named 'half' kept; the solver's own default the half share; the couple assembled with the couples' joint move (D108), the record naming it, a caller's own (none) kept  -- S069 held 90/10, target 74500: asked to cut on pots (each person's spending 67050 and 7450), to assemble on pots, the record pots at 0.9; named 'half': half, half, half at 0.5; couplePlans unasked: half at 0.5; the joint move asked {"tieJoint":0.0001,"tieLook":true,"holdPast":2}, recorded {"tieJoint":0.0001,"tieLook":true,"holdPast":2}, with 'half' {"tieJoint":0.0001,"tieLook":true,"holdPast":2}, none named null
+PASS  4. the coverage list says which couples the solver plans for and that any other keeps the app's rules (couples on: the older partner either way, the swap on); the elder entered first with the swap off; the line before D99 with couples off; eight lines each way  -- on: "It plans for one person, or for a couple who hold their money about evenly (40% to 60% each) or whose older partner holds up to 90% of it. Any other couple's plan keeps the app's own rules."; the swap off: "It plans for one person, or for a couple who hold their money about evenly (40% to 60% each) or whose older partner is entered first and holds up to 90% of it. Any other couple's plan keeps the app's own rules."; off: "It solves for one person. A couple's plan keeps the app's own rules."
+PASS  5. a couple's cut gives each person the age, retirement age, salary, state pension and horizon the couple's own run reads, whatever is left blank  -- 420 people (30 couples, 7 variants), 0 differing
+PASS  6. a couple whose partner would pass 120 before the plan ends keeps the app's rules ('ages'), exactly where the engine's ages put them past it; every couple run cut to its whole horizon; the reviewer's two cases kept off  -- 482 plans, 272 past 120 by the end, 210 run; the reason wrong on 0, a run couple cut short on 0
+PASS  7. a couple whose worker assembled it without the joint move asked for is refused by the client; assembled with it, it solves  -- dropped: solverClient: the couple was assembled by the owner with the joint move {}, not the {"tieJoint":0.0001,"tieLook":true,"holdPast":2} asked for; kept: solved
+
+ALL PASS: 7 checks
+exit 0
+
+plant 'firstnotelder': the checks that fail: 2; wanted 2: yes
+plant 'eldereither': the checks that fail: 2; wanted 2: yes
+plant 'halfdefault': the checks that fail: 3; wanted 3: yes
+plant 'notie': the checks that fail: 3, 7; wanted 3, 7: yes
+plant 'oldcouples': the checks that fail: 4; wanted 4: yes
+plant 'rawages': the checks that fail: 5; wanted 5: yes
+plant 'noagecap': the checks that fail: 6; wanted 6: yes
+plant 'nojointcheck': the checks that fail: 7; wanted 7: yes
+exit 0

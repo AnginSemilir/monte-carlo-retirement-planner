@@ -1,0 +1,19 @@
+research/tests/couple-tie-look.test.mjs on 6cf5a2c8 (16 Nov 12:37 UK): the test, then each plant (--planted)
+
+couple-tie-look: a couple's hold and forward look above the estate caps (D105)
+PASS  1  both options unset: S007's joint value at the start and its engine runs on 20 paths the code before the options', bit for bit; neither carried nor recorded, and each carried and recorded when set  -- 4410b47199e2b920 against 4410b47199e2b920; unset neither carried; set both carried
+PASS  2  the hold: along S007's own path with its estate caps at £300,000 (years 1 to 26) at limits of 0.05, 0.1, 0.15, 0.2 of each table's top, each decision the unset move with each step down of a person past the limit put back to the tier held, a person below it and a step up untouched; at 1e12, the unset move  -- 104 decisions: wrappers put back 10, a step down below the limit left 6, a step up past it left 0; the hold changed 5
+PASS  3  the look by hand: S007's pots eight times over (years 1 to 20), each person's six best moves on offer, tieJoint 1e-4: the look takes the tie set's largest end pot on the median path, run here year by year; and it acts, apart from the best and from the first rule  -- 20 decisions, 20 with a tie set of more than the best; the look took other than the best at 14 and other than the first rule at 12
+PASS  4  the engine and the rollout in step under each option: S007 with each person's estate cap at £300,000, 10 paths alike in survival and within a pound at the end, under the look and under the hold at 0.05, each acting  -- the look: differing in survival 0, the largest gap at the end £0.000000, acting at 11 of the first path's decisions; the hold: differing in survival 0, the largest gap at the end £0.000000, acting at 18 of the first path's decisions
+PASS  5  the refusals, before any solve: holdPast 0, -1, NaN, Infinity or a string; tieLook not true or false; tieLook without tieJoint  -- 7 refused
+PASS  6  the hold by hand: past the limit a step down keeps the tier held while a step up stands; below the limit, in the last year and with the option unset, nothing; the other person untouched  -- 5 cases
+PASS  7  the hold over the dial's lock: S007 at position 3, each table locked to its base's tiers, its estate caps at £300,000; along its own path at limits of 0.05, 0.1, 0.15, 0.2 of each table's top, each decision the lock's move with each step down of a person past the limit put back, a person below it on the lock's pair; the hold acting over the lock; the engine and the rollout in step under the hold at 0.05 on 10 paths  -- both tables locked true; 104 decisions: steps down put back 10, below the limit left on the lock's pair 6; the hold changed 5; the engine against the rollout: differing in survival 0, the largest gap at the end £0.000000
+
+couple-tie-look: 7 passed, 0 failed
+exit 0
+
+plant holdany fails checks 2, 6, 7 (expected 2, 6, 7): exact
+plant holdup fails checks 6 (expected 6): exact
+plant lookyear fails checks 3 (expected 3): exact
+plant holdlock fails checks 7 (expected 7): exact
+exit 0

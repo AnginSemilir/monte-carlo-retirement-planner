@@ -1,0 +1,30 @@
+THE SHARE REPLAY (EXPLORATORY, seed 7023's read paths; SHARE-REPLAY.md): 11 comparisons; the gate: fair
+  the registered runs it starts from: their 88 logs stamped under the registration as it stands (fair-gate.mjs requireFairLogs)
+
+Each flagged comparison: the rule's lost / saved / both-keep paths (replayed), and each variant's lost kept, saved lost, controls lost and its gain in paths:
+  FLAT  S023-45      106 / 16 / 15511 (106 / 16 / 200) | L 44, 2, 0: +42.0 | R 60, 4, 0: +56.0 | S 29, 5, 0: +24.0 | TK 49, 2, 0: +47.0
+  FLAT  S147-45      241 / 8 / 15353 (241 / 8 / 200) | L 80, 3, 0: +77.0 | R 109, 2, 0: +107.0 | S 27, 1, 2: -127.5 | TK 115, 2, 0: +113.0
+  FLAT  S191-45      160 / 34 / 15353 (160 / 34 / 200) | L 32, 5, 0: +27.0 | R 102, 7, 0: +95.0 | S 21, 6, 1: -61.8 | TK 65, 4, 0: +61.0
+  FLAT  S061-dbpart  440 / 23 / 15207 (400 / 23 / 200) | L 43, 2, 0: +45.3 | R 45, 20, 3: -198.6 | S 46, 12, 0: +38.6 | TK 34, 5, 0: +32.4
+  MEANS S061-dbpart  1985 / 4 / 13662 (400 / 4 / 200) | L 47, 0, 6: -176.6 | R 330, 1, 0: +1636.6 | S 9, 2, 2: -94.0 | TK 216, 0, 0: +1071.9
+  MEANS S023-90      451 / 55 / 15033 (400 / 55 / 200) | L 337, 8, 0: +372.0 | R 172, 27, 3: -58.6 | S 141, 30, 6: -322.0 | TK 387, 3, 0: +433.3
+  MEANS S147-90      274 / 81 / 15062 (274 / 81 / 200) | L 243, 13, 0: +230.0 | R 129, 59, 2: -80.6 | S 32, 12, 0: +20.0 | TK 42, 16, 1: -49.3
+  MEANS S227-90      169 / 28 / 15181 (169 / 28 / 200) | L 73, 18, 1: -20.9 | R 108, 18, 0: +90.0 | S 30, 20, 0: +10.0 | TK 160, 4, 0: +156.0
+  MEANS S191-45      117 / 31 / 15396 (117 / 31 / 200) | L 24, 4, 0: +20.0 | R 82, 12, 0: +70.0 | S 32, 7, 0: +25.0 | TK 47, 5, 0: +42.0
+  MEANS S377-dbpart  101 / 27 / 15356 (101 / 27 / 200) | L 17, 4, 0: +13.0 | R 63, 14, 0: +49.0 | S 24, 17, 1: -69.8 | TK 50, 2, 0: +48.0
+
+The rule (pooled over the ten flags; the rule's lost paths 4044):
+  L  recovers +0.1555 of the lost paths (+628.7 paths): under a quarter
+  R  recovers +0.4367 of the lost paths (+1765.8 paths): a quarter or more, under half
+  S  recovers -0.1378 of the lost paths (-557.4 paths): under a quarter
+  TK recovers +0.4835 of the lost paths (+1955.3 paths): a quarter or more, under half
+  the mechanism: on 1227 of 2368 lost paths replayed (51.8%): more than half
+  the equity: the rule's tiers against TODAY's at the same states, +0.1028 places of TIER_ORDER a slot over 47360 slot-years: the rule holds more equity
+
+THE SHARE REPLAY'S OUTCOME: MIXED
+
+BESIDE, DECIDING NOTHING:
+  the mirror, MEANS on S147-db (saved 1505, lost 11): L keeps 234 of 400 saved, 3 of 11 lost, 199 of 200 controls; R keeps 291 of 400 saved, 7 of 11 lost, 199 of 200 controls; S keeps 393 of 400 saved, 8 of 11 lost, 200 of 200 controls; TK keeps 390 of 400 saved, 4 of 11 lost, 200 of 200 controls
+  the lost paths replayed by kind, each variant keeping: running short 1170 (L 128, R 579, S 90, TK 359); below the minimum pot 1198 (L 812, R 621, S 301, TK 806)
+  the failing year of the lost paths that run short: 1170; its move unfunded in the exact model 1170, of them a level of the menu at some split funding it 194
+  the years from the rule's first move apart from TODAY's to the failure, on the lost paths: the median 27, a quarter 9, three quarters 39; never apart before it 0 of 2368

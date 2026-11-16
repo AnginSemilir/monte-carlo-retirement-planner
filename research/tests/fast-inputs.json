@@ -4168,6 +4168,7 @@
    "research/solver/results-share-choose.txt",
    "research/solver/results-share-ensemble.txt",
    "research/solver/results-share-nodes-mutations.txt",
+   "research/solver/results-share-replay.txt",
    "research/solver/results-share-rules-beside.txt",
    "research/solver/results-share-rules-panel.txt",
    "research/solver/results-share-rules-pilot-power.txt",

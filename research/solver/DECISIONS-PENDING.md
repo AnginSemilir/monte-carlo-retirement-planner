@@ -21,7 +21,11 @@ to you).
   - The top six moves are the most consistent (`0.35` or more on eight of ten) and the only variant one could run as a
     policy; they fail on FLAT S061-dbpart and MEANS S147-90, and their time was not measured.
   - The deep review's mechanism shows on `42.3%` of the lost paths (the first print's `51.8%` was a rounding fault, fixed).
-  - The reviewer at the read: FAIL, answered in one fix; its second round before this is final.
+  - The reviewer at the read: FAIL, answered in one fix, then FAIL again on one new BLOCKING and four MINORs
+    (`reviews/2026-11-16-read-share-replay-2.md`). The BLOCKING was one sentence of the report's: the mechanism shows on
+    more than half of the lost paths on three units, not two. It stands after one fix, so the read is yours (D81 (F)).
+    The sentence and the MINORs are corrected as the reviewer gave them, unreviewed: yours to accept, or to send to the
+    reviewer a third time.
 - **Your options:**
   1. **A wider joint move for couples, tested on today's split** (the agent's recommendation): each person's top four and
      top six moves against today's two, on today's default (with LOOKHOLD), EXPLORATORY on a panel at seed 7002, its rule

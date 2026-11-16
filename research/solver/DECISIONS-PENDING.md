@@ -11,7 +11,7 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**FOR YOUR WORD (16 Nov, night): the improved couples' tie rule passes, and its speed sits at the bar you set.** TIE-C2
+**RULED (D108, 16 Nov, night: "Clean timing decides (Recommended)"): the improved couples' tie rule passes, and its speed sits at the bar you set.** A clean timing on all twelve couples settles the exception, its rule committed before it runs (`TIE-C2-TIMING.md`), after the share test. TIE-C2
 read once (EXPLORATORY, seed 7001): `results-tie-c2.txt`, the report `reports/2026-11-16-tie-c2-read.md`, beside it
 `results-tie-c2-beside.txt`. The reviewer at the read: FAIL on the first write-up's speed claim, answered in one fix, then
 PASS (`reviews/2026-11-16-read-tie-c2.md`, `-2.md`).

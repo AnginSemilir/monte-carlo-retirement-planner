@@ -68,6 +68,8 @@ the app. The reviewer at the read: PASS, four MINORs, answered (`reviews/2026-11
   person's top six moves). EXPLORATORY, about 4.5 core-hours and a day's work, on seed 7023's already-read paths, run
   directly since the launcher refuses a reserved seed outside its registration; or on 7002 at about three times the cost.
 - **The agent's recommendation:** run it. The other way is to leave the share where it is.
+- **RULED (D110, 16 Nov, evening: "Run the deep review's test on seed 7023"):** the test as the deep review's section 3
+  sets it out, its rule committed before it runs, on seed 7023's already-read paths, run directly as a tracked task.
 - **What it tests:** two fixed rules for a couple's share against today's (the pots' share outside 40% to 60%, half
   inside), each on the couples' candidate:
   - FLAT: the pots' share for every couple, the band dropped;

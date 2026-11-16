@@ -305,7 +305,7 @@ const BLOCKS = {
       `- O198, the top-cell fix's year-1 residual under the plan reference, world 0: ${pick(`${S}results-copyx.txt`, /SNRX world 0: .*?by year 1: ([+-]?[\d.]+)/, m => m[1])} points (\`results-copyx.txt\`).`,
       '- TOP-CELL, AA-UR and FD-X: diagnostics of table reads, not run; dropped as gates (D2).'
     // folded for Phase 4's read (STATE.md's 300 lines; the figures unchanged)
-    ], [[0, 2], [2, 4], [4]]);
+    ], [[0, 2], [2, 5]]);   // two lines from 16 Nov (D110's line), the figures unchanged
   },
   // Step 2's re-check, when it has run
   step2() {

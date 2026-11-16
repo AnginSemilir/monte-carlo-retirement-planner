@@ -51,3 +51,8 @@ B. THE PATHS A TENTH LOWER OR HIGHER, WITH THEIR LIFETIME TAX (against CANDS; be
 C. THE POOLED TYPICAL-PATH CHANGE TAKEN BY PATH (LOOKHOLD against CANDS; the young 8 share a horizon, 60 years, on seed 7001, so the same paths)
   as the reducer pools it (the couples independent): +0.288% (+0.281 to +0.296), its standard error 0.0037
   taken by path, on the 7101 paths of 8000 where all 12 couples leave a pot in both arms: +0.306% (+0.295 to +0.318), its standard error 0.0059
+
+D. HOW A COUPLE'S WAIT IN THE PAGE DIVIDES (results-couple-timing.txt section 3: S069, a library couple, on 14 Nov's code, in the browser split four ways, measured beside stage C's four units, the load at the start 5.15 / 4.86 / 5.42): a measurement of one couple; for the younger couples the page's split is not measured
+  a first solve: the solves 157.4 s, the headline's paths 92.2 s and this year's skips 208.6 s: paths 300.8 of 458.2 s (65.6%); AN INFERENCE, on this split: a path at x1.25 would make the wait x1.164
+  after a reload: the solves 8.1 s, the headline's paths 101.0 s and this year's skips 208.4 s: paths 309.4 of 317.5 s (97.4%); AN INFERENCE, on this split: a path at x1.25 would make the wait x1.244
+  on the library's four the look added little (LOOKHOLD against CANDS x0.958 to x1.038), so this shows how a couple's wait divides, not what the look would cost S069

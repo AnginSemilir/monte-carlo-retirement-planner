@@ -18,6 +18,9 @@
  * C. THE POOLED TYPICAL-PATH CHANGE TAKEN BY PATH (the reviewer at the read, finding 4): the young eight share a horizon on
  *    seed 7001, so the same paths. Beside the reducer's pooled interval (the couples taken as independent), each path's mean
  *    change over the twelve, on the paths where all twelve leave a pot in both arms, and its standard error over the paths.
+ * D. HOW A COUPLE'S WAIT IN THE PAGE DIVIDES (the reviewer at the read, second round): the one couple measured in the
+ *    browser (results-couple-timing.txt section 3, S069), its solves against its paths, and, called an inference, what a
+ *    path at the exception's bar would make of that wait on that split.
  *   node research/solver/tie-c2-beside.mjs > research/solver/results-tie-c2-beside.txt
  */
 import { readFileSync, readdirSync } from 'node:fs';
@@ -95,3 +98,16 @@ console.log(`\nC. THE POOLED TYPICAL-PATH CHANGE TAKEN BY PATH (LOOKHOLD against
   const pm = per.reduce((s, v) => s + v, 0) / per.length, psd = Math.sqrt(per.reduce((s, v) => s + (v - pm) ** 2, 0) / (per.length - 1)), pse = psd / Math.sqrt(per.length);
   console.log(`  as the reducer pools it (the couples independent): ${f(tp)}% (${f(tp - Z * tse)} to ${f(tp + Z * tse)}), its standard error ${tse.toFixed(4)}`);
   console.log(`  taken by path, on the ${per.length} paths of ${N} where all ${units.length} couples leave a pot in both arms: ${f(pm)}% (${f(pm - Z * pse)} to ${f(pm + Z * pse)}), its standard error ${pse.toFixed(4)}`); }
+
+// D. how a couple's wait in the page divides, from the one couple measured in the browser (results-couple-timing.txt section 3)
+{ const T = readFileSync(join(HERE, 'results-couple-timing.txt'), 'utf8');
+  const a = /^1\. the parts kept: the two solves ([\d.]+) s .*?; the headline's 2,000 paths ([\d.]+) s .*?; this year's 5 skips on 1,000 paths ([\d.]+) s/m.exec(T);
+  const b = /^3\. after a reload: the two tables restored in ([\d.]+) s .*?; the headline's 2,000 paths ([\d.]+) s; the skips ([\d.]+) s/m.exec(T);
+  const head = /^at the start, the machine's load ([\d.]+ \/ [\d.]+ \/ [\d.]+)/m.exec(T);
+  console.log(`\nD. HOW A COUPLE'S WAIT IN THE PAGE DIVIDES (results-couple-timing.txt section 3: S069, a library couple, on 14 Nov's code, in the browser split four ways, measured beside stage C's four units, the load at the start ${head ? head[1] : '?'}): a measurement of one couple; for the younger couples the page's split is not measured`);
+  for (const [what, m] of [['a first solve', a], ['after a reload', b]]) {
+    if (!m) { console.log(`  ${what}: not found in results-couple-timing.txt`); continue; }
+    const [solve, head2, skips] = m.slice(1, 4).map(Number), paths = head2 + skips, all = solve + paths;
+    console.log(`  ${what}: the solves ${solve.toFixed(1)} s, the headline's paths ${head2.toFixed(1)} s and this year's skips ${skips.toFixed(1)} s: paths ${paths.toFixed(1)} of ${all.toFixed(1)} s (${(100 * paths / all).toFixed(1)}%); AN INFERENCE, on this split: a path at x${RULE.slower} would make the wait x${((solve + RULE.slower * paths) / all).toFixed(3)}`);
+  }
+  console.log(`  on the library's four the look added little (LOOKHOLD against CANDS ${x3(Math.min(...lib.map(u => r(u, 'LOOKHOLD', 'CANDS'))))} to ${x3(Math.max(...lib.map(u => r(u, 'LOOKHOLD', 'CANDS'))))}), so this shows how a couple's wait divides, not what the look would cost S069`); }

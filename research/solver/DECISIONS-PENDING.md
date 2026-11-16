@@ -11,6 +11,22 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (16 Nov, evening): after the share replay's read, MIXED** (D110; `SHARE-REPLAY.md`, its rule committed first;
+`results-share-replay.txt`; the report `reports/2026-11-16-share-replay-read.md`; the reviewer at the read before this goes
+to you).
+- **What it found:** no single part of a couple's move carries the share rules' lost paths. Swapping in TODAY's tiers
+  recovers `+0.4367` of them and the top six moves `+0.4835`; TODAY's level `+0.1555`; TODAY's split loses ground.
+  - The lost paths that run short are mostly the tiers'.
+  - Those that end below the minimum pot are mostly the level's.
+  - The top six moves help with both.
+- **Your options:**
+  1. **A wider joint move for couples, tested on today's split** (the agent's recommendation): each person's top four and
+     top six moves against today's two, on today's default (with LOOKHOLD), EXPLORATORY on a panel at seed 7002, its rule
+     committed first, survival, spending and the pot beside the solve and path times. No new solver code; a gain comes back
+     to you as a trade of survival against time.
+  2. **Leave the share and the joint move as they are,** and go on to the research queue's two factorials, then your work
+     on the screens.
+
 **RULED (D108, 16 Nov, night: "Clean timing decides (Recommended)"; then D109, 16 Nov, morning: "Just take `1.25`, let's not waste taste, speed work will happen anyway right?"): the improved couples' tie rule passes, and its speed sits at the bar you set.** The trade is taken: LOOKHOLD is the couples' default on the working branch (ef2e4d72), the reviewer on the change PASS with three MINORs (`reviews/2026-11-16-default-lookhold.md`), the two to answer before its batch merges answered (597a549c), to `main` with the next batch on B1's gate; the clean timing (`TIE-C2-TIMING.md`) is not run. On speed work: none is queued (D103's lapsed with D104 (5)); the forward look's cost is offered as an item. TIE-C2
 read once (EXPLORATORY, seed 7001): `results-tie-c2.txt`, the report `reports/2026-11-16-tie-c2-read.md`, beside it
 `results-tie-c2-beside.txt`. The reviewer at the read: FAIL on the first write-up's speed claim, answered in one fix, then

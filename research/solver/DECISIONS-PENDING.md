@@ -11,9 +11,15 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**OPEN (16 Nov, evening): after the share replay's read, MIXED** (D110; `SHARE-REPLAY.md`, its rule committed first;
-`results-share-replay.txt`; the report `reports/2026-11-16-share-replay-read.md`; the reviewer at the read before this goes
-to you).
+**RULED (D111, 16 Nov, night: "Go with your recommendations"): after the share replay's read, MIXED** (D110;
+`SHARE-REPLAY.md`, its rule committed first; `results-share-replay.txt`; the report `reports/2026-11-16-share-replay-read.md`;
+the reviewer at the read before this went to you).
+- **Ruled, each as the agent recommended in the day's report:**
+  1. The read stands as corrected after the reviewer's second round; no third round.
+  2. Option 1 below: a wider joint move for couples, tested on today's split (`JOINT-WIDE.md`, its rule committed before
+     any launch; EXPLORATORY, seed 7002).
+  3. Speed work on LOOKHOLD's cost (the forward look's, D109) waits until the wider joint move is settled, and is then done
+     once, on the joint move as it then stands.
 - **What it found:** no single part of a couple's move carries the share rules' lost paths, pooled. Swapping in TODAY's
   tiers recovers `+0.4367` of them and the top six moves `+0.4835`; TODAY's level `+0.1555`; TODAY's split loses ground.
   - Which part recovers differs by comparison: TODAY's tiers on MEANS S061-dbpart (most of their pooled figure), TODAY's

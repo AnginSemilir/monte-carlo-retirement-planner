@@ -1,0 +1,78 @@
+THE SHARE RULES' TEST: 32 units of share-rules-run; the gate: fair
+
+FLAT against TODAY, on the 24 units where its share differs (16000 paths each pooled):
+  S023-45      share 0.500 to 0.450; 97.61% to 97.04%: 106 lost, 16 saved of 16000, the loss +0.563 against the threshold 0.381 (61 paths); discordance 0.76% (upper 1.01%), the 1-point rate 1.000: FLAGGED
+  S023-55      share 0.500 to 0.550; 97.03% to 97.68%: 13 lost, 117 saved of 16000, the loss -0.650 against the threshold 0.381 (61 paths); discordance 0.81% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S023-db      share 0.500 to 0.600; 95.36% to 97.34%: 34 lost, 350 saved of 16000, the loss -1.975 against the threshold 0.463 (74 paths); discordance 2.40% (upper 2.65%), the 1-point rate 1.000: not flagged
+  S061-45      share 0.500 to 0.450; 99.83% to 99.76%: 24 lost, 12 saved of 16000, the loss +0.075 against the threshold 0.381 (61 paths); discordance 0.22% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S061-55      share 0.500 to 0.550; 99.68% to 99.63%: 40 lost, 32 saved of 16000, the loss +0.050 against the threshold 0.381 (61 paths); discordance 0.45% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S061-dbpart  share 0.500 to 0.600; 97.79% to 95.19%: 440 lost, 23 saved of 16000, the loss +2.606 against the threshold 0.481 (77 paths); discordance 2.89% (upper 3.17%), the 1-point rate 1.000: FLAGGED
+  S109-45      share 0.500 to 0.450; 99.39% to 99.56%: 18 lost, 44 saved of 16000, the loss -0.163 against the threshold 0.381 (61 paths); discordance 0.39% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S109-55      share 0.500 to 0.550; 99.43% to 99.30%: 32 lost, 11 saved of 16000, the loss +0.131 against the threshold 0.381 (61 paths); discordance 0.27% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S109-sppart  share 0.500 to 0.600; 98.09% to 98.61%: 39 lost, 122 saved of 16000, the loss -0.519 against the threshold 0.394 (63 paths); discordance 1.01% (upper 1.17%), the 1-point rate 1.000: not flagged
+  S147-45      share 0.500 to 0.450; 97.46% to 96.01%: 241 lost, 8 saved of 16000, the loss +1.456 against the threshold 0.425 (68 paths); discordance 1.56% (upper 1.76%), the 1-point rate 1.000: FLAGGED
+  S147-55      share 0.500 to 0.550; 96.15% to 97.49%: 3 lost, 217 saved of 16000, the loss -1.337 against the threshold 0.412 (66 paths); discordance 1.38% (upper 1.57%), the 1-point rate 1.000: not flagged
+  S147-db      share 0.500 to 0.600; 89.51% to 96.17%: 7 lost, 1073 saved of 16000, the loss -6.662 against the threshold 0.600 (96 paths); discordance 6.75% (upper 7.15%), the 1-point rate 0.970: not flagged
+  S191-45      share 0.500 to 0.450; 96.96% to 96.17%: 160 lost, 34 saved of 16000, the loss +0.787 against the threshold 0.406 (65 paths); discordance 1.21% (upper 1.39%), the 1-point rate 1.000: FLAGGED
+  S191-55      share 0.500 to 0.550; 96.18% to 96.95%: 34 lost, 157 saved of 16000, the loss -0.769 against the threshold 0.400 (64 paths); discordance 1.19% (upper 1.37%), the 1-point rate 1.000: not flagged
+  S191-dbpart  share 0.500 to 0.600; 96.32% to 97.30%: 62 lost, 219 saved of 16000, the loss -0.981 against the threshold 0.431 (69 paths); discordance 1.76% (upper 1.97%), the 1-point rate 1.000: not flagged
+  S227-45      share 0.500 to 0.450; 95.69% to 95.54%: 47 lost, 23 saved of 16000, the loss +0.150 against the threshold 0.381 (61 paths); discordance 0.44% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S227-55      share 0.500 to 0.550; 95.49% to 95.59%: 35 lost, 51 saved of 16000, the loss -0.100 against the threshold 0.381 (61 paths); discordance 0.54% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S227-sppart  share 0.500 to 0.600; 95.72% to 96.20%: 20 lost, 96 saved of 16000, the loss -0.475 against the threshold 0.381 (61 paths); discordance 0.73% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S271-45      share 0.500 to 0.450; 92.62% to 92.29%: 107 lost, 55 saved of 16000, the loss +0.325 against the threshold 0.394 (63 paths); discordance 1.01% (upper 1.18%), the 1-point rate 1.000: not flagged
+  S271-55      share 0.500 to 0.550; 92.16% to 92.74%: 53 lost, 145 saved of 16000, the loss -0.575 against the threshold 0.406 (65 paths); discordance 1.24% (upper 1.42%), the 1-point rate 1.000: not flagged
+  S271-db      share 0.500 to 0.600; 91.77% to 93.71%: 37 lost, 347 saved of 16000, the loss -1.938 against the threshold 0.463 (74 paths); discordance 2.40% (upper 2.65%), the 1-point rate 1.000: not flagged
+  S377-45      share 0.500 to 0.450; 99.14% to 99.22%: 20 lost, 33 saved of 16000, the loss -0.081 against the threshold 0.381 (61 paths); discordance 0.33% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S377-55      share 0.500 to 0.550; 99.14% to 99.22%: 19 lost, 32 saved of 16000, the loss -0.081 against the threshold 0.381 (61 paths); discordance 0.32% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S377-dbpart  share 0.500 to 0.600; 96.61% to 96.54%: 84 lost, 73 saved of 16000, the loss +0.069 against the threshold 0.388 (62 paths); discordance 0.98% (upper 1.15%), the 1-point rate 1.000: not flagged
+  1. no unit flagged: FAILS (S023-45, S061-dbpart, S147-45, S191-45)
+  2. the pooled survival change +0.421 (+0.387 to +0.454, se 0.0172): its lower end above 0: HOLDS
+  3. pooled spending delivered -0.0746% of TODAY's (-0.0802 to -0.0690): not lower by more than 0.05%: FAILS
+  FLAT: FAILS
+
+MEANS against TODAY, on the 32 units where its share differs (16000 paths each pooled):
+  S023-45      share 0.500 to 0.470; 97.61% to 97.42%: 52 lost, 23 saved of 16000, the loss +0.181 against the threshold 0.381 (61 paths); discordance 0.47% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S023-55      share 0.500 to 0.556; 97.03% to 97.68%: 13 lost, 117 saved of 16000, the loss -0.650 against the threshold 0.381 (61 paths); discordance 0.81% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S023-90      share 0.900 to 0.854; 96.78% to 94.30%: 451 lost, 55 saved of 16000, the loss +2.475 against the threshold 0.494 (79 paths); discordance 3.16% (upper 3.45%), the 1-point rate 1.000: FLAGGED
+  S023-db      share 0.500 to 0.638; 95.36% to 98.07%: 15 lost, 448 saved of 16000, the loss -2.706 against the threshold 0.481 (77 paths); discordance 2.89% (upper 3.17%), the 1-point rate 1.000: not flagged
+  S061-45      share 0.500 to 0.527; 99.83% to 99.54%: 57 lost, 11 saved of 16000, the loss +0.287 against the threshold 0.381 (61 paths); discordance 0.43% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S061-55      share 0.500 to 0.569; 99.68% to 99.66%: 38 lost, 34 saved of 16000, the loss +0.025 against the threshold 0.381 (61 paths); discordance 0.45% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S061-90      share 0.900 to 0.717; 97.46% to 99.69%: 33 lost, 389 saved of 16000, the loss -2.225 against the threshold 0.469 (75 paths); discordance 2.64% (upper 2.90%), the 1-point rate 1.000: not flagged
+  S061-dbpart  share 0.500 to 0.385; 97.79% to 85.41%: 1985 lost, 4 saved of 16000, the loss +12.381 against the threshold 0.719 (115 paths); discordance 12.43% (upper 12.95%), the 1-point rate 0.836 (BELOW 0.90: named, D34 (4)): FLAGGED
+  S109-45      share 0.500 to 0.527; 99.39% to 99.25%: 37 lost, 14 saved of 16000, the loss +0.144 against the threshold 0.381 (61 paths); discordance 0.32% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S109-55      share 0.500 to 0.569; 99.43% to 99.39%: 21 lost, 14 saved of 16000, the loss +0.044 against the threshold 0.381 (61 paths); discordance 0.22% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S109-90      share 0.900 to 0.717; 98.59% to 99.74%: 14 lost, 198 saved of 16000, the loss -1.150 against the threshold 0.412 (66 paths); discordance 1.32% (upper 1.51%), the 1-point rate 1.000: not flagged
+  S109-sppart  share 0.500 to 0.633; 98.09% to 98.86%: 20 lost, 142 saved of 16000, the loss -0.762 against the threshold 0.394 (63 paths); discordance 1.01% (upper 1.18%), the 1-point rate 1.000: not flagged
+  S147-45      share 0.500 to 0.490; 97.46% to 97.19%: 57 lost, 14 saved of 16000, the loss +0.269 against the threshold 0.381 (61 paths); discordance 0.44% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S147-55      share 0.500 to 0.551; 96.15% to 97.44%: 6 lost, 213 saved of 16000, the loss -1.294 against the threshold 0.412 (66 paths); discordance 1.37% (upper 1.56%), the 1-point rate 1.000: not flagged
+  S147-90      share 0.900 to 0.765; 95.85% to 94.64%: 274 lost, 81 saved of 16000, the loss +1.206 against the threshold 0.456 (73 paths); discordance 2.22% (upper 2.46%), the 1-point rate 1.000: FLAGGED
+  S147-db      share 0.500 to 0.681; 89.51% to 98.85%: 11 lost, 1505 saved of 16000, the loss -9.338 against the threshold 0.662 (106 paths); discordance 9.47% (upper 9.94%), the 1-point rate 0.910: not flagged
+  S191-45      share 0.500 to 0.470; 96.96% to 96.42%: 117 lost, 31 saved of 16000, the loss +0.537 against the threshold 0.388 (62 paths); discordance 0.92% (upper 1.09%), the 1-point rate 1.000: FLAGGED
+  S191-55      share 0.500 to 0.551; 96.18% to 96.96%: 34 lost, 159 saved of 16000, the loss -0.781 against the threshold 0.406 (65 paths); discordance 1.21% (upper 1.39%), the 1-point rate 1.000: not flagged
+  S191-90      share 0.900 to 0.837; 97.51% to 97.71%: 77 lost, 110 saved of 16000, the loss -0.206 against the threshold 0.400 (64 paths); discordance 1.17% (upper 1.35%), the 1-point rate 1.000: not flagged
+  S191-dbpart  share 0.500 to 0.556; 96.32% to 96.96%: 73 lost, 176 saved of 16000, the loss -0.644 against the threshold 0.425 (68 paths); discordance 1.56% (upper 1.76%), the 1-point rate 1.000: not flagged
+  S227-45      share 0.500 to 0.470; 95.69% to 95.60%: 42 lost, 27 saved of 16000, the loss +0.094 against the threshold 0.381 (61 paths); discordance 0.43% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S227-55      share 0.500 to 0.551; 95.49% to 95.58%: 34 lost, 48 saved of 16000, the loss -0.087 against the threshold 0.381 (61 paths); discordance 0.51% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S227-90      share 0.900 to 0.837; 95.94% to 95.06%: 169 lost, 28 saved of 16000, the loss +0.881 against the threshold 0.406 (65 paths); discordance 1.23% (upper 1.41%), the 1-point rate 1.000: FLAGGED
+  S227-sppart  share 0.500 to 0.599; 95.72% to 96.19%: 20 lost, 94 saved of 16000, the loss -0.463 against the threshold 0.381 (61 paths); discordance 0.71% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S271-45      share 0.500 to 0.502; 92.62% to 92.72%: 36 lost, 52 saved of 16000, the loss -0.100 against the threshold 0.381 (61 paths); discordance 0.55% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S271-55      share 0.500 to 0.564; 92.16% to 92.76%: 56 lost, 152 saved of 16000, the loss -0.600 against the threshold 0.406 (65 paths); discordance 1.30% (upper 1.49%), the 1-point rate 1.000: not flagged
+  S271-90      share 0.900 to 0.783; 91.59% to 93.57%: 28 lost, 344 saved of 16000, the loss -1.975 against the threshold 0.456 (73 paths); discordance 2.33% (upper 2.57%), the 1-point rate 1.000: not flagged
+  S271-db      share 0.500 to 0.638; 91.77% to 94.02%: 41 lost, 401 saved of 16000, the loss -2.250 against the threshold 0.475 (76 paths); discordance 2.76% (upper 3.03%), the 1-point rate 1.000: not flagged
+  S377-45      share 0.500 to 0.487; 99.14% to 99.18%: 8 lost, 15 saved of 16000, the loss -0.044 against the threshold 0.381 (61 paths); discordance 0.14% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S377-55      share 0.500 to 0.551; 99.14% to 99.21%: 20 lost, 31 saved of 16000, the loss -0.069 against the threshold 0.381 (61 paths); discordance 0.32% (upper 1.01%), the 1-point rate 1.000: not flagged
+  S377-90      share 0.900 to 0.777; 96.71% to 97.29%: 31 lost, 124 saved of 16000, the loss -0.581 against the threshold 0.388 (62 paths); discordance 0.97% (upper 1.13%), the 1-point rate 1.000: not flagged
+  S377-dbpart  share 0.500 to 0.470; 96.61% to 96.14%: 101 lost, 27 saved of 16000, the loss +0.463 against the threshold 0.381 (61 paths); discordance 0.80% (upper 1.01%), the 1-point rate 1.000: FLAGGED
+  1. no unit flagged: FAILS (S023-90, S061-dbpart, S147-90, S191-45, S227-90, S377-dbpart)
+  2. the pooled survival change +0.217 (+0.178 to +0.256, se 0.0200): its lower end above 0: HOLDS
+  3. pooled spending delivered +0.3729% of TODAY's (+0.3660 to +0.3798): not lower by more than 0.05%: HOLDS
+  MEANS: FAILS
+
+MEANS against FLAT, on the 32 units where their shares differ: the pooled survival change -0.099 (-0.131 to -0.066)
+
+THE SHARE RULES' OUTCOME: NEITHER (today's split stays)
+
+BESIDE, DECIDING NOTHING:
+  TODAY over the same 32 units: the mean pot left £3,710,009, lifetime tax £171,855, spending delivered £2,476,957 a path; over its own 32 runs, the rollout beside the engine on 16000 paths: surviving in the engine alone 0, in the model alone 0 (a fidelity gap where either is not nought); the solve 69 to 147 s
+  FLAT  over the same 32 units (TODAY's run standing for FLAT's at 90/10): the mean pot left £3,654,995, lifetime tax £172,741, spending delivered £2,475,701 a path; over its own 24 runs, the rollout beside the engine on 12000 paths: surviving in the engine alone 0, in the model alone 0 (a fidelity gap where either is not nought); the solve 77 to 206 s
+  MEANS over the same 32 units: the mean pot left £3,698,475, lifetime tax £169,115, spending delivered £2,480,299 a path; over its own 32 runs, the rollout beside the engine on 16000 paths: surviving in the engine alone 0, in the model alone 0 (a fidelity gap where either is not nought); the solve 66 to 337 s

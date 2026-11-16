@@ -11,7 +11,7 @@
  * the arm's 16,000 (gainOf), over the rule's lost paths. The mechanism, on the replayed lost paths: in the five years before
  * the failure (the failure year itself left out), a year in which the household draws, a person funding at least half the
  * draw (by the split; both at an even split) reads their own position at 0.98 or more or 0.02 or less, and TODAY's policy at
- * that state picks a lower level than the rule's (mechanismOf). The equity: over the same years, the rule's tiers against
+ * that state picks a lower step of the menu than the rule's (mechanismOf; a step, not the raw level, since 16 Nov: LEVEL_TOL). The equity: over the same years, the rule's tiers against
  * TODAY's at the same states, by their place in TIER_ORDER (equityOf: above nought, the rule holds more equity).
  * The outcome (outcomeOf), the first that holds:
  *   1. L recovers half or more and the mechanism shows on more than half the lost paths: THE CAUSE HOLDS, with TK naming it:
@@ -24,7 +24,7 @@
  * Beside, deciding nothing: each comparison's counts and gains; the mirror (which part's loss takes S147-db's gain away);
  * the lost paths by kind; the funding check on the failing years; the year the two arms' moves first part.
  *   node research/solver/reduce-share-replay.mjs [dir] > research/solver/results-share-replay.txt
- *   node research/solver/reduce-share-replay.mjs --planted          (REDUCE_SHARE_REPLAY_PLANT=window or unscaled: it fails)
+ *   node research/solver/reduce-share-replay.mjs --planted          (REDUCE_SHARE_REPLAY_PLANT=window, unscaled or exactlevel: it fails)
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
@@ -35,8 +35,16 @@ import { COMPARISONS, CAPS, RUNS, REC_FIELDS, TOPK } from './share-replay.mjs';
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 export const CODE = 'c0dcfa9ef2f2', SEED = 7023, N_UNIT = 16000, HALF = 0.5, QUARTER = 0.25, READ_HI = 0.98, READ_LO = 0.02, WINDOW = 5;
 export const VARIANTS = ['L', 'R', 'S', 'TK'];
-// plants (REDUCE_SHARE_REPLAY_PLANT), each failing the planted suite: 'window' (the failure year in the window), 'unscaled'
+// plants (REDUCE_SHARE_REPLAY_PLANT), each failing the planted suite: 'window' (the failure year in the window), 'unscaled',
+// 'exactlevel' (two arms' levels compared raw)
 const PLANT = process.env.REDUCE_SHARE_REPLAY_PLANT || '';
+/* A STEP OF THE SPENDING MENU (the reviewer at the read, 16 Nov, finding 2; CHECKLIST 7): two arms' levels are compared by
+   their step on the menu, levels within LEVEL_TOL one step. Each person's table puts its floor at floorSpend / targetSpend
+   of its own plan, both rounded to the pound after the share, so under MEANS the rule's floor reads 0.800031 or 0.799995
+   where TODAY's is 0.8: compared raw, both arms at the floor read as TODAY spending less, by under £5 a year. */
+export const LEVEL_TOL = 0.01;
+export const stepLower = (a, b) => (PLANT === 'exactlevel' ? a < b : a < b - LEVEL_TOL);
+export const stepApart = (a, b) => (PLANT === 'exactlevel' ? a !== b : Math.abs(a - b) > LEVEL_TOL);
 const f = (x, d = 3) => (x >= 0 ? '+' : '') + x.toFixed(d);
 const dec = (b64, C) => { const b = Buffer.from(b64, 'base64'), c = new Uint8Array(b.length); c.set(b); return new C(c.buffer, 0, b.length / C.BYTES_PER_ELEMENT); };
 export function load(dir) {
@@ -86,11 +94,21 @@ export function mechanismOf(c) {
       const draw = at(c, 'X', i, t, 'draw'), sp = at(c, 'X', i, t, 'split'), ra = at(c, 'X', i, t, 'readA'), rb = at(c, 'X', i, t, 'readB');
       const extreme = r => r >= READ_HI || r <= READ_LO;
       const funder = (sp > 0.5 && extreme(ra)) || (sp < 0.5 && extreme(rb)) || (sp === 0.5 && (extreme(ra) || extreme(rb)));
-      return draw > 0 && funder && at(c, 'X', i, t, 'oLevel') < at(c, 'X', i, t, 'level');
+      return draw > 0 && funder && stepLower(at(c, 'X', i, t, 'oLevel'), at(c, 'X', i, t, 'level'));
     });
     if (hit) shown++;
   });
   return { paths, shown };
+}
+/* the first year, before the failure, that the rule's move is apart from TODAY's at the same state (a level a step of the
+   menu apart, the split, or a tier), on a lost path: the year, or -1 if never */
+export function firstApartOf(c, i) {
+  const fy = c.runs.X.failYear[i];
+  for (let t = 0; t < fy; t++) {
+    if (stepApart(at(c, 'X', i, t, 'level'), at(c, 'X', i, t, 'oLevel'))) return t;
+    if (['split', 'penA', 'isaA', 'penB', 'isaB'].some((k, j) => at(c, 'X', i, t, k) !== at(c, 'X', i, t, ['oSplit', 'oPenA', 'oIsaA', 'oPenB', 'oIsaB'][j]))) return t;
+  }
+  return -1;
 }
 export function equityOf(c) {
   let n = 0, sum = 0;
@@ -131,7 +149,7 @@ function planted() {
   // the mechanism: a lost path failing in year 6, its year 3 a draw on a person read at 0.99 with TODAY lower; the same with
   // TODAY level, and with no draw, not shown; a year after the failure not looked at
   const Y = 8, R0 = REC_FIELDS.length, mk = edit => { const rec = new Float32Array(Y * R0).fill(0); const put = (t, k, v) => { rec[t * R0 + REC_FIELDS.indexOf(k)] = v; };
-    for (let t = 0; t < Y; t++) { put(t, 'level', 1); put(t, 'oLevel', 1); put(t, 'split', 0.75); put(t, 'readA', 0.5); put(t, 'readB', 0.5); put(t, 'draw', 1000); } edit(put); return rec; };
+    for (let t = 0; t < Y; t++) { put(t, 'level', 1); put(t, 'oLevel', 1); put(t, 'split', 0.75); put(t, 'oSplit', 0.75); put(t, 'readA', 0.5); put(t, 'readB', 0.5); put(t, 'draw', 1000); } edit(put); return rec; };
   const one = rec => ({ Y, order: [['lost']], runs: { X: { failYear: Int16Array.from([6]) } }, rec: { X: rec } });
   cases.push(['the mechanism shown', mechanismOf(one(mk(p => { p(3, 'readA', 0.99); p(3, 'oLevel', 0.9); }))).shown, 1]);
   cases.push(['the mechanism: TODAY at the same level, not shown', mechanismOf(one(mk(p => { p(3, 'readA', 0.99); }))).shown, 0]);
@@ -139,6 +157,9 @@ function planted() {
   cases.push(['the mechanism: the reading on the person not funding, not shown', mechanismOf(one(mk(p => { p(3, 'readB', 0.99); p(3, 'oLevel', 0.9); }))).shown, 0]);
   cases.push(['the mechanism: the failure year itself not in the window', mechanismOf(one(mk(p => { p(6, 'readA', 0.99); p(6, 'oLevel', 0.9); }))).shown, 0]);
   cases.push(['the mechanism: six years before the failure not in the window', mechanismOf(one(mk(p => { p(0, 'readA', 0.99); p(0, 'oLevel', 0.9); }))).shown, 0]);
+  cases.push(['the mechanism: both arms at the floor, TODAY 0.8 and the rule 0.800031, not a lower step: not shown', mechanismOf(one(mk(p => { p(3, 'readA', 0.99); p(3, 'level', 0.800031); p(3, 'oLevel', 0.8); }))).shown, 0]);
+  cases.push(['firstApartOf: the levels 0.8 and 0.800031 on every year, the rest alike: never apart', firstApartOf(one(mk(p => { for (let t = 0; t < Y; t++) { p(t, 'level', 0.800031); p(t, 'oLevel', 0.8); } })), 0), -1]);
+  cases.push(['firstApartOf: a step apart in year 2', firstApartOf(one(mk(p => { p(2, 'oLevel', 0.9); })), 0), 2]);
   cases.push(['equityOf: the rule a place riskier than TODAY on one slot', (() => { const e = equityOf(one(mk(p => { for (let t = 0; t < Y; t++) for (const k of ['penA', 'isaA', 'penB', 'isaB', 'oPenA', 'oIsaA', 'oPenB', 'oIsaB']) p(t, k, 2); p(2, 'penA', 1); }))); return `${e.sum} of ${e.n}`; })(), '1 of 20']);
   // the gate: a smoke file and a code other than the read's refused
   const file = { smoke: true, code: 'x', seed: SEED, N: N_UNIT, topK: TOPK, idx: { lost: [], saved: [], ctrl: [] }, pop: { lost: 0, saved: 0, ctrl: 0 }, order: [], runs: Object.fromEntries(RUNS.map(r => [r, { survived: [] }])), fields: REC_FIELDS, tree: 't', node: 'n' };
@@ -189,9 +210,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     let years = 0, unfunded = 0, fundable = 0;
     for (const c of flags) c.order.forEach(([cat], i) => { if (cat !== 'lost') return; const fy = c.runs.X.failYear[i]; if (fy < 0 || fy >= c.Y || !(c.runs.X.unmet[i] > 1)) return; years++; if (!at(c, 'X', i, fy, 'funded')) { unfunded++; if (at(c, 'X', i, fy, 'fundLevel') >= 0) fundable++; } });
     console.log(`  the failing year of the lost paths that run short: ${years}; its move unfunded in the exact model ${unfunded}, of them a level of the menu at some split funding it ${fundable}`); }
-  { // the first year the rule's move parts from TODAY's at the same state (level, split or tiers), before the failure year
-    const before = []; for (const c of flags) c.order.forEach(([cat], i) => { if (cat !== 'lost') return; const fy = c.runs.X.failYear[i];
-      for (let t = 0; t < fy; t++) { const d = ['level', 'split', 'penA', 'isaA', 'penB', 'isaB'].some((k, j) => at(c, 'X', i, t, k) !== at(c, 'X', i, t, ['oLevel', 'oSplit', 'oPenA', 'oIsaA', 'oPenB', 'oIsaB'][j])); if (d) { before.push(fy - t); return; } } before.push(0); });
-    before.sort((x, y) => x - y);
-    console.log(`  the years from the rule's first move apart from TODAY's to the failure, on the lost paths: the median ${before[Math.floor(before.length / 2)]}, a quarter ${before[Math.floor(before.length / 4)]}, three quarters ${before[Math.floor(3 * before.length / 4)]}; never apart before it ${before.filter(x => x === 0).length} of ${before.length}`); }
+  { // the first year the rule's move parts from TODAY's at the same state (a level by a step of the menu, the split or the
+    // tiers), before the failure year (the reviewer at the read, finding 5: the year itself, not its distance to the failure)
+    const first = []; for (const c of flags) c.order.forEach(([cat], i) => { if (cat === 'lost') first.push(firstApartOf(c, i)); });
+    const by = {}; for (const y of first) by[y] = (by[y] || 0) + 1;
+    console.log(`  the first year the rule's move is apart from TODAY's at the same state, on the ${first.length} lost paths: ${Object.entries(by).sort((x, y) => x[0] - y[0]).map(([y, n]) => `${y < 0 ? 'never before the failure' : `year ${y}`} ${n}`).join(', ')}`); }
 }

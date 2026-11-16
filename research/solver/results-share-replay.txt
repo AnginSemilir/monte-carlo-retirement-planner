@@ -18,7 +18,7 @@ The rule (pooled over the ten flags; the rule's lost paths 4044):
   R  recovers +0.4367 of the lost paths (+1765.8 paths): a quarter or more, under half
   S  recovers -0.1378 of the lost paths (-557.4 paths): under a quarter
   TK recovers +0.4835 of the lost paths (+1955.3 paths): a quarter or more, under half
-  the mechanism: on 1227 of 2368 lost paths replayed (51.8%): more than half
+  the mechanism: on 1002 of 2368 lost paths replayed (42.3%): not more than half
   the equity: the rule's tiers against TODAY's at the same states, +0.1028 places of TIER_ORDER a slot over 47360 slot-years: the rule holds more equity
 
 THE SHARE REPLAY'S OUTCOME: MIXED
@@ -27,4 +27,4 @@ BESIDE, DECIDING NOTHING:
   the mirror, MEANS on S147-db (saved 1505, lost 11): L keeps 234 of 400 saved, 3 of 11 lost, 199 of 200 controls; R keeps 291 of 400 saved, 7 of 11 lost, 199 of 200 controls; S keeps 393 of 400 saved, 8 of 11 lost, 200 of 200 controls; TK keeps 390 of 400 saved, 4 of 11 lost, 200 of 200 controls
   the lost paths replayed by kind, each variant keeping: running short 1170 (L 128, R 579, S 90, TK 359); below the minimum pot 1198 (L 812, R 621, S 301, TK 806)
   the failing year of the lost paths that run short: 1170; its move unfunded in the exact model 1170, of them a level of the menu at some split funding it 194
-  the years from the rule's first move apart from TODAY's to the failure, on the lost paths: the median 27, a quarter 9, three quarters 39; never apart before it 0 of 2368
+  the first year the rule's move is apart from TODAY's at the same state, on the 2368 lost paths: year 0 2267, year 1 28, year 2 64, year 3 8, year 5 1

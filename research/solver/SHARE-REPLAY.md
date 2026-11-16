@@ -128,3 +128,15 @@ parts are the deep review's, written before any run, and are not changed.
 
 **Box:** about an hour and a half on four cores; half a day to read. The read goes to the maintainer whole, the reviewer at
 the read first.
+
+## Corrected after the read (16 Nov, the reviewer at the read, finding 2)
+
+The mechanism's third condition, as first coded, compared the two arms' levels raw. Under MEANS each person's floor is a
+ratio of amounts rounded to the pound, so it reads 0.800031 or 0.799995 where TODAY's reads 0.8. Both arms at the floor
+then read as TODAY picking a lower level.
+- `reduce-share-replay.mjs` now compares a step of the menu (`LEVEL_TOL`, 0.01: levels within it are one step), as the
+  rule's words mean, in `mechanismOf` and in the beside line on when the arms part. Its planted cases take floors at 0.8
+  and 0.800031, and the plant `exactlevel` (the raw comparison) fails them.
+- The read was printed again: the mechanism on 1,002 of 2,368 lost paths (42.3%), where the first print read 1,227
+  (51.8%). That line and the parting line changed; nothing else did.
+- The outcome stands, MIXED: L recovers 0.1555, so the mechanism could not decide it either way.

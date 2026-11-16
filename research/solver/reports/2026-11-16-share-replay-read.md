@@ -1,8 +1,12 @@
-# The share replay, read (16 Nov): MIXED, no single part of a couple's move carries the lost paths
+# The share replay, read (16 Nov): MIXED; which part recovers the lost paths differs by comparison
 
 EXPLORATORY (D110: "Run the deep review's test on seed 7023"). Its rule, `SHARE-REPLAY.md`, was committed before the run
-(4767cb74). The read whole is `results-share-replay.txt` (`reduce-share-replay.mjs`). Every figure below is printed there,
-or in the share rules' read and its beside file where named.
+(4767cb74).
+- **The read whole:** `results-share-replay.txt` (`reduce-share-replay.mjs`). It was printed again after the reviewer at
+  the read found that two of its lines compared the floor's rounding. Those two lines changed; the outcome did not (below).
+- **Beside it,** written after the read and deciding nothing: `results-share-replay-beside.txt`
+  (`share-replay-beside.mjs`, sections A to G).
+- Every figure below is printed in one of those two files, or in the share rules' read and its beside file where named.
 
 The run:
 - **What:** the ten comparisons the share rules' read flagged, and S147-db under MEANS as their mirror, on the read's own
@@ -30,117 +34,174 @@ This test took the lost paths apart. Each lost path was run again with one part 
 
 A part "carries" the loss if swapping it alone recovers at least half of it.
 
-**What it found: no part carries half, so the outcome is MIXED.**
-- By the rule, nothing is built, and the read comes to you with its figures.
-- Today's split stays the couples' default in every outcome.
+**What it found:**
+- **No part carries half, so the outcome is MIXED.** By the rule nothing is built, and the read comes to you with its
+  figures. Today's split stays the couples' default.
+- **Which part recovers differs from one comparison to the next.** No single story covers the ten.
 
 ## The read, by its rule
 
 Each variant's recovery: the rule's lost paths it keeps, less the saved and the both-keep paths it loses, each scaled to
-its whole count. It is pooled over the ten flags, out of the rule's 4,044 lost paths.
+its whole count. It is pooled over the ten flags, out of the rule's 4,044 lost paths. Its sampling error is the
+standard deviation from reading each category replayed short of its whole count as a sample of it (section C).
 
-| variant | recovers | paths |
-|---|---|---|
-| TK, each person's top six moves | `+0.4835` | `+1955.3` |
-| R, TODAY's tiers | `+0.4367` | `+1765.8` |
-| L, TODAY's spending level | `+0.1555` | `+628.7` |
-| S, TODAY's split | `-0.1378` | `-557.4` |
+| variant | recovers | sd | paths |
+|---|---|---|---|
+| TK, each person's top six moves | `+0.4835` | `0.021` | `+1955.3` |
+| R, TODAY's tiers | `+0.4367` | `0.053` | `+1765.8` |
+| L, TODAY's spending level | `+0.1555` | `0.045` | `+628.7` |
+| S, TODAY's split | `-0.1378` | `0.063` | `-557.4` |
 
-- **The mechanism** the deep review named shows on 1,227 of the 2,368 lost paths replayed (`51.8%`): more than half. In
-  the five years before such a path fails, the household draws from a person whose own table reads them at `0.98` or
-  more, or `0.02` or less, while TODAY at the same state would spend less.
-- **But the cause, as the rule defines it, needs L to recover half as well, and L recovers `0.1555`.**
-- **The equity:** at the same states, the rule's tiers hold more equity than TODAY's (`+0.1028` places of the tiers' order
-  a slot, over 47,360 slot-years).
-- **The outcome, the rule's sixth:**
-  - L is under half, so neither THE CAUSE HOLDS nor THE LEVEL;
-  - R is under half, so not THE RISK RIVAL;
-  - S is under half, so not THE SPLIT;
-  - R and TK each recover more than a quarter, so not NO PART RECOVERS A QUARTER;
-  - **MIXED.**
+**The mechanism the deep review named shows on 1,002 of the 2,368 lost paths (`42.3%`), not more than half.**
+- The test: in the five years before such a path fails, the household draws from a person whose own table reads them at
+  `0.98` or more, or `0.02` or less, while TODAY at the same state would spend a step of the menu less.
+- **The first print read 1,227 (`51.8%`), through a fault the reviewer at the read found.** It compared the two arms'
+  levels raw. Under MEANS each person's floor is a ratio of amounts rounded to the pound, so it reads 0.800031 or 0.799995
+  where TODAY's reads 0.8. Both arms at the floor then counted as TODAY spending less, by under £5 a year.
+- The read now compares a step of the menu, with a planted case of floors at 0.8 and 0.800031, and a plant that compares
+  raw levels fails it (CHECKLIST 7). No other script compares two arms' spending levels.
+- The outcome does not move: L recovers `0.1555`, so neither THE CAUSE HOLDS nor THE LEVEL could hold however the
+  mechanism read.
+
+**The equity, as the rule takes it pooled:** at the same states the rule's tiers hold more equity than TODAY's
+(`+0.1028` places of the tiers' order a slot). By comparison this is S061-dbpart's alone (below).
+
+**The outcome, the rule's sixth:**
+- L is under half, so neither THE CAUSE HOLDS nor THE LEVEL;
+- R is under half, so not THE RISK RIVAL;
+- S is under half, so not THE SPLIT;
+- R and TK each recover more than a quarter, so not NO PART RECOVERS A QUARTER;
+- **MIXED.**
+
+It is not near another branch: L would need `0.5`, more than seven standard deviations from `0.1555`.
 
 ## What the units show (beside, deciding nothing)
 
-These are leads read off the run after the read.
+These are leads read off the run after the read. Each variant's recovery over the comparison's own lost paths
+(section A):
 
-**The two kinds of loss part ways.** A lost path either runs short in some year, or ends the plan below the household's
-minimum pot. The replayed lost paths split about evenly between them, and each variant keeps them differently:
+| comparison | lost | L | R | S | TK |
+|---|---|---|---|---|---|
+| FLAT S023-45 | 106 | `+0.396` | `+0.528` | `+0.226` | `+0.443` |
+| FLAT S147-45 | 241 | `+0.320` | `+0.444` | `-0.529` | `+0.469` |
+| FLAT S191-45 | 160 | `+0.169` | `+0.594` | `-0.386` | `+0.381` |
+| FLAT S061-dbpart | 440 | `+0.103` | `-0.451` | `+0.088` | `+0.074` |
+| MEANS S061-dbpart | 1985 | `-0.089` | `+0.824` | `-0.047` | `+0.540` |
+| MEANS S023-90 | 451 | `+0.825` | `-0.130` | `-0.714` | `+0.961` |
+| MEANS S147-90 | 274 | `+0.839` | `-0.294` | `+0.073` | `-0.180` |
+| MEANS S227-90 | 169 | `-0.124` | `+0.533` | `+0.059` | `+0.923` |
+| MEANS S191-45 | 117 | `+0.171` | `+0.598` | `+0.214` | `+0.359` |
+| MEANS S377-dbpart | 101 | `+0.129` | `+0.485` | `-0.691` | `+0.475` |
 
-| | running short (1,170) | below the minimum pot (1,198) |
-|---|---|---|
-| R, TODAY's tiers | 579 | 621 |
-| TK, top six moves | 359 | 806 |
-| L, TODAY's level | 128 | 812 |
-| S, TODAY's split | 90 | 301 |
+**The part that recovers differs by comparison.**
+- **MEANS on S061-dbpart** (1,985 lost paths, half the pooled loss, every one running short):
+  - TODAY's tiers recover `+0.824`, the top six `+0.540`, and TODAY's level `-0.089`;
+  - the pooled figure for TODAY's tiers is mostly this comparison: without it, R pools to `+0.0628` (section B).
+- **FLAT on S061-dbpart** (440 lost paths, every one running short):
+  - no part recovers it: each variant keeps 34 to 46 of its 400 replayed lost paths (section D);
+  - here the rule's tiers hold the most equity of any comparison, yet TODAY's tiers keep 45 of the 400.
+- **MEANS on S023-90 and S147-90** (most of their losses end below the minimum pot):
+  - TODAY's level recovers `+0.825` and `+0.839`;
+  - the mechanism shows on `75.0%` and `91.6%` of their lost paths (section F);
+  - the top six recover `+0.961` on S023-90 but `-0.180` on S147-90.
+- **MEANS on S227-90:**
+  - the top six recover `+0.923`, TODAY's tiers `+0.533`, and TODAY's level `-0.124`;
+  - here the rule's level is below TODAY's at the same states, `-0.0062` of target on its paths below the minimum pot
+    (section E).
+- **The 45/55 units (four comparisons on three couples) and S377-dbpart:** TODAY's tiers recover `+0.444` to `+0.598`,
+  the top six `+0.359` to `+0.475`, and TODAY's level `+0.129` to `+0.396`.
 
-- **Paths that run short:** TODAY's tiers keep the most of them. The level keeps few.
-- **Paths below the minimum pot:** TODAY's level keeps the most of them, and the top six moves about as many.
+**The top six moves are the most consistent variant.**
+- They recover `0.35` or more on eight of the ten comparisons, with few saved or control paths lost (section C: one
+  control path of 2,000).
+- They recover under a quarter on FLAT S061-dbpart (`+0.074`) and MEANS S147-90 (`-0.180`).
+- They are the only variant that is a policy one could run on its own. L, R and S each borrow a part of TODAY's move.
 
-**The largest loss, S061-dbpart under MEANS** (1,985 lost paths), is mostly the tiers:
-- R keeps 330 of its 400 replayed lost paths (`+1636.6` paths);
-- TK keeps 216 (`+1071.9`);
-- L keeps 47 and loses more than it keeps (`-176.6`).
+**The equity explains the tiers' recoveries nowhere but S061-dbpart** (section E).
+- The rule holds more equity than TODAY there: `+0.505` under FLAT, `+0.410` under MEANS.
+- On the other eight comparisons it holds less: `-0.078` a slot pooled, negative on six of eight.
+- Yet TODAY's tiers keep 204 of those eight comparisons' 370 replayed paths that run short (section D, summed).
 
-That one comparison is about half of the pooled loss.
+**The split is not the fault, but its pooled loss is noise-heavy.**
+- TODAY's split keeps lost paths worth `+449.2` paths of the 4,044.
+- Its pooled `-557.4` is mostly `-894.7` from 12 control paths lost of 2,000; each lost control path counts 68 to 77
+  paths (section C).
+- Where it does worse than the rule on a single comparison, it rests on one to six control paths.
 
-**The 90/10 units under MEANS lean the other way.** Most of their losses are the minimum pot's
-(`results-share-rules-beside.txt` section F).
-- on S023-90 the level recovers `+372.0` paths and the top six moves `+433.3`;
-- on S147-90 the level recovers `+230.0`, while the top six moves lose ground (`-49.3`);
-- on S227-90 the top six moves recover `+156.0`.
+**The mirror, S147-db's gain under MEANS** (1,505 saved paths), counts only:
+- with TODAY's level the rule keeps 234 of the 400 saved paths replayed;
+- with TODAY's tiers, 291;
+- with TODAY's split or the top six, 393 and 390.
 
-**The split is not the fault.** TODAY's split does worse than the rule's own, pooled (`-557.4` paths). It does worse on
-five of the ten, most on S023-90 (`-322.0`) and S147-45 (`-127.5`).
+**The failing year of the lost paths that run short** (1,170): the rule's move funds none of them in the exact model. In
+194 of them, a level of the menu at some split would have funded the year.
 
-**The mirror, S147-db's gain under MEANS** (1,505 saved paths): with TODAY's level the rule keeps 234 of the 400 saved
-paths replayed, and with TODAY's tiers 291. With TODAY's split or the top six moves, it keeps nearly all of them (393, 390).
-So MEANS's gain there comes from its level and its tiers together.
+**The arms part at the start.** The rule's move is apart from TODAY's at the same state in year 0 on 2,267 of the 2,368
+lost paths, and on the rest by year 5. The deep review's signature for the minimum pot, moves that part only in the last
+years, is absent.
 
-**The failing year of the paths that run short** (1,170): the rule's move funds none of them in the exact model. In 194 of
-them, a level of the menu at some split would have funded the year.
-
-**When the arms part:** on the lost paths, the rule's move first differs from TODAY's a median of 27 years before the
-failure (a quarter at 9 years, three quarters at 39). On every lost path the two moves part before the failure year.
+**Two open items' questions, as leads** (section G; neither item's status changes):
+- **FD-RAISE:** of the 1,170 lost paths that run short, 60 have a year at 110% of target in the three years before the
+  failing year, 10 of them in the year just before.
+- **CGT-BILL:** 33 run short by under £1,000 in all, and 10 of those pay tax, income and gains together, in the failing
+  year.
 
 ## What it means
 
-The deep review read a single cause. The replay shows two failure modes, which the share brings out differently:
-- **Running short is mostly the tiers.** At the same states the rule's tables take more equity than TODAY's (the equity
-  line above). TODAY's tiers keep about half of these paths, and the level very few.
-- **Ending below the minimum pot is mostly the level.** The rule spends more than TODAY would at the same state, and
-  TODAY's level keeps most of these paths.
-
-Offering each person's top six moves instead of two (TK) recovers about half of the loss across both modes. It keeps most
-of the minimum pot's losses, and a third of the paths that run short.
-
-So the joint move's short list of two moves a person is a material limit wherever the share moves. It is the one change
-that helps with both kinds of loss, and it needs no new solver code (`solveCouple`'s `topK`). But it costs time: six
-moves a person instead of two makes nine times the joint candidates each year.
+- **No part carries half of the loss, pooled.**
+- **The part that recovers differs by comparison:**
+  - TODAY's tiers on MEANS S061-dbpart;
+  - TODAY's level on S023-90 and S147-90;
+  - the top six on S023-90 and S227-90;
+  - nothing on FLAT S061-dbpart.
+- **The swaps overlap.** Each takes one part of TODAY's move, and what one recovers another often recovers too. Their
+  recoveries do not add up, and no swap of two parts together was run.
+- **The deep review's single cause is not shown.** Its mechanism shows on `42.3%` of the lost paths pooled. It shows on
+  more than half only on the two units where TODAY's level recovers most (S023-90 and S147-90).
+- **The top six moves are the most consistent change, but they fail on two comparisons.** Their path time was not
+  measured here; the deep review estimates up to nine times a path.
 
 ## What the read cannot show
 
-- **TK's effect on today's split.** TK was tested on the rules' own policies, to recover their losses. Whether a wider
-  joint move improves today's default, and at what cost in time, was not run.
-- **Anything on the other 1,676 lost paths** of S061-dbpart, S023-90 and FLAT's S061-dbpart that the cap of 400 left
-  unreplayed. The scaling assumes they behave as the first 400 in path order.
-- **The panel's shape** (the share rules' read's list):
+- **That the swaps decompose the loss.** They overlap, and no joint swap was run.
+- **Precision at comparison level.** Each lost control path counts 68 to 77 paths. Several comparisons' figures rest on
+  one to six of them (sections A and C).
+- **Why a variant keeps a path.** L, R, S and TK kept no record of each year; only X and T did.
+- **The paths both arms lose** (330 to 622 a comparison), which were not replayed. A policy like TK might save some of
+  them, which bears on TK as a change for today's split.
+- **Money.** The equity and the mechanism count tier places and readings per slot or person, not the money in them.
+- **TK's effect on today's split, and its time.** TK was tested on the rules' own policies.
+- **The other 1,676 lost paths.** The cap of 400 left them unreplayed (MEANS and FLAT S061-dbpart, S023-90). The scaling
+  assumes they behave as the first 400 in path order.
+- **The panel's shape:**
   - every couple's first person three years older;
   - the elder holding 45% to 90%;
   - the 'standard' estate aim.
-- **LOOKHOLD,** the couples' default since D109, which the read's code predates.
-- **Why the rule's tables take more equity,** which the record shows at the states but does not explain.
+- **LOOKHOLD.** The read's code holds the hold and the forward look as options, off. The read predates D109's change of
+  default, so its arms ran without them.
 
 ## The reviewer at the read
 
-(to come)
+FAIL, two BLOCKING and three MINORs (`reviews/2026-11-16-read-share-replay.md`). The run, the to-the-bit matches, the
+four pooled recoveries and MIXED stand. Answered in this one fix:
+1. **The first write-up's "two failure modes" and its case for TK went beyond the data.** It is replaced by the
+   per-comparison picture, printed beside the read.
+2. **The mechanism's "more than half" came from the floor's rounding.** It is corrected in the read, with its planted case
+   and a plant that fails it, and stated above.
+3. The sampling error is given.
+4. The list of what the read cannot show is completed, and the LOOKHOLD item corrected.
+5. The line on when the arms part now prints the year they part, not the failure year.
 
 ## For the maintainer
 
 By its rule, the replay builds nothing; it comes to you as a read. Two ways on:
 1. **A wider joint move for couples, tested on today's split** (the agent's recommendation).
-   - Each person's top four, and top six, moves against today's two, on today's couples' default (with LOOKHOLD).
-   - EXPLORATORY on a panel of couples at seed 7002, its rule committed first.
-   - It reads survival, spending and the pot as the tie tests did, beside a couple's solve and path times.
-   - It needs no new solver code. If it gains, it comes back to you as a trade, survival against time, like LOOKHOLD's.
-2. **Leave the share and the joint move as they are,** and go on to the research queue's two factorials and then your
-   work on the screens.
+   - The basis: the top six moves are the most consistent variant (`0.35` or more on eight of ten comparisons, `+0.4835`
+     pooled) and the only one that is a policy one could run.
+   - They fail on two comparisons, FLAT S061-dbpart and MEANS S147-90, and their time was not measured here.
+   - The test: each person's top four and top six moves against today's two, on today's couples' default (with
+     LOOKHOLD), EXPLORATORY on a panel at seed 7002, its rule committed first.
+   - It reads survival, spending and the pot beside a couple's solve and path times. No new solver code is needed.
+   - A gain comes back to you as a trade of survival against time, like LOOKHOLD's.
+2. **Leave the share and the joint move as they are,** and go on to the research queue's two factorials, then your work
+   on the screens.

@@ -14,11 +14,14 @@ below this section says "the beta", read it as history. The order from here:
 **OPEN (16 Nov, evening): after the share replay's read, MIXED** (D110; `SHARE-REPLAY.md`, its rule committed first;
 `results-share-replay.txt`; the report `reports/2026-11-16-share-replay-read.md`; the reviewer at the read before this goes
 to you).
-- **What it found:** no single part of a couple's move carries the share rules' lost paths. Swapping in TODAY's tiers
-  recovers `+0.4367` of them and the top six moves `+0.4835`; TODAY's level `+0.1555`; TODAY's split loses ground.
-  - The lost paths that run short are mostly the tiers'.
-  - Those that end below the minimum pot are mostly the level's.
-  - The top six moves help with both.
+- **What it found:** no single part of a couple's move carries the share rules' lost paths, pooled. Swapping in TODAY's
+  tiers recovers `+0.4367` of them and the top six moves `+0.4835`; TODAY's level `+0.1555`; TODAY's split loses ground.
+  - Which part recovers differs by comparison: TODAY's tiers on MEANS S061-dbpart (most of their pooled figure), TODAY's
+    level on S023-90 and S147-90, the top six on S023-90 and S227-90, and nothing on FLAT S061-dbpart.
+  - The top six moves are the most consistent (`0.35` or more on eight of ten) and the only variant one could run as a
+    policy; they fail on FLAT S061-dbpart and MEANS S147-90, and their time was not measured.
+  - The deep review's mechanism shows on `42.3%` of the lost paths (the first print's `51.8%` was a rounding fault, fixed).
+  - The reviewer at the read: FAIL, answered in one fix; its second round before this is final.
 - **Your options:**
   1. **A wider joint move for couples, tested on today's split** (the agent's recommendation): each person's top four and
      top six moves against today's two, on today's default (with LOOKHOLD), EXPLORATORY on a panel at seed 7002, its rule

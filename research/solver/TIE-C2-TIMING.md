@@ -1,5 +1,9 @@
 # TIE-C2's speed exception, timed cleanly (D108; EXPLORATORY, seed 7001)
 
+**Not run (16 Nov, morning).** Before it was launched, the maintainer took the trade: "Just take `1.25`, let's not waste
+taste, speed work will happen anyway right?" (D109). LOOKHOLD becomes the couples' default without this timing. The plan,
+its rule and its build stay as committed, unused.
+
 The plan and its rule, committed with the build before any unit of the run. The build was tried only by a smoke at tiny
 settings, one couple at 6 points and 100 paths beside the share rules' run, which decides nothing. The maintainer, on
 TIE-C2's read (16 Nov, night): "Clean timing decides (Recommended)". A change to this file after this commit is a dated

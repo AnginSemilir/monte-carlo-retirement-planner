@@ -1,4 +1,4 @@
-the code: code-stamp:3b7461f2fa52324a; the new planner's mode
+the code: code-stamp:cec4cfa15cdf7306; the new planner's mode
 == build, the harnesses' light settings (SOLVER_HARNESS=1, into dist-new) ==
    ok
 == serve on :4173 ==

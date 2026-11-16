@@ -1,4 +1,6 @@
-TIE-C2'S SPEED EXCEPTION, BESIDE THE READ (EXPLORATORY, seed 7001, deciding nothing): 12 units, the engine's wall clock, four at a time, the bar x1.25 on the median over the couples of LOOKHOLD's time a path against CANDS's
+TIE-C2, BESIDE THE READ (EXPLORATORY, seed 7001, deciding nothing): 12 units
+
+A. THE SPEED EXCEPTION AND THE ARMS' ORDER: the engine's wall clock, four units at a time, each unit's arms in the order CANDS, HOLD, LOOKHOLD, TIE4; the bar x1.25 on the median over the couples of LOOKHOLD's time a path against CANDS's
   unit 0 S327F  CANDS 1536 s, HOLD 1594 s, LOOKHOLD 1866 s, TIE4 1505 s; against CANDS: HOLD x1.037, LOOKHOLD x1.214, TIE4 x0.980; LOOKHOLD against HOLD x1.171, against TIE4 x1.239; the arms, from the batch's start (UK, to the minute): CANDS 19:35 to 20:01, HOLD 20:01 to 20:27, LOOKHOLD 20:27 to 20:58, TIE4 20:58 to 21:23
   unit 1 S329F  CANDS 1500 s, HOLD 1554 s, LOOKHOLD 1972 s, TIE4 1462 s; against CANDS: HOLD x1.036, LOOKHOLD x1.315, TIE4 x0.975; LOOKHOLD against HOLD x1.270, against TIE4 x1.349; the arms, from the batch's start (UK, to the minute): CANDS 19:35 to 20:00, HOLD 20:00 to 20:26, LOOKHOLD 20:26 to 20:59, TIE4 20:59 to 21:23
   unit 2 S331F  CANDS 1540 s, HOLD 1607 s, LOOKHOLD 1948 s, TIE4 1531 s; against CANDS: HOLD x1.043, LOOKHOLD x1.265, TIE4 x0.994; LOOKHOLD against HOLD x1.213, against TIE4 x1.272; the arms, from the batch's start (UK, to the minute): CANDS 19:35 to 20:01, HOLD 20:01 to 20:28, LOOKHOLD 20:28 to 21:00, TIE4 21:00 to 21:26
@@ -11,6 +13,41 @@ TIE-C2'S SPEED EXCEPTION, BESIDE THE READ (EXPLORATORY, seed 7001, deciding noth
   unit 9 S167   CANDS 1070 s, HOLD 1043 s, LOOKHOLD 1080 s, TIE4 1046 s; against CANDS: HOLD x0.974, LOOKHOLD x1.009, TIE4 x0.977; LOOKHOLD against HOLD x1.035, against TIE4 x1.033
   unit 10 S205   CANDS 855 s, HOLD 845 s, LOOKHOLD 888 s, TIE4 860 s; against CANDS: HOLD x0.989, LOOKHOLD x1.038, TIE4 x1.006; LOOKHOLD against HOLD x1.050, against TIE4 x1.032
   unit 11 S223   CANDS 915 s, HOLD 899 s, LOOKHOLD 946 s, TIE4 901 s; against CANDS: HOLD x0.983, LOOKHOLD x1.034, TIE4 x0.985; LOOKHOLD against HOLD x1.052, against TIE4 x1.049
-HOLD against CANDS (the same moves wherever the hold does not act), the median: units 0 to 3 x1.040, units 4 to 11 x0.987; TIE4 against CANDS: units 0 to 3 x0.987, units 4 to 11 x0.968
-HOLD's stored outcomes (survived, failYear, pot, tax, delivered) against CANDS's, byte for byte: 0 of 96000 paths differ
-The rule's median, LOOKHOLD against CANDS: as read over the twelve x1.219; over units 4 to 11 alone x1.121; with units 0 to 3 set above every other couple x1.240: BELOW the bar x1.25 however much load their CANDS arms carried
+  HOLD's stored outcomes (survived, failYear, pot, tax, delivered) against CANDS's, byte for byte: 0 of 96000 paths differ
+  the first arm's effect: on units 0 to 3 (the session working) HOLD against CANDS the median x1.040; on the quiet units 4 to 11, HOLD against CANDS x0.987 (7 of 8 below one) and TIE4 against CANDS x0.968 (7 of 8 below one): CANDS, run first, reads slow on a quiet machine though HOLD makes its every move
+  the rule's median, LOOKHOLD against CANDS over the twelve: x1.219 as read; rescaled by the quiet units' HOLD against CANDS x1.236, by their TIE4 against CANDS x1.260
+  LOOKHOLD against the arms run after the first, over the twelve: against HOLD x1.213 (units 0 to 3's HOLD run while the session worked), against TIE4 x1.255
+  units 0 to 3 set above every other couple (whatever load they carried): against CANDS x1.240, against HOLD x1.241, against TIE4 x1.292
+  by cohort, LOOKHOLD against CANDS: the young 8 the median x1.259 (against TIE4 x1.271), the look changing the pick at 684 to 945 decisions a couple; the library's 4 x0.958 to x1.038, at 106 to 201 decisions a couple
+  so: the rule's reading x1.219 is below the bar; with the first arm's effect undone the readings run from x1.236 to x1.260, 2 of 3 above it: the bar x1.25 lies within the timing's own order effect, and the median over the twelve sits below it through the library's four
+
+B. THE PATHS A TENTH LOWER OR HIGHER, WITH THEIR LIFETIME TAX (against CANDS; below the cap: the path's pot under the household's cap, the two people's caps together, in both arms)
+  LOOKHOLD: 11 paths a tenth lower, 4 of them below the cap in both arms:
+    S327F path 2451: the pot £3.59m to £3.02m (-15.9%), lifetime tax £128,210 to £43,243, the cap £1.80m
+    S327F path 4388: the pot £2.19m to £1.82m (-16.7%), lifetime tax £47,339 to £44,703, the cap £1.80m
+    S327F path 5806: the pot £1.41m to £1.22m (-13.4%), lifetime tax £6,409 to £6,409, the cap £1.80m, below it in both
+    S329F path 4759: the pot £0.46m to £0.41m (-11.5%), lifetime tax £33,247 to £33,430, the cap £1.80m, below it in both
+    S331F path 7261: the pot £4.45m to £3.83m (-13.9%), lifetime tax £170,947 to £174,233, the cap £3.80m
+    S335F path 978: the pot £109.33m to £97.61m (-10.7%), lifetime tax £6,479,365 to £5,857,900, the cap £9.60m
+    S335F path 4377: the pot £179.08m to £158.60m (-11.4%), lifetime tax £9,301,553 to £9,084,085, the cap £9.60m
+    S337F path 2342: the pot £2.58m to £1.92m (-25.6%), lifetime tax £62,829 to £8,731, the cap £0.72m
+    S337F path 3448: the pot £0.58m to £0.44m (-23.7%), lifetime tax £674 to £911, the cap £0.72m, below it in both
+    S337F path 4935: the pot £0.48m to £0.42m (-11.8%), lifetime tax £2,049 to £2,728, the cap £0.72m, below it in both
+    S343F path 7261: the pot £4.42m to £3.82m (-13.5%), lifetime tax £224,073 to £223,539, the cap £3.80m
+  LOOKHOLD: 168 paths a tenth higher, 4 of them below the cap in both arms: S327F 2 (1 below the cap; their lifetime tax £86,949 to £84,134 together); S329F 11 (0 below the cap; their lifetime tax £18,614,352 to £16,218,591 together); S337F 142 (1 below the cap; their lifetime tax £18,301,828 to £9,721,432 together); S341F 5 (0 below the cap; their lifetime tax £1,242,492 to £944,858 together); S343F 3 (2 below the cap; their lifetime tax £2,172,620 to £3,476,902 together); S205 5 (0 below the cap; their lifetime tax £422,276 to £396,575 together)
+  LOOKHOLD: over all 96000 paths, the capped pot lower by more than a pound on 990 and higher on 488; £5,942,100 lost and £4,086,176 gained
+  TIE4: 8 paths a tenth lower, 0 of them below the cap in both arms:
+    S327F path 1920: the pot £2.60m to £2.29m (-12.0%), lifetime tax £41,889 to £44,633, the cap £1.80m
+    S327F path 2451: the pot £3.59m to £2.98m (-17.1%), lifetime tax £128,210 to £77,113, the cap £1.80m
+    S327F path 4388: the pot £2.19m to £1.82m (-16.6%), lifetime tax £47,339 to £44,117, the cap £1.80m
+    S335F path 4377: the pot £179.08m to £156.97m (-12.3%), lifetime tax £9,301,553 to £9,373,777, the cap £9.60m
+    S337F path 1168: the pot £2.64m to £2.12m (-19.6%), lifetime tax £93,511 to £15,906, the cap £0.72m
+    S337F path 1302: the pot £1.02m to £0.91m (-11.3%), lifetime tax £1,563 to £1,024, the cap £0.72m
+    S337F path 2342: the pot £2.58m to £1.89m (-26.5%), lifetime tax £62,829 to £446, the cap £0.72m
+    S343F path 7261: the pot £4.42m to £3.82m (-13.5%), lifetime tax £224,073 to £223,539, the cap £3.80m
+  TIE4: 107 paths a tenth higher, 0 of them below the cap in both arms: S327F 1 (0 below the cap; their lifetime tax £33,612 to £33,471 together); S329F 7 (0 below the cap; their lifetime tax £10,744,516 to £9,996,557 together); S337F 97 (0 below the cap; their lifetime tax £13,109,548 to £6,615,515 together); S341F 1 (0 below the cap; their lifetime tax £20,188 to £25,524 together); S343F 1 (0 below the cap; their lifetime tax £1,761,444 to £2,505,238 together)
+  TIE4: over all 96000 paths, the capped pot lower by more than a pound on 643 and higher on 558; £4,993,477 lost and £3,199,515 gained
+
+C. THE POOLED TYPICAL-PATH CHANGE TAKEN BY PATH (LOOKHOLD against CANDS; the young 8 share a horizon, 60 years, on seed 7001, so the same paths)
+  as the reducer pools it (the couples independent): +0.288% (+0.281 to +0.296), its standard error 0.0037
+  taken by path, on the 7101 paths of 8000 where all 12 couples leave a pot in both arms: +0.306% (+0.295 to +0.318), its standard error 0.0059

@@ -1,0 +1,11 @@
+THE SHARE RULES' PILOT, WHAT IT SHOWS FOR THE REGISTERED RUN (EXPLORATORY, seed 7002, 1,000 paths a unit, deciding nothing; the registered paths 16000)
+Each comparison losing survival on the pilot: the chance D34's rule flags it at the registered paths were that loss true.
+  FLAT  S023-45      share 0.500 to 0.450: a loss of +0.70 points (7 lost, 0 saved); at 16000 paths and a discordance of 1.01%, the threshold 0.381, flagged with chance 1.000
+  FLAT  S191-45      share 0.500 to 0.450: a loss of +0.50 points (6 lost, 1 saved); at 16000 paths and a discordance of 1.01%, the threshold 0.381, flagged with chance 0.929
+  FLAT  S271-45      share 0.500 to 0.450: a loss of +0.80 points (12 lost, 4 saved); at 16000 paths and a discordance of 1.60%, the threshold 0.412, flagged with chance 1.000
+  MEANS S023-45      share 0.500 to 0.470: a loss of +0.70 points (7 lost, 0 saved); at 16000 paths and a discordance of 1.01%, the threshold 0.381, flagged with chance 1.000
+  MEANS S023-90      share 0.900 to 0.854: a loss of +2.40 points (27 lost, 3 saved); at 16000 paths and a discordance of 3.00%, the threshold 0.475, flagged with chance 1.000
+  MEANS S191-45      share 0.500 to 0.470: a loss of +0.30 points (3 lost, 0 saved); at 16000 paths and a discordance of 1.01%, the threshold 0.381, flagged with chance 0.144
+  MEANS S191-dbpart  share 0.500 to 0.556: a loss of +0.10 points (7 lost, 6 saved); at 16000 paths and a discordance of 1.30%, the threshold 0.400, flagged with chance 0.000
+The panel's 32 units: MEANS's share less the pots' own (FLAT's) from -0.215 to +0.081; less TODAY's from -0.183 to +0.181; FLAT's share from 0.450 to 0.900
+MEANS against FLAT: on 12 units with TODAY's run standing for FLAT's at 90/10, the pooled survival change +0.167 (-0.032 to +0.365); without the stand-in (the read before the fix) on 9, +0.222 (+0.040 to +0.404)

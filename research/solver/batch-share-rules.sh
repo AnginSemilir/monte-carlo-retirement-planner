@@ -4,12 +4,13 @@
 # share-rules-paths.json's paths, only under the registration through the launcher) or pilot (seed 7002, 1,000 paths, the
 # pilot's units; EXPLORATORY). Read by reduce-share-rules.mjs.
 #   PREDICTION=research/solver/registrations/share-rules.md research/solver/run-from-snapshot.sh bash research/solver/batch-share-rules.sh
-#   MODE=pilot PREDICTION="none:EXPLORATORY: the share rules' pilot, sizing the registered run" research/solver/run-from-snapshot.sh bash research/solver/batch-share-rules.sh
+#   MODE=pilot bash research/solver/batch-share-rules.sh      (the pilot, run directly: the launcher refuses this batch under a
+#                                                            measurement, its seed line naming the reserved 7023)
 set -u
 MODE=${MODE:-registered}
 # the registered run's seed, on a line the launcher's seed check reads (run-from-snapshot.sh): so a launch of this batch runs
-# only under the registration that owns 7023 (check-prediction.mjs: share-rules*.md), and the pilot, done on 7002, is not
-# launched through the launcher again
+# only under the registration that owns 7023 (check-prediction.mjs: share-rules*.md); the pilot, done on 7002, is run directly,
+# on code left unedited while it runs (the launcher refused it, 15 Nov 18:43 UK)
 HELD_SEED=7023
 case "$MODE" in registered) OUT=research/solver/results/share-rules-run; LIST="" ;; pilot) OUT=research/solver/results/share-rules-pilot; LIST=pilot ;; *) echo "$0: MODE registered or pilot"; exit 2 ;; esac
 # A launch needs an empty folder; RESUME=1 (after a restart) keeps a unit only when its log's stamp names this code, these

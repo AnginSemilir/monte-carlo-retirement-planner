@@ -50,7 +50,7 @@
  * values every position both ways and counts any that differ. Plants 'flatrate', 'flatmemo' and 'flatmove' (the test's).
  */
 import { solve, solveMixture, rankActions, scoreMoves, chooseAction, NODES, WEIGHTS } from './solve.js';
-import { foldedVol } from './fast.js';
+import { foldedVol, TIER_ORDER } from './fast.js';
 import { vecOf, readValues, bridgeTable, locateVec, interpPair, READER_PROBE } from './grid.js';
 import { profileOf as M_profileOf } from './model.js';
 import { sameYears } from './horizon.js';
@@ -235,6 +235,10 @@ export function solveCouple(E, M, plan, opts = {}) {
   if (opts.shareRule !== undefined && opts.share !== undefined) throw new Error('solveCouple: share and shareRule both given');
   const from = estateFrom(m0.ctx, opts.estateWeight);
   if (opts.tieJoint !== undefined && !(opts.tieJoint >= 0 && opts.tieJoint <= 0.01)) throw new Error(`solveCouple: tieJoint ${opts.tieJoint}: a margin in score units, from 0 to 0.01 (1e-4 is 0.01 points of survival)`);
+  // D105 (research/solver/TIE-C2.md): the hold past a multiple of each table's wealth top, and the forward look on the tie set
+  if (opts.holdPast !== undefined && !(typeof opts.holdPast === 'number' && Number.isFinite(opts.holdPast) && opts.holdPast > 0)) throw new Error(`solveCouple: holdPast ${opts.holdPast}: a multiple of a table's wealth top, above 0 (TIE-C2.md takes 2)`);
+  if (opts.tieLook !== undefined && opts.tieLook !== true && opts.tieLook !== false) throw new Error(`solveCouple: tieLook ${opts.tieLook}: true or false`);
+  if (opts.tieLook === true && !(opts.tieJoint > 0)) throw new Error('solveCouple: tieLook ranks the tie set tieJoint draws: give tieJoint a margin above 0');
   const shareRule = SHARE_RULES.includes(opts.shareRule) ? opts.shareRule : 'half';
   const share = opts.share !== undefined ? opts.share : shareRule === 'half' ? 0.5 : shareBy(E, plan, shareRule);
   const plans = {
@@ -263,7 +267,7 @@ export function solveCouple(E, M, plan, opts = {}) {
   const need = { self: needOf(tables.self), part: needOf(tables.part) };
   // the joint estate weight: the first person's table's, or under opts.estateWeight 'elder' the elder's (estateFrom)
   const wB = tables[from].wB;
-  return { E, M, m, plan: planH, plans, tables, share, tiersBelow, switchCost: scA, need, splits: opts.splits || SPLITS, topK: opts.topK || 2, wB, ...(opts.tieJoint > 0 ? { tieJoint: opts.tieJoint } : {}), meta: { ms: Date.now() - t0, mixture: tables.self.meta.mixture || 0, points: tables.self.meta.points, share, shareRule, ...(opts.estateWeight !== undefined ? { estateWeight: opts.estateWeight, estateFrom: from } : {}), ...(opts.tieJoint !== undefined ? { tieJoint: opts.tieJoint } : {}) } };
+  return { E, M, m, plan: planH, plans, tables, share, tiersBelow, switchCost: scA, need, splits: opts.splits || SPLITS, topK: opts.topK || 2, wB, ...(opts.tieJoint > 0 ? { tieJoint: opts.tieJoint } : {}), ...(opts.holdPast > 0 ? { holdPast: opts.holdPast } : {}), ...(opts.tieLook === true ? { tieLook: true } : {}), meta: { ms: Date.now() - t0, mixture: tables.self.meta.mixture || 0, points: tables.self.meta.points, share, shareRule, ...(opts.estateWeight !== undefined ? { estateWeight: opts.estateWeight, estateFrom: from } : {}), ...(opts.tieJoint !== undefined ? { tieJoint: opts.tieJoint } : {}), ...(opts.holdPast !== undefined ? { holdPast: opts.holdPast } : {}), ...(opts.tieLook !== undefined ? { tieLook: opts.tieLook } : {}) } };
 }
 
 /*
@@ -745,7 +749,75 @@ export function tiePick(cands, best, margin) {
   }
   return pick;
 }
-export function chooseJoint(cp, state, t) {
+/*
+ * THE FORWARD LOOK (cp.tieLook; D105, research/solver/TIE-C2.md; an option, off in code, taking tieJoint's margin). The first
+ * rule's tie set, unchanged (both people above their caps, not the plan's last year, the moves at the best move's spending
+ * level and each person's tier pair that score within the margin of it: tiePick's filter), ranked by the household's pot at
+ * the plan's end on the median path: every wrapper grows at its tier's median return (every shock nought, ratesFor), the move
+ * this year and the best move's own choices in each later year (its split, each person's draw order, re-wrap and ceiling, its
+ * spending level, the tiers it leaves, which the tie set shares). The largest end pot wins by more than a penny; within a
+ * penny the least tax this year, then the larger wealth after the move (tiePick's order); a look that runs out ranks below
+ * any that does not. Only where and how the money is drawn can change, never the spending or the risk. TIE-C.md's read: this
+ * year's least tax drew the tax-free ISAs down and kept a taxable account that paid tax for decades. One median path is a
+ * guide, not the expected end pot. COUPLE.plant 'lookyear' (couple-tie-look.test.mjs check 3): the pot after this year alone
+ */
+export function lookPick(cp, state, t, cands, best, margin) {
+  const { m, M } = cp, T = m.ctx.totalYears, Z0 = new Float64Array(T + 2), lvB = best.joint.spendLevel, tB = tiersOfJoint(best.joint);
+  const endOf = (c) => {
+    const st = M.cloneState(state);
+    let row = M.step(m, st, c.joint, t, ratesAt(m, Z0, t));
+    if (row.unmetDemand > 1 || row.preNmpaInsolvent) return -Infinity;
+    if (!planted('lookyear')) for (let u = t + 1; u <= T; u++) { row = M.step(m, st, best.joint, u, ratesAt(m, Z0, u)); if (row.unmetDemand > 1 || row.preNmpaInsolvent) return -Infinity; }
+    return Object.values(st.pots).reduce((a, b) => a + b, 0);
+  };
+  let pick = best, pickEnd = endOf(best);
+  for (const c of cands) {
+    if (c.joint === best.joint || c.score < best.score - margin || c.joint.spendLevel !== lvB || tiersOfJoint(c.joint) !== tB) continue;
+    const e = endOf(c), even = e === pickEnd || Math.abs(e - pickEnd) <= 0.01;
+    if ((!even && e > pickEnd) || (even && (c.tax < pick.tax - 1e-9 || (Math.abs(c.tax - pick.tax) <= 1e-9 && c.wealth > pick.wealth)))) { pick = c; pickEnd = e; }
+  }
+  return pick;
+}
+/*
+ * THE HOLD (cp.holdPast; D105, research/solver/TIE-C2.md; an option, off in code). Each person's table covers wealth up to the
+ * top of its wealth axis (grid.js makeGrid: six times what the person opened with, or 60 years of their spending, so one and a
+ * half times their estate cap or more) and reads a pot beyond it as the top (grid.js locate), where a fall below the cap looks
+ * possible and less risk worth its charge: for the real household it buys nothing (TIE-C.md's read: S311F's two deciding
+ * paths, pots of billions read at the top, stepped three tiers down at 90). For each person whose wealth as their table reads
+ * it (pension, ISA and taxable account together, the decision's own state) is more than holdPast times that top, a wrapper the
+ * move would step down to less risk keeps the tier the person holds; a step up, and the rest of the move, stand. Below the
+ * limit nothing changes, nor in the plan's last year (not a table read). It applies to the move the chooser picks, after the
+ * tie set where that acts. Forward only: no table reads it. At a dial position locked to its base's tiers (lockTiers, D3) it
+ * acts over the lock as at position 1: the position's table shares its base's wealth axis, so past the limit the lock's step
+ * down is the same misread (the reviewer on D109's change of default, MINOR 2). COUPLE.plant (couple-tie-look.test.mjs):
+ * 'holdany' drops the wealth test (check 2); 'holdup' keeps the held tier on a step up too (check 6); 'holdlock' leaves a
+ * locked table's move to its lock (check 7)
+ */
+export function holdMove(cp, state, t, joint, sA, sB) {
+  if (!(cp.holdPast > 0) || t >= cp.m.ctx.totalYears) return joint;
+  let out = joint;
+  for (const [w, tab, s] of [['self', cp.tables.self, sA], ['part', cp.tables.part, sB]]) {
+    const ax = tab.g && tab.g.axes && tab.g.axes.W, po = out.perOwner && out.perOwner[w];
+    if (!ax || !po || !tiered(tab)) continue;
+    if (planted('holdlock') && tab.lockTiers) continue;
+    if (!planted('holdany') && !(s[0] + s[1] + s[2] > cp.holdPast * ax.hi)) continue;
+    const h = state.tierHeld && state.tierHeld[w] ? state.tierHeld[w] : { pen: 0, isa: 0 }, keep = {};
+    for (const [cat, key] of [['pen', 'tierPen'], ['isa', 'tierIsa']]) {
+      const from = h[cat] || 0, to = po[key] || 0;
+      if (to === from) continue;
+      // TIER_ORDER runs riskiest first: a larger place is less risk, so a step down
+      const rf = TIER_ORDER.indexOf(tierName(tab, cat, from)), rt = TIER_ORDER.indexOf(tierName(tab, cat, to));
+      if (rf >= 0 && rt >= 0 && (rt > rf || planted('holdup'))) keep[key] = from;
+    }
+    if (!Object.keys(keep).length) continue;
+    const npo = { ...po, ...keep };
+    if ('tierPenName' in po) { npo.tierPenName = tierName(tab, 'pen', npo.tierPen || 0); npo.tierIsaName = tierName(tab, 'isa', npo.tierIsa || 0); }
+    out = { ...out, perOwner: { ...out.perOwner, [w]: npo } };
+    if (cp.holdActs) cp.holdActs[w]++;
+  }
+  return out;
+}
+export function chooseJoint(cp, state, t, out = null) {
   const { m, M, tables, splits, topK } = cp;
   const T = m.ctx.totalYears;
   const sA = vecOf(tables.self.m, ownerState(state, 'self')), sB = vecOf(tables.part.m, ownerState(state, 'part'));
@@ -811,10 +883,15 @@ export function chooseJoint(cp, state, t) {
    * pound left (1e-9 a pound) whatever the caps. Forward only: no table reads it. COUPLE.plant
    * (research/tests/couple-tie.test.mjs): 'tieanylevel' drops the level and tier-pair rule, 'tieanywhere' the caps' test.
    */
+  // `out` (tests and the audit only): the tie set and the best before any rule acts
+  if (out) { out.tie = tj; out.best = best ? { joint: best, score: bestScore, tax: bestTax, wealth: bestWealth } : null; }
   if (tj && best) {
-    const p = tiePick(tj, { joint: best, score: bestScore, tax: bestTax, wealth: bestWealth }, cp.tieJoint);
+    const b0 = { joint: best, score: bestScore, tax: bestTax, wealth: bestWealth };
+    const p = cp.tieLook ? lookPick(cp, state, t, tj, b0, cp.tieJoint) : tiePick(tj, b0, cp.tieJoint);
     if (p.joint !== best) { best = p.joint; best.score = p.score; }
   }
+  // the hold past a multiple of each table's wealth top (cp.holdPast, holdMove above), on the move picked
+  if (best && cp.holdPast > 0) { const held = holdMove(cp, state, t, best, sA, sB); if (held !== best) { held.score = best.score; best = held; } }
   if (!best) {
     // nothing funds the year: the even split with each person's first-ranked move, and the year fails on its own terms
     const aA = tables.self.actions[kA[0] || 0], aB = tables.part.actions[kB[0] || 0];

@@ -26,12 +26,12 @@ import { arenaFor, failArena } from './solverPool.js';
 // Part C Phase 10 (B5): the page's isolation where its host sends no headers, asked for with the first solve (src/useSolver.js)
 export { ensureIsolation } from './isolation.js';
 import { solveKey } from './solverKey.js';
-import { dialBase, APP_COUPLE } from './solverSettings.js';
+import { dialBase, APP_COUPLE, appJoint, jointKey } from './solverSettings.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 import { swapOf } from './couplesSwitch.js';
 import { otherOrder, backMeta, backAnswer } from './coupleOrder.js';
 
-export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs); 'halfdefault' solves a couple on the half share unless asked otherwise, as before D99 (couple-default.test.mjs)
+export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs); 'halfdefault' solves a couple on the half share unless asked otherwise, as before D99, and 'notie' assembles a couple without the couples' joint move, as before D108, and 'nojointcheck' leaves each assembly's joint move unread (couple-default.test.mjs)
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
 /* gate 5's four cores at most (D11), fewer where the machine has fewer */
@@ -87,7 +87,8 @@ export function startFigures(engine, plan, { seed, upto, keyed = false, parts = 
 /*
  * A COUPLE (Part D, D5.1; src/solverCouple.js): with `couple` ({ engine, shareRule }), the plan is a couple's, solved on the
  * couples' default share rule (src/solverSettings.js APP_COUPLE, D99: each person's share of the pots outside 40% to 60%)
- * unless `shareRule` names another ('half', the research's; couple-default.test.mjs). The owner cuts
+ * unless `shareRule` names another ('half', the research's; couple-default.test.mjs), and assembled with the couples' joint
+ * move (APP_COUPLE's, D108: appJoint) unless `joint` names another (null for none). The owner cuts
  * each person's plan from it ('couple-plans'); each is then solved as a single's plan is, in turn, with their partner's age
  * today (`ageWith`) in its settings and so in its key: where the job is keyed (the plan's own solve, not a variant's), restored
  * from the store, else solved and stored, each split across workers, a dial position's base first (always keyed, as a
@@ -235,6 +236,9 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
       if (couple) {
         // plant 'couplehalf' (solver-planner-ui check 19, a build's PLANNER_PLANT): the page solving a couple on the half share, as before D99
         const shareRule = couple.shareRule !== undefined ? couple.shareRule : PLANT.rule === 'halfdefault' || PLANNER_PLANT.has('couplehalf') ? undefined : APP_COUPLE.shareRule;
+        // the couples' joint move (D108: src/solverSettings.js appJoint), the same wherever the couple is assembled, unless the
+        // caller names its own (`couple.joint`, null for none); plant 'notie' (couple-default.test.mjs check 3): none, as before D108
+        const joint = couple.joint !== undefined ? couple.joint : PLANT.rule === 'notie' ? null : appJoint();
         const cpl = await ask('couple-plans', { plan: mirror || plan, shareRule });
         if (finished) return;
         let secs = 0, restored = true;
@@ -255,19 +259,28 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
           secs += m.secs + (b ? b.secs : 0); restored = restored && !!m.restored;
         }
         phaseWho = null;
-        const c = await ask('couple', { household: cpl.household, shareRule });
+        // each assembly's record (src/solverCouple.js coupleMeta) read back against the joint move asked for (the reviewer on D109's
+        // change, MINOR 1): a couple assembled with another is refused, never shown as the couples' default. Plant 'nojointcheck'
+        // (couple-default.test.mjs check 7): not read back, as before
+        const sameJoint = (m, where) => {
+          const got = jointKey(m && m.meta && m.meta.joint);
+          if (PLANT.rule !== 'nojointcheck' && got !== jointKey(joint)) throw new Error(`solverClient: the couple was assembled ${where} with the joint move ${got}, not the ${jointKey(joint)} asked for`);
+        };
+        const c = await ask('couple', { household: cpl.household, shareRule, joint });
         if (finished) return;
+        sameJoint(c, 'by the owner');
         // the parts that hold both tables assemble the couple too, and run their shares of its paths (D5.6)
         if (shared && shared.both && PLANT.rule !== 'coupleowner') {
           const askers = shared.ws.map(askerOf);
-          await Promise.all(askers.map(a => a('couple', { household: cpl.household, shareRule })));
+          const replies = await Promise.all(askers.map(a => a('couple', { household: cpl.household, shareRule, joint })));
           if (finished) return;
+          replies.forEach((m, i) => sameJoint(m, `by part ${i + 1}`));
           kept = askers;
         } else if (shared) { shared.ws.forEach(w => { w.terminate(); const j = workers.indexOf(w); if (j > 0) workers.splice(j, 1); }); }
         shared = null;
         finished = true;
         resolve({ meta: mirror && !PLANNER_PLANT.has('noback') ? backMeta(c.meta) : c.meta, secs, parts: n, restored, base: null, code: null,
-          couple: { share: mirror && !PLANNER_PLANT.has('noback') ? 1 - cpl.share : cpl.share, shareRule: cpl.shareRule, ...(mirror ? { mirrored: true } : {}) } });
+          couple: { share: mirror && !PLANNER_PLANT.has('noback') ? 1 - cpl.share : cpl.share, shareRule: cpl.shareRule, joint: joint || null, ...(mirror ? { mirrored: true } : {}) } });
         return;
       }
       const b = base ? await phase('base', base.plan, base.key, null) : null;

@@ -11,7 +11,81 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**QUEUED (D105, 15 Nov, morning): a better tie rule for couples, `TIE-C2.md`.** You reopened the couples' tie rule that
+**RULED (D108, 16 Nov, night: "Clean timing decides (Recommended)"; then D109, 16 Nov, morning: "Just take `1.25`, let's not waste taste, speed work will happen anyway right?"): the improved couples' tie rule passes, and its speed sits at the bar you set.** The trade is taken: LOOKHOLD is the couples' default on the working branch (ef2e4d72), the reviewer on the change PASS with three MINORs (`reviews/2026-11-16-default-lookhold.md`), the two to answer before its batch merges answered (597a549c), to `main` with the next batch on B1's gate; the clean timing (`TIE-C2-TIMING.md`) is not run. On speed work: none is queued (D103's lapsed with D104 (5)); the forward look's cost is offered as an item. TIE-C2
+read once (EXPLORATORY, seed 7001): `results-tie-c2.txt`, the report `reports/2026-11-16-tie-c2-read.md`, beside it
+`results-tie-c2-beside.txt`. The reviewer at the read: FAIL on the first write-up's speed claim, answered in one fix, then
+PASS (`reviews/2026-11-16-read-tie-c2.md`, `-2.md`).
+- **What passed:** LOOKHOLD, the forward look with the hold, holds all eight parts against today's couples' candidate.
+  - Survival and spending are unchanged.
+  - The pot left on the typical path is `+0.288%` pooled and higher on all twelve couples (`+0.409%` on the younger
+    eight). Lifetime tax is `-2.11%`.
+  - The hold alone changed nothing on these couples: its outcomes are the candidate's on every path. So the gain is the
+    look's.
+- **The one measure that moved the other way:** the pot up to the household's cap, `-0.002%` pooled. It is lower on 990
+  paths of 96,000 and higher on 488, and four paths end below the cap `11.5%` to `23.7%` lower. The look ranks moves on
+  the median path, not on a path that later turns bad.
+- **The speed, which is yours (D105):** the arm taken comes back as a trade if it adds more than a quarter to a couple's
+  path.
+  - The rule reads `x1.219` (the median over the twelve), under the bar.
+  - But every unit ran today's candidate first, and the first arm is timed 1% to 3% slow even on a quiet machine. With
+    that undone, the readings are `x1.236` to `x1.260`.
+  - On the younger eight it is about `x1.26`; on the library's four about `x1.0`. So it sits at the bar.
+- **What a path's time means in the page:** on the one couple measured in the browser (S069, a library couple, under
+  load), the paths took `300.8` of `458.2` s on a first solve. As an inference only: on that split, a path at `x1.25`
+  would make the wait `x1.164`.
+- **Your options:**
+  1. **Take LOOKHOLD as the rule reads it.** The change of default follows at once, the reviewer on it before it is
+     committed.
+  2. **Weigh the trade now:** the gain above, against about a quarter more on a younger couple's paths.
+  3. **A clean timing decides it.** Today's candidate and LOOKHOLD each in a fresh process, their paths alternated, on
+     all twelve couples, on a quiet machine after the share test (from about 15:00 UK, about an hour on four cores as
+     estimated). Its rule would be committed before it runs:
+     - at or under `x1.25`, LOOKHOLD goes in, as D105 rules;
+     - over, the trade comes back to you.
+- **The agent's recommendation: 3.**
+  - It lets the bar you set decide, on a measurement that is not tilted by which arm ran first.
+  - It costs a few hours and an hour of the machine, and nothing else waits on it.
+  - If you would rather settle it now, 2. The gain costs nothing in survival or spending, and the time falls only on
+    couples far above their caps.
+- **Whichever way it goes in, one point is settled in the change:** at the dial's locked positions the hold, as built,
+  would put back a step down that the lock takes.
+  - The agent's recommendation is that the hold act there as at position 1. Past twice a table's top the misread is the
+    same at every position.
+  - The lock's tests would allow exactly that, with the reviewer on it.
+
+**RULED (D107, 15 Nov, evening: "Launch it (Recommended)"): the share rules' registered test, `registrations/share-rules.md`.** Complete,
+its design review PASS on the second round (`reviews/2026-11-15-share-rules-design-2.md`). **Launched 16 Nov 00:37 UK** from
+the worktree at e1239959 (code c0dcfa9ef2f2, audit 28712df5935f), relaunched under `RESUME=1` at its 12-hour limit (12:33 UK),
+its runs done 14:57 UK. **Read once, 16 Nov: NEITHER, today's split stays** (`results-share-rules.txt`; the report
+`reports/2026-11-16-share-rules-read.md`, beside it `results-share-rules-beside.txt`): FLAT flags four units and its spending
+falls past the bar; MEANS flags six, S061-dbpart losing `12.381` points; each rule's pooled survival holds. Nothing changes in
+the app. The reviewer at the read: PASS, four MINORs, answered (`reviews/2026-11-16-read-share-rules.md`).
+- **The deep review** (`reviews/2026-11-16-deep-share-rules.md`): taken with the share ensemble and the share choice, the
+  fixed-share route is spent. Its leading cause: each person's table plans a part of the household that the household
+  never lives, and the joint move prices the household's money and room to spend by those parts.
+- **Its one test, yours to take (the report's "For the maintainer"):** replay the flagged units' lost and saved paths on
+  the read's own code with each year recorded, plus four variants of the move (today's spending level, tiers, split; each
+  person's top six moves). EXPLORATORY, about 4.5 core-hours and a day's work, on seed 7023's already-read paths, run
+  directly since the launcher refuses a reserved seed outside its registration; or on 7002 at about three times the cost.
+- **The agent's recommendation:** run it. The other way is to leave the share where it is.
+- **What it tests:** two fixed rules for a couple's share against today's (the pots' share outside 40% to 60%, half
+  inside), each on the couples' candidate:
+  - FLAT: the pots' share for every couple, the band dropped;
+  - MEANS: each person's share of the two people's means.
+  On eight held-out couples (32 units: 45/55, 55/45, 90/10 and a feature where the means and the pots part), seed 7023,
+  16,000 paths a unit. A rule passes only with no unit harmed, a pooled survival gain beyond noise and spending held. A pass
+  makes it the couples' default.
+- **Cost:** 58.1 core-hours, about 14.5 hours on four cores. TIE-C2's run holds the cores until about 01:00 to 02:00 UK,
+  so a go tonight starts it then and it ends about mid-afternoon Monday.
+- **What the pilot shows** (EXPLORATORY, 1,000 paths of three couples, seed 7002): FLAT loses survival on all three 45/55
+  units, and MEANS on two of S023's units (0.70 and 2.40 points). Were those true, each would be flagged at 16,000 paths
+  with chance 0.93 to 1.00, so the run would most likely read NEITHER and today's split would stay. A loss of that size on
+  1,000 paths could still be noise.
+- **The agent's recommendation:** launch it. The machine does the work, mostly overnight, and the question is settled
+  properly either way. The work on the screens can start alongside it, since a passing rule changes one default and no
+  screen.
+
+**RUN AND READ (D105, 15 Nov, morning; launched 15 Nov 19:33 UK, read 16 Nov: PASSES, its speed at the bar, above): a better tie rule for couples, `TIE-C2.md`.** You reopened the couples' tie rule that
 its read closed: "Plan out and add a test to the queue for an improved couples tie rule based on learnings so far".
 - **Two changes, each from what the first read found** (`results-tie-couple-trace.txt`):
   - **The hold.** The late step down in risk that cut S311F's pot came from a misread. Each person's table covers wealth
@@ -27,9 +101,13 @@ its read closed: "Plan out and add a test to the queue for an improved couples t
   - Each couple's pot is judged two ways: each path's own change averaged, and the average pound with an allowance for
     noise.
 - **In the queue:**
-  - built after the swap's change of default;
-  - launched when the cores are free, after the fourth batch's gate and the share rules' pilot;
-  - about a day to build, about five and a half hours on four cores, half a day to read.
+  - built (15 Nov), off in code, with its test and the read's files (STATE.md action 3);
+  - before the launch, deciding nothing (`results-tie-c2-precheck.txt`): S311F's two deciding paths of the first read
+    under each arm. The step down at 90 came from each person's shortlist reading a pot of billions at the table's top;
+    the move keeping the risk scored higher but was not on offer. The hold removes the step, and the look kept the pots
+    within 0.03% while cutting lifetime tax by £9,065 and £84,755;
+  - launched when the cores are free, after the share rules' pilot;
+  - about five and a half hours on four cores as planned (the first units' times to confirm), half a day to read.
 - **Your two choices before the launch:**
   1. RULED (15 Nov): "1 - pass goes straight into default". A pass is the ruling naming the run: the arm the rule takes
      becomes the couples' default, the reviewer on the change of default. One exception stands from the plan: if the

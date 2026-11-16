@@ -98,7 +98,9 @@
  * solver does not run), couplehalf (19: the page solving a couple on the half share, as before D99; alone, it fails only the
  * 90/10 couple's figures against the reference on the pots' share: PLANNER_PLANT=couplehalf), noback (19: a couple entered
  * younger first shown the answers of its mirror, src/solverClient.js; alone, it fails only that couple's next ten years and
- * actions: PLANNER_PLANT=noback).
+ * actions: PLANNER_PLANT=noback), workernotie (19: the page's worker assembling a couple without the joint move asked for,
+ * src/solverWorker.js; the client reads each assembly's joint move back and refuses the couple, the reviewer on D109's change
+ * of default, MINOR 1; alone: PLANNER_PLANT=workernotie).
  *   node research/ui-harnesses/solver-planner-ui.cjs [port] [--plants]      (the build is served on port + 11, the rollback on + 12, couples on + 13)
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
@@ -118,8 +120,8 @@ const SPEED_SINGLE = 'Speed mode works out your figures faster by looking at few
 const SPEED_COUPLE = 'For couples, speed mode is less tested. It was usually only a little faster, it spent a little less, and for some couples it lowered the chance your money lasts by about 5 in 1,000. Use the full calculation for decisions.';
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback', 'workernotie'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19, workernotie: 19 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -170,7 +172,11 @@ const card = p => p.evaluate(() => { const el = document.querySelector('[data-pl
 // how long a wait for the page may take: fifteen minutes on a clean build (a light-settings solve takes under half a minute),
 // two and a half in the plants run, where 'onefewer' keeps the card from ever reaching 'done' and each wait would run out
 const WAIT_MS = PLANTS_RUN ? 150000 : 900000;
-const waitCard = (p, state, ms = WAIT_MS) => p.waitForSelector(`[data-plan-answer="${state}"]`, { timeout: ms }).then(() => true, () => false);
+// a wait for 'done' also ends, false, at the failure card: a solve the page refused never reaches 'done', so the wait would only
+// run out (16 Nov: the plant 'workernotie' alone, its couple refused at each of check 19's solves, ran past an hour waiting).
+// No wait for 'done' follows a failure on the same page, so a run with no plant reads every check as before
+const waitCard = (p, state, ms = WAIT_MS) => p.waitForSelector(state === 'done' ? '[data-plan-answer="done"], [data-plan-answer="failed"]' : `[data-plan-answer="${state}"]`, { timeout: ms })
+  .then(async () => state !== 'done' || (await card(p)) === 'done', () => false);
 const figs = p => p.evaluate(() => { const el = document.querySelector('[data-strategy-figures]'); return el ? JSON.parse(el.dataset.strategyFigures) : null; });
 const box = (p, sel) => p.evaluate(s => { const el = document.querySelector(s); if (!el) return null; const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, h: r.height }; }, sel);
 // an element's text now, '' when it is not there: p.textContent waits for the element (30 s), which a plant that removes it
@@ -220,13 +226,14 @@ const firstDiff = (a, b, at = '') => {
   }, { pl, light: LIGHT, seed: SEED, trials: last }));
   // a couple's reference (Part D, D5.5): solved as the worker solves it, each person's table then the couple, in this Chromium,
   // on the couples' default share rule (src/solverSettings.js APP_COUPLE, D99; the reviewer on D99, finding 2), so a couple held
-  // unevenly is checked against its own figures and a page solving it on another share fails
+  // unevenly is checked against its own figures and a page solving it on another share fails; and with the couples' joint move
+  // (appJoint, D108), as the page assembles a couple
   const refCouple = async pl => JSON.parse(await ref.run(async ({ pl, light, seed, trials }) => {
     const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
     const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
-    const { couplePlans, assembleCouple } = await import('/src/solverCouple.js'), { APP_COUPLE } = await import('/src/solverSettings.js');
+    const { couplePlans, assembleCouple } = await import('/src/solverCouple.js'), { APP_COUPLE, appJoint } = await import('/src/solverSettings.js');
     const cut = couplePlans(E, pl, { shareRule: APP_COUPLE.shareRule }), one = w => solveForApp(E, M, cut.plans[w], { ...light, ageWith: cut.ageWith[w] });
-    const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
+    const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, joint: appJoint(), solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
     return JSON.stringify(strategyOf(E, cp, pl, { trials, seed }));
   }, { pl, light: LIGHT, seed: SEED, trials: last }));
   // a couple whose elder is entered second (D104 (1)): solved as the page solves it, on its mirror (src/coupleOrder.js
@@ -236,11 +243,11 @@ const firstDiff = (a, b, at = '') => {
   const refCoupleSwap = async pl => JSON.parse(await ref.run(async ({ pl, light, seed, trials }) => {
     const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
     const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
-    const { couplePlans, assembleCouple } = await import('/src/solverCouple.js'), { APP_COUPLE } = await import('/src/solverSettings.js');
+    const { couplePlans, assembleCouple } = await import('/src/solverCouple.js'), { APP_COUPLE, appJoint } = await import('/src/solverSettings.js');
     const { otherOrder } = await import('/src/coupleOrder.js');
     const mirror = otherOrder(E, pl), ctxOf = p => E.buildContext(E.resolveMpaa(E.normalizePlan(p))), gap = ctxOf(pl).ageSelf0 - ctxOf(mirror).ageSelf0;
     const cut = couplePlans(E, mirror, { shareRule: APP_COUPLE.shareRule }), one = w => solveForApp(E, M, cut.plans[w], { ...light, ageWith: cut.ageWith[w] });
-    const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
+    const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, joint: appJoint(), solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
     const s = strategyOf(E, cp, pl, { trials, seed });
     if (s.raise) s.raise = { ...s.raise, age: s.raise.age + gap };
     s.outlook = { ...s.outlook, spend: s.outlook.spend.map(x => ({ ...x, age: x.age + gap })) };
@@ -688,7 +695,7 @@ const firstDiff = (a, b, at = '') => {
           const same = !!page && JSON.stringify(page) === JSON.stringify(want);
           const words = await p.evaluate(() => { const el = document.querySelector('[data-plan-answer]'); return el ? el.textContent : ''; });
           const card = !!(await p.$('[data-place="plan"] [data-planner-couple]'));
-          await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
+          if (done) await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
           const acts = await p.$$eval('[data-strategy-action]', els => els.map(e => e.dataset.strategyAction));
           ok(19, `couples on: ${even.id} (60/40) solves in the new planner, no couples card, the headline said to the two of you`, up3 && done && !card && /two of you|first of you/.test(words), `served ${up3}; done ${done}; card ${card}`);
           ok(19, 'couples on: every figure the reference\'s bit for bit (each person\'s table with their partner\'s age, then the couple, strategyOf on it)', same, page ? `survival ${page.headline.survival}% against ${want && want.headline.survival}%` : 'no figures');
@@ -702,7 +709,7 @@ const firstDiff = (a, b, at = '') => {
           // seen here (the reviewer of 14 Nov, finding 4 (e)): couple-split.test.mjs shows it for the client
           await p.reload({ waitUntil: 'networkidle' });
           const again = await waitCard(p, 'done', WAIT_MS), page2 = again ? await figs(p) : null;
-          await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
+          if (again) await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
           const acts2 = await p.$$eval('[data-strategy-action]', els => els.map(e => e.dataset.strategyAction));
           await goPlace(p, 'Details');
           const g19 = await diagnosticIn(p, '[data-place="details"] [data-solver-settings]');
@@ -761,7 +768,7 @@ const firstDiff = (a, b, at = '') => {
           const pageOf = async pl => { const { p, errs } = await open(b, pl, { port: COUPLES_PORT });
             const done = await waitCard(p, 'done', WAIT_MS), card = !!(await p.$('[data-place="plan"] [data-planner-couple]'));
             const page = done ? await figs(p) : null, saw = await saved(p);
-            await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
+            if (done) await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
             const acts = await p.$$eval('[data-strategy-action]', els => els.map(e => e.dataset.strategyAction));
             const ahead = await p.evaluate(() => { const el = document.querySelector('[data-ahead-spend]'); return el ? JSON.parse(el.dataset.aheadSpend) : null; });
             await p.context().close(); return { done, card, page, saw, acts, ahead, errs }; };

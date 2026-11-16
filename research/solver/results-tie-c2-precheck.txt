@@ -1,0 +1,21 @@
+TIE-C2, BEFORE THE LAUNCH: S311F'S TWO DECIDING PATHS OF THE FIRST READ (EXPLORATORY, seed 7002, deciding nothing): solved in 148 s; caps £5,760,000 and £3,840,000; the tables' tops £8,640,000 and £5,760,000, so the limit (2 times) £17,280,000 and £11,520,000
+
+path 4468: CANDS's pot £7,434,464,191 and lifetime tax £836,567 (the first read's stored arrays to the penny); TIE4's £4,896,121,219 and £1,632,224 (the first read's stored arrays to the penny)
+  TIE4's tiers first part from CANDS's in plan year 53 (the first person 90): TIE4 holds 3/3 and 3/3 after it, CANDS 0/0 and 3/3; both held 0/0 and 3/3
+  there, each person's wealth as their table reads it: £2,813,703,138 against twice the top £17,280,000 (325.7 times the top); £72,426,481 against twice the top £11,520,000 (12.6 times the top)
+  the best move with the first person's tiers held, scored as the chooser scores it (its scoring reproducing the best's own score bit for bit): 1.140216878
+  the score gap of the step at the clamped read (each person's twelve best moves on offer): the best 1.139718520 at tiers 3/3 3/3, the best keeping the tiers held (0/0 3/3) 1.140216878: a gap of -4.984e-4 in score units (the switch charge 0.001)
+  HOLD: a person past the limit stepping down at 0 decisions; its pot £7,434,464,191 (0.00% of CANDS's) and lifetime tax £836,567 (+£0)
+  LOOKHOLD: a person past the limit stepping down at 0 decisions; its pot £7,436,761,671 (0.03% of CANDS's) and lifetime tax £827,503 (£-9,065)
+  TIE4: a person past the limit stepping down at 2 decisions; its pot £4,896,121,219 (-34.14% of CANDS's) and lifetime tax £1,632,224 (+£795,657)
+  CANDS: a person past the limit stepping down at 0 decisions
+
+path 5461: CANDS's pot £12,657,338,786 and lifetime tax £2,392,971 (the first read's stored arrays to the penny); TIE4's £10,536,312,756 and £2,813,221 (the first read's stored arrays to the penny)
+  TIE4's tiers first part from CANDS's in plan year 53 (the first person 90): TIE4 holds 3/3 and 3/3 after it, CANDS 0/0 and 3/3; both held 0/0 and 3/3
+  there, each person's wealth as their table reads it: £6,947,113,946 against twice the top £17,280,000 (804.1 times the top); £135,615,882 against twice the top £11,520,000 (23.5 times the top)
+  the best move with the first person's tiers held, scored as the chooser scores it (its scoring reproducing the best's own score bit for bit): 1.140221769
+  the score gap of the step at the clamped read (each person's twelve best moves on offer): the best 1.139721831 at tiers 3/3 3/3, the best keeping the tiers held (0/0 3/3) 1.140221769: a gap of -4.999e-4 in score units (the switch charge 0.001)
+  HOLD: a person past the limit stepping down at 0 decisions; its pot £12,657,338,786 (0.00% of CANDS's) and lifetime tax £2,392,971 (+£0)
+  LOOKHOLD: a person past the limit stepping down at 0 decisions; its pot £12,657,112,454 (-0.00% of CANDS's) and lifetime tax £2,308,216 (£-84,755)
+  TIE4: a person past the limit stepping down at 2 decisions; its pot £10,536,312,756 (-16.76% of CANDS's) and lifetime tax £2,813,221 (+£420,250)
+  CANDS: a person past the limit stepping down at 0 decisions

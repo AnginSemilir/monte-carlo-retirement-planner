@@ -1,0 +1,68 @@
+BESIDE THE SHARE RULES' READ (EXPLORATORY, written after the read, deciding nothing): 32 units of share-rules-run, 16000 paths each
+
+A. Each unit: the three shares (the first person's part of the household's spending; the first person the elder), survival, and spending delivered, the mean pot left and lifetime tax a path, in TODAY / FLAT / MEANS (FLAT's TODAY's where its share is TODAY's: "=")
+  S023-45      45/55  shares 0.500 / 0.450 / 0.470; survival 97.61% / 97.04% / 97.42%; spending £3,755,811 / £3,756,678 / £3,755,664; pot £3,406,756 / £3,607,266 / £3,387,046; tax £34,668 / £37,010 / £36,097
+  S023-55      55/45  shares 0.500 / 0.550 / 0.556; survival 97.03% / 97.68% / 97.68%; spending £3,753,002 / £3,752,327 / £3,751,705; pot £3,673,542 / £3,411,904 / £3,408,980; tax £34,110 / £31,933 / £32,186
+  S023-90      90/10  shares 0.900 / = / 0.854; survival 96.78% / = / 94.30%; spending £3,727,664 / = / £3,742,499; pot £3,348,755 / = / £3,323,547; tax £46,822 / = / £43,892
+  S023-db      60/40  shares 0.500 / 0.600 / 0.638; survival 95.36% / 97.34% / 98.07%; spending £4,087,079 / £4,061,690 / £4,062,229; pot £4,138,945 / £3,934,157 / £3,542,968; tax £109,679 / £111,425 / £110,322
+  S061-45      45/55  shares 0.500 / 0.450 / 0.527; survival 99.83% / 99.76% / 99.54%; spending £612,746 / £603,042 / £609,991; pot £399,067 / £380,310 / £439,025; tax £4,528 / £2,751 / £6,503
+  S061-55      55/45  shares 0.500 / 0.550 / 0.569; survival 99.68% / 99.63% / 99.66%; spending £610,446 / £615,949 / £613,702; pot £405,152 / £417,620 / £426,280; tax £4,325 / £5,878 / £6,040
+  S061-90      90/10  shares 0.900 / = / 0.717; survival 97.46% / = / 99.69%; spending £595,353 / = / £600,897; pot £305,071 / = / £372,902; tax £799 / = / £2,339
+  S061-dbpart  60/40  shares 0.500 / 0.600 / 0.385; survival 97.79% / 95.19% / 85.41%; spending £768,265 / £754,573 / £786,574; pot £588,981 / £594,467 / £555,573; tax £55,294 / £50,341 / £52,551
+  S109-45      45/55  shares 0.500 / 0.450 / 0.527; survival 99.39% / 99.56% / 99.25%; spending £559,235 / £547,511 / £557,155; pot £479,053 / £470,451 / £520,285; tax £3,376 / £1,798 / £2,187
+  S109-55      55/45  shares 0.500 / 0.550 / 0.569; survival 99.43% / 99.30% / 99.39%; spending £554,477 / £563,412 / £562,572; pot £490,630 / £509,046 / £504,540; tax £3,165 / £2,655 / £1,459
+  S109-90      90/10  shares 0.900 / = / 0.717; survival 98.59% / = / 99.74%; spending £547,125 / = / £536,134; pot £385,824 / = / £413,019; tax £1,361 / = / £1,554
+  S109-sppart  60/40  shares 0.500 / 0.600 / 0.633; survival 98.09% / 98.61% / 98.86%; spending £503,656 / £516,578 / £515,640; pot £482,281 / £476,871 / £506,211; tax £1,823 / £2,383 / £513
+  S147-45      45/55  shares 0.500 / 0.450 / 0.490; survival 97.46% / 96.01% / 97.19%; spending £1,169,989 / £1,175,679 / £1,172,032; pot £1,065,044 / £1,110,797 / £1,105,957; tax £10,795 / £16,036 / £11,716
+  S147-55      55/45  shares 0.500 / 0.550 / 0.551; survival 96.15% / 97.49% / 97.44%; spending £1,176,840 / £1,175,042 / £1,175,194; pot £1,127,512 / £1,033,138 / £1,036,430; tax £15,446 / £9,987 / £10,234
+  S147-90      90/10  shares 0.900 / = / 0.765; survival 95.85% / = / 94.64%; spending £1,147,941 / = / £1,179,511; pot £948,985 / = / £989,642; tax £12,172 / = / £12,752
+  S147-db      60/40  shares 0.500 / 0.600 / 0.681; survival 89.51% / 96.17% / 98.85%; spending £1,444,314 / £1,456,819 / £1,471,782; pot £1,147,727 / £1,176,911 / £1,218,295; tax £85,177 / £86,046 / £94,870
+  S191-45      45/55  shares 0.500 / 0.450 / 0.470; survival 96.96% / 96.17% / 96.42%; spending £4,435,493 / £4,441,254 / £4,457,064; pot £7,641,433 / £8,530,002 / £8,413,165; tax £482,157 / £590,683 / £517,586
+  S191-55      55/45  shares 0.500 / 0.550 / 0.551; survival 96.18% / 96.95% / 96.96%; spending £4,464,418 / £4,458,291 / £4,457,977; pot £8,593,123 / £7,523,889 / £7,530,918; tax £512,121 / £465,490 / £465,072
+  S191-90      90/10  shares 0.900 / = / 0.837; survival 97.51% / = / 97.71%; spending £4,135,079 / = / £4,138,402; pot £7,449,581 / = / £8,045,599; tax £599,399 / = / £564,240
+  S191-dbpart  60/40  shares 0.500 / 0.600 / 0.556; survival 96.32% / 97.30% / 96.96%; spending £4,712,415 / £4,714,700 / £4,726,188; pot £8,714,557 / £7,538,550 / £7,599,718; tax £727,642 / £583,029 / £595,121
+  S227-45      45/55  shares 0.500 / 0.450 / 0.470; survival 95.69% / 95.54% / 95.60%; spending £4,605,490 / £4,615,193 / £4,612,011; pot £8,420,679 / £8,373,887 / £8,377,500; tax £199,427 / £204,300 / £204,041
+  S227-55      55/45  shares 0.500 / 0.550 / 0.551; survival 95.49% / 95.59% / 95.58%; spending £4,617,585 / £4,611,498 / £4,610,746; pot £8,368,737 / £8,373,196 / £8,378,677; tax £196,618 / £196,016 / £195,986
+  S227-90      90/10  shares 0.900 / = / 0.837; survival 95.94% / = / 95.06%; spending £4,476,630 / = / £4,460,974; pot £8,464,453 / = / £8,549,760; tax £232,643 / = / £193,967
+  S227-sppart  60/40  shares 0.500 / 0.600 / 0.599; survival 95.72% / 96.20% / 96.19%; spending £4,467,168 / £4,454,399 / £4,454,610; pot £8,684,775 / £8,665,689 / £8,665,778; tax £173,520 / £173,761 / £173,630
+  S271-45      45/55  shares 0.500 / 0.450 / 0.502; survival 92.62% / 92.29% / 92.72%; spending £3,472,480 / £3,478,966 / £3,470,282; pot £6,428,590 / £6,049,353 / £6,392,791; tax £493,017 / £479,697 / £486,929
+  S271-55      55/45  shares 0.500 / 0.550 / 0.564; survival 92.16% / 92.74% / 92.76%; spending £3,478,998 / £3,476,786 / £3,473,129; pot £6,030,637 / £6,192,086 / £6,309,986; tax £430,525 / £483,506 / £494,583
+  S271-90      90/10  shares 0.900 / = / 0.783; survival 91.59% / = / 93.57%; spending £3,378,894 / = / £3,383,612; pot £6,093,237 / = / £6,721,779; tax £433,688 / = / £429,402
+  S271-db      60/40  shares 0.500 / 0.600 / 0.638; survival 91.77% / 93.71% / 94.02%; spending £3,749,872 / £3,752,858 / £3,748,232; pot £6,211,865 / £6,442,716 / £6,425,569; tax £465,079 / £538,802 / £536,809
+  S377-45      45/55  shares 0.500 / 0.450 / 0.487; survival 99.14% / 99.22% / 99.18%; spending £1,026,686 / £1,022,692 / £1,027,314; pot £1,331,862 / £1,319,375 / £1,320,551; tax £21,182 / £19,745 / £20,387
+  S377-55      55/45  shares 0.500 / 0.550 / 0.551; survival 99.14% / 99.22% / 99.21%; spending £1,026,680 / £1,028,435 / £1,028,121; pot £1,322,668 / £1,317,181 / £1,319,447; tax £19,264 / £20,021 / £20,186
+  S377-90      90/10  shares 0.900 / = / 0.777; survival 96.71% / = / 97.29%; spending £1,017,182 / = / £1,033,720; pot £1,175,623 / = / £1,184,898; tax £13,144 / = / £12,690
+  S377-dbpart  60/40  shares 0.500 / 0.600 / 0.470; survival 96.61% / 96.54% / 96.14%; spending £1,183,601 / £1,162,193 / £1,193,900; pot £1,395,134 / £1,339,459 / £1,364,373; tax £76,394 / £74,400 / £75,852
+
+B. By kind of unit, each rule against TODAY where its share differs: the share's move and the survival change (points), unit by unit, then the units' mean
+  45      FLAT  (the elder holds 45%): S023 -0.050 -0.56; S061 -0.050 -0.08; S109 -0.050 +0.16; S147 -0.050 -1.46; S191 -0.050 -0.79; S227 -0.050 -0.15; S271 -0.050 -0.33; S377 -0.050 +0.08 | mean share -0.050, survival -0.389
+  45      MEANS (the elder holds 45%): S023 -0.030 -0.18; S061 +0.027 -0.29; S109 +0.027 -0.14; S147 -0.010 -0.27; S191 -0.030 -0.54; S227 -0.030 -0.09; S271 +0.002 +0.10; S377 -0.013 +0.04 | mean share -0.007, survival -0.171
+  55      FLAT  (the elder holds 55%): S023 +0.050 +0.65; S061 +0.050 -0.05; S109 +0.050 -0.13; S147 +0.050 +1.34; S191 +0.050 +0.77; S227 +0.050 +0.10; S271 +0.050 +0.58; S377 +0.050 +0.08 | mean share +0.050, survival +0.416
+  55      MEANS (the elder holds 55%): S023 +0.056 +0.65; S061 +0.069 -0.03; S109 +0.069 -0.04; S147 +0.051 +1.29; S191 +0.051 +0.78; S227 +0.051 +0.09; S271 +0.064 +0.60; S377 +0.051 +0.07 | mean share +0.058, survival +0.427
+  90      FLAT  (the elder holds 90%): its share is TODAY's on every unit
+  90      MEANS (the elder holds 90%): S023 -0.046 -2.48; S061 -0.183 +2.22; S109 -0.183 +1.15; S147 -0.135 -1.21; S191 -0.063 +0.21; S227 -0.063 -0.88; S271 -0.117 +1.97; S377 -0.123 +0.58 | mean share -0.114, survival +0.197
+  db      FLAT  (the elder's DB pension): S023 +0.100 +1.98; S147 +0.100 +6.66; S271 +0.100 +1.94 | mean share +0.100, survival +3.525
+  db      MEANS (the elder's DB pension): S023 +0.138 +2.71; S147 +0.181 +9.34; S271 +0.138 +2.25 | mean share +0.152, survival +4.765
+  dbpart  FLAT  (the partner's DB pension): S061 +0.100 -2.61; S191 +0.100 +0.98; S377 +0.100 -0.07 | mean share +0.100, survival -0.565
+  dbpart  MEANS (the partner's DB pension): S061 -0.115 -12.38; S191 +0.056 +0.64; S377 -0.030 -0.46 | mean share -0.030, survival -4.067
+  sppart  FLAT  (the partner's state pension at 60%): S109 +0.100 +0.52; S227 +0.100 +0.48 | mean share +0.100, survival +0.497
+  sppart  MEANS (the partner's state pension at 60%): S109 +0.133 +0.76; S227 +0.099 +0.46 | mean share +0.116, survival +0.613
+
+C. The direction: each rule against TODAY where its share differs, the elder's part moved up or down, against the sign of the survival change
+  56 comparisons (FLAT 24, MEANS 32):
+    the elder's part up:   survival up 25, down 8
+    the elder's part down: survival up 8, down 15
+    no change in survival: 0
+  against the majority (the part up and survival down, or down and up): S061-45 MEANS share +0.027 survival -0.29; S061-55 FLAT share +0.050 survival -0.05; S061-55 MEANS share +0.069 survival -0.03; S061-dbpart FLAT share +0.100 survival -2.61; S109-45 MEANS share +0.027 survival -0.14; S109-55 FLAT share +0.050 survival -0.13; S109-55 MEANS share +0.069 survival -0.04; S377-dbpart FLAT share +0.100 survival -0.07; S061-90 MEANS share -0.183 survival +2.22; S109-45 FLAT share -0.050 survival +0.16; S109-90 MEANS share -0.183 survival +1.15; S191-90 MEANS share -0.063 survival +0.21; S271-90 MEANS share -0.117 survival +1.97; S377-45 FLAT share -0.050 survival +0.08; S377-45 MEANS share -0.013 survival +0.04; S377-90 MEANS share -0.123 survival +0.58
+
+D. FLAT's spending delivered against TODAY's, unit by unit where its share differs (percent of TODAY's mean spending delivered; the read's part 3 weighs the units equally), lowest first
+  S109-45 -2.0966% (share -0.050); S377-dbpart -1.8087% (share +0.100); S061-dbpart -1.7821% (share +0.100); S061-45 -1.5837% (share -0.050); S023-db -0.6212% (share +0.100); S377-45 -0.3890% (share -0.050); S227-sppart -0.2858% (share +0.100); S147-55 -0.1528% (share +0.050); S191-55 -0.1372% (share +0.050); S227-55 -0.1318% (share +0.050); S271-55 -0.0636% (share +0.050); S023-55 -0.0180% (share +0.050); S023-45 +0.0231% (share -0.050); S191-dbpart +0.0485% (share +0.100); S271-db +0.0796% (share +0.100); S191-45 +0.1299% (share -0.050); S377-55 +0.1710% (share +0.050); S271-45 +0.1868% (share -0.050); S227-45 +0.2107% (share -0.050); S147-45 +0.4864% (share -0.050); S147-db +0.8658% (share +0.100); S061-55 +0.9014% (share +0.050); S109-55 +1.6115% (share +0.050); S109-sppart +2.5657% (share +0.100)
+  the mean over these 24: -0.0746%; where the elder's part goes up +0.0776% (16), down -0.3791% (8)
+
+E. The means' share against the pots' (MEANS less FLAT, FLAT's share the pots' own), by kind of unit
+  45      (the elder holds 45%): S023 +0.020; S061 +0.077; S109 +0.077; S147 +0.040; S191 +0.020; S227 +0.020; S271 +0.052; S377 +0.037
+  55      (the elder holds 55%): S023 +0.006; S061 +0.019; S109 +0.019; S147 +0.001; S191 +0.001; S227 +0.001; S271 +0.014; S377 +0.001
+  90      (the elder holds 90%): S023 -0.046; S061 -0.183; S109 -0.183; S147 -0.135; S191 -0.063; S227 -0.063; S271 -0.117; S377 -0.123
+  db      (the elder's DB pension): S023 +0.038; S147 +0.081; S271 +0.038
+  dbpart  (the partner's DB pension): S061 -0.215; S191 -0.044; S377 -0.130
+  sppart  (the partner's state pension at 60%): S109 +0.033; S227 -0.001

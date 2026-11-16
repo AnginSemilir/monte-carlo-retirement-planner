@@ -55,7 +55,11 @@ PASS (`reviews/2026-11-16-read-tie-c2.md`, `-2.md`).
 
 **RULED (D107, 15 Nov, evening: "Launch it (Recommended)"): the share rules' registered test, `registrations/share-rules.md`.** Complete,
 its design review PASS on the second round (`reviews/2026-11-15-share-rules-design-2.md`). **Launched 16 Nov 00:37 UK** from
-the worktree at e1239959 (code c0dcfa9ef2f2, audit 28712df5935f); its runs end about 15:00 UK, then the registered read.
+the worktree at e1239959 (code c0dcfa9ef2f2, audit 28712df5935f), relaunched under `RESUME=1` at its 12-hour limit (12:33 UK),
+its runs done 14:57 UK. **Read once, 16 Nov: NEITHER, today's split stays** (`results-share-rules.txt`; the report
+`reports/2026-11-16-share-rules-read.md`, beside it `results-share-rules-beside.txt`): FLAT flags four units and its spending
+falls past the bar; MEANS flags six, S061-dbpart losing `12.381` points; each rule's pooled survival holds. Nothing changes in
+the app. The reviewer at the read and the deep review next; what follows goes to you with the deep review's test, if any.
 - **What it tests:** two fixed rules for a couple's share against today's (the pots' share outside 40% to 60%, half
   inside), each on the couples' candidate:
   - FLAT: the pots' share for every couple, the band dropped;

@@ -66,3 +66,112 @@ E. The means' share against the pots' (MEANS less FLAT, FLAT's share the pots' o
   db      (the elder's DB pension): S023 +0.038; S147 +0.081; S271 +0.038
   dbpart  (the partner's DB pension): S061 -0.215; S191 -0.044; S377 -0.130
   sppart  (the partner's state pension at 60%): S109 +0.033; S227 -0.001
+
+C (cont.). The same 56 comparisons: beyond noise (a two-sided exact McNemar test at 5% on the lost and saved paths, unadjusted), counted once a unit and direction, and on the paths that run short alone
+  beyond noise 43 of 56: the elder's part up, survival up 20 and down 4; down, survival down 13 and up 6
+  once a unit and direction: 19 units where FLAT and MEANS move the share the same way from the same TODAY run (their signs agreeing on every one); 37 entries, 24 with the direction (the elder's part up and survival up, or down and down) and 13 against
+  the exceptions on S061 and S109 at 45/55 and 55/45: S061-45 MEANS -0.29 (57 lost, 11 saved, p 1.3e-8, beyond noise); S061-55 FLAT -0.05 (40 lost, 32 saved, p 4.1e-1); S061-55 MEANS -0.03 (38 lost, 34 saved, p 7.2e-1); S109-45 FLAT +0.16 (18 lost, 44 saved, p 1.3e-3, beyond noise); S109-45 MEANS -0.14 (37 lost, 14 saved, p 1.8e-3, beyond noise); S109-55 FLAT -0.13 (32 lost, 11 saved, p 1.9e-3, beyond noise); S109-55 MEANS -0.04 (21 lost, 14 saved, p 3.1e-1)
+  the paths that run short alone: the elder's part up, fewer run short on 24 and more on 9 of 33; down, fewer on 7 and more on 16 of 23
+  the paths below the minimum pot: more on 33 of the 56 comparisons, fewer on 20
+
+F. What the lost and saved paths are: each comparison, its lost paths (running short / below the minimum pot) and saved paths (the same), and in TODAY and the rule the paths that run short and those that end below the minimum pot
+  FLAT  S023-45      lost 106 (29 / 77), saved 16 (1 / 15); running short 246 to 341, below the minimum pot 137 to 132
+  MEANS S023-45      lost 52 (13 / 39), saved 23 (2 / 21); running short 246 to 284, below the minimum pot 137 to 128
+  FLAT  S023-55      lost 13 (2 / 11), saved 117 (36 / 81); running short 344 to 238, below the minimum pot 131 to 133
+  MEANS S023-55      lost 13 (2 / 11), saved 117 (39 / 78); running short 344 to 236, below the minimum pot 131 to 135
+  MEANS S023-90      lost 451 (17 / 434), saved 55 (4 / 51); running short 244 to 297, below the minimum pot 272 to 615
+  FLAT  S023-db      lost 34 (2 / 32), saved 350 (204 / 146); running short 548 to 245, below the minimum pot 194 to 181
+  MEANS S023-db      lost 15 (0 / 15), saved 448 (280 / 168); running short 548 to 173, below the minimum pot 194 to 136
+  FLAT  S061-45      lost 24 (8 / 16), saved 12 (3 / 9); running short 12 to 16, below the minimum pot 15 to 23
+  MEANS S061-45      lost 57 (49 / 8), saved 11 (2 / 9); running short 12 to 59, below the minimum pot 15 to 14
+  FLAT  S061-55      lost 40 (32 / 8), saved 32 (7 / 25); running short 21 to 48, below the minimum pot 30 to 11
+  MEANS S061-55      lost 38 (32 / 6), saved 34 (8 / 26); running short 21 to 47, below the minimum pot 30 to 8
+  MEANS S061-90      lost 33 (0 / 33), saved 389 (376 / 13); running short 393 to 3, below the minimum pot 13 to 47
+  FLAT  S061-dbpart  lost 440 (440 / 0), saved 23 (23 / 0); running short 353 to 770, below the minimum pot 0 to 0
+  MEANS S061-dbpart  lost 1985 (1985 / 0), saved 4 (4 / 0); running short 353 to 2334, below the minimum pot 0 to 0
+  FLAT  S109-45      lost 18 (2 / 16), saved 44 (0 / 44); running short 0 to 2, below the minimum pot 97 to 69
+  MEANS S109-45      lost 37 (1 / 36), saved 14 (0 / 14); running short 0 to 1, below the minimum pot 97 to 119
+  FLAT  S109-55      lost 32 (1 / 31), saved 11 (0 / 11); running short 0 to 1, below the minimum pot 91 to 111
+  MEANS S109-55      lost 21 (1 / 20), saved 14 (0 / 14); running short 0 to 1, below the minimum pot 91 to 97
+  MEANS S109-90      lost 14 (0 / 14), saved 198 (53 / 145); running short 65 to 0, below the minimum pot 161 to 42
+  FLAT  S109-sppart  lost 39 (0 / 39), saved 122 (3 / 119); running short 6 to 0, below the minimum pot 299 to 222
+  MEANS S109-sppart  lost 20 (0 / 20), saved 142 (4 / 138); running short 6 to 0, below the minimum pot 299 to 183
+  FLAT  S147-45      lost 241 (67 / 174), saved 8 (0 / 8); running short 163 to 348, below the minimum pot 243 to 291
+  MEANS S147-45      lost 57 (3 / 54), saved 14 (0 / 14); running short 163 to 192, below the minimum pot 243 to 257
+  FLAT  S147-55      lost 3 (0 / 3), saved 217 (57 / 160); running short 331 to 179, below the minimum pot 285 to 223
+  MEANS S147-55      lost 6 (0 / 6), saved 213 (54 / 159); running short 331 to 177, below the minimum pot 285 to 232
+  MEANS S147-90      lost 274 (2 / 272), saved 81 (45 / 36); running short 562 to 386, below the minimum pot 102 to 471
+  FLAT  S147-db      lost 7 (0 / 7), saved 1073 (872 / 201); running short 1465 to 312, below the minimum pot 213 to 300
+  MEANS S147-db      lost 11 (0 / 11), saved 1505 (1313 / 192); running short 1465 to 33, below the minimum pot 213 to 151
+  FLAT  S191-45      lost 160 (104 / 56), saved 34 (11 / 23); running short 383 to 511, below the minimum pot 104 to 102
+  MEANS S191-45      lost 117 (54 / 63), saved 31 (7 / 24); running short 383 to 456, below the minimum pot 104 to 117
+  FLAT  S191-55      lost 34 (2 / 32), saved 157 (100 / 57); running short 510 to 373, below the minimum pot 101 to 115
+  MEANS S191-55      lost 34 (4 / 30), saved 159 (99 / 60); running short 510 to 375, below the minimum pot 101 to 111
+  MEANS S191-90      lost 77 (11 / 66), saved 110 (56 / 54); running short 321 to 266, below the minimum pot 78 to 100
+  FLAT  S191-dbpart  lost 62 (8 / 54), saved 219 (155 / 64); running short 483 to 297, below the minimum pot 106 to 135
+  MEANS S191-dbpart  lost 73 (0 / 73), saved 176 (113 / 63); running short 483 to 317, below the minimum pot 106 to 169
+  FLAT  S227-45      lost 47 (3 / 44), saved 23 (2 / 21); running short 472 to 494, below the minimum pot 217 to 219
+  MEANS S227-45      lost 42 (2 / 40), saved 27 (1 / 26); running short 472 to 484, below the minimum pot 217 to 220
+  FLAT  S227-55      lost 35 (3 / 32), saved 51 (16 / 35); running short 506 to 481, below the minimum pot 216 to 225
+  MEANS S227-55      lost 34 (3 / 31), saved 48 (15 / 33); running short 506 to 478, below the minimum pot 216 to 230
+  MEANS S227-90      lost 169 (2 / 167), saved 28 (6 / 22); running short 407 to 413, below the minimum pot 243 to 378
+  FLAT  S227-sppart  lost 20 (1 / 19), saved 96 (32 / 64); running short 468 to 384, below the minimum pot 216 to 224
+  MEANS S227-sppart  lost 20 (1 / 19), saved 94 (31 / 63); running short 468 to 388, below the minimum pot 216 to 222
+  FLAT  S271-45      lost 107 (53 / 54), saved 55 (11 / 44); running short 1031 to 1097, below the minimum pot 150 to 136
+  MEANS S271-45      lost 36 (9 / 27), saved 52 (9 / 43); running short 1031 to 1034, below the minimum pot 150 to 131
+  FLAT  S271-55      lost 53 (10 / 43), saved 145 (97 / 48); running short 1138 to 1024, below the minimum pot 116 to 138
+  MEANS S271-55      lost 56 (15 / 41), saved 152 (110 / 42); running short 1138 to 1018, below the minimum pot 116 to 140
+  MEANS S271-90      lost 28 (5 / 23), saved 344 (293 / 51); running short 1255 to 910, below the minimum pot 90 to 119
+  FLAT  S271-db      lost 37 (9 / 28), saved 347 (283 / 64); running short 1214 to 868, below the minimum pot 103 to 139
+  MEANS S271-db      lost 41 (5 / 36), saved 401 (334 / 67); running short 1214 to 810, below the minimum pot 103 to 147
+  FLAT  S377-45      lost 20 (10 / 10), saved 33 (5 / 28); running short 68 to 76, below the minimum pot 70 to 49
+  MEANS S377-45      lost 8 (3 / 5), saved 15 (3 / 12); running short 68 to 64, below the minimum pot 70 to 67
+  FLAT  S377-55      lost 19 (0 / 19), saved 32 (11 / 21); running short 71 to 59, below the minimum pot 67 to 66
+  MEANS S377-55      lost 20 (0 / 20), saved 31 (11 / 20); running short 71 to 58, below the minimum pot 67 to 69
+  MEANS S377-90      lost 31 (9 / 22), saved 124 (87 / 37); running short 471 to 343, below the minimum pot 55 to 90
+  FLAT  S377-dbpart  lost 84 (84 / 0), saved 73 (73 / 0); running short 543 to 554, below the minimum pot 0 to 0
+  MEANS S377-dbpart  lost 101 (100 / 1), saved 27 (27 / 0); running short 543 to 616, below the minimum pot 0 to 1
+  over the 56 comparisons: lost 5646, of them below the minimum pot 2448; saved 8371, of them below the minimum pot in TODAY 2983
+  90/10 under MEANS: fewer paths run short on 6 of 8 couples and more on 2; more end below the minimum pot on 7 and fewer on 1
+  checked: of the 12405 failing paths read as the minimum pot's in the 88 runs, 0 fail other than in the plan's last year below the household's floor
+  the household's minimum pot by couple (its four units): S023 the unit's target (£132,300 to £145,100); S061 the unit's target (£17,300 to £21,400); S109 £80,000; S147 £90,000; S191 the unit's target (£112,900 to £129,800); S227 £480,000; S271 the unit's target (£90,800 to £100,800); S377 £90,000
+
+G. S061-dbpart: its failing paths by the year they fail (the run's year from 0), the partner's age then, and the pot they end the plan with (the median), in each arm
+  the elder 61 and the partner 58 at the start; the partner's DB pension £15,000 a year from age 68 (year 10); the state pension age 68
+  TODAY share 0.500: 353 failing (353 running short, 0 below the minimum pot); by year 5 (the partner 63) 4, 6 (the partner 64) 37, 7 (the partner 65) 71, 8 (the partner 66) 91, 9 (the partner 67) 150; the median pot at the plan's end £292,606
+  FLAT  share 0.600: 770 failing (770 running short, 0 below the minimum pot); by year 5 (the partner 63) 18, 6 (the partner 64) 121, 7 (the partner 65) 179, 8 (the partner 66) 217, 9 (the partner 67) 235; the median pot at the plan's end £304,779
+  MEANS share 0.385: 2334 failing (2334 running short, 0 below the minimum pot); by year 4 (the partner 62) 2, 5 (the partner 63) 141, 6 (the partner 64) 635, 7 (the partner 65) 469, 8 (the partner 66) 506, 9 (the partner 67) 581; the median pot at the plan's end £276,372
+
+H. Each run's solve (s) and its engine's time a path (ms), unit by unit: TODAY / FLAT / MEANS (the arms ran every TODAY, then every MEANS, then FLAT; "-" where FLAT did not run)
+  S023-45      73 s, 89 ms / 81 s, 102 ms / 68 s, 92 ms
+  S023-55      71 s, 91 ms / 81 s, 100 ms / 68 s, 92 ms
+  S023-90      73 s, 76 ms / - / 69 s, 73 ms
+  S023-db      69 s, 78 ms / 77 s, 87 ms / 66 s, 81 ms
+  S061-45      87 s, 83 ms / 97 s, 90 ms / 85 s, 86 ms
+  S061-55      87 s, 83 ms / 108 s, 90 ms / 86 s, 86 ms
+  S061-90      83 s, 71 ms / - / 84 s, 78 ms
+  S061-dbpart  79 s, 77 ms / 107 s, 83 ms / 82 s, 69 ms
+  S109-45      87 s, 77 ms / 97 s, 87 ms / 84 s, 79 ms
+  S109-55      83 s, 76 ms / 98 s, 84 ms / 88 s, 76 ms
+  S109-90      83 s, 68 ms / - / 88 s, 78 ms
+  S109-sppart  79 s, 78 ms / 91 s, 88 ms / 88 s, 76 ms
+  S147-45      99 s, 135 ms / 113 s, 148 ms / 109 s, 153 ms
+  S147-55      104 s, 134 ms / 119 s, 141 ms / 116 s, 149 ms
+  S147-90      100 s, 106 ms / - / 113 s, 127 ms
+  S147-db      98 s, 126 ms / 108 s, 131 ms / 112 s, 132 ms
+  S191-45      100 s, 119 ms / 108 s, 127 ms / 99 s, 138 ms
+  S191-55      96 s, 122 ms / 130 s, 196 ms / 100 s, 146 ms
+  S191-90      97 s, 110 ms / - / 102 s, 142 ms
+  S191-dbpart  97 s, 111 ms / 127 s, 191 ms / 99 s, 145 ms
+  S227-45      98 s, 121 ms / 133 s, 199 ms / 126 s, 241 ms
+  S227-55      96 s, 120 ms / 132 s, 200 ms / 176 s, 234 ms
+  S227-90      94 s, 108 ms / - / 297 s, 215 ms
+  S227-sppart  94 s, 119 ms / 108 s, 147 ms / 285 s, 213 ms
+  S271-45      102 s, 135 ms / 108 s, 169 ms / 118 s, 245 ms
+  S271-55      100 s, 137 ms / 115 s, 169 ms / 122 s, 256 ms
+  S271-90      103 s, 116 ms / - / 119 s, 231 ms
+  S271-db      104 s, 131 ms / 112 s, 164 ms / 106 s, 249 ms
+  S377-45      147 s, 130 ms / 206 s, 139 ms / 337 s, 175 ms
+  S377-55      145 s, 131 ms / 159 s, 138 ms / 334 s, 165 ms
+  S377-90      144 s, 112 ms / - / 309 s, 161 ms
+  S377-dbpart  137 s, 132 ms / 155 s, 139 ms / 297 s, 167 ms

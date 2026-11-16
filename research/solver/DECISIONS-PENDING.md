@@ -59,7 +59,15 @@ the worktree at e1239959 (code c0dcfa9ef2f2, audit 28712df5935f), relaunched und
 its runs done 14:57 UK. **Read once, 16 Nov: NEITHER, today's split stays** (`results-share-rules.txt`; the report
 `reports/2026-11-16-share-rules-read.md`, beside it `results-share-rules-beside.txt`): FLAT flags four units and its spending
 falls past the bar; MEANS flags six, S061-dbpart losing `12.381` points; each rule's pooled survival holds. Nothing changes in
-the app. The reviewer at the read and the deep review next; what follows goes to you with the deep review's test, if any.
+the app. The reviewer at the read: PASS, four MINORs, answered (`reviews/2026-11-16-read-share-rules.md`).
+- **The deep review** (`reviews/2026-11-16-deep-share-rules.md`): taken with the share ensemble and the share choice, the
+  fixed-share route is spent. Its leading cause: each person's table plans a part of the household that the household
+  never lives, and the joint move prices the household's money and room to spend by those parts.
+- **Its one test, yours to take (the report's "For the maintainer"):** replay the flagged units' lost and saved paths on
+  the read's own code with each year recorded, plus four variants of the move (today's spending level, tiers, split; each
+  person's top six moves). EXPLORATORY, about 4.5 core-hours and a day's work, on seed 7023's already-read paths, run
+  directly since the launcher refuses a reserved seed outside its registration; or on 7002 at about three times the cost.
+- **The agent's recommendation:** run it. The other way is to leave the share where it is.
 - **What it tests:** two fixed rules for a couple's share against today's (the pots' share outside 40% to 60%, half
   inside), each on the couples' candidate:
   - FLAT: the pots' share for every couple, the band dropped;

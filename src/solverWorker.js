@@ -46,7 +46,7 @@
  * with `slot` 'self' or 'part', kept for that person; then
  *   couple-plans  { id, plan, shareRule }               the household's plan as solved and each person's plan and partner's age,
  *                                                       as couple.js cuts them: { id, household, plans, ageWith, share, shareRule }
- *   couple        { id, household, shareRule }          the couple assembled from the two tables kept (each checked to be the
+ *   couple        { id, household, shareRule, joint }   the couple assembled from the two tables kept (each checked to be the
  *                                                       one solved for its person's plan and partner's age), kept as the solve in
  *                                                       hand: { id, done, meta }. Every question above then answers for it. A
  *                                                       part holding both people's tables (D5.6) is asked it too, and then runs
@@ -154,7 +154,7 @@ self.onmessage = async ({ data }) => {
     if (kind === 'couple') {
       if (!persons.self || !persons.part) throw new Error('solverWorker: a couple asked before both tables were solved');
       const cp = assembleCouple(E, M, data.household, { self: persons.self.r, part: persons.part.r }, {
-        shareRule: data.shareRule, solvedOn: { self: { plan: persons.self.plan, ageWith: persons.self.ageWith }, part: { plan: persons.part.plan, ageWith: persons.part.ageWith } } });
+        shareRule: data.shareRule, joint: data.joint || null, solvedOn: { self: { plan: persons.self.plan, ageWith: persons.self.ageWith }, part: { plan: persons.part.plan, ageWith: persons.part.ageWith } } });
       solved = cp; runs = null;
       self.postMessage({ id, done: true, meta: coupleMeta(cp) });
       return;

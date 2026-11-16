@@ -220,13 +220,14 @@ const firstDiff = (a, b, at = '') => {
   }, { pl, light: LIGHT, seed: SEED, trials: last }));
   // a couple's reference (Part D, D5.5): solved as the worker solves it, each person's table then the couple, in this Chromium,
   // on the couples' default share rule (src/solverSettings.js APP_COUPLE, D99; the reviewer on D99, finding 2), so a couple held
-  // unevenly is checked against its own figures and a page solving it on another share fails
+  // unevenly is checked against its own figures and a page solving it on another share fails; and with the couples' joint move
+  // (appJoint, D108), as the page assembles a couple
   const refCouple = async pl => JSON.parse(await ref.run(async ({ pl, light, seed, trials }) => {
     const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
     const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
-    const { couplePlans, assembleCouple } = await import('/src/solverCouple.js'), { APP_COUPLE } = await import('/src/solverSettings.js');
+    const { couplePlans, assembleCouple } = await import('/src/solverCouple.js'), { APP_COUPLE, appJoint } = await import('/src/solverSettings.js');
     const cut = couplePlans(E, pl, { shareRule: APP_COUPLE.shareRule }), one = w => solveForApp(E, M, cut.plans[w], { ...light, ageWith: cut.ageWith[w] });
-    const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
+    const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, joint: appJoint(), solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
     return JSON.stringify(strategyOf(E, cp, pl, { trials, seed }));
   }, { pl, light: LIGHT, seed: SEED, trials: last }));
   // a couple whose elder is entered second (D104 (1)): solved as the page solves it, on its mirror (src/coupleOrder.js
@@ -236,11 +237,11 @@ const firstDiff = (a, b, at = '') => {
   const refCoupleSwap = async pl => JSON.parse(await ref.run(async ({ pl, light, seed, trials }) => {
     const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
     const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
-    const { couplePlans, assembleCouple } = await import('/src/solverCouple.js'), { APP_COUPLE } = await import('/src/solverSettings.js');
+    const { couplePlans, assembleCouple } = await import('/src/solverCouple.js'), { APP_COUPLE, appJoint } = await import('/src/solverSettings.js');
     const { otherOrder } = await import('/src/coupleOrder.js');
     const mirror = otherOrder(E, pl), ctxOf = p => E.buildContext(E.resolveMpaa(E.normalizePlan(p))), gap = ctxOf(pl).ageSelf0 - ctxOf(mirror).ageSelf0;
     const cut = couplePlans(E, mirror, { shareRule: APP_COUPLE.shareRule }), one = w => solveForApp(E, M, cut.plans[w], { ...light, ageWith: cut.ageWith[w] });
-    const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
+    const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, joint: appJoint(), solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
     const s = strategyOf(E, cp, pl, { trials, seed });
     if (s.raise) s.raise = { ...s.raise, age: s.raise.age + gap };
     s.outlook = { ...s.outlook, spend: s.outlook.spend.map(x => ({ ...x, age: x.age + gap })) };

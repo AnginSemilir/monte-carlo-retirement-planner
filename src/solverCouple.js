@@ -61,12 +61,16 @@ export function couplePlans(E, plan, { shareRule = undefined } = {}) {
  * The couple from its two tables, solved elsewhere: solveCouple (couple.js) with a solveOne that hands back the table solved
  * for each person. `solvedOn` names, for each person, the plan and the partner's age their table was solved on: solveCouple
  * cuts each person's plan again here and hands it to solveOne with the partner's age; either differing refuses, so a table is
- * never valued as another's, or as solved for another age.
+ * never valued as another's, or as solved for another age. `joint`, the joint move's options the couple is assembled with
+ * (src/solverSettings.js appJoint, the couples' default since D108: tieJoint, tieLook, holdPast; couple.js solveCouple), none
+ * where it is not given, as before.
  */
-export function assembleCouple(E, M, household, tables, { shareRule = undefined, solvedOn } = {}) {
+export const JOINT_KEYS = ['tieJoint', 'tieLook', 'holdPast'];
+export function assembleCouple(E, M, household, tables, { shareRule = undefined, joint = null, solvedOn } = {}) {
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   return solveCouple(E, M, household, {
     ...(SHARE_RULES.includes(shareRule) ? { shareRule } : {}),
+    ...(joint ? Object.fromEntries(JOINT_KEYS.filter(k => joint[k] !== undefined).map(k => [k, joint[k]])) : {}),
     solveOne: (p, o) => {
       const who = PLANT.rule === 'swap' ? (o.who === 'self' ? 'part' : 'self') : o.who, on = solvedOn && solvedOn[o.who];
       if (!on) throw new Error(`assembleCouple: no record of the plan ${o.who}'s table was solved on`);
@@ -83,7 +87,8 @@ export const isCouple = x => !!(x && x.tables && x.tables.self && x.tables.part 
 /* the page's record of a couple's solve: the household's figures and each person's table's own record, plain data */
 export function coupleMeta(cp) {
   const plain = r => JSON.parse(JSON.stringify(r.meta));
-  return { couple: true, share: cp.share, shareRule: (cp.meta && cp.meta.shareRule) || 'half', tiersBelow: cp.tiersBelow, self: plain(cp.tables.self), part: plain(cp.tables.part) };
+  const joint = Object.fromEntries(JOINT_KEYS.filter(k => cp.meta && cp.meta[k] !== undefined).map(k => [k, cp.meta[k]]));
+  return { couple: true, share: cp.share, shareRule: (cp.meta && cp.meta.shareRule) || 'half', joint, tiersBelow: cp.tiersBelow, self: plain(cp.tables.self), part: plain(cp.tables.part) };
 }
 
 /*

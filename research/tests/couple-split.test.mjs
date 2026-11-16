@@ -11,7 +11,8 @@
  * browser harness (solver-planner-ui.cjs check 19). Light settings, S069 (61 and 58, holding 60/40, some of its paths failing)
  * and S126:
  *   1. a couple solved with three parts: each part is handed both people's tables (the first person's, then the second's, in
- *      their slots) and assembles the couple; the job keeps the two parts beside the owner; the headline's figures on 120
+ *      their slots) and assembles the couple, with the couples' joint move as the owner does (D108: appJoint); the job keeps
+ *      the two parts beside the owner; the headline's figures on 120
  *      paths and this year's actions on 60 paths are the whole run's (strategyOf; coupleActionsOf run whole), bit for bit;
  *   2. the same couple again, both people's tables now in the store: each is restored split (the owner asked to follow it,
  *      each part handed the record's small fields alone, followRecord), the solve marked restored, the two parts kept, the
@@ -23,7 +24,8 @@
  *   5. a couple's What if variant (startFigures, not keyed): its two people's solves neither restored nor stored, the store as
  *      it was (the client's contract; the reviewer of 14 Nov, finding 6).
  * Plants (--planted): the client's 'coupleowner' (the couple's parts let go: checks 1 and 2), 'wholerestore' (a stored solve restored
- * in the owner alone: checks 2 and 3) and 'keyvariant' (a variant's people keyed: check 5).
+ * in the owner alone: checks 2 and 3), 'keyvariant' (a variant's people keyed: check 5) and 'notie' (a couple assembled without the
+ * couples' joint move, as before D108: check 1).
  *   node research/tests/couple-split.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -32,13 +34,14 @@ import { solveForApp } from '../../src/solverApp.js';
 import { cacheOf, followRecord } from '../../src/solverCache.js';
 import { strategyRuns, strategyAnswer, strategyOf } from '../../src/solverStrategy.js';
 import { couplePlans, assembleCouple, isCouple, coupleSkipRuns, coupleActionsOf, PLANT as COUPLE_PLANT } from '../../src/solverCouple.js';
+import { appJoint } from '../../src/solverSettings.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['coupleowner', ['1', '2']], ['wholerestore', ['2', '3']], ['keyvariant', ['5']]]) {
+  for (const [plant, want] of [['coupleowner', ['1', '2']], ['wholerestore', ['2', '3']], ['keyvariant', ['5']], ['notie', ['1']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, COUPLE_SPLIT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c));
@@ -64,7 +67,7 @@ const solveOnce = (p, o) => { const k = JSON.stringify([p, o]); if (!solves.has(
 let nextId = 0;
 class InProcessWorker {
   constructor() { this.n = nextId++; this.solved = null; this.persons = { self: null, part: null }; this.runs = null; this.pending = null; this.onmessage = null; this.onerror = null; this.dead = false; }
-  postMessage(data) { log.push({ w: this.n, kind: data.kind, slot: data.slot || null, follow: !!data.restore || !!data.restoreSplit, part: data.part, key: data.key || null }); setImmediate(() => this.handle(data)); }
+  postMessage(data) { log.push({ w: this.n, kind: data.kind, slot: data.slot || null, follow: !!data.restore || !!data.restoreSplit, part: data.part, key: data.key || null, ...(data.kind === 'couple' ? { joint: JSON.stringify(data.joint === undefined ? null : data.joint) } : {}) }); setImmediate(() => this.handle(data)); }
   terminate() { this.dead = true; }
   reply(m) { setImmediate(() => { if (!this.dead && this.onmessage) this.onmessage({ data: m }); }); }
   // a person's table, kept in its slot, or the solve in hand; solved whole (a split solve's tables) or restored from the store
@@ -97,7 +100,7 @@ class InProcessWorker {
       if (kind === 'couple-plans') { this.reply({ id, ...couplePlans(E, data.plan, { shareRule: data.shareRule }) }); return; }
       if (kind === 'couple') {
         const cp = assembleCouple(E, M, data.household, { self: this.persons.self.r, part: this.persons.part.r }, {
-          shareRule: data.shareRule, solvedOn: { self: { plan: this.persons.self.plan, ageWith: this.persons.self.ageWith }, part: { plan: this.persons.part.plan, ageWith: this.persons.part.ageWith } } });
+          shareRule: data.shareRule, joint: data.joint || null, solvedOn: { self: { plan: this.persons.self.plan, ageWith: this.persons.self.ageWith }, part: { plan: this.persons.part.plan, ageWith: this.persons.part.ageWith } } });
         this.solved = cp; this.runs = null; this.reply({ id, done: true, meta: {} }); return;
       }
       if (kind === 'runs') { this.reply({ id, runs: strategyRuns(E, this.solved, data.plan, { seed: data.seed, from: data.from, to: data.to }) }); return; }
@@ -118,7 +121,8 @@ C.PLANT.rule = process.env.COUPLE_SPLIT_PLANT || '';
 // the whole run's figures and actions, in this process
 const cpl = couplePlans(E, couple.plan);
 const tabs = { self: solveForApp(E, M, cpl.plans.self, { ...light, ageWith: cpl.ageWith.self }), part: solveForApp(E, M, cpl.plans.part, { ...light, ageWith: cpl.ageWith.part }) };
-const cpWhole = assembleCouple(E, M, cpl.household, tabs, { solvedOn: { self: { plan: cpl.plans.self, ageWith: cpl.ageWith.self }, part: { plan: cpl.plans.part, ageWith: cpl.ageWith.part } } });
+// assembled with the couples' joint move (D108), as the page's owner and parts assemble it
+const cpWhole = assembleCouple(E, M, cpl.household, tabs, { joint: appJoint(), solvedOn: { self: { plan: cpl.plans.self, ageWith: cpl.ageWith.self }, part: { plan: cpl.plans.part, ageWith: cpl.ageWith.part } } });
 const wantCouple = JSON.stringify(strategyOf(E, cpWhole, couple.plan, { trials: N, seed: SEED }));
 const wantActions = JSON.stringify(coupleActionsOf(E, cpWhole, couple.plan, { seed: SEED, n: NA }));
 const wantSingle = JSON.stringify(strategyOf(E, solveForApp(E, M, single, light), single, { trials: N, seed: SEED }));
@@ -139,9 +143,11 @@ const partsOf = sent => [...new Set(sent.filter(m => m.kind === 'part').map(m =>
 { const { done, s, a, sent } = await runCouple(), ps = partsOf(sent);
   const both = ps.length === 2 && ps.every(w => ['self', 'part'].every(slot => sent.some(m => m.w === w && m.kind === 'part' && m.slot === slot)) && sent.some(m => m.w === w && m.kind === 'couple'));
   const shared = sent.some(m => m.kind === 'runs' && ps.includes(m.w)) && sent.some(m => m.kind === 'skipruns' && ps.includes(m.w));
-  ok('1. a couple with three parts: each part handed both people\'s tables and assembling the couple, its paths and skips shared out, every figure and cost the whole run\'s',
-    both && shared && JSON.stringify(s.strategy) === wantCouple && JSON.stringify(a.actions) === wantActions,
-    `${couple.id}: parts ${ps.join(', ')} (both tables ${both}); shared ${shared}; survival ${s.strategy.headline.survival.toFixed(2)}%; skips ${a.actions.actions.map(x => (x.cost === null ? 'none' : x.cost.toFixed(2))).join(' ')}; restored ${done.restored}`); }
+  // the owner and each part assemble the couple with the couples' joint move (D108), the same everywhere
+  const joints = sent.filter(m => m.kind === 'couple'), jointOk = joints.length === 3 && joints.every(m => m.joint === JSON.stringify(appJoint()));
+  ok('1. a couple with three parts: each part handed both people\'s tables and assembling the couple with the couples\' joint move, its paths and skips shared out, every figure and cost the whole run\'s',
+    both && shared && jointOk && JSON.stringify(s.strategy) === wantCouple && JSON.stringify(a.actions) === wantActions,
+    `${couple.id}: parts ${ps.join(', ')} (both tables ${both}); the couple assembled ${joints.length} times, with ${[...new Set(joints.map(m => m.joint))].join(' / ')}; shared ${shared}; survival ${s.strategy.headline.survival.toFixed(2)}%; skips ${a.actions.actions.map(x => (x.cost === null ? 'none' : x.cost.toFixed(2))).join(' ')}; restored ${done.restored}`); }
 
 // 2. the same couple, both tables in the store
 { const { done, s, a, sent } = await runCouple(), ps = partsOf(sent);

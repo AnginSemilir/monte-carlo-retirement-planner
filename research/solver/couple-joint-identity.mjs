@@ -11,13 +11,16 @@
  *          APP_COUPLE's joint move, src/solverSettings.js appJoint), on the same plan, as the page would hold it;
  * and prints the joint move's options read back from the couple (tieJoint, tieLook, holdPast), each person's table digest
  * (src/solverDigest.js), the share and its rule, and the engine's run of the couple as TIE-C2's audit runs it (audit-phase4.mjs
- * runPath, arm A's MPAA ages) on the first 500 paths of seed 7001: the paths survived and a hash of every path's survival, pot,
- * estate, spending delivered and lifetime tax.
+ * runPath, arm A's MPAA ages) on the first 500 paths of seed 7001: the paths survived, a hash of every path's survival, pot,
+ * estate, spending delivered and lifetime tax, and the paths whose survival, failure year, pot, lifetime tax or spending
+ * delivered differ, byte for byte, from what TIE-C2 stored for its LOOKHOLD arm (results/tie-c2-7001).
  *   node research/solver/couple-joint-identity.mjs <tree> <audit|app> <couple>
  */
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 
 const [treeArg, mode, id] = process.argv.slice(2);
 if (!treeArg || !['audit', 'app'].includes(mode) || !id) { console.error('usage: couple-joint-identity.mjs <tree> <audit|app> <couple>'); process.exit(2); }
@@ -56,12 +59,17 @@ const opts = `tieJoint ${cp.tieJoint ?? '-'} tieLook ${cp.tieLook ?? '-'} holdPa
 // the engine's run as TIE-C2's audit makes it: the couple through the joint move, each person's MPAA age arm A's
 const aDemo = E.resolveMpaa(a.planState).demographics;
 const ctx = E.buildContext(CPL.withCouple({ ...cp.plan, demographics: { ...cp.plan.demographics, mpaaAgeSelf: aDemo.mpaaAgeSelf, mpaaAgePart: aDemo.mpaaAgePart } }, cp));
+// TIE-C2's LOOKHOLD arm as it stored it: its paths drawn as TIE-C2 drew them (all its paths), so the first N are its own
+const ref = JSON.parse(gunzipSync(readFileSync(join(root, 'research/solver/results/tie-c2-7001', `${id}.json.gz`))).toString());
+const dec = (b64, T) => { const b = Buffer.from(b64, 'base64'), c = new Uint8Array(b.length); c.set(b); return new T(c.buffer, 0, b.length / T.BYTES_PER_ELEMENT); };
+const R = { survived: dec(ref.arms.LOOKHOLD.survived, Uint8Array), failYear: dec(ref.arms.LOOKHOLD.failYear, Int16Array), pot: dec(ref.arms.LOOKHOLD.pot, Float64Array), tax: dec(ref.arms.LOOKHOLD.tax, Float64Array), delivered: dec(ref.arms.LOOKHOLD.delivered, Float64Array) };
 const hash = createHash('sha256'), f = new Float64Array(5);
-let survived = 0;
-E.pathsForSeed(SEED, N, ctx.totalYears).forEach(zs => {
+let survived = 0, differ = 0;
+E.pathsForSeed(SEED, ref.N, ctx.totalYears).slice(0, N).forEach((zs, i) => {
   const o = P4.runPath(ctx, Float64Array.from(zs), false);
   survived += o.survived ? 1 : 0;
   f[0] = o.survived ? 1 : 0; f[1] = o.wealth; f[2] = o.estate; f[3] = o.delivered; f[4] = o.tax;
   hash.update(Buffer.from(f.buffer));
+  if ((o.survived ? 1 : 0) !== R.survived[i] || o.failYear !== R.failYear[i] || !Object.is(o.wealth, R.pot[i]) || !Object.is(o.tax, R.tax[i]) || !Object.is(o.delivered, R.delivered[i])) differ++;
 });
-console.log(`${id} ${mode} ${opts} share ${cp.share} rule ${cp.meta.shareRule} self ${digests.self} part ${digests.part} survived ${survived} of ${N} outcomes ${hash.digest('hex').slice(0, 16)} | solve ${Math.round(solveSecs)} s`);
+console.log(`${id} ${mode} ${opts} share ${cp.share} rule ${cp.meta.shareRule} self ${digests.self} part ${digests.part} survived ${survived} of ${N} outcomes ${hash.digest('hex').slice(0, 16)}; against TIE-C2's LOOKHOLD ${differ} of ${N} paths differ | solve ${Math.round(solveSecs)} s`);

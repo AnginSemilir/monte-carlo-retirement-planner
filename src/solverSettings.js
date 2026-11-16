@@ -97,8 +97,16 @@ export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.sol
  * `shareRule: 'pots'`). The solver's own default stays the half share, a research option there, as the candidate's options are
  * off in the solver's code; the page solves a couple with this (src/solverClient.js startSolve). Which couples the page solves
  * at all is src/couplesSwitch.js's guard. Pinned to STATE.md's decided-defaults block by research/tests/couple-default.test.mjs.
+ * And a couple's joint move (D105 and D108; research/solver/TIE-C2.md read once, PASS, the rule taking LOOKHOLD,
+ * results-tie-c2.txt; its speed settled by TIE-C2-TIMING.md): where both people are above their estate caps, the moves within
+ * `tieJoint` of the best's score, at its spending level and each person's tier pair, ranked by the household's pot at the plan's
+ * end on the median path (`tieLook`); and a person whose wealth is more than `holdPast` times the top of their table's wealth
+ * axis never stepping down in risk (src/solver/couple.js lookPick, holdMove). Off in the solver's own code, as the share rule
+ * is; the page's couple is assembled with them (appJoint: src/solverClient.js, src/solverCouple.js assembleCouple).
  */
-export const APP_COUPLE = Object.freeze({ shareRule: 'pots' });
+export const APP_COUPLE = Object.freeze({ shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2 });
+/* the joint move's options of the couples' default, as assembleCouple takes them */
+export const appJoint = () => ({ tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast });
 export const SPEED_OPTIONS = Object.freeze({ chooserShortlist: 'order' });
 export const speedOf = plan => !!(plan && plan.solver && plan.solver.speed === 'fast');
 // plant 'speednone' (speed-mode.test.mjs): the solve not handed the speed mode the plan asks for

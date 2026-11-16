@@ -24,8 +24,14 @@
  *   6. the hold by hand (couple.js holdMove on built moves): past the limit a step down keeps the tier held and the other
  *      wrapper's step up stands; below the limit, in the last year and with the option unset nothing changes; the other
  *      person's move untouched
- * Plants (COUPLE.plant): 'holdany' (the wealth test dropped) fails checks 2 and 6; 'holdup' (a step up held too) fails check
- * 6; 'lookyear' (the look's pot after this year alone) fails check 3. --planted runs each and reads which fail.
+ *   7. the hold over the dial's lock (the reviewer on D109's change of default, MINOR 2): S007 at the dial's position 3, each
+ *      person's table locked to its base's tiers (lockTiers), its estate caps at £300,000; along its own path at limits of 0.05
+ *      to 0.2 of each table's top, each decision the lock's move with each step down of a person past the limit put back to
+ *      the tier held and nothing else changed (a person below the limit on the lock's pair); the hold acting over a step down
+ *      the lock takes; the engine and the rollout in step under the hold at 0.05 on 10 paths
+ * Plants (COUPLE.plant): 'holdany' (the wealth test dropped) fails checks 2, 6 and 7; 'holdup' (a step up held too) fails check
+ * 6; 'lookyear' (the look's pot after this year alone) fails check 3; 'holdlock' (a locked table's move left to its lock)
+ * fails check 7. --planted runs each and reads which fail.
  *   node research/tests/couple-tie-look.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -41,7 +47,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const SELF = fileURLToPath(import.meta.url);
-const PLANTS = [['holdany', ['2', '6']], ['holdup', ['6']], ['lookyear', ['3']]];
+const PLANTS = [['holdany', ['2', '6', '7']], ['holdup', ['6']], ['lookyear', ['3']], ['holdlock', ['7']]];
 if (process.argv.includes('--planted')) {
   let bad = 0;
   for (const [plant, want] of PLANTS) {
@@ -212,6 +218,50 @@ const placeOf = (cp, w, cat, k) => TIER_ORDER.indexOf(cp.tables[w].c.tiers[cat][
   const bad = [];
   for (const [name, c, st, j, sA, sB, want, t = 5] of cases) { const got = CPL.holdMove(c, st, t, j, sA, sB); if (js(got.perOwner) !== js(want.perOwner)) bad.push(`${name}: ${tiersOf(got)}, wanted ${tiersOf(want)}`); }
   ok(6, 'the hold by hand: past the limit a step down keeps the tier held while a step up stands; below the limit, in the last year and with the option unset, nothing; the other person untouched', !bad.length, bad.join('; ') || `${cases.length} cases`);
+}
+
+// ---- 7. the hold over the dial's lock (the reviewer on D109's change of default, MINOR 2) ----
+{
+  // S007 at the dial's position 3 (its aims' cuts at 3: each person's table solved on the tiers of its base, the same plan at
+  // position 1, lockTiers, D3), each person's estate cap at £300,000 as in check 2. Along the locked couple's own path (years 1
+  // to the year before the last), at limits of 0.05 to 0.2 of each table's top: each decision is the lock's move (the hold
+  // unset) with each step down of a person past the limit put back to the tier held, nothing else changed, so a person below
+  // the limit keeps the lock's pair; the hold puts back some step down the lock takes. And the engine and the rollout stay in
+  // step under the hold at 0.05, as in check 4.
+  const CAP = { bequestCap: 300000 }, LIMITS = [0.05, 0.1, 0.15, 0.2];
+  const RAW = buildScenarios().find(x => x.id === 'S007').plan;
+  const P3 = prepareForSolve(E, E.normalizePlan({ ...RAW, solver: { aims: { cuts: 3, estate: 'standard', raises: 'capped', riskConsent: true } } }));
+  const lock = solveCouple(E, M, P3, { solveOne: one(CAP) });
+  const locked = ['self', 'part'].every(w => !!lock.tables[w].lockTiers);
+  const T3 = lock.m.ctx.totalYears, z3 = E.pathsForSeed(7002, 1, T3)[0], path = [];
+  { const st = M.initialState(lock.m); for (let t = 0; t <= T3; t++) { path.push(M.cloneState(st)); const j = chooseJoint(lock, st, t); M.step(lock.m, st, j, t, ratesFor(lock.m, z3, t, st)); } }
+  let decisions = 0, acted = 0, putBack = 0, spared = 0; const bad = [];
+  for (const L of LIMITS) {
+    const hold = solveCouple(E, M, P3, { solveOne: one(CAP), holdPast: L });
+    for (let t = 1; t < T3; t++) {
+      const st = path[t], a = chooseJoint(lock, st, t), b = chooseJoint(hold, st, t), want = JSON.parse(js(a));
+      decisions++;
+      for (const w of ['self', 'part']) {
+        const past = wealthOf(lock, st, w) > L * topOf(lock, w), held = st.tierHeld && st.tierHeld[w] ? st.tierHeld[w] : { pen: 0, isa: 0 };
+        for (const [cat, key] of [['pen', 'tierPen'], ['isa', 'tierIsa']]) {
+          const from = held[cat] || 0, to = a.perOwner[w][key] || 0;
+          if (to === from || !(placeOf(lock, w, cat, to) > placeOf(lock, w, cat, from))) continue;
+          if (!past) { spared++; continue; }
+          want.perOwner[w][key] = from; putBack++;
+        }
+        if ('tierPenName' in want.perOwner[w]) { want.perOwner[w].tierPenName = lock.tables[w].c.tiers.pen[want.perOwner[w].tierPen || 0].name; want.perOwner[w].tierIsaName = lock.tables[w].c.tiers.isa[want.perOwner[w].tierIsa || 0].name; }
+      }
+      if (!same(b, want)) bad.push(`limit ${L}, year ${t}: the hold gave ${tiersOf(b)}, the lock's move with the steps down of those past the limit put back ${tiersOf(want)}`);
+      if (!same(a, b)) acted++;
+    }
+  }
+  // the engine and the rollout in step at the locked position under the hold at 0.05
+  const cp = solveCouple(E, M, P3, { solveOne: one(CAP), holdPast: 0.05 }), ctx = E.buildContext(withCouple(cp.plan, cp)), N = 10, paths = E.pathsForSeed(7002, N, ctx.totalYears);
+  let diff = 0, gap = 0;
+  paths.forEach(z => { const e = E.runTrial(ctx, z), r = runCouplePolicy(cp, z); if (e.survived !== r.survived) diff++; else if (e.survived) gap = Math.max(gap, Math.abs(e.terminalPotNet - r.terminalNet)); });
+  ok(7, `the hold over the dial's lock: S007 at position 3, each table locked to its base's tiers, its estate caps at £300,000; along its own path at limits of ${LIMITS.join(', ')} of each table's top, each decision the lock's move with each step down of a person past the limit put back, a person below it on the lock's pair; the hold acting over the lock; the engine and the rollout in step under the hold at 0.05 on 10 paths`,
+    locked && decisions > 0 && !bad.length && acted > 0 && putBack > 0 && diff === 0 && gap < 1,
+    `both tables locked ${locked}; ${decisions} decisions: steps down put back ${putBack}, below the limit left on the lock's pair ${spared}; the hold changed ${acted}${bad.length ? `; ${bad.slice(0, 2).join('; ')}` : ''}; the engine against the rollout: differing in survival ${diff}, the largest gap at the end £${gap.toFixed(6)}`);
 }
 
 console.log(`\ncouple-tie-look: ${passed} passed, ${failed} failed${PLANT ? ` (planted: ${PLANT})` : ''}`);

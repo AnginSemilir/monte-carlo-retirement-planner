@@ -787,8 +787,11 @@ export function lookPick(cp, state, t, cands, best, margin) {
  * it (pension, ISA and taxable account together, the decision's own state) is more than holdPast times that top, a wrapper the
  * move would step down to less risk keeps the tier the person holds; a step up, and the rest of the move, stand. Below the
  * limit nothing changes, nor in the plan's last year (not a table read). It applies to the move the chooser picks, after the
- * tie set where that acts. Forward only: no table reads it. COUPLE.plant (couple-tie-look.test.mjs): 'holdany' drops the
- * wealth test (check 2); 'holdup' keeps the held tier on a step up too (check 6)
+ * tie set where that acts. Forward only: no table reads it. At a dial position locked to its base's tiers (lockTiers, D3) it
+ * acts over the lock as at position 1: the position's table shares its base's wealth axis, so past the limit the lock's step
+ * down is the same misread (the reviewer on D109's change of default, MINOR 2). COUPLE.plant (couple-tie-look.test.mjs):
+ * 'holdany' drops the wealth test (check 2); 'holdup' keeps the held tier on a step up too (check 6); 'holdlock' leaves a
+ * locked table's move to its lock (check 7)
  */
 export function holdMove(cp, state, t, joint, sA, sB) {
   if (!(cp.holdPast > 0) || t >= cp.m.ctx.totalYears) return joint;
@@ -796,6 +799,7 @@ export function holdMove(cp, state, t, joint, sA, sB) {
   for (const [w, tab, s] of [['self', cp.tables.self, sA], ['part', cp.tables.part, sB]]) {
     const ax = tab.g && tab.g.axes && tab.g.axes.W, po = out.perOwner && out.perOwner[w];
     if (!ax || !po || !tiered(tab)) continue;
+    if (planted('holdlock') && tab.lockTiers) continue;
     if (!planted('holdany') && !(s[0] + s[1] + s[2] > cp.holdPast * ax.hi)) continue;
     const h = state.tierHeld && state.tierHeld[w] ? state.tierHeld[w] : { pen: 0, isa: 0 }, keep = {};
     for (const [cat, key] of [['pen', 'tierPen'], ['isa', 'tierIsa']]) {

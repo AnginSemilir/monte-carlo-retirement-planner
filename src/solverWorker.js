@@ -66,6 +66,7 @@ import { couplePlans, assembleCouple, coupleMeta, isCouple, coupleActionsOf, cou
 import { headRuns } from './solverStrategy.js';
 import { distilOf } from './solverDistil.js';
 import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord, codeOf, followRecord } from './solverCache.js';
+import { PLANNER_PLANT } from './plannerPlant.js';
 
 // the engine as the solver reads it: App.jsx's exports and its E namespace (research/engine.mjs is the same union)
 const E = { ...App, ...App.E };
@@ -154,7 +155,9 @@ self.onmessage = async ({ data }) => {
     if (kind === 'couple') {
       if (!persons.self || !persons.part) throw new Error('solverWorker: a couple asked before both tables were solved');
       const cp = assembleCouple(E, M, data.household, { self: persons.self.r, part: persons.part.r }, {
-        shareRule: data.shareRule, joint: data.joint || null, solvedOn: { self: { plan: persons.self.plan, ageWith: persons.self.ageWith }, part: { plan: persons.part.plan, ageWith: persons.part.ageWith } } });
+        // plant 'workernotie' (solver-planner-ui check 19, a build's PLANNER_PLANT): the couple assembled without the joint move
+        // asked for, which the client's read-back refuses
+        shareRule: data.shareRule, joint: PLANNER_PLANT.has('workernotie') ? null : data.joint || null, solvedOn: { self: { plan: persons.self.plan, ageWith: persons.self.ageWith }, part: { plan: persons.part.plan, ageWith: persons.part.ageWith } } });
       solved = cp; runs = null;
       self.postMessage({ id, done: true, meta: coupleMeta(cp) });
       return;

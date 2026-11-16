@@ -107,6 +107,10 @@ export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.sol
 export const APP_COUPLE = Object.freeze({ shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2 });
 /* the joint move's options of the couples' default, as assembleCouple takes them */
 export const appJoint = () => ({ tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast });
+/* the joint move's options as a couple's record names them (src/solverCouple.js coupleMeta), and one key for comparing what a
+   couple was assembled with against what was asked (src/solverClient.js): the options set, in this order, none as {} */
+export const JOINT_KEYS = Object.freeze(['tieJoint', 'tieLook', 'holdPast']);
+export const jointKey = j => JSON.stringify(Object.fromEntries(JOINT_KEYS.filter(k => j && j[k] !== undefined && j[k] !== null).map(k => [k, j[k]])));
 export const SPEED_OPTIONS = Object.freeze({ chooserShortlist: 'order' });
 export const speedOf = plan => !!(plan && plan.solver && plan.solver.speed === 'fast');
 // plant 'speednone' (speed-mode.test.mjs): the solve not handed the speed mode the plan asks for

@@ -33,7 +33,7 @@ import * as M from '../../src/solver/model.js';
 import { solveForApp } from '../../src/solverApp.js';
 import { cacheOf, followRecord } from '../../src/solverCache.js';
 import { strategyRuns, strategyAnswer, strategyOf } from '../../src/solverStrategy.js';
-import { couplePlans, assembleCouple, isCouple, coupleSkipRuns, coupleActionsOf, PLANT as COUPLE_PLANT } from '../../src/solverCouple.js';
+import { couplePlans, assembleCouple, coupleMeta, isCouple, coupleSkipRuns, coupleActionsOf, PLANT as COUPLE_PLANT } from '../../src/solverCouple.js';
 import { appJoint } from '../../src/solverSettings.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { execFileSync } from 'node:child_process';
@@ -101,7 +101,8 @@ class InProcessWorker {
       if (kind === 'couple') {
         const cp = assembleCouple(E, M, data.household, { self: this.persons.self.r, part: this.persons.part.r }, {
           shareRule: data.shareRule, joint: data.joint || null, solvedOn: { self: { plan: this.persons.self.plan, ageWith: this.persons.self.ageWith }, part: { plan: this.persons.part.plan, ageWith: this.persons.part.ageWith } } });
-        this.solved = cp; this.runs = null; this.reply({ id, done: true, meta: {} }); return;
+        // the couple's record as the worker replies it (coupleMeta), which the client reads the joint move back from
+        this.solved = cp; this.runs = null; this.reply({ id, done: true, meta: coupleMeta(cp) }); return;
       }
       if (kind === 'runs') { this.reply({ id, runs: strategyRuns(E, this.solved, data.plan, { seed: data.seed, from: data.from, to: data.to }) }); return; }
       if (kind === 'strategy') { const a = strategyAnswer(E, this.solved, this.runs, data); this.runs = a.held; this.reply({ id, strategy: a.strategy }); return; }

@@ -36,14 +36,20 @@
  *      MINOR 1: a person's table cannot run past 120, so the cut would give that partner a shorter horizon and the figures
  *      fail): over 30 of the library's couples, each end age from 95 to 120 and the partner from their own age to 35 years
  *      older, the guard 'ages' exactly where the engine's own ages put the partner past 120 by the plan's end, and every
- *      couple the guard runs cut to the couple's horizon for both people; the reviewer's two cases among them.
+ *      couple the guard runs cut to the couple's horizon for both people; the reviewer's two cases among them;
+ *   7. the client reads back the joint move each assembly of the couple carries (the reviewer on D109's change of default,
+ *      MINOR 1: a worker dropping it was caught nowhere): a stand-in worker that assembles the couple without the joint move
+ *      asked for, replying its record as coupleMeta would, has the job refused with the client's reason; one that keeps it
+ *      solves (the page's own worker under the plant 'workernotie': solver-planner-ui.cjs check 19).
  * Plants (--planted runs each and wants its checks to fail): 'firstnotelder' (src/couplesSwitch.js: the first person taken for
  * the elder whatever the ages: check 2), 'eldereither' (src/couplesSwitch.js: the guard lifted for an elder entered second
  * without the swap, the couple solved in the order entered, as D99's first draft: check 2), 'halfdefault' (src/solverClient.js: a couple solved on the half share unless asked otherwise,
- * as before D99: check 3), 'notie' (src/solverClient.js: a couple assembled without the joint move, as before D108: check 3),
+ * as before D99: check 3), 'notie' (src/solverClient.js: a couple assembled without the joint move, as before D108: checks 3
+ * and 7, the client then asking for none, so a worker returning none is not refused),
  * 'oldcouples' (src/solverApproximations.js: the line before D99 with couples on: check 4), 'rawages'
  * (src/solverCouple.js householdPlan: a blank age or end age left as the plan has it: check 5), 'noagecap'
- * (src/couplesSwitch.js: a couple run whose partner would pass 120 before the plan ends: check 6). Check 1's planted blocks
+ * (src/couplesSwitch.js: a couple run whose partner would pass 120 before the plan ends: check 6), 'nojointcheck'
+ * (src/solverClient.js: each assembly's joint move not read back, as before: check 7). Check 1's planted blocks
  * run in every run.
  *   node research/tests/couple-default.test.mjs [--planted]
  */
@@ -53,7 +59,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { COUPLES, COUPLE_BAND, ELDER_UP_TO, ELDER_FIRST, SWAP_ELDER, coupleSolverOn, elderOf, horizonFits, PLANT as SWITCH_PLANT } from '../../src/couplesSwitch.js';
-import { APP_COUPLE, appJoint } from '../../src/solverSettings.js';
+import { APP_COUPLE, appJoint, jointKey } from '../../src/solverSettings.js';
 import { couplePlans, PLANT as COUPLE_PLANT } from '../../src/solverCouple.js';
 import { solverApproximations, COUPLES_LINE, PLANT as WORDS_PLANT } from '../../src/solverApproximations.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
@@ -61,7 +67,7 @@ import { buildScenarios } from '../policy-study/scenarios.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['firstnotelder', ['2']], ['eldereither', ['2']], ['halfdefault', ['3']], ['notie', ['3']], ['oldcouples', ['4']], ['rawages', ['5']], ['noagecap', ['6']]]) {
+  for (const [plant, want] of [['firstnotelder', ['2']], ['eldereither', ['2']], ['halfdefault', ['3']], ['notie', ['3', '7']], ['oldcouples', ['4']], ['rawages', ['5']], ['noagecap', ['6']], ['nojointcheck', ['7']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, COUPLE_DEFAULT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
@@ -128,7 +134,8 @@ const withAges = (plan, how) => { const re = JSON.parse(JSON.stringify(plan)), d
     `${n} plans, ${on} on, ${differ} differing${first.length ? ` (${first.join('; ')})` : ''}; the switch's elder against the engine's ages ${mismatchAge} differing; the elder the first person ${elderSeen.self}, the partner ${elderSeen.part}, neither ${elderSeen.none} (couple-arrangements); an elder entered second holding more than 60% and at most 90%, kept off: ${elderSecond} plans; 'off' wrong ${offWhy}`); }
 
 // 3. the page's solve of a couple: what the client asks its workers, by in-process stand-ins that record it
-{ const asked = [];
+let refused = null;   // check 7, below: the client's read-back of each assembly's joint move
+{ const asked = []; let dropJoint = false;
   class StandIn {
     constructor() { this.onmessage = null; this.onerror = null; this.dead = false; }
     postMessage(data) { setImmediate(() => this.handle(data)); }
@@ -140,14 +147,15 @@ const withAges = (plan, how) => { const re = JSON.parse(JSON.stringify(plan)), d
       try {
         if (kind === 'couple-plans') { const cut = couplePlans(E, data.plan, { shareRule: data.shareRule }); asked.push({ kind, shareRule: data.shareRule, share: cut.share, spend: [cut.plans.self.spending.targetSpend, cut.plans.part.spending.targetSpend] }); this.reply({ id, ...cut }); return; }
         if (kind === 'solve') { asked.push({ kind, slot: data.slot || null }); this.reply({ id: 0, done: true, meta: {}, secs: 0, restored: false }); return; }
-        if (kind === 'couple') { asked.push({ kind, shareRule: data.shareRule, joint: JSON.stringify(data.joint === undefined ? 'unset' : data.joint) }); this.reply({ id, done: true, meta: {} }); return; }
+        // the couple's record as the worker's (coupleMeta: the joint move it was assembled with); one that drops it (check 7)
+        if (kind === 'couple') { asked.push({ kind, shareRule: data.shareRule, joint: JSON.stringify(data.joint === undefined ? 'unset' : data.joint) }); this.reply({ id, done: true, meta: { joint: dropJoint ? {} : JSON.parse(jointKey(data.joint)) } }); return; }
         throw new Error(`no '${kind}' here`);
       } catch (e) { this.reply({ id, error: e.message }); }
     }
   }
   globalThis.Worker = StandIn;
   const C = await import('../../src/solverClient.js');
-  if (PLANTED === 'halfdefault' || PLANTED === 'notie') C.PLANT.rule = PLANTED;
+  if (PLANTED === 'halfdefault' || PLANTED === 'notie' || PLANTED === 'nojointcheck') C.PLANT.rule = PLANTED;
   const c = couples.find(x => x.id === 'S069') || couples[0], p90 = reheld(c.plan, 0.9);
   const run = async couple => { asked.length = 0; const job = C.startSolve(p90, { parts: 1, couple }); const d = await job.done; job.close(); return { d, asked: asked.slice() }; };
   const byDefault = await run({ engine: E }), named = await run({ engine: E, shareRule: 'half' }), noJoint = await run({ engine: E, joint: null });
@@ -162,7 +170,13 @@ const withAges = (plan, how) => { const re = JSON.parse(JSON.stringify(plan)), d
     !!cut && cut.shareRule === 'pots' && !!joined && joined.shareRule === 'pots' && spendOk && byDefault.d.couple.shareRule === 'pots' && Math.abs(byDefault.d.couple.share - 0.9) < 1e-9
       && !!cutH && cutH.shareRule === 'half' && !!joinedH && joinedH.shareRule === 'half' && named.d.couple.shareRule === 'half' && named.d.couple.share === 0.5
       && research.shareRule === 'half' && research.share === 0.5 && jointOk,
-    `${c.id} held 90/10, target ${target}: asked to cut on ${cut && cut.shareRule} (each person's spending ${cut ? cut.spend.map(x => Math.round(x)).join(' and ') : '-'}), to assemble on ${joined && joined.shareRule}, the record ${byDefault.d.couple.shareRule} at ${byDefault.d.couple.share}; named 'half': ${cutH && cutH.shareRule}, ${joinedH && joinedH.shareRule}, ${named.d.couple.shareRule} at ${named.d.couple.share}; couplePlans unasked: ${research.shareRule} at ${research.share}; the joint move asked ${joined && joined.joint}, recorded ${JSON.stringify(byDefault.d.couple.joint)}, with 'half' ${joinedH && joinedH.joint}, none named ${jN && jN.joint}`); }
+    `${c.id} held 90/10, target ${target}: asked to cut on ${cut && cut.shareRule} (each person's spending ${cut ? cut.spend.map(x => Math.round(x)).join(' and ') : '-'}), to assemble on ${joined && joined.shareRule}, the record ${byDefault.d.couple.shareRule} at ${byDefault.d.couple.share}; named 'half': ${cutH && cutH.shareRule}, ${joinedH && joinedH.shareRule}, ${named.d.couple.shareRule} at ${named.d.couple.share}; couplePlans unasked: ${research.shareRule} at ${research.share}; the joint move asked ${joined && joined.joint}, recorded ${JSON.stringify(byDefault.d.couple.joint)}, with 'half' ${joinedH && joinedH.joint}, none named ${jN && jN.joint}`);
+  // 7's runs: a stand-in worker that assembles the couple without the joint move asked for, and one that keeps it
+  dropJoint = true; let why = '';
+  try { await run({ engine: E }); } catch (e) { why = e.message; }
+  dropJoint = false;
+  let kept = true; try { await run({ engine: E }); } catch (e) { kept = false; }
+  refused = { why, kept }; }
 
 // 4. the words the page shows about couples follow the switch
 { const on = solverApproximations(), off = solverApproximations({ couples: false });
@@ -218,6 +232,12 @@ const withAges = (plan, how) => { const re = JSON.parse(JSON.stringify(plan)), d
   ok('6. a couple whose partner would pass 120 before the plan ends keeps the app\'s rules (\'ages\'), exactly where the engine\'s ages put them past it; every couple run cut to its whole horizon; the reviewer\'s two cases kept off',
     wrongWhy === 0 && shortOn === 0 && capped > 0 && ran > 0 && named && cases.every(([, p]) => horizonFits(p) === (coupleSolverOn(p, true).why !== 'ages')),
     `${n} plans, ${capped} past 120 by the end, ${ran} run; the reason wrong on ${wrongWhy}, a run couple cut short on ${shortOn}${first.length ? `: ${first.join('; ')}` : ''}`); }
+
+// 7. the client reads back each assembly's joint move (the reviewer on D109's change, MINOR 1): a couple assembled without the
+// joint move asked for is refused with the client's reason; the same couple assembled with it solves
+ok('7. a couple whose worker assembled it without the joint move asked for is refused by the client; assembled with it, it solves',
+  !!refused && /the couple was assembled by the owner with the joint move \{\}, not the \{"tieJoint":0\.0001,"tieLook":true,"holdPast":2\} asked for/.test(refused.why) && refused.kept,
+  `dropped: ${refused && refused.why ? refused.why : 'not refused'}; kept: ${refused && refused.kept ? 'solved' : 'refused'}`);
 
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
 process.exit(fail ? 1 : 0);

@@ -14,7 +14,7 @@
 import { shareBy, SHARE_RULES, singlePlanFor, solveCouple, chooseJoint, rankFor, ownerState } from './solver/couple.js';
 import { vecOf } from './solver/grid.js';
 import { solvedContext, runPath, partsOf, retireYearOf, firstSweep, joinSkipRuns } from './solverStrategy.js';
-import { prepareForSolve } from './solverSettings.js';
+import { prepareForSolve, JOINT_KEYS } from './solverSettings.js';
 import { appPlan } from './solverApp.js';
 
 /* research/tests/couple-solve-client.test.mjs only: 'swap' hands each person the other's table; 'noage' cuts the plans with no
@@ -65,7 +65,6 @@ export function couplePlans(E, plan, { shareRule = undefined } = {}) {
  * (src/solverSettings.js appJoint, the couples' default since D108: tieJoint, tieLook, holdPast; couple.js solveCouple), none
  * where it is not given, as before.
  */
-export const JOINT_KEYS = ['tieJoint', 'tieLook', 'holdPast'];
 export function assembleCouple(E, M, household, tables, { shareRule = undefined, joint = null, solvedOn } = {}) {
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   return solveCouple(E, M, household, {

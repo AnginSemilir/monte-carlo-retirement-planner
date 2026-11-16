@@ -174,3 +174,12 @@ paths. They are not the run's configuration and decide nothing, and the rule is 
 On frozen code, through the launcher, once the build's checks pass and the cores are free:
 `PREDICTION="none:EXPLORATORY: a wider joint move for couples (JOINT-WIDE.md)" research/solver/run-from-snapshot.sh bash research/solver/batch-joint-wide.sh`.
 It runs as a harness-tracked task, relaunched under `RESUME=1` after a restart.
+
+## Amendment, 16 Nov (night), before the launch and before any unit of the run
+
+- **The smoke:** its read first refused. The two units were under two audit stamps, because this file was edited between
+  them, and the gate caught that. The first unit was run again on the committed files, and the read then ran end to end on
+  both (S327F and S023-90, at 6 points and 40 paths of seed 7002). Its replays found no wider best below K2's. No part of
+  the rule changed.
+- **The read's line on the timing's order effect** now gives each wider arm's time against K2's by the arm each unit
+  started from, in place of a mean that mixed the arms' own speeds. It is beside the rule and decides nothing.

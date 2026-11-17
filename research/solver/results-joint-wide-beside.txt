@@ -1,0 +1,31 @@
+JOINT-WIDE, BESIDE ITS READ (EXPLORATORY, deciding nothing; joint-wide-beside.mjs, after the read): 28 units of results/joint-wide-7002, on stats.mjs as it stood at the read
+
+A. survival by unit against K2: the rule's interval (survivalChangeU) and the exact paired one (survivalChange); units wholly below nought by either
+  K4: S061-90 -0.225 (the rule's -0.465 to -0.001; exact -0.388 to +0.011; 14 lost, 5 saved)
+  K6: none
+
+B. S147-db's part of each width's pooled net gain
+  K4: net paths saved 264, S147-db's 54 (20.5%); pooled survival without S147-db +0.194 (+0.150 to +0.239)
+  K6: net paths saved 508, S147-db's 206 (40.6%); pooled survival without S147-db +0.280 (+0.232 to +0.327)
+
+C. the capped pot (each path's pot up to the household's cap, the arm's mean against the base's): units lower at all, and by more than half a percent
+  K4 against K2: lower on 9 of 28; by more than 0.5% on 5 (S337F -1.113%, S109-90 -0.654%, S061-dbpart -0.547%, S109-sppart -5.020%, S377-dbpart -1.830%)
+  K6 against K2: lower on 10 of 28; by more than 0.5% on 7 (S337F -1.307%, S109-90 -1.854%, S191-90 -2.515%, S271-90 -1.347%, S061-dbpart -0.607%, S109-sppart -4.241%, S377-dbpart -1.771%)
+  K6 against K4: lower on 12 of 28; by more than 0.5% on 5 (S109-90 -1.208%, S147-90 -0.531%, S191-90 -3.256%, S271-90 -1.673%, S023-db -1.347%)
+
+D. the replays along K2's path: decisions on which the wider pick differs, and the split's share of those
+  K4: differs on 32.4% pooled (by unit 9.7% to 60.4%); a different split on 45.7% of those; the split under half of a unit's differing picks on 15 of 28 units
+  K6: differs on 41.9% pooled (by unit 15.8% to 66.2%); a different split on 48.2% of those; the split under half of a unit's differing picks on 15 of 28 units
+
+E. the typical-path pot (each path's own change where both arms leave a pot, averaged by unit, the units averaged)
+  K4: pooled +5.385%, without S147-db +3.215%; S147-db's own +63.982% (its share of the pooled figure +2.285 points), of which +60.215 points from paths K2 fails; S147-db's median path +2.773%
+  K6: pooled +8.787%, without S147-db +3.946%; S147-db's own +139.489% (its share of the pooled figure +4.982 points), of which +136.868 points from paths K2 fails; S147-db's median path +2.798%
+
+F. the order effect's groups (by which arm ran first) and the units each time median is over
+  K2 first: 10 units (8 in one process): S327F, S333F, S341F, S167, S023-90, S147-90, S271-90, S061-dbpart, S191-dbpart, S377-dbpart
+  K4 first: 9 units (8 in one process): S329F, S335F, S343F, S205, S061-90, S191-90, S377-90, S109-sppart, S227-sppart
+  K6 first: 9 units (8 in one process): S331F, S337F, S149, S223, S109-90, S227-90, S023-db, S147-db, S271-db
+  the younger group: 8 units, 4 with their three arms in one process
+  the library group: 4 units, 4 with their three arms in one process
+  the 90/10 group: 8 units, 8 with their three arms in one process
+  the feature group: 8 units, 8 with their three arms in one process

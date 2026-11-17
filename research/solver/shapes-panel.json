@@ -1,0 +1,261 @@
+{
+ "built": "2026-11-17T17:10:32.021Z",
+ "code": "603eeb595679",
+ "seed": 7005,
+ "paths": 1000,
+ "units": [
+  {
+   "id": "S149@even",
+   "k": 0,
+   "base": "S149",
+   "shape": "even",
+   "target": 24800,
+   "survival": 85.9,
+   "label": "Bracket Fill, lump sum"
+  },
+  {
+   "id": "S149@gap8",
+   "k": 1,
+   "base": "S149",
+   "shape": "gap8",
+   "target": 23300,
+   "survival": 84.2,
+   "label": "ISA First"
+  },
+  {
+   "id": "S149@gap12",
+   "k": 2,
+   "base": "S149",
+   "shape": "gap12",
+   "target": 22500,
+   "survival": 84,
+   "label": "ISA First"
+  },
+  {
+   "id": "S149@elder2nd",
+   "k": 3,
+   "base": "S149",
+   "shape": "elder2nd",
+   "target": 24400,
+   "survival": 85.39999999999999,
+   "label": "ISA First"
+  },
+  {
+   "id": "S149@part60",
+   "k": 4,
+   "base": "S149",
+   "shape": "part60",
+   "target": 24000,
+   "survival": 85.8,
+   "label": "ISA First, lump sum"
+  },
+  {
+   "id": "S149@penB90",
+   "k": 5,
+   "base": "S149",
+   "shape": "penB90",
+   "target": 24000,
+   "survival": 84.7,
+   "label": "ISA First, lump sum"
+  },
+  {
+   "id": "S149@penA100",
+   "k": 6,
+   "base": "S149",
+   "shape": "penA100",
+   "target": 24000,
+   "survival": 85.5,
+   "label": "ISA First, lump sum"
+  },
+  {
+   "id": "S337F@even",
+   "k": 7,
+   "base": "S337F",
+   "shape": "even",
+   "target": 21800,
+   "survival": 84.2,
+   "label": "ISA First (harvest off)"
+  },
+  {
+   "id": "S337F@gap8",
+   "k": 8,
+   "base": "S337F",
+   "shape": "gap8",
+   "target": 25400,
+   "survival": 84.89999999999999,
+   "label": "Bracket Fill, lump sum"
+  },
+  {
+   "id": "S337F@gap12",
+   "k": 9,
+   "base": "S337F",
+   "shape": "gap12",
+   "target": 26900,
+   "survival": 84.3,
+   "label": "Bracket Fill (harvest off)"
+  },
+  {
+   "id": "S337F@elder2nd",
+   "k": 10,
+   "base": "S337F",
+   "shape": "elder2nd",
+   "target": 23900,
+   "survival": 84.2,
+   "label": "Bracket Fill, lump sum"
+  },
+  {
+   "id": "S337F@part60",
+   "k": 11,
+   "base": "S337F",
+   "shape": "part60",
+   "target": 23900,
+   "survival": 84.1,
+   "label": "ISA First"
+  },
+  {
+   "id": "S337F@penB90",
+   "k": 12,
+   "base": "S337F",
+   "shape": "penB90",
+   "target": 22500,
+   "survival": 84,
+   "label": "ISA First, lump sum"
+  },
+  {
+   "id": "S337F@penA100",
+   "k": 13,
+   "base": "S337F",
+   "shape": "penA100",
+   "target": 22500,
+   "survival": 85.9,
+   "label": "ISA First"
+  },
+  {
+   "id": "S147-db@even",
+   "k": 14,
+   "base": "S147-db",
+   "shape": "even",
+   "target": 38000,
+   "survival": 85.9,
+   "label": "ISA First, lump sum"
+  },
+  {
+   "id": "S147-db@gap8",
+   "k": 15,
+   "base": "S147-db",
+   "shape": "gap8",
+   "target": 36300,
+   "survival": 84.3,
+   "label": "ISA First, lump sum"
+  },
+  {
+   "id": "S147-db@gap12",
+   "k": 16,
+   "base": "S147-db",
+   "shape": "gap12",
+   "target": 35400,
+   "survival": 85,
+   "label": "ISA First, lump sum"
+  },
+  {
+   "id": "S147-db@elder2nd",
+   "k": 17,
+   "base": "S147-db",
+   "shape": "elder2nd",
+   "target": 35700,
+   "survival": 85.2,
+   "label": "Bracket Fill, lump sum"
+  },
+  {
+   "id": "S147-db@part60",
+   "k": 18,
+   "base": "S147-db",
+   "shape": "part60",
+   "target": 37400,
+   "survival": 84.1,
+   "label": "ISA First, lump sum"
+  },
+  {
+   "id": "S147-db@penB90",
+   "k": 19,
+   "base": "S147-db",
+   "shape": "penB90",
+   "target": 36900,
+   "survival": 85,
+   "label": "ISA First"
+  },
+  {
+   "id": "S147-db@penA100",
+   "k": 20,
+   "base": "S147-db",
+   "shape": "penA100",
+   "target": 36900,
+   "survival": 85.2,
+   "label": "ISA First, lump sum"
+  },
+  {
+   "id": "S061-dbpart@even",
+   "k": 21,
+   "base": "S061-dbpart",
+   "shape": "even",
+   "target": 26500,
+   "survival": 85.8,
+   "label": "Bracket Fill, lump sum"
+  },
+  {
+   "id": "S061-dbpart@gap8",
+   "k": 22,
+   "base": "S061-dbpart",
+   "shape": "gap8",
+   "target": 17500,
+   "survival": 84.89999999999999,
+   "label": "Bracket Fill, lump sum"
+  },
+  {
+   "id": "S061-dbpart@gap12",
+   "k": 23,
+   "base": "S061-dbpart",
+   "shape": "gap12",
+   "target": 14800,
+   "survival": 85.3,
+   "label": "Bracket Fill, lump sum"
+  },
+  {
+   "id": "S061-dbpart@elder2nd",
+   "k": 24,
+   "base": "S061-dbpart",
+   "shape": "elder2nd",
+   "target": 24500,
+   "survival": 85.9,
+   "label": "Bracket Fill, lump sum"
+  },
+  {
+   "id": "S061-dbpart@part60",
+   "k": 25,
+   "base": "S061-dbpart",
+   "shape": "part60",
+   "target": 21400,
+   "survival": 84.2,
+   "label": "Bracket Fill, lump sum"
+  },
+  {
+   "id": "S061-dbpart@penB90",
+   "k": 26,
+   "base": "S061-dbpart",
+   "shape": "penB90",
+   "target": 20800,
+   "survival": 85.8,
+   "label": "Bracket Fill, lump sum"
+  },
+  {
+   "id": "S061-dbpart@penA100",
+   "k": 27,
+   "base": "S061-dbpart",
+   "shape": "penA100",
+   "target": 20800,
+   "survival": 85.9,
+   "label": "Bracket Fill, lump sum"
+  }
+ ],
+ "out": []
+}

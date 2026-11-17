@@ -107,4 +107,7 @@ The rule above is unchanged. The amendment is to how the units are checked and r
    - First round: FAIL, two BLOCKING (`reviews/2026-11-17-shapes-amendment-1.md`): the household hold could not fail as
      first wired, and unit 27 was named on this amendment's own clause rather than a ruling. Each was answered as above,
      with its four MINORs, in one fix.
-   - The reviewer checks it again before use.
+   - Second round: PASS, the amendment may be used (`reviews/2026-11-17-shapes-amendment-1-2.md`).
+   - One new MINOR: under `UNITS_ONLY` the batch would move aside a named unit's finished log on another stamp, so a
+     mistyped name would mislabel a launched log (the read would then refuse that unit, so no figure is at risk).
+   - It is answered before the launch by the dry run's list, `todo: 20 27`, and not by a change to the reviewed batch.

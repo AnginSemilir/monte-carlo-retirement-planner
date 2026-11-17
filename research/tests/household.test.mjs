@@ -22,14 +22,21 @@
  *      household above the table's estate cap (S327F, along the even split's path; 'notiebreak'); (d) 'best5' returns the
  *      even split at every decision where no other split scores more than 1e-9 above it, 600 decisions or more of the 700
  *      before the plan's last year (S061-dbpart, along the even split's path; 'tiezero'). The counts the thresholds follow:
- *      the review's results-tiebreak-count.txt (S327F 342 of 1,220 decisions; S061-dbpart 674 of 700).
+ *      the review's results-tiebreak-count.txt (S327F 342 of 1,220 decisions; S061-dbpart 674 of 700);
+ *   7. the household plan's capital gains band (PRESCRIPTIVE-PLAN.md step 2, twoBands; every context or model of a household
+ *      plan here built inside it), each check shown failing on its plant: (a) on the six fidelity units the household
+ *      plan's band twice a person's in the couple's model ('cgtband'); (b) the engine's default basic band limit the same
+ *      before and after solveHousehold and householdContext, a throwing solve among them ('nofinally': a twoBands without
+ *      its finally, on a throwing fn); (c) a couple's M.prepare and E.buildContext, called after solveHousehold, carry a
+ *      person's band (the same plant); (d) the solver's code id 603eeb595679 (nothing under src/ and not the engine edited).
  * Measured first by the probe behind check 3 (17 Nov, EXPLORATORY): the largest gaps unplanted 1.3 points of survival
  * (S061-dbpart) and 13.6% of median end wealth (S227-90), every plant past one bar or the other on some couple.
  *   node research/tests/household.test.mjs
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { householdPlanFor, mergedState, solveHousehold, chooseHousehold, runHouseholdPolicy, withHousehold, chooseHouseholdSingle, runHouseholdSinglePolicy, withHouseholdSingle, householdValue, HOUSE, DOUBLED } from '../solver/household.mjs';
+import { householdPlanFor, mergedState, solveHousehold, chooseHousehold, runHouseholdPolicy, withHousehold, chooseHouseholdSingle, runHouseholdSinglePolicy, withHouseholdSingle, householdValue, twoBands, householdContext, HOUSE, DOUBLED } from '../solver/household.mjs';
+import { codeId } from '../solver/code-id.mjs';
 import { chooseAction } from '../../src/solver/solve.js';
 import { vecOf } from '../../src/solver/grid.js';
 import { ratesAt } from '../../src/solver/couple.js';
@@ -77,7 +84,7 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
 // 2. the merged position
 {
   const plan = couplePlan('S205');
-  const m = M.prepare(E, plan), hm = M.prepare(E, E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan)))), idOf = {};
+  const m = M.prepare(E, plan), hm = twoBands(E, () => M.prepare(E, E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan))))), idOf = {};
   for (const a of hm.ctx.accounts) idOf[a.cat] = a.id;
   const st = M.initialState(m); st.basis = { self: 1000, part: 250 }; st.cumPcls = { self: 30, part: 70 }; st.cashIsa = { self: 5, part: 6 };
   const cp = { m, hm, idOf }, g = mergedState(cp, st);
@@ -95,7 +102,7 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
     const out = [];
     for (const id of UNITS) {
       const a = armA(appPlan(planOf(id)), { tournament: false }), cpl = E.resolveMpaa(a.planState);
-      const cC = E.buildContext(cpl), cH = E.buildContext(E.resolveMpaa(E.normalizePlan(householdPlanFor(E, cpl)))), T = cC.totalYears;
+      const cC = E.buildContext(cpl), cH = householdContext(E, E.resolveMpaa(E.normalizePlan(householdPlanFor(E, cpl)))), T = cC.totalYears;
       if (cH.totalYears !== T) { out.push({ id, ds: Infinity, dw: Infinity }); continue; }
       let sC = 0, sH = 0; const wC = [], wH = [];
       for (const zs of E.pathsForSeed(99001, N, T)) { const rc = runPath(cC, zs, false), rh = runPath(cH, zs, false); sC += rc.survived ? 1 : 0; sH += rh.survived ? 1 : 0; wC.push(rc.wealth); wH.push(rh.wealth); }
@@ -201,6 +208,39 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   const kc = keeps(A), kz = planted('tiezero', () => keeps(A)), keepOk = x => x.wrong === 0 && x.level >= 600, showK = x => `${x.level} of the ${x.before} decisions before the last year with no split above the even one by more than 1e-9; another split returned at ${x.wrong}`;
   check('(6d) \'best5\' returns the even split wherever no other scores more than 1e-9 above it, at 600 decisions or more (S061-dbpart)', keepOk(kc), showK(kc));
   check('(6d) the plant \'tiezero\' fails it', !keepOk(kz), showK(kz));
+}
+
+// 7. the household plan's capital gains band (PRESCRIPTIVE-PLAN.md step 2)
+{
+  const FID = ['S205', 'S061-dbpart', 'S327F', 'S227-90', 'S149', 'S023-db'];
+  const bands = () => FID.map(id => { const cpl = couplePlan(id); return { id, h: householdContext(E, E.resolveMpaa(E.normalizePlan(householdPlanFor(E, cpl)))).P.cgtBandWidth, p: M.prepare(E, cpl).ctx.P.cgtBandWidth }; });
+  const twice = bs => bs.every(x => Math.abs(x.h - 2 * x.p) < 1e-6), showB = bs => bs.map(x => `${x.id} ${x.h} against ${x.p}`).join('; ');
+  const b = bands(); HOUSE.plant = 'cgtband'; const bz = bands(); HOUSE.plant = '';
+  check('(7a) on the six fidelity units, the household plan\'s capital gains band twice a person\'s in the couple\'s model', twice(b), showB(b));
+  check('(7a) the plant \'cgtband\' fails it', !twice(bz), showB(bz));
+  const light = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } };
+  const one = (p, o) => solveForApp(E, M, p, { points: 6, ageWith: o.partnerAge0, research: { ...light } });
+  const plan = couplePlan('S061-dbpart'), d0 = E.DEFAULT_CONFIG.basicBandLimit, p0 = M.prepare(E, plan).ctx.P.cgtBandWidth;
+  const throwing = () => { throw new Error('the planted solve'); };
+  // (b) and (c), clean: a solve, a context and a throwing solve, the default and a couple's band after each
+  const after = [];
+  const couple = () => [M.prepare(E, plan).ctx.P.cgtBandWidth, E.buildContext(plan).P.cgtBandWidth];
+  solveHousehold(E, M, plan, { solveOne: one }); after.push(['a solve', E.DEFAULT_CONFIG.basicBandLimit, ...couple()]);
+  householdContext(E, E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan)))); after.push(['a context', E.DEFAULT_CONFIG.basicBandLimit, ...couple()]);
+  try { solveHousehold(E, M, plan, { solveOne: throwing }); } catch (e) { /* the planted solve's error */ }
+  after.push(['a throwing solve', E.DEFAULT_CONFIG.basicBandLimit, ...couple()]);
+  // the plant: a twoBands without its finally, on a throwing fn
+  HOUSE.plant = 'nofinally';
+  try { solveHousehold(E, M, plan, { solveOne: throwing }); } catch (e) { /* as above */ }
+  const planted = [E.DEFAULT_CONFIG.basicBandLimit, ...couple()];
+  HOUSE.plant = ''; E.DEFAULT_CONFIG.basicBandLimit = d0;
+  const showA = xs => xs.map(([w, d, a, c]) => `${w}: the default ${d}, the couple's band ${a} and ${c}`).join('; ');
+  check('(7b) the engine\'s default basic band limit the same before and after solveHousehold and householdContext', after.every(x => x[1] === d0), `${d0} before; ${showA(after)}`);
+  check('(7b) the plant \'nofinally\' (no finally, a throwing solve) fails it', planted[0] !== d0, `the default after ${planted[0]}`);
+  check('(7c) a couple\'s M.prepare and E.buildContext, called after solveHousehold, carry a person\'s band', after.every(x => x[2] === p0 && x[3] === p0), `a person's ${p0}`);
+  check('(7c) the same plant fails it', !(planted[1] === p0 && planted[2] === p0), `${planted[1]} and ${planted[2]}`);
+  const cid = codeId();
+  check('(7d) the solver\'s code id 603eeb595679', !!cid && cid.hash === '603eeb595679', cid ? cid.hash : 'none');
 }
 
 const bad = results.filter(ok => !ok).length;

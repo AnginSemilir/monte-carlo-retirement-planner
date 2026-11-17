@@ -165,6 +165,28 @@ function cutAhead(tab, s, t, layer) {
   return CUT_RD[3];
 }
 
+/*
+ * THE CAPITAL GAINS BAND (PRESCRIPTIVE-PLAN.md step 2; ANSWERS.md section 5). The engine gives a plan the basic-rate band
+ * for capital gains as its own default less the plan's personal allowance (App.jsx taxParams' cgtBandWidth, so a Scottish
+ * taxpayer gets the UK band), so the household plan, its allowance doubled, would be given 25,130 where two people have
+ * 75,400, and no entry of DOUBLED can reach it. twoBands(E, fn) runs fn with the engine's default basic band limit doubled
+ * and puts it back whatever fn does; it throws if called while another call of it is running. householdContext(E, hp) is a
+ * household plan's context built inside it, and solveHousehold solves the household table inside it, each checked: the
+ * household's band two people's, and the couple's model, prepared after, a person's. Research code only: an engine edit
+ * would move the solver's code stamp (code-id.mjs hashes research/engine.mjs). Plants: 'cgtband' runs fn without changing
+ * the default; 'nofinally' puts the default back only if fn returns (a twoBands without its finally).
+ */
+let TWO_BANDS = false;
+export function twoBands(E, fn) {
+  if (TWO_BANDS) throw new Error('twoBands: called while another call of it is running');
+  const old = E.DEFAULT_CONFIG.basicBandLimit;
+  TWO_BANDS = true;
+  if (planted('nofinally')) { E.DEFAULT_CONFIG.basicBandLimit = 2 * old; const r = fn(); E.DEFAULT_CONFIG.basicBandLimit = old; TWO_BANDS = false; return r; }
+  if (!planted('cgtband')) E.DEFAULT_CONFIG.basicBandLimit = 2 * old;
+  try { return fn(); } finally { E.DEFAULT_CONFIG.basicBandLimit = old; TWO_BANDS = false; }
+}
+export const householdContext = (E, hp) => twoBands(E, () => E.buildContext(hp));
+
 /* The household's plan solved, and what the rollout needs. opts: solveOne (required: solveForApp at the candidate's
    settings), splits, topK (the household table's moves tried a decision, 3 unless set), tieJoint and holdPast (as the
    couples' default takes them: the tie rule above the household's estate cap, and the hold past twice the table's top). */
@@ -174,10 +196,12 @@ export function solveHousehold(E, M, plan, opts = {}) {
   if (!m0.ctx.isCouple) throw new Error('solveHousehold takes a couple');
   const hp = E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan)));
   const t0 = Date.now();
-  const H = opts.solveOne(hp, { who: 'household', partnerAge0: m0.ctx.agePart0 });
+  const H = twoBands(E, () => opts.solveOne(hp, { who: 'household', partnerAge0: m0.ctx.agePart0 }));
+  if (!(Math.abs(H.m.ctx.P.cgtBandWidth - 2 * m0.ctx.P.cgtBandWidth) < 1e-6)) throw new Error(`solveHousehold: the household table's capital gains band ${H.m.ctx.P.cgtBandWidth}, not two people's ${2 * m0.ctx.P.cgtBandWidth}`);
   const solveMs = Date.now() - t0;
   const tiersBelow = H.meta && H.meta.tiersBelow === 3 ? 3 : 2;
   const m = tiersBelow === 3 ? M.prepare(E, plan, { tiersBelow: 3 }) : m0;
+  if (m.ctx.P.cgtBandWidth !== m0.ctx.P.cgtBandWidth) throw new Error(`solveHousehold: the couple's model carries a capital gains band of ${m.ctx.P.cgtBandWidth}, not a person's ${m0.ctx.P.cgtBandWidth}`);
   if (m.ctx.totalYears !== H.m.ctx.totalYears) throw new Error(`solveHousehold: the household plan runs ${H.m.ctx.totalYears} years and the couple's ${m.ctx.totalYears}`);
   if ((m.ctx.solvencyFloor || 0) !== (H.m.ctx.solvencyFloor || 0)) throw new Error(`solveHousehold: the minimum pots differ (${m.ctx.solvencyFloor}, ${H.m.ctx.solvencyFloor}); the plan must set the household's`);
   const idOf = {};

@@ -1,22 +1,25 @@
 node research/solver/axis-tax.mjs <unit> for S191-90, S333F and S335F (17 Nov, after the lead test's read); and node research/solver/axis-size.mjs S333F S335F S191-90
 
-WHERE IN THE PLAN THE HOUSEHOLD PLAN'S MODEL LEAVES TAX OUT (EXPLORATORY, for AXIS.md; nothing built): S191-90, seed 7002, the 829 paths HS5 loses and K2 keeps, the couple's own path under HS5; the axis's window from the first retirement (plan year 5) to the younger person's state pension age (plan year 16)
+WHERE IN THE PLAN THE BANDS' PART FALLS (EXPLORATORY, for AXIS.md; nothing built; a size, not a decomposition of the loss): S191-90, seed 7002, the 829 paths HS5 loses and K2 keeps, the couple's own path under HS5; the axis's window from the first retirement (plan year 5) to the younger person's state pension age (plan year 16)
   the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 33989 plan years
-  before the window (plan years 0 to 4): the income tax left out £184 a path; taxable pension drawn a year, the first person £0, the partner £0
-  in it (5 to 15): the income tax left out -£21,351 a path; taxable pension drawn a year, the first person £29,113, the partner £23,659
-  after it (16 to 40): the income tax left out £207,883 a path; taxable pension drawn a year, the first person £88,659, the partner £461
+  before the window (plan years 0 to 4): the bands' part £184 a path; taxable pension drawn a year, the first person £0, the partner £0
+  in the window, the later retiree still working (plan years 5 to 7): the bands' part -£21,900 a path; taxable pension drawn a year, the first person £28,701, the partner £0
+  in the window, both retired (plan years 8 to 15): the bands' part £549 a path; taxable pension drawn a year, the first person £29,268, the partner £32,532
+  after it (plan years 16 to 40): the bands' part £207,883 a path; taxable pension drawn a year, the first person £88,659, the partner £461
 
-WHERE IN THE PLAN THE HOUSEHOLD PLAN'S MODEL LEAVES TAX OUT (EXPLORATORY, for AXIS.md; nothing built): S333F, seed 7002, the 51 paths HS5 loses and K2 keeps, the couple's own path under HS5; the axis's window from the first retirement (plan year 15) to the younger person's state pension age (plan year 34)
+WHERE IN THE PLAN THE BANDS' PART FALLS (EXPLORATORY, for AXIS.md; nothing built; a size, not a decomposition of the loss): S333F, seed 7002, the 51 paths HS5 loses and K2 keeps, the couple's own path under HS5; the axis's window from the first retirement (plan year 15) to the younger person's state pension age (plan year 34)
   the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 3111 plan years
-  before the window (plan years 0 to 14): the income tax left out £35,309 a path; taxable pension drawn a year, the first person £0, the partner £0
-  in it (15 to 33): the income tax left out £2,477 a path; taxable pension drawn a year, the first person £10,027, the partner £12,016
-  after it (34 to 60): the income tax left out £34,852 a path; taxable pension drawn a year, the first person £37,282, the partner £15,910
+  before the window (plan years 0 to 14): the bands' part £35,309 a path; taxable pension drawn a year, the first person £0, the partner £0
+  in the window, the later retiree still working (plan years 15 to 17): the bands' part £2,109 a path; taxable pension drawn a year, the first person £0, the partner £0
+  in the window, both retired (plan years 18 to 33): the bands' part £367 a path; taxable pension drawn a year, the first person £11,906, the partner £14,268
+  after it (plan years 34 to 60): the bands' part £34,852 a path; taxable pension drawn a year, the first person £37,282, the partner £15,910
 
-WHERE IN THE PLAN THE HOUSEHOLD PLAN'S MODEL LEAVES TAX OUT (EXPLORATORY, for AXIS.md; nothing built): S335F, seed 7002, the 70 paths HS5 loses and K2 keeps, the couple's own path under HS5; the axis's window from the first retirement (plan year 15) to the younger person's state pension age (plan year 34)
+WHERE IN THE PLAN THE BANDS' PART FALLS (EXPLORATORY, for AXIS.md; nothing built; a size, not a decomposition of the loss): S335F, seed 7002, the 70 paths HS5 loses and K2 keeps, the couple's own path under HS5; the axis's window from the first retirement (plan year 15) to the younger person's state pension age (plan year 34)
   the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 4270 plan years
-  before the window (plan years 0 to 14): the income tax left out £36,578 a path; taxable pension drawn a year, the first person £0, the partner £0
-  in it (15 to 33): the income tax left out £4,215 a path; taxable pension drawn a year, the first person £9,737, the partner £11,628
-  after it (34 to 60): the income tax left out £37,243 a path; taxable pension drawn a year, the first person £33,886, the partner £14,294
+  before the window (plan years 0 to 14): the bands' part £36,578 a path; taxable pension drawn a year, the first person £0, the partner £0
+  in the window, the later retiree still working (plan years 15 to 17): the bands' part £1,609 a path; taxable pension drawn a year, the first person £0, the partner £0
+  in the window, both retired (plan years 18 to 33): the bands' part £2,606 a path; taxable pension drawn a year, the first person £11,562, the partner £13,809
+  after it (plan years 34 to 60): the bands' part £37,243 a path; taxable pension drawn a year, the first person £33,886, the partner £14,294
 
 THE AXIS'S COST IN TABLE SIZE (EXPLORATORY, for AXIS.md; nothing built): the smaller pension's share on three points from the first retirement to the younger person's state pension age (ANSWERS.md section 3)
   the units named:

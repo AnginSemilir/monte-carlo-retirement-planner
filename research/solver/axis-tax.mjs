@@ -1,11 +1,15 @@
 /*
- * WHERE IN THE PLAN THE HOUSEHOLD PLAN'S MODEL LEAVES TAX OUT (EXPLORATORY, for AXIS.md, PRESCRIPTIVE-PLAN.md step 6, D121;
- * nothing built, deciding nothing). household-tax-why.mjs's decomposition (results-household-tax-why.txt), split by the
- * axis's window as ANSWERS.md section 3 sets it (the household's first retirement to the younger person's state pension
- * age; axis-size.mjs): on the paths HS5 loses and K2 keeps, on the couple's own path under HS5, each plan year's incomes
- * taxed each person on their own bands (held to the engine's row to a pound, or the script stops) and added together on
- * the household plan's doubled bands; the difference, and each person's taxable pension drawn, summed before the window,
- * in it and after it, the mean a path.
+ * WHERE IN THE PLAN THE BANDS' PART FALLS (EXPLORATORY, for AXIS.md, PRESCRIPTIVE-PLAN.md step 6, D121; nothing built,
+ * deciding nothing; its words from the reviewer at the lead test's read, reviews/2026-11-17-read-household.md findings 1
+ * and 4). household-tax-why.mjs's "bands' part, on the couple's taxable incomes" (the couple's income tax, each person on
+ * their own bands, held to the engine's row to a pound in every plan year or the script stops, less the same taxable incomes
+ * added and taxed on the household plan's doubled allowance and bands; it leaves out the household plan's own tax-free cash,
+ * and in the years the later retiree still works it stacks the couple's draws over that person's pay, where the household
+ * plan carries the pay as tax-free take-home), split by the axis's window as ANSWERS.md section 3 sets it (the household's
+ * first retirement to the younger person's state pension age; axis-size.mjs), the window's years when the later retiree
+ * still works apart: on the paths HS5 loses and K2 keeps, on the couple's own path under HS5, the mean a path, with each
+ * person's taxable pension drawn. A size, not a decomposition of the loss: it says where the household plan's two-band
+ * pricing departs from the couple's own, not why a path is lost.
  *   node research/solver/axis-tax.mjs <unit id>
  */
 import * as E from '../engine.mjs';
@@ -38,11 +42,14 @@ const ageOf = (k, t) => (k === 'self' ? ctxHS.ageSelf0 : ctxHS.agePart0) + t, wo
 let tR = 0; while (tR <= T && working('self', tR) && working('part', tR)) tR++;
 const young = ctxHS.ageSelf0 <= ctxHS.agePart0 ? 'self' : 'part';
 let tS = 0; while (tS <= T && ageOf(young, tS) < ctxHS.spa) tS++;
-const part = t => (t < tR ? 0 : t < tS ? 1 : 2), NAMES = [`before the window (plan years 0 to ${tR - 1})`, `in it (${tR} to ${tS - 1})`, `after it (${tS} to ${T})`];
+const still = t => working('self', t) || working('part', t);
+const part = t => (t < tR ? 0 : t < tS ? (still(t) ? 1 : 2) : 3);
+const span = p => { const ys = []; for (let t = 0; t <= T; t++) if (part(t) === p) ys.push(t); return ys.length ? (ys.length === 1 ? `plan year ${ys[0]}` : `plan years ${ys[0]} to ${ys[ys.length - 1]}`) : 'no plan year'; };
+const NAMES = [`before the window (${span(0)})`, `in the window, the later retiree still working (${span(1)})`, `in the window, both retired (${span(2)})`, `after it (${span(3)})`];
 const paths = E.pathsForSeed(SEED, N, T).map(zs => Float64Array.from(zs));
 const idx = []; for (let k = 0; k < N; k++) if (A.K2.survived[k] && !A.HS5.survived[k]) idx.push(k);
 const bill = (P, pay, nonSavings, interest, dividends) => P.personTax({ nonSavings: pay + nonSavings, interest, dividends }).total - (pay > 0 ? E.incomeTax(pay, P) : 0);
-const S = [0, 1, 2].map(() => ({ out: 0, penSelf: 0, penPart: 0, years: 0 }));
+const S = [0, 1, 2, 3].map(() => ({ out: 0, penSelf: 0, penPart: 0, years: 0 }));
 let bad = 0, rows = 0;
 for (const k of idx) {
   const st = E.freshState(ctxHS), zs = paths[k], zPath = zs.length > T + 1 ? zs[T + 1] : 0;
@@ -56,7 +63,7 @@ for (const k of idx) {
   }
 }
 const gbp = x => `${x < 0 ? '-' : ''}£${Math.abs(Math.round(x)).toLocaleString('en-GB')}`, n = idx.length;
-console.log(`WHERE IN THE PLAN THE HOUSEHOLD PLAN'S MODEL LEAVES TAX OUT (EXPLORATORY, for AXIS.md; nothing built): ${id}, seed ${SEED}, the ${n} paths HS5 loses and K2 keeps, the couple's own path under HS5; the axis's window from the first retirement (plan year ${tR}) to the younger person's state pension age (plan year ${tS})`);
+console.log(`WHERE IN THE PLAN THE BANDS' PART FALLS (EXPLORATORY, for AXIS.md; nothing built; a size, not a decomposition of the loss): ${id}, seed ${SEED}, the ${n} paths HS5 loses and K2 keeps, the couple's own path under HS5; the axis's window from the first retirement (plan year ${tR}) to the younger person's state pension age (plan year ${tS})`);
 if (bad) { console.log(`  STOP: each person's tax as recomputed differs from the engine's row by more than £1 in ${bad} of ${rows} plan years`); process.exit(1); }
 console.log(`  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all ${rows} plan years`);
-for (let i = 0; i < 3; i++) { const s = S[i]; console.log(`  ${NAMES[i]}: the income tax left out ${gbp(s.out / n)} a path; taxable pension drawn a year, the first person ${gbp(s.years ? s.penSelf / s.years : 0)}, the partner ${gbp(s.years ? s.penPart / s.years : 0)}`); }
+for (let i = 0; i < 4; i++) { const s = S[i]; if (!s.years) continue; console.log(`  ${NAMES[i]}: the bands' part ${gbp(s.out / n)} a path; taxable pension drawn a year, the first person ${gbp(s.penSelf / s.years)}, the partner ${gbp(s.penPart / s.years)}`); }

@@ -13,16 +13,16 @@ B. against the review's pilot (other seeds, 1,500 paths, HOUSE less K2: +1.72 on
   the sixteen it did not run: -0.717 (-0.837 to -0.594) on 16 units (602 saved, 1061 lost); without S191-90 +0.617 (+0.528 to +0.701) on 15 units (602 saved, 232 lost)
 
 C. by group
-  younger  -0.069 (-0.192 to +0.056) on 8 units (186 saved, 208 lost)
-  library  +0.650 (+0.523 to +0.750) on 4 units (127 saved, 23 lost)
-  90/10    -1.550 (-1.753 to -1.340) on 8 units (398 saved, 894 lost)
-  feature  +2.313 (+2.227 to +2.381) on 8 units (778 saved, 38 lost)
+  younger  -0.069 (-0.192 to +0.056) on 8 units (186 saved, 208 lost); without S335F (its largest unit) +0.136 (+0.008 to +0.261) on 7 units (176 saved, 138 lost)
+  library  +0.650 (+0.523 to +0.750) on 4 units (127 saved, 23 lost); without S205 (its largest unit) +0.483 (+0.333 to +0.602) on 3 units (77 saved, 19 lost)
+  90/10    -1.550 (-1.753 to -1.340) on 8 units (398 saved, 894 lost); without S191-90 (its largest unit) +1.189 (+1.073 to +1.290) on 7 units (398 saved, 65 lost)
+  feature  +2.313 (+2.227 to +2.381) on 8 units (778 saved, 38 lost); without S147-db (its largest unit) +1.311 (+1.217 to +1.387) on 7 units (404 saved, 37 lost)
 
 D. how the lost paths fail: at the minimum pot at the plan's end (failing in its last year with no year short), or a year's spending short
-  K2    over the 28 units: 989 at the minimum pot, 3941 short
-  HOUSE over the 28 units: 1652 at the minimum pot, 2990 short
-  HS5   over the 28 units: 1628 at the minimum pot, 2976 short
-  HS1   over the 28 units: 1623 at the minimum pot, 2980 short
+  K2    over the 28 units: 989 at the minimum pot, 3941 short; without S191-90: 971 at the minimum pot, 3864 short
+  HOUSE over the 28 units: 1652 at the minimum pot, 2990 short; without S191-90: 969 at the minimum pot, 2732 short
+  HS5   over the 28 units: 1628 at the minimum pot, 2976 short; without S191-90: 956 at the minimum pot, 2724 short
+  HS1   over the 28 units: 1623 at the minimum pot, 2980 short; without S191-90: 950 at the minimum pot, 2726 short
   S333F: the plan's last year 60, the household's minimum pot £135,300; of all its lost paths: K2 20 at the minimum pot and 271 short, HS5 53 at the minimum pot and 278 short; of the 51 HS5 loses and K2 keeps: 42 at the minimum pot, 9 short; the end pot on those at the minimum pot: the median £126,893, from £31,787 to £135,171
   S335F: the plan's last year 60, the household's minimum pot £141,500; of all its lost paths: K2 14 at the minimum pot and 208 short, HS5 64 at the minimum pot and 218 short; of the 70 HS5 loses and K2 keeps: 56 at the minimum pot, 14 short; the end pot on those at the minimum pot: the median £127,551, from £47,219 to £141,287
   S191-90: the plan's last year 40, the household's minimum pot £112,900; of all its lost paths: K2 18 at the minimum pot and 77 short, HS5 672 at the minimum pot and 252 short; of the 829 HS5 loses and K2 keeps: 669 at the minimum pot, 160 short; the end pot on those at the minimum pot: the median £85,828, from £21,515 to £112,760
@@ -37,3 +37,10 @@ F. every other pooled figure the read prints, with and without the unit that con
   the split's search, HS1 less HS5: survival +0.001 (-0.018 to +0.020); without S191-90 +0.004 (-0.016 to +0.023); spending on the paths both keep -0.0022% (-0.0031 to -0.0014); without S023-db -0.0016% (-0.0025 to -0.0008); lifetime tax +0.224%; without S333F +0.687%
   HOUSE less K2: survival +0.257 (+0.166 to +0.348); without S191-90 +1.050 (+0.985 to +1.111); spending on the paths both keep +0.7849% (+0.7730 to +0.7968); without S191-90 +0.6940% (+0.6820 to +0.7060); the capped pot -2.473% (-£62,481 a path); without S191-90 -1.921% (-£46,557 a path)
   HS5 against K2, lifetime tax over every path: -7.662%; without S191-90 -13.143%
+
+G. lifetime tax and the pot left, HS5 against K2, the mean a path: above the cap (both end above it) and at or below it (both at or below it, both kept), each with and without the unit that contributes most to the pooled difference in tax
+  above the cap: on 38455 paths, tax £459,060 against K2's £560,466, the pot £15,961,806 against £13,992,024; S341F holds 21.9% of the pooled difference in tax; without it on 36144 paths, tax £487,428 against K2's £571,680, the pot £16,412,014 against £14,461,854
+  at or below the cap: on 62709 paths, tax £135,202 against K2's £115,547, the pot £1,448,738 against £1,549,860; S191-90 holds 83.1% of the pooled difference in tax; without it on 60943 paths, tax £106,433 against K2's £103,007, the pot £1,380,971 against £1,460,580
+
+H. the units whose biases are nil (reduce-household.mjs biasesNil): part 2 reads NO LEAD only on a unit of these
+  S109-sppart (1 of 28)

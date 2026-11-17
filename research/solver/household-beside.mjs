@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { armOf, cells, ARMS, spendOn } from './reduce-household.mjs';
 import { survivalChange } from './stats.mjs';
 import { UNITS } from './audit-household.mjs';
+import { biasesNil } from './reduce-household.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), DIR = join(HERE, 'results', 'household-7002');
 const PILOT = ['S205', 'S023-db', 'S061-dbpart', 'S191-dbpart', 'S271-db', 'S147-db', 'S149', 'S327F', 'S337F', 'S023-90', 'S109-90', 'S227-90'];
@@ -40,14 +41,12 @@ console.log(`  the pilot's twelve units: ${pooled(units.filter(U => PILOT.includ
 console.log(`  the pilot's twelve without S147-db (the pilot's own "about +1.0 without S147-db"): ${pooled(units.filter(U => PILOT.includes(U.id) && U.id !== 'S147-db'))}`);
 console.log(`  the sixteen it did not run: ${pooled(units.filter(U => !PILOT.includes(U.id)))}; without S191-90 ${pooled(units.filter(U => !PILOT.includes(U.id) && U.id !== 'S191-90'))}`);
 console.log('\nC. by group');
-for (const g of ['younger', 'library', '90/10', 'feature']) { const L = units.filter(U => U.group === g); console.log(`  ${g.padEnd(8)} ${pooled(L)}`); }
+const largestOf = L => { const by = L.map(U => { const c = cells(U.arms.K2, U.arms.HS5); return Math.abs(c.saved - c.lost); }); return L[by.indexOf(Math.max(...by))]; };
+for (const g of ['younger', 'library', '90/10', 'feature']) { const L = units.filter(U => U.group === g), big = largestOf(L); console.log(`  ${g.padEnd(8)} ${pooled(L)}; without ${big.id} (its largest unit) ${pooled(L.filter(U => U !== big))}`); }
 console.log('\nD. how the lost paths fail: at the minimum pot at the plan\'s end (failing in its last year with no year short), or a year\'s spending short');
 const kind = (U, x, i) => (x.failYear[i] === x.T && x.unmet[i] <= TOL ? 'floor' : 'short');
-for (const a of ARMS) {
-  let floor = 0, short = 0;
-  for (const U of units) { const x = U.arms[a]; for (let i = 0; i < U.N; i++) if (!x.survived[i]) { if (kind(U, x, i) === 'floor') floor++; else short++; } }
-  console.log(`  ${a.padEnd(5)} over the 28 units: ${floor} at the minimum pot, ${short} short`);
-}
+const kinds = (a, L) => { let floor = 0, short = 0; for (const U of L) { const x = U.arms[a]; for (let i = 0; i < U.N; i++) if (!x.survived[i]) { if (kind(U, x, i) === 'floor') floor++; else short++; } } return `${floor} at the minimum pot, ${short} short`; };
+for (const a of ARMS) console.log(`  ${a.padEnd(5)} over the 28 units: ${kinds(a, units)}; without S191-90: ${kinds(a, not('S191-90'))}`);
 for (const id of PLACE) {
   const U = units.find(V => V.id === id), k = U.arms.K2, h = U.arms.HS5;
   let floor = 0, short = 0; const end = [];
@@ -80,3 +79,15 @@ console.log('\nF. every other pooled figure the read prints, with and without th
   console.log(`  HOUSE less K2: survival ${survLine('K2', 'HOUSE')}; spending on the paths both keep ${spendLine('K2', 'HOUSE', true)}; the capped pot ${capLine('K2', 'HOUSE')}`);
   console.log(`  HS5 against K2, lifetime tax over every path: ${sumLine('K2', 'HS5', 'tax', true)}`);
 }
+console.log('\nG. lifetime tax and the pot left, HS5 against K2, the mean a path: above the cap (both end above it) and at or below it (both at or below it, both kept), each with and without the unit that contributes most to the pooled difference in tax');
+{
+  const sets = (U, w) => { const b = U.arms.K2, x = U.arms.HS5, I = []; for (let i = 0; i < U.N; i++) { if (w === 'above' ? (b.pot[i] > U.cap && x.pot[i] > U.cap) : (b.pot[i] <= U.cap && x.pot[i] <= U.cap && b.survived[i] && x.survived[i])) I.push(i); } return I; };
+  for (const w of ['above', 'at or below']) {
+    const per = units.map(U => { const I = sets(U, w), b = U.arms.K2, x = U.arms.HS5; let tb = 0, tx = 0, pb = 0, px = 0; for (const i of I) { tb += b.tax[i]; tx += x.tax[i]; pb += b.pot[i]; px += x.pot[i]; } return { id: U.id, n: I.length, tb, tx, pb, px }; });
+    const agg = L => { const n = L.reduce((t, q) => t + q.n, 0), f = k => L.reduce((t, q) => t + q[k], 0) / n; return `on ${n} paths, tax ${gbp(f('tx'))} against K2's ${gbp(f('tb'))}, the pot ${gbp(f('px'))} against ${gbp(f('pb'))}`; };
+    const d = per.map(q => q.tx - q.tb), tot = d.reduce((t, v) => t + v, 0), i = d.map(Math.abs).indexOf(Math.max(...d.map(Math.abs)));
+    console.log(`  ${w} the cap: ${agg(per)}; ${per[i].id} holds ${(100 * d[i] / tot).toFixed(1)}% of the pooled difference in tax; without it ${agg(per.filter((q, j) => j !== i))}`);
+  }
+}
+console.log('\nH. the units whose biases are nil (reduce-household.mjs biasesNil): part 2 reads NO LEAD only on a unit of these');
+{ const nil = units.filter(U => biasesNil(U.bias)); console.log(`  ${nil.map(U => U.id).join(', ') || 'none'} (${nil.length} of ${units.length})`); }

@@ -1,19 +1,37 @@
-node research/solver/household-tax-why.mjs <unit> for S191-90, S333F and S335F (17 Nov, after the read)
+node research/solver/household-tax-why.mjs <unit> for S191-90, S333F and S335F (17 Nov, after the read; its words and its second set of paths from the reviewer at the read)
 
-WHERE THE COUPLE'S TAX PARTS FROM THE HOUSEHOLD PLAN'S (EXPLORATORY, after the read, deciding nothing): S191-90 (90/10), seed 7002, on the 829 paths HS5 loses and K2 keeps, the couple's own path under HS5; the household table the run's; the minimum pot £112,900
-  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 33989 plan years
-  income tax over the plan, the mean a path: the couple, each on their own bands, £952,704; the same incomes added and taxed on the household plan's bands £765,987; left out by the household plan's model £186,717 a path; capital gains tax beside it £2,006 a path
-  those paths end below the minimum pot by £47,513 a path on average (a path that ends above it counted as nought)
-  taxable pension drawn in a spending year, the mean: the first person £70,464, the partner £7,549
+THE COUPLE'S TAX BESIDE THE HOUSEHOLD PLAN'S BANDS, AND ITS TAX-FREE CASH (EXPLORATORY, after the read, deciding nothing; sizes, not a decomposition of the loss): S191-90 (90/10), seed 7002, the couple's own path under HS5; the household table the run's; the minimum pot £112,900; a person's tax-free cash cap £268,275, the household plan's £536,550
+  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 74989 plan years
+  on the 829 paths HS5 loses and K2 keeps, the mean a path:
+    income tax over the plan: the couple, each on their own bands, £952,704; the same taxable incomes on the household plan's bands £765,987; the bands' part £186,717; capital gains tax beside it £2,006
+    tax-free cash taken over the plan: the couple £358,865, the household plan on its own plan (CEIL) £536,361; the first person at their own cap at the end on 829 of 829 paths
+    taxable pension drawn in a spending year: the first person £70,464, the partner £7,549
+  on the first 1000 paths both keep, the mean a path:
+    income tax over the plan: the couple, each on their own bands, £936,684; the same taxable incomes on the household plan's bands £797,758; the bands' part £138,926; capital gains tax beside it £15,807
+    tax-free cash taken over the plan: the couple £381,670, the household plan on its own plan (CEIL) £521,991; the first person at their own cap at the end on 898 of 1000 paths
+    taxable pension drawn in a spending year: the first person £66,971, the partner £9,982
+  how the 829 lost paths fail: 669 at the minimum pot at the plan's end, below it by £31,875 on average; 160 a year short, each ending with nothing
 
-WHERE THE COUPLE'S TAX PARTS FROM THE HOUSEHOLD PLAN'S (EXPLORATORY, after the read, deciding nothing): S333F (younger), seed 7002, on the 51 paths HS5 loses and K2 keeps, the couple's own path under HS5; the household table the run's; the minimum pot £135,300
-  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 3111 plan years
-  income tax over the plan, the mean a path: the couple, each on their own bands, £553,061; the same incomes added and taxed on the household plan's bands £480,423; left out by the household plan's model £72,638 a path; capital gains tax beside it £6,382 a path
-  those paths end below the minimum pot by £34,778 a path on average (a path that ends above it counted as nought)
-  taxable pension drawn in a spending year, the mean: the first person £26,024, the partner £14,301
+THE COUPLE'S TAX BESIDE THE HOUSEHOLD PLAN'S BANDS, AND ITS TAX-FREE CASH (EXPLORATORY, after the read, deciding nothing; sizes, not a decomposition of the loss): S333F (younger), seed 7002, the couple's own path under HS5; the household table the run's; the minimum pot £135,300; a person's tax-free cash cap £268,275, the household plan's £536,550
+  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 64111 plan years
+  on the 51 paths HS5 loses and K2 keeps, the mean a path:
+    income tax over the plan: the couple, each on their own bands, £553,061; the same taxable incomes on the household plan's bands £480,423; the bands' part £72,638; capital gains tax beside it £6,382
+    tax-free cash taken over the plan: the couple £485,832, the household plan on its own plan (CEIL) £527,524; the first person at their own cap at the end on 50 of 51 paths
+    taxable pension drawn in a spending year: the first person £26,024, the partner £14,301
+  on the first 1000 paths both keep, the mean a path:
+    income tax over the plan: the couple, each on their own bands, £1,112,736; the same taxable incomes on the household plan's bands £1,028,838; the bands' part £83,898; capital gains tax beside it £301,712
+    tax-free cash taken over the plan: the couple £245,931, the household plan on its own plan (CEIL) £236,567; the first person at their own cap at the end on 152 of 1000 paths
+    taxable pension drawn in a spending year: the first person £8,150, the partner £8,990
+  how the 51 lost paths fail: 42 at the minimum pot at the plan's end, below it by £13,238 on average; 9 a year short, each ending with nothing
 
-WHERE THE COUPLE'S TAX PARTS FROM THE HOUSEHOLD PLAN'S (EXPLORATORY, after the read, deciding nothing): S335F (younger), seed 7002, on the 70 paths HS5 loses and K2 keeps, the couple's own path under HS5; the household table the run's; the minimum pot £141,500
-  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 4270 plan years
-  income tax over the plan, the mean a path: the couple, each on their own bands, £514,715; the same incomes added and taxed on the household plan's bands £436,680; left out by the household plan's model £78,036 a path; capital gains tax beside it £4,816 a path
-  those paths end below the minimum pot by £41,620 a path on average (a path that ends above it counted as nought)
-  taxable pension drawn in a spending year, the mean: the first person £23,911, the partner £13,193
+THE COUPLE'S TAX BESIDE THE HOUSEHOLD PLAN'S BANDS, AND ITS TAX-FREE CASH (EXPLORATORY, after the read, deciding nothing; sizes, not a decomposition of the loss): S335F (younger), seed 7002, the couple's own path under HS5; the household table the run's; the minimum pot £141,500; a person's tax-free cash cap £268,275, the household plan's £536,550
+  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 65270 plan years
+  on the 70 paths HS5 loses and K2 keeps, the mean a path:
+    income tax over the plan: the couple, each on their own bands, £514,715; the same taxable incomes on the household plan's bands £436,680; the bands' part £78,036; capital gains tax beside it £4,816
+    tax-free cash taken over the plan: the couple £468,950, the household plan on its own plan (CEIL) £504,170; the first person at their own cap at the end on 67 of 70 paths
+    taxable pension drawn in a spending year: the first person £23,911, the partner £13,193
+  on the first 1000 paths both keep, the mean a path:
+    income tax over the plan: the couple, each on their own bands, £1,079,349; the same taxable incomes on the household plan's bands £997,184; the bands' part £82,164; capital gains tax beside it £254,174
+    tax-free cash taken over the plan: the couple £225,033, the household plan on its own plan (CEIL) £228,683; the first person at their own cap at the end on 84 of 1000 paths
+    taxable pension drawn in a spending year: the first person £7,412, the partner £7,606
+  how the 70 lost paths fail: 56 at the minimum pot at the plan's end, below it by £16,650 on average; 14 a year short, each ending with nothing

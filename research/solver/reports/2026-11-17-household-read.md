@@ -1,5 +1,9 @@
 # One plan for the whole household, the lead test, read (17 Nov): A LEAD, WITH A UNIT TO PLACE; THE SEARCH GOES
 
+Corrected after the reviewer at the read (`reviews/2026-11-17-read-household.md`: the read stands; the write-up's cause
+for the units to place was not shown, and three pooled figures lacked their largest unit). The cause is withdrawn. Each
+figure below is printed by the reducer or by the scripts beside it.
+
 ## In plain words
 
 Today a couple's year is chosen from two tables, one for each person, each solved on that person's share of the
@@ -22,33 +26,55 @@ PRESCRIPTIVE-PLAN.md step 4 (D118; EXPLORATORY, seed 7002). It ran on JOINT-WIDE
     noise.
   - S191-90 loses `-20.725` points (829 paths lost, none saved). Without it the pooled gain is `+1.069` (`+1.007` to
     `+1.129`). Without both, it is `+0.752` (`+0.689` to `+0.812`).
-  - By group: the feature units `+2.313`, the library `+0.650`, the younger units `-0.069`, and the 90/10 units `-1.550`.
-- **Three couples lose beyond the bar, all with biases on record:** S333F (`-1.000`), S335F (`-1.500`) and S191-90.
-  Each has a year when only one person's pension is open, or a one-off deposit owned by one person, or both. S191-90
-  also holds 90% of its pensions in the first person's name. So by the rule they are units to place, not a failure.
-- **Why they lose, as far as the decomposition shows:**
-  - *The table is not the cause.* On its own plan (CEIL) the household table survives about as often as it forecast:
-    S191-90 `98.60%` against its forecast `98.66%`. The loss comes from carrying its moves out on the couple.
+  - By group, each with and without its largest unit:
+
+    | group | all its units | without its largest unit |
+    |---|---|---|
+    | feature | `+2.313` | `+1.311` without S147-db |
+    | library | `+0.650` | `+0.483` without S205 |
+    | younger | `-0.069` | `+0.136` without S335F |
+    | 90/10 | `-1.550` | `+1.189` without S191-90 |
+- **Three couples lose beyond the bar:** S333F (`-1.000`), S335F (`-1.500`) and S191-90.
+  - Each has biases on record. Each has a year when only one person's pension is open, or a one-off deposit owned by
+    one person, or both. S191-90 also holds 90% of its pensions in the first person's name. So by the rule they are
+    units to place.
+  - Only one of the 28 units, S109-sppart, has nil biases. So part 2 could have read NO LEAD on that unit alone. A loss
+    beyond the bar on any other unit, however large, reads as a unit to place, and S191-90's `-20.725` is read that way.
+- **Why they lose is not shown.**
+  - *The household table is right about its own plan.* Run on that plan (CEIL), it survives within half a point of
+    its forecast on each unit (S191-90 `98.60%` against `98.66%`). So the loss lies between the household plan and the
+    couple. That plan is design A's model of the couple.
   - *Most lost paths do not run short.* Most of them meet every year's spending and end the plan below the household's
     minimum pot.
-  - *The table cannot see part of the couple's income tax.* It prices each year's pension draw as one person with two
-    people's allowances and bands. The couple pays each person's own rates on the same draws.
-  - *On S191-90 that hidden tax is about four times the shortfall.* The first person draws most of the pension
-    (`£70,464` of taxable pension a spending year against the partner's `£7,549`). On those paths the tax the household
-    plan's bands leave out averages `£186,717` a path over the plan. That is about four times the `£47,513` a path by
-    which those paths end below the minimum pot.
-  - *S333F and S335F show the same mechanism on a smaller scale.* What makes their draws uneven is not shown.
+  - *Two sizes sit beside the loss, and neither is shown to cause it.*
+    - **The bands' part:** the couple's income tax less the same taxable incomes taxed on the household plan's doubled
+      bands. It is about the same size on paths both arms keep as on paths HS5 loses:
+
+      | unit | on the paths HS5 loses | on the first 1,000 paths both keep |
+      |---|---|---|
+      | S191-90 | `£186,717` a path | `£138,926` |
+      | S333F | `£72,638` | `£83,898` |
+      | S335F | `£78,036` | `£82,164` |
+    - **The tax-free cash, whose cap the household plan doubles:** on S191-90 the first person reaches their own cap on
+      all 829 lost paths, and on 898 of the first 1,000 kept. On S333F and S335F they reach it on 50 of 51 and 67 of 70
+      lost paths, against 152 and 84 of the first 1,000 kept.
+  - *A decomposition that would show a cause was not run.* It would solve HS5 on S191-90 with the household table's
+    income bands single, and again with its tax-free cash cap single (the reviewer's suggestion).
 - **The even split does as well as the best of five** (`+0.001` points), and costs less time: `x0.357` of K2's CPU a
   path against HS5's `x0.538`. By the rule, the split's search goes.
-- **The pot left, counted up to the estate cap, is lower:** `-2.410%` pooled (`-£60,880` a path). Spending is
-  `+£22,523` a path. This is recorded, not a bar (D116).
+- **The pot left, counted up to the estate cap, is lower:** `-2.410%` pooled (`-£60,880` a path), and `-1.856%`
+  (`-£44,994`) without S191-90. Spending is `+£22,523` a path, and `+£19,797` without S191-90. This is recorded, not a
+  bar (D116).
   - The pot is lower on 20 of the 28 units, by 1.5% or more on 13 of them.
   - On the paths that end at or below the cap and that both arms keep, the household plan pays more lifetime tax than
     K2 (`£135,202` against `£115,547` a path) and leaves less (`£1,448,738` against `£1,549,860`).
+  - S191-90 holds `83.1%` of that difference in tax. Without it the tax is close: `£106,433` against `£103,007`. The pot
+    is `£1,380,971` against `£1,460,580`.
 
 **By the rule committed before the run: A LEAD, WITH A UNIT TO PLACE; THE SEARCH GOES.**
-- Step 5 follows without waiting (D120), its household arm the even split (HS1). Its landing has begun.
-- AXIS.md is called for (step 6, D121) and is written after step 5 reads, carrying both reads' units.
+- Step 5 follows without waiting (D120), its household arm the even split (HS1). It has been landed and launched.
+- AXIS.md is called for (step 6, D121). It is written after step 5 reads, carrying both reads' units with the words
+  above.
 - REFUSALS.md follows step 5 (D122).
 - D119's hold on the speed work for LOOKHOLD has met its condition, so the speed work is the maintainer's question below.
 
@@ -61,6 +87,7 @@ PRESCRIPTIVE-PLAN.md step 4 (D118; EXPLORATORY, seed 7002). It ran on JOINT-WIDE
   commit. HOUSEHOLD.md's amendment for step 4 was committed in ba40be02, before any unit ran.
 - **The gate:** fair.
 - **The identity:** each unit's K2 equals JOINT-WIDE's K2, all seven arrays byte for byte, on all 28 units.
+- **The reviewer** recomputed every figure from the arrays and found them right.
 
 | part | HS5 less K2 | holds when | read |
 |---|---|---|---|
@@ -90,17 +117,21 @@ Step 5's household arm is therefore HS1 (SHAPES.md).
 
 ## Each pooled figure with and without its largest unit
 
-From `results-household.txt` and, beside it, `results-household-beside.txt` (sections A and F). The reducer's "without
-its largest unit" for survival leaves out the unit saving the most paths, the pilot's convention. Section A also leaves
-out the unit losing the most.
+From `results-household.txt` and `results-household-beside.txt` (sections A, C, D, F and G). The reducer's "without its
+largest unit" for survival leaves out the unit saving the most paths, the pilot's convention. Section A also leaves out
+the unit losing the most.
 
 | figure | all 28 | without its largest unit |
 |---|---|---|
 | survival, HS5 less K2 | `+0.291` (`+0.200` to `+0.381`) | without S147-db `-0.044` (`-0.131` to `+0.044`); without S191-90 `+1.069` (`+1.007` to `+1.129`); without both `+0.752` (`+0.689` to `+0.812`) |
+| survival by group | feature `+2.313`; library `+0.650`; younger `-0.069`; 90/10 `-1.550` | feature `+1.311` without S147-db; library `+0.483` without S205; younger `+0.136` (`+0.008` to `+0.261`) without S335F; 90/10 `+1.189` (`+1.073` to `+1.290`) without S191-90 |
+| the lost paths, at the minimum pot and short, HS5 against K2 | 1,628 and 2,976 against 989 and 3,941 | without S191-90: 956 and 2,724 against 971 and 3,864 |
 | spending on the paths both keep | `+0.7838%` | without S191-90 `+0.6920%` (`+0.6801` to `+0.7038`) |
 | spending over every path | `+0.8422%` (`+0.8278` to `+0.8566`) | without S191-90 `+0.7555%` (`+0.7410` to `+0.7700`) |
 | the pot counted up to the cap | `-2.410%` (`-£60,880` a path) | without S191-90 `-1.856%` (`-£44,994` a path) |
 | spending in pounds a path, beside the pot | `+£22,523` | without S191-90 `+£19,797` |
+| at or below the cap, both kept: lifetime tax and the pot, HS5 against K2 | `£135,202` against `£115,547`; `£1,448,738` against `£1,549,860` | without S191-90 (`83.1%` of the difference in tax): `£106,433` against `£103,007`; `£1,380,971` against `£1,460,580` |
+| above the cap: lifetime tax and the pot, HS5 against K2 | `£459,060` against `£560,466`; `£15,961,806` against `£13,992,024` | without S341F (`21.9%` of the difference in tax): `£487,428` against `£571,680`; `£16,412,014` against `£14,461,854` |
 | lifetime tax, HS5 against HOUSE (part 5) | `-16.577%` | without S341F `-13.932%` |
 | lifetime tax, HS5 against K2 | `-7.662%` | without S191-90 `-13.143%` |
 | the split's search: survival, HS1 less HS5 | `+0.001` (`-0.018` to `+0.020`) | without S191-90 `+0.004` (`-0.016` to `+0.023`) |
@@ -144,58 +175,67 @@ Survival is the one figure far from the pilot. The check:
    | S333F | `93.10%` | `93.27%` | `91.72%` | `92.73%` | `+1.550` (`+1.303` to `+1.638`) |
    | S335F | `94.30%` | `94.65%` | `92.95%` | `94.45%` | `+1.700` (`+1.409` to `+1.845`) |
 
-   - On each unit, CEIL is within half a point of the table's forecast. So part 6's gap on S191-90 is not in the table,
-     its solve or its forecast; it is in carrying the household plan's moves out on the couple.
+   - On each unit, CEIL is within half a point of the table's forecast. So part 6's gap on S191-90 is not in the table's
+     solve or its forecast; it lies between the household plan and the couple.
    - Of the paths HS5 loses and K2 keeps, CEIL keeps 821 of 829 on S191-90, 47 of 51 on S333F and 60 of 70 on S335F.
-4. **How the paths are lost** (`results-household-beside.txt`, section D).
-   - *On the units to place, most lost paths end below the minimum pot.* Of the paths HS5 loses and K2 keeps, 669 of 829
-     on S191-90 fail that way, 42 of 51 on S333F and 56 of 70 on S335F. These paths meet every year's spending, then end
-     the plan below the household's minimum pot. On S191-90 the median end pot on such paths is `£85,828`, against a
-     minimum pot of `£112,900`.
-   - *Over the 28 units, the household plan trades one kind of failure for the other.*
-     - HS5 loses 1,628 paths at the minimum pot, against K2's 989.
-     - HS5 loses 2,976 paths short of a year's spending, against K2's 3,941.
-5. **Where the money goes** (`results-household-tax-why.txt`). The decomposition stays on the couple's own path under
-   HS5, so it does not compare paths that have already parted.
-   - *How it works.* Each plan year's incomes are taxed twice:
-     - each person on their own bands, as the engine taxes them. This was recomputed and found equal to the engine's row
-       to a pound in every plan year;
-     - the two people's incomes added together and taxed on the household plan's doubled allowance and bands. This is
-       how the household table's model prices the year.
+4. **How the paths are lost** (`results-household-beside.txt`, section D; `results-household-tax-why.txt`).
+   - *On the units to place, most lost paths end below the minimum pot.* Of the paths HS5 loses and K2 keeps:
 
-   | unit | the couple's income tax over the plan, a path | the same incomes on the household plan's bands | left out by the household plan's model | short of the minimum pot at the end, a path | taxable pension drawn a spending year, the first person and the partner |
-   |---|---|---|---|---|---|
-   | S191-90 | `£952,704` | `£765,987` | `£186,717` | `£47,513` | `£70,464` and `£7,549` |
-   | S333F | `£553,061` | `£480,423` | `£72,638` | `£34,778` | `£26,024` and `£14,301` |
-   | S335F | `£514,715` | `£436,680` | `£78,036` | `£41,620` | `£23,911` and `£13,193` |
+     | unit | at the minimum pot | below it, on average | a year short |
+     |---|---|---|---|
+     | S191-90 | 669 of 829 | `£31,875` (its minimum pot `£112,900`) | 160 |
+     | S333F | 42 of 51 | `£13,238` | 9 |
+     | S335F | 56 of 70 | `£16,650` | 14 |
 
-   - Capital gains tax on those paths is small beside it: `£2,006`, `£6,382` and `£4,816` a path.
+     The paths at the minimum pot meet every year's spending and end the plan below it.
+   - *All of the household plan's extra failures at the minimum pot are S191-90's.*
+     - Over the 28 units, HS5 loses 1,628 paths at the minimum pot against K2's 989, and 2,976 short against K2's 3,941.
+     - Without S191-90 it is 956 against 971, and 2,724 against 3,864. The household plan fails less often both ways.
+5. **Two sizes beside the loss, not a cause** (`results-household-tax-why.txt`). Both are taken on the couple's own path
+   under HS5, so the comparison is not across paths that have parted. Each person's income tax was recomputed and found
+   equal to the engine's row to a pound in every plan year.
 
-**What the check finds.** No fault in the build.
-- The household table forecasts its own plan right.
-- The arm is the one the plan wrote, and the run reproduces it.
-- The decomposition puts the units' loss in income tax the household table cannot see:
-  - it prices each year's pension draw as one person holding two people's allowances and bands;
-  - when one person draws most of the pension, the couple pays that person's higher rates;
-  - the table plans the household's spending against the lower bill, and the couple ends below its minimum pot.
+   | unit | the bands' part, lost paths | the bands' part, first 1,000 kept | tax-free cash, lost paths: the couple, CEIL | the first person at their own cap: lost; kept |
+   |---|---|---|---|---|
+   | S191-90 | `£186,717` | `£138,926` | `£358,865`, `£536,361` | 829 of 829; 898 of 1,000 |
+   | S333F | `£72,638` | `£83,898` | `£485,832`, `£527,524` | 50 of 51; 152 of 1,000 |
+   | S335F | `£78,036` | `£82,164` | `£468,950`, `£504,170` | 67 of 70; 84 of 1,000 |
 
-On S191-90 the draws are as uneven as the pensions. Its first person holds 90% of them (biasesOf's `penShareSelf`
-`0.900`), and that is the bias step 6's axis is about. On S333F and S335F the pensions are held 60/40, and the draws are
-still uneven. What makes them uneven is not shown. Their biases are on record for other reasons: three years with one pension open,
-and on S335F a one-off deposit. `incomeTaxLeftOut`, as step 3 defined it, counts the guaranteed incomes only, not the
-draws, and is `£0` on all three.
+   - *What the bands' part is.* It is the couple's income tax, each person on their own bands, less the same taxable
+     incomes added and taxed on the household plan's doubled allowance and bands.
+   - *Where it departs from the household table's own pricing.* It is not quite how the household table's model prices
+     the year:
+     - it leaves out the household plan's own tax-free cash;
+     - in the plan years when the later retiree still works, it stacks the couple's draws over that person's pay, where
+       the household plan carries the pay as tax-free take-home.
+   - *Where it falls in the plan* (`results-axis.txt`):
+     - On S191-90 almost all of it falls after plan year 16. There the first person draws `£88,659` of taxable pension
+       a year and the partner `£461`.
+     - On S333F and S335F about half falls before anyone retires, while no pension is drawn.
+
+**What the check finds.** No fault was found in the table's solve, its forecast or the arm's run.
+- *Not checked on these three units:* whether `householdPlanFor` builds each of them as it is. The fidelity and twin
+  checks in `household.test.mjs` ran on six other units.
+- *Where the loss lies:* between the household plan and the couple. Its cause is not shown.
+- *The sizes don't separate the paths.* The bands' part is the same order on paths kept as on paths lost. The first
+  person reaching their own tax-free cash cap sets S333F's and S335F's lost paths apart from their kept ones, but that is
+  an association, not a cause.
+- *The decomposition that would show a cause, not run:* HS5 on S191-90 with the household table solved once with the
+  income bands single and once with the tax-free cash cap single, each against HS5 and K2 on the same paths. That is the
+  form ANSWERS.md used on the plan's fidelity gaps.
 
 ## Beside the rule, deciding nothing
 
-- **Above and below the cap** (results-household.txt), HS5 against K2:
+- **Above and below the cap**, HS5 against K2 (`results-household.txt`; each without its largest unit in the table
+  above):
 
   | paths | lifetime tax, HS5 against K2 | pot left, HS5 against K2 |
   |---|---|---|
   | both end above the cap (38,455 paths) | `£459,060` against `£560,466` | `£15,961,806` against `£13,992,024` |
   | both end at or below it, both kept (62,709 paths) | `£135,202` against `£115,547` | `£1,448,738` against `£1,549,860` |
 
-  HOUSE against K2 above the cap pays more tax than K2: `£604,386` against `£561,059`. HS5 pays less, which is the
-  tie-break above the cap's work. Part 5 reads it as HS5's tax 16.6% below HOUSE's.
+  Above the cap, HOUSE pays more tax than K2 (`£604,386` against `£561,059`) and HS5 pays less. What makes them differ
+  is not shown. Part 5 reads HS5's lifetime tax `16.577%` below HOUSE's.
 - **Step 1's counts:**
   - HS5 decided 5,160,000 times. It was past twice the table's wealth top at 145,501 of them.
   - At none of those did it take a wrapper to a less risky tier. So the hold, which design A carried, has nothing to do
@@ -210,14 +250,20 @@ draws, and is `£0` on all three.
 
 ## What follows, and what is the maintainer's
 
-1. **Step 5 (D120)** follows without waiting, on SHAPES.md's rule, committed first (2fe8aa32), with HS = HS1. Its 28
-   units began landing on seed 7005 at 17:07 UTC (`results/shapes-land.log`). The smoke and the launch come next;
-   `results-shapes.txt` comes to the maintainer whole with its report.
-2. **Step 6 (D121).** AXIS.md is called for, because this read printed A LEAD, WITH A UNIT TO PLACE. It is written after
-   step 5 reads, so it carries S333F, S335F and S191-90 with their biases and CEIL less HS5 (above), and any shape step 5
-   places. Nothing is built.
+1. **Step 5 (D120)** follows without waiting, on SHAPES.md's rule, committed first (2fe8aa32), with HS = HS1.
+   - Its 28 units landed on seed 7005, none refused (`results-shapes-panel.txt`).
+   - Its smoke was read through the gate.
+   - It was launched 17 Nov 17:19 UK through the launcher from 7ba13e93 (`results/shapes-launch-1.log`).
+   - `results-shapes.txt` comes to the maintainer whole with its report.
+2. **Step 6 (D121).** AXIS.md is called for, because this read printed A LEAD, WITH A UNIT TO PLACE.
+   - It is written after step 5 reads, so it carries S333F, S335F and S191-90 with their biases and CEIL less HS5
+     (above), and any shape step 5 places.
+   - It takes the words above: sizes, and no cause.
+   - Nothing is built.
 3. **Step 7 (D122):** REFUSALS.md after step 5. Step 8 is not started (D123).
-4. **For the maintainer:** D119 held D111 (3)'s speed work on LOOKHOLD until this read, and this read is in. The review
-   held it because LOOKHOLD's tie rule, look and hold would leave a couple's path if the household's move holds. The
-   household's move does hold here, as a lead. The agent recommends it stays held until the maintainer rules on step 8's
-   registered test. It is not started.
+4. **For the maintainer.**
+   - *The speed work:* D119 held D111 (3)'s speed work on LOOKHOLD until this read, and this read is in. The review held
+     it because LOOKHOLD's tie rule, look and hold would leave a couple's path if the household's move holds. The
+     household's move does hold here, as a lead. The agent recommends it stays held until the maintainer rules on step
+     8's registered test. It is not started.
+   - *The decomposition on S191-90* above is offered, not run.

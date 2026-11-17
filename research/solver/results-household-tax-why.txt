@@ -1,0 +1,19 @@
+node research/solver/household-tax-why.mjs <unit> for S191-90, S333F and S335F (17 Nov, after the read)
+
+WHERE THE COUPLE'S TAX PARTS FROM THE HOUSEHOLD PLAN'S (EXPLORATORY, after the read, deciding nothing): S191-90 (90/10), seed 7002, on the 829 paths HS5 loses and K2 keeps, the couple's own path under HS5; the household table the run's; the minimum pot £112,900
+  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 33989 plan years
+  income tax over the plan, the mean a path: the couple, each on their own bands, £952,704; the same incomes added and taxed on the household plan's bands £765,987; left out by the household plan's model £186,717 a path; capital gains tax beside it £2,006 a path
+  those paths end below the minimum pot by £47,513 a path on average (a path that ends above it counted as nought)
+  taxable pension drawn in a spending year, the mean: the first person £70,464, the partner £7,549
+
+WHERE THE COUPLE'S TAX PARTS FROM THE HOUSEHOLD PLAN'S (EXPLORATORY, after the read, deciding nothing): S333F (younger), seed 7002, on the 51 paths HS5 loses and K2 keeps, the couple's own path under HS5; the household table the run's; the minimum pot £135,300
+  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 3111 plan years
+  income tax over the plan, the mean a path: the couple, each on their own bands, £553,061; the same incomes added and taxed on the household plan's bands £480,423; left out by the household plan's model £72,638 a path; capital gains tax beside it £6,382 a path
+  those paths end below the minimum pot by £34,778 a path on average (a path that ends above it counted as nought)
+  taxable pension drawn in a spending year, the mean: the first person £26,024, the partner £14,301
+
+WHERE THE COUPLE'S TAX PARTS FROM THE HOUSEHOLD PLAN'S (EXPLORATORY, after the read, deciding nothing): S335F (younger), seed 7002, on the 70 paths HS5 loses and K2 keeps, the couple's own path under HS5; the household table the run's; the minimum pot £141,500
+  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 4270 plan years
+  income tax over the plan, the mean a path: the couple, each on their own bands, £514,715; the same incomes added and taxed on the household plan's bands £436,680; left out by the household plan's model £78,036 a path; capital gains tax beside it £4,816 a path
+  those paths end below the minimum pot by £41,620 a path on average (a path that ends above it counted as nought)
+  taxable pension drawn in a spending year, the mean: the first person £23,911, the partner £13,193

@@ -1,0 +1,39 @@
+BESIDE THE LEAD TEST'S READ (EXPLORATORY, after the read, deciding nothing): 28 units, seed 7002, 4000 paths; code 603eeb595679, audit 930d7e4ac75a; HS5 less K2 in survival points, paired by path (stats.mjs survivalChange)
+
+A. pooled survival, with and without the units at either end
+  all 28: +0.291 (+0.200 to +0.381) on 28 units (1489 saved, 1163 lost)
+  without S147-db (the most saved, the reducer's "without its largest unit"): -0.044 (-0.131 to +0.044) on 27 units (1115 saved, 1162 lost)
+  without S191-90 (the most lost): +1.069 (+1.007 to +1.129) on 27 units (1489 saved, 334 lost)
+  without both: +0.752 (+0.689 to +0.812) on 26 units (1115 saved, 333 lost)
+  without the three units to place (S333F, S335F, S191-90): +1.255 (+1.198 to +1.307) on 25 units (1468 saved, 213 lost)
+
+B. against the review's pilot (other seeds, 1,500 paths, HOUSE less K2: +1.72 on its twelve units)
+  the pilot's twelve units: +1.635 (+1.550 to +1.711) on 12 units (887 saved, 102 lost); HOUSE less K2 on them here +1.640 (+1.550 to +1.720) on 12 units (903 saved, 116 lost)
+  the pilot's twelve without S147-db (the pilot's own "about +1.0 without S147-db"): +0.936 (+0.848 to +1.016) on 11 units (513 saved, 101 lost)
+  the sixteen it did not run: -0.717 (-0.837 to -0.594) on 16 units (602 saved, 1061 lost); without S191-90 +0.617 (+0.528 to +0.701) on 15 units (602 saved, 232 lost)
+
+C. by group
+  younger  -0.069 (-0.192 to +0.056) on 8 units (186 saved, 208 lost)
+  library  +0.650 (+0.523 to +0.750) on 4 units (127 saved, 23 lost)
+  90/10    -1.550 (-1.753 to -1.340) on 8 units (398 saved, 894 lost)
+  feature  +2.313 (+2.227 to +2.381) on 8 units (778 saved, 38 lost)
+
+D. how the lost paths fail: at the minimum pot at the plan's end (failing in its last year with no year short), or a year's spending short
+  K2    over the 28 units: 989 at the minimum pot, 3941 short
+  HOUSE over the 28 units: 1652 at the minimum pot, 2990 short
+  HS5   over the 28 units: 1628 at the minimum pot, 2976 short
+  HS1   over the 28 units: 1623 at the minimum pot, 2980 short
+  S333F: the plan's last year 60, the household's minimum pot £135,300; of all its lost paths: K2 20 at the minimum pot and 271 short, HS5 53 at the minimum pot and 278 short; of the 51 HS5 loses and K2 keeps: 42 at the minimum pot, 9 short; the end pot on those at the minimum pot: the median £126,893, from £31,787 to £135,171
+  S335F: the plan's last year 60, the household's minimum pot £141,500; of all its lost paths: K2 14 at the minimum pot and 208 short, HS5 64 at the minimum pot and 218 short; of the 70 HS5 loses and K2 keeps: 56 at the minimum pot, 14 short; the end pot on those at the minimum pot: the median £127,551, from £47,219 to £141,287
+  S191-90: the plan's last year 40, the household's minimum pot £112,900; of all its lost paths: K2 18 at the minimum pot and 77 short, HS5 672 at the minimum pot and 252 short; of the 829 HS5 loses and K2 keeps: 669 at the minimum pot, 160 short; the end pot on those at the minimum pot: the median £85,828, from £21,515 to £112,760
+
+E. the pot counted up to the cap, HS5 against K2 by unit (the pilot: lower by 1.5% to 13% on about two units in three)
+  lower on 20 of 28 units, by 1.5% or more on 13 (from 1.709% to 11.372%: S061-dbpart, S023-db, S377-dbpart, S191-90, S205, S191-dbpart, S337F, S147-db, S109-sppart, S271-db, S343F, S341F, S149); higher on 8
+
+F. every other pooled figure the read prints, with and without the unit that contributes most to it (by the size of its part of the pooled difference)
+  part 4's spending beside the pot, HS5 less K2, over every path: +£22,523 a path; without S191-90 +£19,797 a path
+  part 5, lifetime tax, HS5 against HOUSE: -16.577%; without S341F -13.932%
+  spending delivered over every path, HS5 against K2: +0.8422% (+0.8278 to +0.8566); without S191-90 +0.7555% (+0.7410 to +0.7700)
+  the split's search, HS1 less HS5: survival +0.001 (-0.018 to +0.020); without S191-90 +0.004 (-0.016 to +0.023); spending on the paths both keep -0.0022% (-0.0031 to -0.0014); without S023-db -0.0016% (-0.0025 to -0.0008); lifetime tax +0.224%; without S333F +0.687%
+  HOUSE less K2: survival +0.257 (+0.166 to +0.348); without S191-90 +1.050 (+0.985 to +1.111); spending on the paths both keep +0.7849% (+0.7730 to +0.7968); without S191-90 +0.6940% (+0.6820 to +0.7060); the capped pot -2.473% (-£62,481 a path); without S191-90 -1.921% (-£46,557 a path)
+  HS5 against K2, lifetime tax over every path: -7.662%; without S191-90 -13.143%

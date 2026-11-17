@@ -1,0 +1,30 @@
+node research/solver/axis-tax.mjs <unit> for S191-90, S333F and S335F (17 Nov, after the lead test's read); and node research/solver/axis-size.mjs S333F S335F S191-90
+
+WHERE IN THE PLAN THE HOUSEHOLD PLAN'S MODEL LEAVES TAX OUT (EXPLORATORY, for AXIS.md; nothing built): S191-90, seed 7002, the 829 paths HS5 loses and K2 keeps, the couple's own path under HS5; the axis's window from the first retirement (plan year 5) to the younger person's state pension age (plan year 16)
+  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 33989 plan years
+  before the window (plan years 0 to 4): the income tax left out £184 a path; taxable pension drawn a year, the first person £0, the partner £0
+  in it (5 to 15): the income tax left out -£21,351 a path; taxable pension drawn a year, the first person £29,113, the partner £23,659
+  after it (16 to 40): the income tax left out £207,883 a path; taxable pension drawn a year, the first person £88,659, the partner £461
+
+WHERE IN THE PLAN THE HOUSEHOLD PLAN'S MODEL LEAVES TAX OUT (EXPLORATORY, for AXIS.md; nothing built): S333F, seed 7002, the 51 paths HS5 loses and K2 keeps, the couple's own path under HS5; the axis's window from the first retirement (plan year 15) to the younger person's state pension age (plan year 34)
+  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 3111 plan years
+  before the window (plan years 0 to 14): the income tax left out £35,309 a path; taxable pension drawn a year, the first person £0, the partner £0
+  in it (15 to 33): the income tax left out £2,477 a path; taxable pension drawn a year, the first person £10,027, the partner £12,016
+  after it (34 to 60): the income tax left out £34,852 a path; taxable pension drawn a year, the first person £37,282, the partner £15,910
+
+WHERE IN THE PLAN THE HOUSEHOLD PLAN'S MODEL LEAVES TAX OUT (EXPLORATORY, for AXIS.md; nothing built): S335F, seed 7002, the 70 paths HS5 loses and K2 keeps, the couple's own path under HS5; the axis's window from the first retirement (plan year 15) to the younger person's state pension age (plan year 34)
+  the check: each person's income tax recomputed on their own bands equals the engine's row to a pound in all 4270 plan years
+  before the window (plan years 0 to 14): the income tax left out £36,578 a path; taxable pension drawn a year, the first person £0, the partner £0
+  in it (15 to 33): the income tax left out £4,215 a path; taxable pension drawn a year, the first person £9,737, the partner £11,628
+  after it (34 to 60): the income tax left out £37,243 a path; taxable pension drawn a year, the first person £33,886, the partner £14,294
+
+THE AXIS'S COST IN TABLE SIZE (EXPLORATORY, for AXIS.md; nothing built): the smaller pension's share on three points from the first retirement to the younger person's state pension age (ANSWERS.md section 3)
+  the units named:
+    S333F        the plan's years 61 (0 to 60); the first retirement in plan year 15; the younger (the partner) at the state pension age (68) in plan year 34; the window 19 of 61 years; the table 1.62 times a single's
+    S335F        the plan's years 61 (0 to 60); the first retirement in plan year 15; the younger (the partner) at the state pension age (68) in plan year 34; the window 19 of 61 years; the table 1.62 times a single's
+    S191-90      the plan's years 41 (0 to 40); the first retirement in plan year 5; the younger (the partner) at the state pension age (68) in plan year 16; the window 11 of 41 years; the table 1.54 times a single's
+  the check, ANSWERS.md section 3's units ("3 of 28 plan years on S023, 15 of 40 on S149, 19 of 61 on the younger couples and 21 of 46 on S377"):
+    S023-90      the plan's years 28 (0 to 27); the first retirement in plan year 0; the younger (the partner) at the state pension age (68) in plan year 3; the window 3 of 28 years; the table 1.21 times a single's
+    S149         the plan's years 40 (0 to 39); the first retirement in plan year 0; the younger (the partner) at the state pension age (68) in plan year 15; the window 15 of 40 years; the table 1.75 times a single's
+    S327F        the plan's years 61 (0 to 60); the first retirement in plan year 15; the younger (the partner) at the state pension age (68) in plan year 34; the window 19 of 61 years; the table 1.62 times a single's
+    S377-90      the plan's years 46 (0 to 45); the first retirement in plan year 0; the younger (the partner) at the state pension age (68) in plan year 21; the window 21 of 46 years; the table 1.91 times a single's

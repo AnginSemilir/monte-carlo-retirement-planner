@@ -57,7 +57,17 @@ lifetime tax, the two traces) and stopped where the plan says stop.
 Applied with the ruling's commit: the settings check with the minimum pot left out, S205's twin held to bar 2 without its
 one-off cost, S149 named the one exception with its size.
 
-**HELD (D119): D111 (3)'s speed work on LOOKHOLD,** until the household plan's lead test (step 4) reads.
+**READ (17 Nov, evening): the household plan's lead test (step 4), A LEAD, WITH A UNIT TO PLACE; THE SEARCH GOES.**
+`results-household.txt`, read once; `reports/2026-11-17-household-read.md`. Pooled survival up `+0.291` points, spending up
+on the paths both keep; three units placed (S333F, S335F, S191-90), each losing where the couple pays income tax the
+household plan's doubled bands do not see; the even split as good as the best of five. Checked for a fault first (far
+from the pilot on survival): none found. The reviewer at the read under way. Step 5 launched without waiting (D120);
+`AXIS.md` after it (D121), then `REFUSALS.md` (D122).
+
+**FOR THE MAINTAINER (D119's condition met): D111 (3)'s speed work on LOOKHOLD.** D119 held it until the lead test read;
+it has read. The review held it because LOOKHOLD's tie rule, look and hold leave a couple's path if the household's move
+holds, and the move holds here, as a lead. The agent recommends it stays held until the maintainer rules on step 8's
+registered test. Not started.
 
 **RESTARTED (D115) after its stop (D114, 17 Nov, morning: "Handover your thoughts and the problem so far as a prompt for an external reviewer, stop that line of thought for now"; the lead test not run). As it was opened (D113): one plan for the whole household, before the speed work.** The maintainer: "Look at bigger -
 one plan for the whole household. Think deeply about how that would work and how much more accurate you'd expect to be,

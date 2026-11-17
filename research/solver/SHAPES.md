@@ -59,7 +59,7 @@ D120).
 
 **Time box:** a day to build and land; 4 hours to run; half a day to read. If the box runs out, stop and report.
 
-## Amendment 1 (17 Nov, evening; D125, D126): the settings check, one unit run again, the read on two stamps
+## Amendment 1 (17 Nov, evening; D125, D126): the settings check, two units run again, the read on two stamps
 
 Made after the launch (17 Nov 17:19 UK, from 7ba13e93, audit `260916d007cd`), when unit 20, S147-db@penA100, exited before
 any arm ran: the audit's settings check refused it. The first person's table's lowest spending level is `0.799985`; the
@@ -75,12 +75,14 @@ outcome of any unit has been read. The rule above is unchanged; the amendment is
    - the spending levels are compared with the lowest left out, and the household table's lowest is held to the
      household's own floor over its target, rounded as the levels are.
    Its planted cases: `node research/solver/audit-shapes.mjs --planted`.
-2. **The unit run again:** unit 20 alone, through the launcher on the amended files (`batch-shapes.sh` with
-   `UNITS_ONLY=20` and `RESUME=1`), its refused log kept beside it as `case20-refused.txt`. Any other unit the check
-   refused for the same reason would be run again the same way, and named here before it runs.
+2. **The units run again:** unit 20, S147-db@penA100, and unit 27, S061-dbpart@penA100. Unit 27 was refused for the
+   same reason when the batch ended at 19:57 UK: its first person's lowest level is `0.80002` against the household
+   table's `0.8`. They run alone, through the launcher on the amended files (`batch-shapes.sh` with `UNITS_ONLY="20 27"`
+   and `RESUME=1`), each refused log kept beside it as `case<k>-refused.txt`. The other 26 units ran to their end on the
+   launch's files and the old check, which they passed.
 3. **The read on two stamps:** `reduce-shapes.mjs`'s gate takes exactly two audit stamps: the launch's (`260916d007cd`)
-   for every unit not run again, and the amended files' for the unit run again. A unit on the other stamp, or a third
-   stamp, is refused. The fair-test gate is asked to take exactly those two versions on one code (`fair-gate.mjs`'s
+   for every unit not run again, and the amended files' for the two units run again. A unit on the other stamp, or a
+   third stamp, is refused. The fair-test gate is asked to take exactly those two versions on one code (`fair-gate.mjs`'s
    allowed versions, D126). Its planted cases: `node research/solver/reduce-shapes.mjs --planted`, and
    `research/tests/fair-gate-allowed.test.mjs` for the fair-test gate.
 4. **The reviewer** on this amendment before it is used (D125, in D94 (1)'s form).

@@ -27,7 +27,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const RULE = { unit: -0.3, spend: -0.05, forecast: 2, ceil: 1 }, CANDIDATE = 'af001697ce1b';
 /* SHAPES.md amendment 1 (17 Nov; D125, D126): the read takes exactly two audit stamps, the launch's for every unit not run
    again and the amended files' (stampFilesHash() now) for the units named here, run again on the amended settings check */
-export const AMEND = Object.freeze({ launch: '260916d007cd', rerun: Object.freeze(['S147-db@penA100']) });
+export const AMEND = Object.freeze({ launch: '260916d007cd', rerun: Object.freeze(['S147-db@penA100', 'S061-dbpart@penA100']) });
 export const JOINT = { shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2 };
 export const ARMS = ['APP', 'K2', 'HS', 'CEIL'], SHAPES = ['even', 'gap8', 'gap12', 'elder2nd', 'part60', 'penB90', 'penA100'];
 export const orderOf = k => [...ARMS.slice(k % ARMS.length), ...ARMS.slice(0, k % ARMS.length)];

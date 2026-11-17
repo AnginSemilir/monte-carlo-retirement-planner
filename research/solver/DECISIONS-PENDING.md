@@ -11,6 +11,11 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (17 Nov, morning): D111 (3)'s speed work, after JOINT-WIDE's read (FAILS: the joint move stays at two;
+`reports/2026-11-17-joint-wide-read.md`).** By D111 it follows this read. The agent recommends holding it until the external
+review answers on the household plan (`QUESTIONS-2026-11-17.md`): if one plan for the household is taken, it replaces the
+joint move whose cost the speed work targets. Asked of the maintainer.
+
 **STOPPED (D114, 17 Nov, morning: "Handover your thoughts and the problem so far as a prompt for an external reviewer, stop that line of thought for now"), handed to the external review in `QUESTIONS-2026-11-17.md`, the lead test not run. As it was opened (D113): one plan for the whole household, before the speed work.** The maintainer: "Look at bigger -
 one plan for the whole household. Think deeply about how that would work and how much more accurate you'd expect to be,
 and if it could be done without significant increase in timing. After that if you're confident at least there's a good

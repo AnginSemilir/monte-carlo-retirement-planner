@@ -39,9 +39,12 @@ What the reads since 13 Nov say (files in `research/solver/`):
   offering each person's top six moves instead of two was the most consistent help (+0.4835 of the lost paths pooled,
   0.35 or more on eight of ten comparisons).
 - **The wider joint move on today's split** (JOINT-WIDE, D111 (2): top four and top six against two, 28 units, 4,000
-  paths of seed 7002): ran overnight, **its read is due this morning** (`results-joint-wide.txt` and
-  `reports/2026-11-17-joint-wide-read.md` once committed). Read it with this: it says how much of the gap a wider move
-  closes on the same 28 units the household test below would use.
+  paths of seed 7002), read 17 Nov 08:45 UK: **FAILS** by its rule, so the joint move stays at two
+  (`results-joint-wide.txt`, `reports/2026-11-17-joint-wide-read.md`). Pooled survival K4 +0.236 and K6 +0.454 points,
+  both beyond noise, no unit lower beyond noise; the gain largest where the two tables misread the household most
+  (S147-db +5.150 under K6, 206 paths saved, none lost); but the capped pot falls past its bar on five units under K4
+  (S109-sppart -5.0%) and seven under K6, K6's spending falls 0.158%, and a path costs x1.51 and x2.34. These are the same
+  28 units the household test would use.
 - **Time today:** a couple's two tables take 64 to 143 s on one core (Node, `results-joint-wide-pilot.txt`); a couple's
   path 79 to 210 ms, about 3 ms a year, three to four times a single's year (a single's path about 25 to 36 ms). In the
   browser (S069, four parts, a loaded machine, `results-couple-timing.txt`) the two solves took 157 s and the paths 301 s

@@ -8,6 +8,7 @@ The questions are `research/solver/QUESTIONS-2026-11-17.md` on `claude/project-a
 | file | what it is |
 |---|---|
 | `ANSWERS.md` | the seven answers, with what I would do next |
+| `PRESCRIPTION.md` | the answers as steps for the agent: each step's build, test, rule and time box, what is asked of the maintainer, and the prompt to send |
 | `results-pilot.txt` | the pilot: today's couples default against design A on twelve of the lead test's units |
 | `results-pilot-beside-joint-wide.txt` | the pilot's units beside JOINT-WIDE's read of the same units |
 | `results-pilot-extra.txt` | the same on couples of shapes the library has none of; design A with the capital gains band put right; design A's move taken from the single solver's own chooser |
@@ -16,6 +17,7 @@ The questions are `research/solver/QUESTIONS-2026-11-17.md` on `claude/project-a
 | `results-answers-figures.txt` | every pooled figure, count and range `ANSWERS.md` quotes from the pilot, printed from the unit files |
 | `results-fidelity.txt` | design A's household plan against the couple under the app's own rules, taken apart |
 | `results-twin-trace.txt` | where a twin couple and its household plan first part, and on what |
+| `results-twin-trace-mended.txt` | the same with the household plan's capital gains band put right |
 | `results-bias-table.txt` | what design A states differently from the couple, on each of the lead test's 28 units |
 | `results-coverage.txt` | what the household library's 210 couples look like, and what design A's merge refuses of them |
 | `scripts/` | the scripts that printed each of those |
@@ -44,6 +46,7 @@ node research/reviews/2026-11-17/scripts/answers-figures.mjs
 # no solve in any of these: the engine under the app's own rules, or plan arithmetic
 node research/reviews/2026-11-17/scripts/fidelity.mjs 300
 node research/reviews/2026-11-17/scripts/twin-trace.mjs S205 S061-dbpart S327F S227-90 S023-db S149 --paths 100
+node research/reviews/2026-11-17/scripts/twin-trace.mjs S205 S061-dbpart S327F S227-90 S023-db S149 --paths 100 --mend
 node research/reviews/2026-11-17/scripts/bias-table.mjs
 node research/reviews/2026-11-17/scripts/coverage.mjs
 ```

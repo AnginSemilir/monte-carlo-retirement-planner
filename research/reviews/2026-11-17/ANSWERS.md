@@ -8,6 +8,11 @@ ruling is the maintainer's own message.
 Everything here is EXPLORATORY and decides nothing. I ran nothing on seed 7002, so the lead test's paths are unread. No
 held-out seed was touched, `research/solver/archive/` was not edited, and no unit is the maintainer's household.
 
+**Corrected later on 17 Nov** (section 5, and step 2 of "what next"): with the capital gains band put right the twin
+couples are far closer but not exact to the pound, so the twin test needs a bar on each kind of tax and not an identity
+(`results-twin-trace-mended.txt`). `PRESCRIPTION.md` beside this file turns the answers into steps and carries the
+prompt for the agent.
+
 I was asked to look at the problem whole and not to take the path so far as right. So section 0 says what I think the
 problem is, before the seven answers.
 
@@ -24,7 +29,7 @@ copy of the working branch at 6bfbe905, changing no file of it:
 - **Why the pot left differs** (`results-why-pot.txt`): on three units, each arm's spending level and the risk it holds,
   recorded at every decision.
 - **Design A's plan under the app's own rules, taken apart** (`results-fidelity.txt`, `results-twin-trace.txt`,
-  `results-bias-table.txt`, `results-coverage.txt`). No solve in any of these.
+  `results-twin-trace-mended.txt`, `results-bias-table.txt`, `results-coverage.txt`). No solve in any of these.
 
 The pilot is not the lead test. It has other seeds, fewer units and paths, and no rule committed before it ran. Its
 intervals are the paired difference's standard error, 1.96 of it either way. Read it as a lead.
@@ -53,7 +58,7 @@ intervals are the paired difference's standard error, 1.96 of it either way. Rea
    asymmetric moves: the couple's exact year already runs one move on each person's own pots and bands.
 5. **The fidelity bar is the wrong shape, and neither gap is one of the three leads.** S061-dbpart's `+11.3%` is the
    partner's DB pension taxed against the first person's spare allowance, a bias that lasts the plan. S227-90's `-13.6%`
-   is the app's bracket-fill rule filling two bands. A twin couple (the first person twice) is an exact test of the
+   is the app's bracket-fill rule filling two bands. A twin couple (the first person twice) is a far sharper test of the
    merge; it found the capital gains band.
 6. **The time model: its sizes about hold, its reason for the path does not.** The solve is `x0.50` of today's. Stepping
    joint moves is a fifth of today's path, so fewer of them saves little; the saving is one ranking for two and no look.
@@ -503,11 +508,12 @@ and with one group of allowances left single in turn.
 2. **A one-off deposit owned by one person** (the "Inheritance" on 16 of the 28 units) lands in one person's wrappers.
    The household plan has two ISA allowances and two sets of savings, dividend and gains allowances to shelter it with.
 
-**A better check: the twin.** A couple made of the first person twice is the one couple the merge should state exactly.
-Under the app's rules, with their even split, the household plan and the couple should hold the same money in every year
-of every path. I built that for six units (`results-twin-trace.txt`, 100 paths each).
+**A better check: the twin.** A couple made of the first person twice is the couple the merge should state most nearly
+exactly. Under the app's rules, with their even split, the household plan and the couple should hold the same money in
+every year of every path. I built that for six units (`results-twin-trace.txt`, 100 paths each).
 
-- **S205 and S061-dbpart: exact.** No wrapper parts by more than a pound, bar one path in its last year.
+- **S205 and S061-dbpart: exact.** No wrapper parts by more than a pound, bar one path of S061-dbpart in its last year
+  (`£158`).
 - **S327F, S227-90 and S023-db: they part, and first on capital gains tax.** Over the plan the household plan pays
   `£40,494` of it against the couple's `£38,079` on S327F, `£126,479` against `£108,498` on S227-90, and `£1,975`
   against `£1,607` on S023-db.
@@ -516,24 +522,36 @@ of every path. I built that for six units (`results-twin-trace.txt`, 100 paths e
   Scottish taxpayer gets the UK band). The household plan doubles the allowance, so its band is **£25,130**. Two people
   have **£75,400**. No entry in `DOUBLED` can reach it. Every household plan has it (`results-bias-table.txt`), and the
   household table is solved on it.
-- **S149 parts on a second thing I did not trace:** dividend tax and the year's target in plan year 3, the year of its
-  one-off cost, `£160` of `£34,649` of income tax over the plan.
+- **With the band put right the three are far closer, and still not exact** (`results-twin-trace-mended.txt`). Capital
+  gains tax is then `£37,982` against `£38,079`, `£108,037` against `£108,498` and `£1,569` against `£1,607`: within
+  0.3%, 0.4% and 2.4%, where it was 6%, 17% and 23% over. The largest gap in end wealth on a path falls from `£43,806`
+  to `£3,856`, from `£352,171` to `£21,682` and from `£5,940` to `£787`.
+- **What is left looks like design A's allowance bias in its smallest form, not a fault in the plan.** The engine's
+  couple year does not keep twins equal: the two hold or draw unequal amounts in `89.3%` to `94.1%` of path-years on the
+  six units, S205 included. Where that makes one twin realise more gains than the other, part of one person's exempt
+  amount goes unused, and the couple pays a little more than the merged plan does. I saw that on single years of single
+  paths and did not count it, nor find which step of the year puts the first person first, so it is a lead.
+- **S149 parts on something else, which the mend does not touch and I did not trace:** dividend tax and the year's
+  target, first in plan year 3, the year of its one-off cost. Its largest gap in end wealth on a path is `£40,352`.
 
 The test's own bar hides all of this. A 17% error in a twin's capital gains tax moves median wealth by under 1%.
 
 **What I would change.**
 
-- **Add the twin identity to `household.test.mjs`:** each fidelity unit's twin under the app's rules, every wrapper
-  within a pound in every year, on 100 paths. Its plants: the capital gains band as it is today; one allowance left
-  single. It is exact, so it needs no bar.
+- **Add the twin to `household.test.mjs`,** each fidelity unit's twin under the app's rules on 100 paths, with a bar on
+  each kind of tax, since tax is where the merge shows: capital gains tax over the plan within 3% of the couple's (or
+  £50, where that is more) and income tax within 0.1%; and on the twins that stay level (S205, S061-dbpart) every
+  wrapper within a pound in every year. Its plants: the capital gains band as it is today (6% to 23% over); one
+  allowance left single. S149 is named as the one exception until its cause is found.
 - **Keep the six couples as they are, but compare lifetime tax as well as survival and wealth,** and state for each what
   the difference should be from the unit's recorded biases. S061-dbpart's `-£23,637` is then a pass: it is the bias, at
   the size predicted.
 - **Run that comparison under a rule that does not read the bands** (a fixed order, no bracket fill), or expect the
   bracket-fill units to part and say so.
-- **Fix the capital gains band before any solve of design A is read.** It needs the engine to take the band's width as a
-  setting; the household plan then doubles it. `scripts/pilot-extra.mjs` does it by doubling the engine's default for
-  the household's solve alone, which is good enough for research and not for the app.
+- **Fix the capital gains band before any solve of design A is read.** For the lead test it can be done in research
+  code: `scripts/pilot-extra.mjs` doubles the engine's default for the household's solve alone and puts it back, which
+  leaves the code stamp where JOINT-WIDE's units have it. For the app the engine would take the band's width as a
+  setting, and the household plan would double it.
 
 ## 6. The time model
 
@@ -664,14 +682,16 @@ no default.
    the pot is recorded and shown in pounds beside the spending, and not held to today's default's. If you want couples
    to leave more, that is the estate aim, and it should be measured for singles and couples alike.
 2. **Mend design A's plan and its move** (half a day).
-   - The capital gains band: the engine takes its width as a setting, the household plan doubles it. Its test: the twin
-     identity (section 5), with the band as it is today as the plant.
+   - The capital gains band: two people's wherever the household plan's context is built, in research code for now (an
+     engine edit moves the code stamp the lead test's K2 is held to). Its test: the twin (section 5), with the band as
+     it is today as the plant.
    - The year's move: the single solver's own chooser where the household stands, its tie-break above the cap left on,
      and a split (section 4). Its test: `household.test.mjs` check 4 as it stands, and above the cap the pick equal to a
      single's chooser's on the same table.
    - `biasesOf` records all five things `results-bias-table.txt` prints, not two.
-   - Acceptance: the twin exact on the six fidelity units; the fast suite untouched (nothing in `src/solver` changes but
-     the engine's one setting).
+   - Acceptance: the twin within its bars on the fidelity units (section 5); nothing under `src/` changed, so the fast
+     suite and the solver's code id are as they were. `PRESCRIPTION.md` beside this file has each step's build, test,
+     rule and time box, and the prompt for the agent.
 3. **Run the lead test, amended** (2 to 3 hours on four cores, seed 7002 as planned; the amendments dated before
    launch). The arms: K2; HOUSE as built, so the read joins the handover; the mended form at the even split and at the
    best of five. The rule's changes are in section 2. K2 must still equal JOINT-WIDE's byte for byte.

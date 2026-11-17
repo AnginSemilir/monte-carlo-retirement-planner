@@ -376,3 +376,4 @@
 16 Nov 22:51 UK | main | none: EXPLORATORY: a wider joint move for couples (JOINT-WIDE.md) | code 603eeb595679 | fb09fe25 | load 1.05 1.04 0.80 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-joint-wide.sh
 16 Nov 23:45 UK | main | none: EXPLORATORY: a wider joint move for couples (JOINT-WIDE.md) | code 603eeb595679 | 300d6f62 | load 0.44 0.13 0.05 | host Intel(R) Xeon(R) Processor @ 2.30GHz x4 | bash research/solver/batch-joint-wide.sh
 17 Nov 01:50 UK | main | none: EXPLORATORY: a wider joint move for couples (JOINT-WIDE.md) | code 603eeb595679 | f7e4c40f | load 1.08 1.11 1.00 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-joint-wide.sh
+17 Nov 02:21 UK | main | none: EXPLORATORY: a wider joint move for couples (JOINT-WIDE.md) | code 603eeb595679 | 4fcc2cd9 | load 0.78 0.22 0.07 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-joint-wide.sh

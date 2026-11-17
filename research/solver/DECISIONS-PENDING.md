@@ -18,12 +18,20 @@ margin's floor: identical arms clear from 39 surviving paths to 43 (8,000 and 16
 0.045, 78 to 83 at 0.005 (the decided `marginRelFloor`, report-only, unchanged). The hook refuses the edit without the
 maintainer's "unlock enforcement"; asked.
 
-**OPEN (17 Nov, morning): D111 (3)'s speed work, after JOINT-WIDE's read (FAILS: the joint move stays at two;
-`reports/2026-11-17-joint-wide-read.md`).** By D111 it follows this read. The agent recommends holding it until the external
-review answers on the household plan (`QUESTIONS-2026-11-17.md`): if one plan for the household is taken, it replaces the
-joint move whose cost the speed work targets. Asked of the maintainer.
+**UNDER WAY (D115 to D123, 17 Nov, late morning): the household line restarts on the external review's plan.** The
+review's answers to `QUESTIONS-2026-11-17.md` (`research/reviews/2026-11-17/ANSWERS.md`, review/external-2026-10-21 at
+f1f44727) turned into steps (`PRESCRIPTIVE-PLAN.md` beside it), each taken as written: step 1, the household's move from
+the single solver's own chooser, held to the review's arrays (3 hours); step 2, the household plan's capital gains band
+(1 hour); step 3, the twin, the biases recorded, two traces (half a day); step 4, the lead test amended, its amendment
+committed first, HS5 deciding, on JOINT-WIDE's 28 units, seed 7002 (D118: `results-household.txt` whole to the
+maintainer with the report); step 5, the shapes the library lacks, without waiting on A LEAD or A LEAD, WITH A UNIT TO
+PLACE (D120); step 6's `AXIS.md` only if a read calls for it (D121); step 7's `REFUSALS.md` after step 5 (D122); step 8 not
+started (D123). The pot is recorded and not a bar (D116). EXPLORATORY throughout; nothing under `src/` and not
+`research/engine.mjs` edited, the solver's code id 603eeb595679.
 
-**STOPPED (D114, 17 Nov, morning: "Handover your thoughts and the problem so far as a prompt for an external reviewer, stop that line of thought for now"), handed to the external review in `QUESTIONS-2026-11-17.md`, the lead test not run. As it was opened (D113): one plan for the whole household, before the speed work.** The maintainer: "Look at bigger -
+**HELD (D119): D111 (3)'s speed work on LOOKHOLD,** until the household plan's lead test (step 4) reads.
+
+**RESTARTED (D115) after its stop (D114, 17 Nov, morning: "Handover your thoughts and the problem so far as a prompt for an external reviewer, stop that line of thought for now"; the lead test not run). As it was opened (D113): one plan for the whole household, before the speed work.** The maintainer: "Look at bigger -
 one plan for the whole household. Think deeply about how that would work and how much more accurate you'd expect to be,
 and if it could be done without significant increase in timing. After that if you're confident at least there's a good
 lead, follow up on it with tests as needed and then get back to me. Do this before the speed work." The design, the gain

@@ -289,7 +289,15 @@ const BLOCKS = {
         const all = [...rowsOf('FLAT'), ...rowsOf('MEANS')], out = t.match(/^THE SHARE RULES' OUTCOME: (\w+)/m), noise = b && b.match(/^ {2}beyond noise (\d+) of (\d+):/m);
         if (all.length !== 56 || !out || !noise) throw new Error('state: results-share-rules.txt or its beside file lacks its unit lines, outcome or noise line');
         const lo = all.reduce((a, r) => (r.loss > a.loss ? r : a)), hi = all.reduce((a, r) => (r.loss < a.loss ? r : a)), sg = x => (x >= 0 ? '+' : '') + x.toFixed(3);
-        return `| COUPLE-SHARE | a couple's share, each person's part of the household's spending on which their table is solved (\`couple.js\` \`shareBy\`): moved by a fixed rule, survival swings both ways and by couple (the share rules' registered read, 16 Nov, ${out[1]}; its deep review's leading cause: each person's table plans a part the household never lives, and the joint move prices the household's money by those parts) | FLAT and MEANS against today's split on 32 held-out units, seed 7023, 16,000 paths: a unit's survival from ${sg(-lo.loss)} (${lo.id}, ${lo.X} at ${lo.to}) to ${sg(-hi.loss)} (${hi.id}, ${hi.X} at ${hi.to}), ${noise[1]} of ${noise[2]} comparisons beyond noise; the DB pension case D99 lists as not shown now measured (\`results-share-rules.txt\`, \`-beside.txt\`) | the deep review's one test (EXPLORATORY), if the maintainer takes it, then a registered test of what it builds; until then today's split stays | open |`;
+        // the deep review's one test (D110): the share replay's outcome, when read
+        const rp = read(`${S}results-share-replay.txt`), ro = rp && rp.match(/^THE SHARE REPLAY'S OUTCOME: (.+)$/m);
+        if (rp && !ro) throw new Error('state: results-share-replay.txt has no outcome line');
+        // JOINT-WIDE's read (D111 (2)), which the row named as closing it
+        const jwt = read(`${S}results-joint-wide.txt`), jo = jwt && jwt.match(/^JOINT-WIDE OUTCOME: (.+)$/m);
+        if (jwt && !jo) throw new Error('state: results-joint-wide.txt has no outcome line');
+        const jwArm = a => { const m = jwt && jwt.match(new RegExp(`^${a} against K2:\\n  1\\. pooled survival ([+-][\\d.]+) \\(([+-][\\d.]+) to ([+-][\\d.]+)\\)`, 'm')), x = jwt && jwt.match(new RegExp(`^${a} against K2:[\\s\\S]*?the median over the \\d+ units whose arms ran in one process x([\\d.]+)`, 'm')); if (jwt && (!m || !x)) throw new Error(`state: results-joint-wide.txt has no ${a} line`); return m ? `${a} \`${m[1]}\` (\`${m[2]}\` to \`${m[3]}\`) at \`x${x[1]}\` a path` : ''; };
+        const closes = ro ? `the deep review's one test read ${ro[1]} (D110, \`results-share-replay.txt\`); ruled (D111): today's split stays, and a wider joint move is tested on it (\`JOINT-WIDE.md\`, EXPLORATORY), whose read closes this${jo ? `: read ${jo[1]} (\`results-joint-wide.txt\`; pooled survival ${jwArm('K4')}, ${jwArm('K6')}; the capped pot, and K6's spending, past their bars), so the joint move stays at two; one plan for the whole household, which has no share, is with the external review (D114, \`QUESTIONS-2026-11-17.md\`)` : ''}` :"the deep review's one test (EXPLORATORY), if the maintainer takes it, then a registered test of what it builds; until then today's split stays";
+        return `| COUPLE-SHARE | a couple's share, each person's part of the household's spending on which their table is solved (\`couple.js\` \`shareBy\`): moved by a fixed rule, survival swings both ways and by couple (the share rules' registered read, 16 Nov, ${out[1]}; its deep review's leading cause: each person's table plans a part the household never lives, and the joint move prices the household's money by those parts) | FLAT and MEANS against today's split on 32 held-out units, seed 7023, 16,000 paths: a unit's survival from ${sg(-lo.loss)} (${lo.id}, ${lo.X} at ${lo.to}) to ${sg(-hi.loss)} (${hi.id}, ${hi.X} at ${hi.to}), ${noise[1]} of ${noise[2]} comparisons beyond noise; the DB pension case D99 lists as not shown now measured (\`results-share-rules.txt\`, \`-beside.txt\`) | ${closes} | ${jo ? 'closed by JOINT-WIDE\'s read' : 'open'} |`;
       })(),
       '| T-GAPS | gaps between a table and simulation (sizes in the next block) | none measured on simulated outcomes | known limitations; 7u-F\'s by-world item reports them, and V3 and V4 measure what matters | not gates (D2) |'
     ];
@@ -305,7 +313,7 @@ const BLOCKS = {
       `- O198, the top-cell fix's year-1 residual under the plan reference, world 0: ${pick(`${S}results-copyx.txt`, /SNRX world 0: .*?by year 1: ([+-]?[\d.]+)/, m => m[1])} points (\`results-copyx.txt\`).`,
       '- TOP-CELL, AA-UR and FD-X: diagnostics of table reads, not run; dropped as gates (D2).'
     // folded for Phase 4's read (STATE.md's 300 lines; the figures unchanged)
-    ], [[0, 2], [2, 4], [4]]);
+    ], [[0, 2], [2, 5]]);   // two lines from 16 Nov (D110's line), the figures unchanged
   },
   // Step 2's re-check, when it has run
   step2() {

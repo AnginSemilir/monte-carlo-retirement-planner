@@ -1,0 +1,110 @@
+BESIDE THE SHARE REPLAY'S READ (EXPLORATORY, written after the read, deciding nothing): 10 flagged comparisons and the mirror
+
+A. Each comparison's recovery by each variant over its own lost paths (its gain over its lost count), with its sampling error (sd)
+  FLAT S023-45       lost  106: L +0.396 (sd 0.000), R +0.528 (sd 0.000), S +0.226 (sd 0.000), TK +0.443 (sd 0.000)
+  FLAT S147-45       lost  241: L +0.320 (sd 0.000), R +0.444 (sd 0.000), S -0.529 (sd 0.445), TK +0.469 (sd 0.000)
+  FLAT S191-45       lost  160: L +0.169 (sd 0.000), R +0.594 (sd 0.000), S -0.386 (sd 0.475), TK +0.381 (sd 0.000)
+  FLAT S061-dbpart   lost  440: L +0.103 (sd 0.005), R -0.451 (sd 0.295), S +0.088 (sd 0.005), TK +0.074 (sd 0.004)
+  MEANS S061-dbpart  lost 1985: L -0.089 (sd 0.084), R +0.824 (sd 0.017), S -0.047 (sd 0.049), TK +0.540 (sd 0.022)
+  MEANS S023-90      lost  451: L +0.825 (sd 0.006), R -0.130 (sd 0.285), S -0.714 (sd 0.399), TK +0.961 (sd 0.003)
+  MEANS S147-90      lost  274: L +0.839 (sd 0.000), R -0.294 (sd 0.384), S +0.073 (sd 0.000), TK -0.180 (sd 0.272)
+  MEANS S227-90      lost  169: L -0.124 (sd 0.445), R +0.533 (sd 0.000), S +0.059 (sd 0.000), TK +0.923 (sd 0.000)
+  MEANS S191-45      lost  117: L +0.171 (sd 0.000), R +0.598 (sd 0.000), S +0.214 (sd 0.000), TK +0.359 (sd 0.000)
+  MEANS S377-dbpart  lost  101: L +0.129 (sd 0.000), R +0.485 (sd 0.000), S -0.691 (sd 0.753), TK +0.475 (sd 0.000)
+  TK at 0.35 or more on 8 of 10; under a quarter on FLAT S061-dbpart, MEANS S147-90
+  an sd of nought: no path of a category replayed short of its whole count was lost (or, of the lost, missed), so the binomial estimate is nought; a lower bound, not a certainty
+
+B. The pooled recoveries with each comparison left out in turn
+  without FLAT S023-45       L +0.1490, R +0.4342, S -0.1476, TK +0.4846
+  without FLAT S147-45       L +0.1451, R +0.4362, S -0.1130, TK +0.4844
+  without FLAT S191-45       L +0.1549, R +0.4302, S -0.1276, TK +0.4877
+  without FLAT S061-dbpart   L +0.1619, R +0.5451, S -0.1654, TK +0.5336
+  without MEANS S061-dbpart  L +0.3911, R +0.0628, S -0.2251, TK +0.4291
+  without MEANS S023-90      L +0.0715, R +0.5078, S -0.0655, TK +0.4236
+  without MEANS S147-90      L +0.1058, R +0.4898, S -0.1532, TK +0.5317
+  without MEANS S227-90      L +0.1677, R +0.4325, S -0.1464, TK +0.4643
+  without MEANS S191-45      L +0.1550, R +0.4318, S -0.1483, TK +0.4872
+  without MEANS S377-dbpart  L +0.1562, R +0.4354, S -0.1237, TK +0.4837
+
+C. The pooled gains (paths) and their three terms: the lost paths kept, the saved paths lost, the both-keep paths lost; the sampling error
+  L  +628.7 paths (sd 182.3): kept +1173.5, the saved -59.0, the both-keep -485.8 (7 control paths lost of 2000); recovers +0.1555 (sd 0.045)
+  R  +1765.8 paths (sd 213.5): kept +2534.1, the saved -164.0, the both-keep -604.2 (8 control paths lost of 2000); recovers +0.4367 (sd 0.053)
+  S  -557.4 paths (sd 254.6): kept +449.2, the saved -112.0, the both-keep -894.7 (12 control paths lost of 2000); recovers -0.1378 (sd 0.063)
+  TK +1955.3 paths (sd 86.8): kept +2073.6, the saved -43.0, the both-keep -75.3 (1 control paths lost of 2000); recovers +0.4835 (sd 0.021)
+
+D. Each comparison's lost paths replayed by kind, and each variant's keeping of each: running short / below the minimum pot
+  FLAT S023-45       29 / 77: L 3 / 41, R 6 / 54, S 1 / 28, TK 5 / 44
+  FLAT S147-45       67 / 174: L 5 / 75, R 25 / 84, S 0 / 27, TK 12 / 103
+  FLAT S191-45       104 / 56: L 5 / 27, R 65 / 37, S 3 / 18, TK 25 / 40
+  FLAT S061-dbpart   400 / 0: L 43 / 0, R 45 / 0, S 46 / 0, TK 34 / 0
+  MEANS S061-dbpart  400 / 0: L 47 / 0, R 330 / 0, S 9 / 0, TK 216 / 0
+  MEANS S023-90      12 / 388: L 7 / 330, R 5 / 167, S 4 / 137, TK 11 / 376
+  MEANS S147-90      2 / 272: L 0 / 243, R 1 / 128, S 0 / 32, TK 0 / 42
+  MEANS S227-90      2 / 167: L 1 / 72, R 2 / 106, S 0 / 30, TK 0 / 160
+  MEANS S191-45      54 / 63: L 1 / 23, R 37 / 45, S 3 / 29, TK 7 / 40
+  MEANS S377-dbpart  100 / 1: L 16 / 1, R 63 / 0, S 24 / 0, TK 49 / 1
+
+E. Each comparison: the equity on the lost paths' windows (the read's measure: places of TIER_ORDER a slot, above nought the rule holds more), and the rule's level less TODAY's at the same states over every year before the failure (of target), by kind
+  FLAT S023-45       equity -0.235 over 2120 slot-years; the level, running short +0.0073 over 730 years, below the minimum pot +0.0130 over 2079 years
+  FLAT S147-45       equity -0.246 over 4820 slot-years; the level, running short +0.0054 over 1961 years, below the minimum pot +0.0075 over 6786 years
+  FLAT S191-45       equity +0.018 over 3200 slot-years; the level, running short +0.0019 over 3689 years, below the minimum pot +0.0096 over 2240 years
+  FLAT S061-dbpart   equity +0.505 over 8000 slot-years; the level, running short +0.0053 over 3349 years, below the minimum pot none
+  MEANS S061-dbpart  equity +0.410 over 8000 slot-years; the level, running short +0.0198 over 3050 years, below the minimum pot none
+  MEANS S023-90      equity -0.009 over 8000 slot-years; the level, running short +0.0396 over 322 years, below the minimum pot +0.0358 over 10476 years
+  MEANS S147-90      equity -0.090 over 5480 slot-years; the level, running short -0.0485 over 69 years, below the minimum pot +0.0426 over 10608 years
+  MEANS S227-90      equity +0.069 over 3380 slot-years; the level, running short -0.0082 over 79 years, below the minimum pot -0.0062 over 6680 years
+  MEANS S191-45      equity -0.035 over 2340 slot-years; the level, running short +0.0017 over 1943 years, below the minimum pot +0.0064 over 2520 years
+  MEANS S377-dbpart  equity -0.203 over 2020 slot-years; the level, running short +0.0033 over 1902 years, below the minimum pot +0.0133 over 45 years
+  the eight comparisons other than S061-dbpart's two: equity -0.078 a slot over 31360 slot-years; negative on 6 of 8
+
+F. Each comparison's mechanism (as the read takes it: TODAY a step of the menu lower, levels within 0.01 one step), beside L's recovery
+  FLAT S023-45       on 23 of 106 lost paths (21.7%); L +0.396, TK +0.443
+  FLAT S147-45       on 68 of 241 lost paths (28.2%); L +0.320, TK +0.469
+  FLAT S191-45       on 58 of 160 lost paths (36.3%); L +0.169, TK +0.381
+  FLAT S061-dbpart   on 100 of 400 lost paths (25.0%); L +0.103, TK +0.074
+  MEANS S061-dbpart  on 55 of 400 lost paths (13.8%); L -0.089, TK +0.540
+  MEANS S023-90      on 300 of 400 lost paths (75.0%); L +0.825, TK +0.961
+  MEANS S147-90      on 251 of 274 lost paths (91.6%); L +0.839, TK -0.180
+  MEANS S227-90      on 109 of 169 lost paths (64.5%); L -0.124, TK +0.923
+  MEANS S191-45      on 30 of 117 lost paths (25.6%); L +0.171, TK +0.359
+  MEANS S377-dbpart  on 8 of 101 lost paths (7.9%); L +0.129, TK +0.475
+
+G. Two open items' questions, as leads, from the rule's record on the lost paths that run short (X)
+  FD-RAISE: of 1170 lost paths that run short, 60 have a year at 110% of target in the three before the failing year, 10 in the year just before
+  CGT-BILL: 33 run short by under £1,000 in all; 10 of them pay tax (income and gains together) in the failing year
+
+A2. Each comparison's sampling error at each variant's pooled control-loss rate over the ten (the lost and saved categories at their own rates)
+  the pooled control-loss rates: L 7 of 2000, R 8 of 2000, S 12 of 2000, TK 1 of 2000
+  FLAT S023-45       L +0.396 (sd 0.61), R +0.528 (sd 0.65), S +0.226 (sd 0.79), TK +0.443 (sd 0.23)
+  FLAT S147-45       L +0.320 (sd 0.26), R +0.444 (sd 0.28), S -0.529 (sd 0.35), TK +0.469 (sd 0.10)
+  FLAT S191-45       L +0.169 (sd 0.40), R +0.594 (sd 0.43), S -0.386 (sd 0.52), TK +0.381 (sd 0.15)
+  FLAT S061-dbpart   L +0.103 (sd 0.14), R -0.451 (sd 0.15), S +0.088 (sd 0.19), TK +0.074 (sd 0.05)
+  MEANS S061-dbpart  L -0.089 (sd 0.03), R +0.824 (sd 0.03), S -0.047 (sd 0.04), TK +0.540 (sd 0.02)
+  MEANS S023-90      L +0.825 (sd 0.14), R -0.130 (sd 0.15), S -0.714 (sd 0.18), TK +0.961 (sd 0.05)
+  MEANS S147-90      L +0.839 (sd 0.23), R -0.294 (sd 0.24), S +0.073 (sd 0.30), TK -0.180 (sd 0.09)
+  MEANS S227-90      L -0.124 (sd 0.37), R +0.533 (sd 0.40), S +0.059 (sd 0.49), TK +0.923 (sd 0.14)
+  MEANS S191-45      L +0.171 (sd 0.55), R +0.598 (sd 0.58), S +0.214 (sd 0.71), TK +0.359 (sd 0.21)
+  MEANS S377-dbpart  L +0.129 (sd 0.63), R +0.485 (sd 0.67), S -0.691 (sd 0.82), TK +0.475 (sd 0.24)
+
+H. The first year the rule's move is apart from TODAY's at the same state (a level a step of the menu apart, the split or a tier), before the failure where the rule fails, by category
+  lost: apart in year 0 on 2267 of 2368 (95.7%)
+  saved: apart in year 0 on 280 of 307 (91.2%)
+  controls: apart in year 0 on 1800 of 2000 (90.0%)
+
+I. The paths both arms lose, a control path's weight, L's distance from half, and the other eight comparisons' paths that run short
+  the paths both arms lose (not replayed), by comparison: FLAT S023-45 367, FLAT S147-45 398, FLAT S191-45 453, FLAT S061-dbpart 330, MEANS S061-dbpart 349, MEANS S023-90 461, MEANS S147-90 583, MEANS S227-90 622, MEANS S191-45 456, MEANS S377-dbpart 516
+  a lost control path counts 68.3 to 77.6 paths (the both-keep count over the 200 replayed)
+  L recovers +0.1555 (sd 0.045): half is 7.6 sds away
+  the eight comparisons other than S061-dbpart's two: 370 lost paths replayed that run short, TODAY's tiers keeping 204
+
+J. The levels under 0.81 each arm's moves take at the same states on the replayed paths (the rule's record): the rule's, then TODAY's
+  FLAT S023-45       the rule 0.800000; TODAY 0.800000
+  FLAT S147-45       the rule 0.800000; TODAY 0.800000
+  FLAT S191-45       the rule 0.800000; TODAY 0.800000
+  FLAT S061-dbpart   the rule 0.800000; TODAY 0.800000
+  MEANS S061-dbpart  the rule 0.799954, 0.800073; TODAY 0.800000
+  MEANS S023-90      the rule 0.799995, 0.800031; TODAY 0.800000
+  MEANS S147-90      the rule 0.799991, 0.800028; TODAY 0.800000
+  MEANS S227-90      the rule 0.799990, 0.800002; TODAY 0.800000
+  MEANS S191-45      the rule 0.800000; TODAY 0.800000
+  MEANS S377-dbpart  the rule 0.799967, 0.800030; TODAY 0.800000

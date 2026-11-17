@@ -11,6 +11,47 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (17 Nov, morning): D111 (3)'s speed work, after JOINT-WIDE's read (FAILS: the joint move stays at two;
+`reports/2026-11-17-joint-wide-read.md`).** By D111 it follows this read. The agent recommends holding it until the external
+review answers on the household plan (`QUESTIONS-2026-11-17.md`): if one plan for the household is taken, it replaces the
+joint move whose cost the speed work targets. Asked of the maintainer.
+
+**STOPPED (D114, 17 Nov, morning: "Handover your thoughts and the problem so far as a prompt for an external reviewer, stop that line of thought for now"), handed to the external review in `QUESTIONS-2026-11-17.md`, the lead test not run. As it was opened (D113): one plan for the whole household, before the speed work.** The maintainer: "Look at bigger -
+one plan for the whole household. Think deeply about how that would work and how much more accurate you'd expect to be,
+and if it could be done without significant increase in timing. After that if you're confident at least there's a good
+lead, follow up on it with tests as needed and then get back to me. Do this before the speed work." The design, the gain
+expected and the timing model first (`HOUSEHOLD.md`); a prototype off in code and its tests, EXPLORATORY, each rule
+committed first; then back to the maintainer. D111 (3)'s speed work waits for it.
+
+**RULED (D111, 16 Nov, night: "Go with your recommendations"): after the share replay's read, MIXED** (D110;
+`SHARE-REPLAY.md`, its rule committed first; `results-share-replay.txt`; the report `reports/2026-11-16-share-replay-read.md`;
+the reviewer at the read before this went to you).
+- **Ruled, each as the agent recommended in the day's report:**
+  1. The read stands as corrected after the reviewer's second round; no third round.
+  2. Option 1 below: a wider joint move for couples, tested on today's split (`JOINT-WIDE.md`, its rule committed before
+     any launch; EXPLORATORY, seed 7002).
+  3. Speed work on LOOKHOLD's cost (the forward look's, D109) waits until the wider joint move is settled, and is then done
+     once, on the joint move as it then stands.
+- **What it found:** no single part of a couple's move carries the share rules' lost paths, pooled. Swapping in TODAY's
+  tiers recovers `+0.4367` of them and the top six moves `+0.4835`; TODAY's level `+0.1555`; TODAY's split loses ground.
+  - Which part recovers differs by comparison: TODAY's tiers on MEANS S061-dbpart (most of their pooled figure), TODAY's
+    level on S023-90 and S147-90, the top six on S023-90 and S227-90, and nothing on FLAT S061-dbpart.
+  - The top six moves are the most consistent (`0.35` or more on eight of ten) and the only variant one could run as a
+    policy; they fail on FLAT S061-dbpart and MEANS S147-90, and their time was not measured.
+  - The deep review's mechanism shows on `42.3%` of the lost paths (the first print's `51.8%` was a rounding fault, fixed).
+  - The reviewer at the read: FAIL, answered in one fix, then FAIL again on one new BLOCKING and four MINORs
+    (`reviews/2026-11-16-read-share-replay-2.md`). The BLOCKING was one sentence of the report's: the mechanism shows on
+    more than half of the lost paths on three units, not two. It stands after one fix, so the read is yours (D81 (F)).
+    The sentence and the MINORs are corrected as the reviewer gave them, unreviewed: yours to accept, or to send to the
+    reviewer a third time.
+- **Your options:**
+  1. **A wider joint move for couples, tested on today's split** (the agent's recommendation): each person's top four and
+     top six moves against today's two, on today's default (with LOOKHOLD), EXPLORATORY on a panel at seed 7002, its rule
+     committed first, survival, spending and the pot beside the solve and path times. No new solver code; a gain comes back
+     to you as a trade of survival against time.
+  2. **Leave the share and the joint move as they are,** and go on to the research queue's two factorials, then your work
+     on the screens.
+
 **RULED (D108, 16 Nov, night: "Clean timing decides (Recommended)"; then D109, 16 Nov, morning: "Just take `1.25`, let's not waste taste, speed work will happen anyway right?"): the improved couples' tie rule passes, and its speed sits at the bar you set.** The trade is taken: LOOKHOLD is the couples' default on the working branch (ef2e4d72), the reviewer on the change PASS with three MINORs (`reviews/2026-11-16-default-lookhold.md`), the two to answer before its batch merges answered (597a549c), to `main` with the next batch on B1's gate; the clean timing (`TIE-C2-TIMING.md`) is not run. On speed work: none is queued (D103's lapsed with D104 (5)); the forward look's cost is offered as an item. TIE-C2
 read once (EXPLORATORY, seed 7001): `results-tie-c2.txt`, the report `reports/2026-11-16-tie-c2-read.md`, beside it
 `results-tie-c2-beside.txt`. The reviewer at the read: FAIL on the first write-up's speed claim, answered in one fix, then
@@ -68,6 +109,8 @@ the app. The reviewer at the read: PASS, four MINORs, answered (`reviews/2026-11
   person's top six moves). EXPLORATORY, about 4.5 core-hours and a day's work, on seed 7023's already-read paths, run
   directly since the launcher refuses a reserved seed outside its registration; or on 7002 at about three times the cost.
 - **The agent's recommendation:** run it. The other way is to leave the share where it is.
+- **RULED (D110, 16 Nov, evening: "Run the deep review's test on seed 7023"):** the test as the deep review's section 3
+  sets it out, its rule committed before it runs, on seed 7023's already-read paths, run directly as a tracked task.
 - **What it tests:** two fixed rules for a couple's share against today's (the pots' share outside 40% to 60%, half
   inside), each on the couples' candidate:
   - FLAT: the pots' share for every couple, the band dropped;
@@ -380,7 +423,8 @@ twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/20
      order a one-off cost is met in), so the other order parts from the tested one even at the same estate weight.
    - **Whenever cores are free:** the research queue (B7), the windfall factorial then the savings factorial,
      EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test.
-   - **Open with the maintainer** (below): M3, M6, the cash buffer's size as a lever, `survivalChangeU`'s interval.
+   - **Ruled (D112, 17 Nov), the four left open with the maintainer** (below): M3 and M6 in the page's words with the next
+     batch, the cash buffer's size left for now, `survivalChangeU`'s interval fixed after JOINT-WIDE's read.
 2. **The maintainer's work on the UI.** Its scope is the maintainer's; nothing is planned for it here yet.
 3. **Sharing it publicly.** Before it: the readiness checklist taken again on that commit, and the maintainer's word on
    the solver on by default and the switch's removal.
@@ -477,11 +521,16 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   carries an outcome, and record the statement as made in the re-run's registration for the design review to check.
 - **M3. A one-off pension deposit: what the household pays, or what arrives?** The review's advice: ask in the input's
   label; until then typed deposits stay as they are, and item 4 fixes only the plan's own routing (the windfall split's
-  pension-first variant, the staged transfers, an Auto deposit).
+  pension-first variant, the staged transfers, an Auto deposit). **RULED (D112, 17 Nov): "Pension - yes it depends on
+  input label".** The label says what the engine does: a deposit typed into a pension lands as typed, tax relief not
+  added (the app's own Bed & SIPP route enters the relief as its own deposit from External). The words are the agent's to
+  draft and the maintainer's to change; with the next batch.
 - **M6. The dated rules** (savings rates of 22, 42 and 47% from April 2027; NIC relief on salary sacrifice capped at
   the first £2,000 from April 2029; the thresholds frozen in cash to April 2031, held constant in real terms by the
   engine): carry them by tax year, or state the assumption? The review's advice: state it now (one line on the page,
-  beside item 8's caption), and carry the 2027 savings rates when the 2027/28 figures are next updated.
+  beside item 8's caption), and carry the 2027 savings rates when the 2027/28 figures are next updated. **RULED (D112, 17
+  Nov): "Tax - yes just state".** One line beside item 8's caption, with the next batch; the rules are not carried by
+  tax year.
 - **Items 5 and 10 ruled (D73, 11 Nov) and ported (4e6c6a09; D74, D82, D83): the candidate is af001697ce1b.** The reviewer on the change of
   default: FAIL, then PASS after one fix (`reviews/2026-11-11-default-d73.md`, `2026-11-12-default-d73-2.md`). Item 7 answered by the
   external review and read again in item 13's stage A (D85, D86).
@@ -489,7 +538,7 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   real choice (the ISA is never worse than the taxable account in tax, access or allowance). What would be one is how much
   is kept in cash: the cash buffer's size, a standing rule (D18), the same for singles and couples and in every arm so far.
   Making it a lever is new solver work with its own experiment (the windfall split, D37, is the nearest thing built). Say if
-  it should join the research queue.
+  it should join the research queue. **Left for now (D112, 17 Nov): "Cash buffer - leave for now".** Not queued.
 - **Read, passing (D89): what D73's sweep to the ISA means for a couple, measured before the re-run (`COUPLE-SWEEP.md`, `results-couple-sweep.txt`, EXPLORATORY).** All three parts of the rule hold. For the maintainer to know: the pot's part
   holds on one couple (S059, whose cash ISA money is the largest); six of the twelve leave a smaller mean pot under the sweep to
   the ISA, with survival the same or higher on ten of the twelve and no loss beyond noise. As D87 put it:

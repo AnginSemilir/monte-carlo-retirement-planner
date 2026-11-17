@@ -1,0 +1,4 @@
+THE WIDER JOINT MOVE'S PILOT (EXPLORATORY, deciding nothing): code 603eeb595679; seed 99001, 20 timed paths a round after 3 untimed, two rounds in opposite orders; 45 points, estate weight 0.02; the couples' default {"shareRule":"pots","tieJoint":0.0001,"tieLook":true,"holdPast":2}; Intel(R) Xeon(R) Processor @ 2.10GHz; node v22.23.4
+S327F    (couples-panel-d4b, T 60, share 0.5): solved 143 s; CPU a path K2 210.4 ms (x1.00), K4 329.5 ms (x1.57), K6 556.4 ms (x2.64); the joint pairs a decision (splits x K x K) K2 20, K4 80, K6 180
+S149     (couples-panel-d4b, T 39, share 0.5): solved 94 s; CPU a path K2 118.6 ms (x1.00), K4 162.9 ms (x1.37), K6 253.5 ms (x2.14); the joint pairs a decision (splits x K x K) K2 20, K4 80, K6 180
+S023-90  (share-rules-panel, T 27, share 0.9): solved 64 s; CPU a path K2 79.1 ms (x1.00), K4 115.5 ms (x1.46), K6 168.1 ms (x2.12); the joint pairs a decision (splits x K x K) K2 20, K4 80, K6 180

@@ -1,0 +1,310 @@
+/*
+ * ONE PLAN FOR THE WHOLE HOUSEHOLD, DESIGN A (research/solver/HOUSEHOLD.md; D113, stopped by D114 and handed to the external
+ * review, QUESTIONS-2026-11-17.md). A research prototype kept outside src/solver: nothing in the app imports it, it moves no
+ * solver code stamp, and no couple is solved this way unless a caller asks for it.
+ *
+ * Today a couple is two single people (couple.js): each person's table is solved on a share of the household's spending,
+ * from their own pots and incomes, and each year's joint move is judged by the product of the two tables, each reading its
+ * own person's pots. Here the household is one person:
+ *   householdPlanFor(E, plan)  a single plan of the whole household: both people's pots added by wrapper; the household's
+ *                spending, costs, bands and minimum pot, spending from its first retirement; the later retiree's take-home
+ *                (pay less tax, NIC and their contributions' cost, the engine's own sum) as tax-free income and their
+ *                contributions as yearly deposits, until they retire; the partner's state pension and incomes in the first
+ *                person's ages; every per-person allowance doubled (the personal allowance, the bands and the taper
+ *                threshold, the ISA, savings, dividend and capital gains allowances, the tax-free cash cap, the annual
+ *                allowance and its floors).
+ *   solveHousehold(E, M, plan, opts)  that plan solved as a single's plan is (opts.solveOne: solveForApp at the candidate's
+ *                settings), with the couple's exact model to step each year.
+ *   chooseHousehold(cp, state, t)  the year's joint move: the household table's top moves where the household stands
+ *                (mergedState), each tried at every funding split with both people taking it, stepped one year by the exact
+ *                couple model (each person's own tax and access), and valued by the household table where it lands.
+ *   householdPolicy(cp), withHousehold(plan, cp), runHouseholdPolicy(cp, zs)  the engine's policy and the exact model's path.
+ * What it approximates (HOUSEHOLD.md section 2): the doubled allowances take the household's taxable income as always
+ * splittable evenly; the merged pension reads as open from the first person's access age. This year's tax and access are
+ * exact (the rollout's step); only the table's view of later years carries either.
+ * HOUSE.plant (research/tests/household.test.mjs), comma-joined: 'singleband' leaves every allowance single; 'nopartsp' drops
+ * the partner's state pension; 'notakehome' drops the later retiree's take-home; 'nopartpots' leaves the partner's pots out
+ * of the merged position.
+ */
+import { rankFor, tiePick, layerOf, ratesAt, SPLITS } from '../../src/solver/couple.js';
+import { NODES, WEIGHTS } from '../../src/solver/solve.js';
+import { foldedVol, TIER_ORDER } from '../../src/solver/fast.js';
+import { vecOf, readValues } from '../../src/solver/grid.js';
+import { profileOf as M_profileOf } from '../../src/solver/model.js';
+
+export const HOUSE = { plant: '' };
+const planted = (k) => HOUSE.plant !== '' && HOUSE.plant.split(',').includes(k);
+
+/* The allowances a person has, doubled for the household (taxParams' config names; App.jsx DEFAULT_CONFIG's values where the
+   plan sets none). The bands are income levels (the higher rate from basicBandLimit with the full allowance), so doubling
+   each doubles every band's width; the taper's threshold and its floor go with them. */
+export const DOUBLED = ['personalAllowance', 'paTaperThreshold', 'basicBandLimit', 'higherBandLimit', 'scotStarterLimit', 'scotBasicLimit',
+  'scotIntermediateLimit', 'scotHigherLimit', 'scotAdvancedLimit', 'nicPrimaryThreshold', 'nicUpperEarningsLimit', 'pclsMaxCap', 'isaAnnualAllowance',
+  'cashIsaAllowance', 'cashIsaAllowanceUnder65', 'pensionAnnualAllowance', 'pensionNoEarningsLimit', 'mpaaLimit', 'pensionTaperThreshold',
+  'pensionTaperFloor', 'cgtAnnualExempt', 'savingsAllowanceBasic', 'savingsAllowanceHigher', 'startingRateSavingsBand', 'dividendAllowance'];
+const LABEL_KEYS = { Pensions: 'pen', 'S&S ISAs': 'isa', 'Other Investments (e.g. GIA)': 'other', 'Cash Savings': 'cash', 'Cash ISA': 'cashIsa' };
+
+/*
+ * THE HOUSEHOLD'S PLAN as one person's. The first person's ages throughout: the partner's age a is the first person's a +
+ * gap. The synthetic person works while nobody in the household has retired (the engine spends from the first retirement,
+ * App.jsx stepYear's anyRetired), on both people's pay and contributions; from then on the later retiree's pay reaches the
+ * household as the engine's own take-home (pay less tax and NIC, less the net cost of their pension contribution, less their
+ * other contributions: App.jsx stepYear's workingTakeHome), as tax-free income, and their contributions land as External
+ * deposits (a deposit typed into a pension lands as typed, M3) until they retire. Refused, not guessed: a couple whose two
+ * people's accounts of one wrapper carry different risks or contribution growth, whose two salaries grow at different
+ * rates, a cash ISA subscription, a salaried later retiree in plan year 0 (the engine pro-rates that year), a person whose
+ * limits differ from the household's (tierCeilingPart).
+ */
+export function householdPlanFor(E, plan) {
+  const d = plan.demographics;
+  if (d.planningMode !== 'couple') throw new Error('householdPlanFor: a couple\'s plan');
+  const ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(plan)));
+  const own = { self: ctx.owners.find(o => o.key === 'self'), part: ctx.owners.find(o => o.key === 'part') };
+  const ageA = ctx.ageSelf0, ageB = ctx.agePart0, gap = ageA - ageB, T = ctx.totalYears;
+  const ageOf = (k, t) => (k === 'self' ? ageA : ageB) + t, working = (k, t) => ageOf(k, t) < own[k].retireAge;
+  // the first plan year in which anyone has retired: the synthetic person retires then
+  let tR = 0;
+  while (tR <= T && working('self', tR) && working('part', tR)) tR++;
+  if (tR > T) throw new Error('householdPlanFor: nobody retires within the plan');
+  // the accounts, added by wrapper; each wrapper's risk and contribution growth must be the two people's same
+  const byKey = {};
+  for (const a of plan.accounts) {
+    const key = LABEL_KEYS[a.category];
+    if (!key) throw new Error(`householdPlanFor: an account of category '${a.category}'`);
+    if (a.owner === 'Partner' && planted('nopartpots')) continue;
+    const g = byKey[key] || (byKey[key] = { ...a, id: `${key}_self`, owner: 'Myself', balance: 0, contrib: 0 });
+    if ((g.risk || '') !== (a.risk || '')) throw new Error(`householdPlanFor: the two people's ${a.category} hold different risks (${g.risk}, ${a.risk})`);
+    if (E.num(g.growth, 0) !== E.num(a.growth, 0) && E.num(a.contrib, 0) > 0 && E.num(g.contrib, 0) > 0) throw new Error(`householdPlanFor: the two people's ${a.category} contributions grow at different rates`);
+    g.balance += E.num(a.balance, 0);
+    // contributions while both work: both people's (each stops at their own retirement in the engine; after the first
+    // retirement the later retiree's are the deposits below)
+    if (E.num(a.contrib, 0) > 0) { g.contrib = E.num(g.contrib, 0) + E.num(a.contrib, 0); g.growth = a.growth; }
+  }
+  if (own.self.cashIsaContrib > 0 || own.part.cashIsaContrib > 0) throw new Error('householdPlanFor: a cash ISA subscription');
+  if (E.num(d.salaryGrowthSelf, 0) !== E.num(d.salaryGrowthPart, 0) && E.num(d.salarySelf, 0) > 0 && E.num(d.salaryPart, 0) > 0) throw new Error('householdPlanFor: the two salaries grow at different rates');
+  const L = plan.solver && plan.solver.locks;
+  if (L && L.tierCeilingPart && Object.keys(L.tierCeilingPart).length) throw new Error('householdPlanFor: the partner\'s own limits (tierCeilingPart)');
+  // the later retiree's take-home and contributions, plan year by plan year, from the first retirement until they retire
+  const P = ctx.P, incomes = [], deposits = [];
+  for (let t = tR; t <= T; t++) for (const k of ['self', 'part']) {
+    if (!working(k, t)) continue;
+    const o = own[k], pay = E.salaryAtYear(o, t), accts = ctx.accounts.filter(a => a.owner === k);
+    const pen = accts.find(a => a.cat === 'pen'), penContrib = pen ? E.contribAtYear(pen, t) : 0;
+    const others = accts.filter(a => a !== pen).reduce((s, a) => s + E.contribAtYear(a, t), 0);
+    if (t === 0 && (pay > 0 || penContrib > 0 || others > 0)) throw new Error('householdPlanFor: a later retiree paid or saving in plan year 0');
+    if (pay > 0 && !planted('notakehome')) {
+      const takeHome = pay - E.calculateUKTaxAndNIC(pay, P, o.selfEmployed) - E.netCostOfPensionContrib(penContrib, pay, P, o.selfEmployed);
+      const net = Math.max(0, takeHome - others);
+      if (net > 0) incomes.push({ id: `inc_house_takehome_${k}_${t}`, name: 'The later retiree\'s take-home (the household plan)', owner: 'Myself', startAge: ageA + t, endAge: ageA + t, amount: net, incomeType: 'taxFree', notes: '' });
+    }
+    const year = ctx.baseYear + t;
+    for (const a of accts) {
+      const amt = E.contribAtYear(a, t);
+      if (amt > 0) deposits.push({ id: `dep_house_${a.id}_${t}`, date: `${year}-07-01`, year, owner: 'Myself', category: E.CATEGORY_LABEL[a.cat], amount: amt, transferredFrom: 'External', desc: 'The later retiree\'s contribution (the household plan)' });
+    }
+  }
+  // the partner's state pension and other incomes, in the first person's ages
+  const sp = E.num(d.statePensionPart, 0);
+  if (sp > 0 && !planted('nopartsp')) incomes.push({ id: 'inc_house_sp_part', name: 'The partner\'s state pension (the household plan)', owner: 'Myself', startAge: ctx.spa + gap, endAge: '', amount: sp, incomeType: 'otherTaxable', notes: '' });
+  const blank = v => v === '' || v === null || v === undefined;
+  const moved = (plan.otherIncomes || []).map(i => (i.owner === 'Partner'
+    ? { ...i, owner: 'Myself', startAge: blank(i.startAge) ? i.startAge : Number(i.startAge) + gap, endAge: blank(i.endAge) ? i.endAge : Number(i.endAge) + gap }
+    : { ...i, owner: 'Myself' }));
+  // every per-person allowance doubled; a contribution deposit of the later retiree's, or the plan's own deposit, finds room
+  // in a pension as the household's two no-earnings limits; where a later retiree pays more into their pension than that,
+  // the limit is raised to the most they pay in a year (the household's own routing then sees that much room too)
+  const cfg = { ...E.DEFAULT_CONFIG, ...(plan.config || {}) }, config = { ...(plan.config || {}) };
+  if (!planted('singleband')) for (const k of DOUBLED) config[k] = 2 * E.num(cfg[k], E.DEFAULT_CONFIG[k]);
+  const maxPen = deposits.filter(x => x.category === E.CATEGORY_LABEL.pen).reduce((s, x) => Math.max(s, x.amount), 0);
+  config.pensionNoEarningsLimit = Math.max(E.num(config.pensionNoEarningsLimit, E.DEFAULT_CONFIG.pensionNoEarningsLimit), maxPen);
+  const demographics = {
+    ...d, planningMode: 'single', currentAgeSelf: ageA, retireAgeSelf: ageA + tR,
+    salarySelf: tR > 0 ? E.num(d.salarySelf, 0) + E.num(d.salaryPart, 0) : 0,
+    salaryGrowthSelf: E.num(d.salarySelf, 0) > 0 ? d.salaryGrowthSelf : d.salaryGrowthPart,
+    employmentSelf: d.employmentSelf, statePensionSelf: E.num(d.statePensionSelf, 0),
+    cgtGainsUsedSelf: E.num(d.cgtGainsUsedSelf, 0) + E.num(d.cgtGainsUsedPart, 0), cfBroughtForwardSelf: E.num(d.cfBroughtForwardSelf, 0) + E.num(d.cfBroughtForwardPart, 0),
+    mpaaAgeSelf: d.mpaaAgeSelf
+  };
+  const locks = L ? (({ tierCeilingPart, ...rest }) => rest)(L) : null;
+  return {
+    ...plan, demographics, config, accounts: Object.values(byKey), otherIncomes: [...moved, ...incomes],
+    oneOffContributions: [...(plan.oneOffContributions || []).map(c => ({ ...c, owner: 'Myself' })), ...deposits],
+    ...(plan.solver ? { solver: { ...plan.solver, ...(locks ? { locks } : {}) } } : {})
+  };
+}
+
+/* The couple's model state as the household person's: each wrapper's pots added, each person's basis, gains carried, tax-free
+   cash and cash ISA added, the lump sum taken only where both have taken theirs. */
+export function mergedState(cp, state) {
+  const pots = {};
+  for (const a of cp.hm.ctx.accounts) pots[a.id] = 0;
+  for (const a of cp.m.ctx.accounts) {
+    if (a.owner === 'part' && planted('nopartpots')) continue;
+    const id = cp.idOf[a.cat];
+    if (id === undefined) throw new Error(`household: the household plan has no ${a.cat} account for ${a.id}`);
+    pots[id] += state.pots[a.id] || 0;
+  }
+  const sum = (o) => (o ? (o.self || 0) + (planted('nopartpots') ? 0 : o.part || 0) : 0);
+  return {
+    pots, basis: { self: sum(state.basis) }, cgtCarry: { self: sum(state.cgtCarry) }, cumPcls: { self: sum(state.cumPcls) },
+    lumpTaken: { self: !!(state.lumpTaken && state.lumpTaken.self && state.lumpTaken.part) }, cashIsa: { self: sum(state.cashIsa) }, guard: null
+  };
+}
+
+const tiered = (tab) => !!(tab.c && tab.c.acts && tab.c.acts.some(a => (a.tierPen || 0) > 0 || (a.tierIsa || 0) > 0));
+const tierName = (tab, cat, k) => (tab.c && tab.c.tiers && tab.c.tiers[cat] && tab.c.tiers[cat][k] ? tab.c.tiers[cat][k].name : null);
+const CUT_RD = new Float64Array(4);
+function cutAhead(tab, s, t, layer) {
+  const k = Math.min(t, tab.m.ctx.totalYears), L = layer !== null ? tab.tsLayers[layer] : tab;
+  readValues(tab.g, L.lsurv[k], L.beq[k], s, CUT_RD, L.lresil[k], L.short[k], k);
+  return CUT_RD[3];
+}
+
+/* The household's plan solved, and what the rollout needs. opts: solveOne (required: solveForApp at the candidate's
+   settings), splits, topK (the household table's moves tried a decision, 3 unless set), tieJoint and holdPast (as the
+   couples' default takes them: the tie rule above the household's estate cap, and the hold past twice the table's top). */
+export function solveHousehold(E, M, plan, opts = {}) {
+  if (typeof opts.solveOne !== 'function') throw new Error('solveHousehold: opts.solveOne (solveForApp at the candidate\'s settings)');
+  const m0 = M.prepare(E, plan);
+  if (!m0.ctx.isCouple) throw new Error('solveHousehold takes a couple');
+  const hp = E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan)));
+  const t0 = Date.now();
+  const H = opts.solveOne(hp, { who: 'household', partnerAge0: m0.ctx.agePart0 });
+  const solveMs = Date.now() - t0;
+  const tiersBelow = H.meta && H.meta.tiersBelow === 3 ? 3 : 2;
+  const m = tiersBelow === 3 ? M.prepare(E, plan, { tiersBelow: 3 }) : m0;
+  if (m.ctx.totalYears !== H.m.ctx.totalYears) throw new Error(`solveHousehold: the household plan runs ${H.m.ctx.totalYears} years and the couple's ${m.ctx.totalYears}`);
+  if ((m.ctx.solvencyFloor || 0) !== (H.m.ctx.solvencyFloor || 0)) throw new Error(`solveHousehold: the minimum pots differ (${m.ctx.solvencyFloor}, ${H.m.ctx.solvencyFloor}); the plan must set the household's`);
+  const idOf = {};
+  for (const a of H.m.ctx.accounts) { if (idOf[a.cat] !== undefined) throw new Error(`solveHousehold: two ${a.cat} accounts in the household plan`); idOf[a.cat] = a.id; }
+  return {
+    E, M, m, plan, hplan: hp, H, hm: H.m, idOf, household: true, splits: opts.splits || SPLITS, topK: opts.topK || 3, wB: H.wB, switchCost: H.c.switchCost || 0, tiersBelow,
+    ...(opts.tieJoint > 0 ? { tieJoint: opts.tieJoint } : {}), ...(opts.holdPast > 0 ? { holdPast: opts.holdPast } : {}),
+    meta: { household: 'A', topK: opts.topK || 3, solveMs, tieJoint: opts.tieJoint || 0, holdPast: opts.holdPast || 0 }
+  };
+}
+
+/* The value of a post-decision couple state: the household table read after one year's growth (each wrapper of each person
+   at the tier they hold, the household table's worlds and nodes), merged, averaged over the market, less its expected
+   future cut cost. out[0] the chance it lasts, out[1] that cut cost. */
+const EV = new Float64Array(2);
+export function householdValue(cp, post, t, out = null, ai = null) {
+  const { m, M, H } = cp, T = m.ctx.totalYears;
+  const mix = H.mix ? H.mix.tables : [H], shifts = H.mix ? H.mix.nodes : [0], wJ = H.mix ? H.mix.weights : [1];
+  const QZ = H.quadNodes || NODES, QW = H.quadWeights || WEIGHTS;
+  let total = 0, both = 0, ahead = 0;
+  for (let j = 0; j < shifts.length; j++) for (let k = 0; k < QW.length; k++) {
+    const rates = {};
+    m.ctx.accounts.forEach(a0 => {
+      const a = M_profileOf(m, post, a0);
+      const vol = H.c.shiftMode ? a.vol : foldedVol(a.vol, a.sigmaParam, T - t + 1);
+      rates[a0.id] = Math.exp(Math.log(1 + a.real) + (H.c.shiftMode ? a.sigmaParam * shifts[j] : 0) + vol * QZ[k]) - 1;
+    });
+    const g = M.cloneState(post);
+    M.grow(m, g, t, rates);
+    const s = vecOf(mix[j].m, mergedState(cp, g)), L = layerOf(mix[j], ai);
+    const v = mix[j].value(s, t + 1, L), h = cutAhead(mix[j], s, t + 1, L);
+    const w = wJ[j] * QW[k];
+    total += w * (v.survival + H.wR * v.resilience + cp.wB * v.bequest - h);
+    both += w * v.survival; ahead += w * h;
+  }
+  if (out) { out[0] = both; out[1] = ahead; }
+  return total;
+}
+
+/* The household's move this year, both people taking it, at the funding split the rollout picks. */
+export function chooseHousehold(cp, state, t, out = null) {
+  const { m, M, H, splits, topK } = cp, T = m.ctx.totalYears;
+  const s0 = vecOf(H.m, mergedState(cp, state)), tH = tiered(H);
+  const held = state.tierHeld && state.tierHeld.self ? { pen: state.tierHeld.self.pen || 0, isa: state.tierHeld.self.isa || 0 } : { pen: 0, isa: 0 };
+  const heldB = state.tierHeld && state.tierHeld.part ? { pen: state.tierHeld.part.pen || 0, isa: state.tierHeld.part.isa || 0 } : { pen: 0, isa: 0 };
+  const ranked = rankFor(H, s0, t, tH ? held : null, topK);
+  const lvl = (i) => (H.levelOf ? H.levelOf[i] : H.actions[i].spendLevel !== undefined ? H.actions[i].spendLevel : 1);
+  const tiersOf = (a) => (tH ? { tierPen: a.tierPen || 0, tierIsa: a.tierIsa || 0, tierPenName: tierName(H, 'pen', a.tierPen || 0), tierIsaName: tierName(H, 'isa', a.tierIsa || 0) } : {});
+  const leaves = (a, h) => (a.tierPen || 0) !== h.pen || (a.tierIsa || 0) !== h.isa;
+  const deathTax = (H.terminal && H.terminal.deathTax) || 0;
+  const above = cp.tieJoint > 0 && t < T && H.estateCap > 0 && Math.max(0, s0[0] + s0[1] + s0[2] - s0[0] * deathTax) > H.estateCap;
+  const tj = above ? [] : null;
+  let best = null, bestScore = -Infinity, bestTax = 0, bestWealth = 0;
+  for (const split of splits) for (const ai of ranked) {
+    const a = H.actions[ai], level = lvl(ai), po = { steps: a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', ...tiersOf(a) };
+    const joint = {
+      steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', sweepCash: true, ...(a.sweepIsa ? { sweepIsa: true } : {}),
+      lump: !!a.lump, contrib: null, spendLevel: level, split, switchCost: cp.switchCost || 0, perOwner: { self: { ...po }, part: { ...po } }, ia: ai, ib: ai
+    };
+    const st = M.cloneState(state);
+    const row = M.step(m, st, joint, t, null, true);
+    if (row.unmetDemand > 1 || row.preNmpaInsolvent) continue;
+    const cst = H.c.yr.spend[t] > 0 ? H.costOf(level, t) : 0, rz = !!H.raiseSurvival && cst < 0;
+    const swc = tH && (leaves(a, held) || leaves(a, heldB)) ? H.switchCharge || 0 : 0;
+    let score;
+    if (t >= T) {
+      const total = Object.values(st.pots).reduce((x, y) => x + y, 0), alive = total >= (m.ctx.solvencyFloor || 0) ? 1 : 0;
+      score = alive + 1e-9 * total - (rz ? cst * alive : cst) - swc;
+    } else {
+      const v = householdValue(cp, st, t, EV, ai);
+      score = v - (rz ? cst * EV[0] : cst) - swc;
+    }
+    if (!Number.isFinite(score)) throw new Error(`household: non-finite score, year ${t}, split ${split}, move ${ai}: ${score}`);
+    const tax = tj ? row.taxPaid + row.cgtPaid : 0, wealth = tj ? Object.values(st.pots).reduce((x, y) => x + y, 0) : 0;
+    if (tj) tj.push({ joint, score, tax, wealth });
+    if (score > bestScore) { bestScore = score; best = joint; best.score = score; bestTax = tax; bestWealth = wealth; }
+  }
+  if (out) { out.tie = tj; out.best = best ? { joint: best, score: bestScore, tax: bestTax, wealth: bestWealth } : null; out.ranked = ranked; }
+  // the tie rule above the household's estate cap (couple.js tiePick's: the best's level and tiers, within the margin, the
+  // least tax this year, then the larger wealth after the move)
+  if (tj && best) { const p = tiePick(tj, { joint: best, score: bestScore, tax: bestTax, wealth: bestWealth }, cp.tieJoint); if (p.joint !== best) { best = p.joint; best.score = p.score; } }
+  // the hold (couple.js holdMove's, on the household table): past holdPast times its wealth axis's top, no step down in risk
+  if (best && cp.holdPast > 0 && t < T && tH && H.g && H.g.axes && H.g.axes.W && s0[0] + s0[1] + s0[2] > cp.holdPast * H.g.axes.W.hi) {
+    const keep = {};
+    for (const [cat, key] of [['pen', 'tierPen'], ['isa', 'tierIsa']]) {
+      const from = held[cat] || 0, to = best.perOwner.self[key] || 0;
+      const rf = TIER_ORDER.indexOf(tierName(H, cat, from)), rt = TIER_ORDER.indexOf(tierName(H, cat, to));
+      if (to !== from && rf >= 0 && rt >= 0 && rt > rf) keep[key] = from;
+    }
+    if (Object.keys(keep).length) {
+      const po = { ...best.perOwner.self, ...keep, tierPenName: tierName(H, 'pen', keep.tierPen !== undefined ? keep.tierPen : best.perOwner.self.tierPen || 0), tierIsaName: tierName(H, 'isa', keep.tierIsa !== undefined ? keep.tierIsa : best.perOwner.self.tierIsa || 0) };
+      const sc = best.score; best = { ...best, perOwner: { self: po, part: { ...po } } }; best.score = sc;
+      if (cp.holdActs !== undefined) cp.holdActs++;
+    }
+  }
+  if (!best) {
+    // nothing funds the year: the even split with the household's first-ranked move, and the year fails on its own terms
+    const a = H.actions[ranked[0] || 0], po = { steps: a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', ...tiersOf(a) };
+    best = { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', sweepCash: true, ...(a.sweepIsa ? { sweepIsa: true } : {}), lump: !!a.lump, contrib: null, spendLevel: lvl(ranked[0] || 0), split: 0.5, switchCost: cp.switchCost || 0, perOwner: { self: po, part: { ...po } } };
+  }
+  return best;
+}
+
+/* One path under the household's rollout, in the exact reduced model. */
+export function runHouseholdPolicy(cp, zs) {
+  const { m, M } = cp, T = m.ctx.totalYears, state = M.initialState(m);
+  for (let t = 0; t <= T; t++) {
+    const joint = chooseHousehold(cp, state, t);
+    const row = M.step(m, state, joint, t, ratesAt(m, zs, t));
+    if (row.unmetDemand > 1 || row.preNmpaInsolvent) return { survived: false, failYear: t };
+  }
+  const total = Object.values(state.pots).reduce((a, b) => a + b, 0);
+  return { survived: !(m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor), failYear: m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor ? T : -1 };
+}
+
+/* The engine under the household plan (couple.js couplePolicy's form, the household's rollout in place of the joint move). */
+export function householdPolicy(cp) {
+  return {
+    kind: 'table',
+    choose(engineState, t) {
+      const tierHeld = {};
+      for (const o of cp.m.ctx.owners) { const h = engineState.tierHeld && engineState.tierHeld[o.key]; tierHeld[o.key] = { pen: h ? h.pen || 0 : 0, isa: h ? h.isa || 0 : 0 }; }
+      const state = {
+        pots: { ...engineState.pots }, basis: { ...engineState.giaBasis }, cgtCarry: { ...engineState.cgtCarry }, cumPcls: { ...engineState.cumPcls },
+        lumpTaken: { ...engineState.lumpSumTaken }, cashIsa: { ...(engineState.cashIsa || {}) }, guard: null, tierHeld
+      };
+      return chooseHousehold(cp, state, t);
+    },
+    switchCost: cp.switchCost || 0,
+    tiersBelow: cp.tiersBelow || 2
+  };
+}
+export function withHousehold(plan, cp) {
+  return { ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...plan.spending, policyOverride: householdPolicy(cp) } };
+}

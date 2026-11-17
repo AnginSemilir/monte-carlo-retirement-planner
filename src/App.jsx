@@ -12635,7 +12635,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </CollapsibleCard>
 
             <CollapsibleCard title="UK Income Tax, National Insurance & Pension Allowances"
-              subtitle="Defaults are 2026/27 (frozen to April 2031), and all thresholds are held constant in real terms.">
+              subtitle="Defaults are 2026/27 (frozen to April 2031), and all thresholds are held constant in real terms. Not modelled: the higher tax rates on savings income from April 2027 (22%, 42% and 47%) and the £2,000 cap on National Insurance relief for salary sacrifice from April 2029; and because the thresholds are held in real terms where the law freezes them in cash, tax before April 2031 may be a little higher than shown.">
               {withRegion && ctlRegion()}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
                 {[
@@ -13962,7 +13962,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                   <div>
                     {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Plus className="w-4 h-4 text-blue-600" /> 4. One-off deposits (by wrapper)</h3>}
-                    {!isPhone && <span className="text-[11px] text-slate-500 block mt-0.5">Lump sums into a chosen wrapper. Anything above that year's allowance is parked in Other Investments and fed in over later years.</span>}
+                    {!isPhone && <span className="text-[11px] text-slate-500 block mt-0.5">Lump sums into a chosen wrapper. Anything above that year's allowance is parked in Other Investments and fed in over later years. Into a pension, the amount lands as you enter it: tax relief is not added, so enter any relief as its own deposit from External.</span>}
                     <button type="button" onClick={() => goToDoc('doc-one-off-deposits')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-0.5"><HelpCircle className="w-3.5 h-3.5" /> How one-off deposits &amp; multi-year staging work &rarr;</button>
                   </div>
                   <button onClick={addOneOffContrib} className={`${isPhone ? 'w-full min-h-11 justify-center' : 'px-2.5 py-1'} bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200 self-start sm:self-auto`}><Plus className="w-3.5 h-3.5" /> Add lump sum</button>
@@ -14029,7 +14029,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                                 <option value={E.AUTO_DEPOSIT}>{E.AUTO_DEPOSIT}</option>
                               </select>
                             </div>
-                            <MoneyInput min="0" step="1000" placeholder="Amount (£)" onFocus={handleFocus} value={c.amount} onChange={(e) => updateListItem('oneOffContributions', c.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded tabular-nums text-emerald-700 font-bold" />
+                            <MoneyInput min="0" step="1000" placeholder="Amount (£)" title="The amount that lands in the wrapper. Into a pension, tax relief is not added: enter any relief as its own deposit from External." onFocus={handleFocus} value={c.amount} onChange={(e) => updateListItem('oneOffContributions', c.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded tabular-nums text-emerald-700 font-bold" />
                             {st && !st.direct && (
                               <button onClick={() => toggleOneOffExpand(c.id)} className="px-2 py-1 rounded-lg text-[11px] font-semibold text-amber-700 hover:text-amber-900 hover:bg-amber-100 border border-amber-200 bg-amber-50 cursor-pointer transition-colors flex items-center gap-1" title="This deposit is larger than the year's allowance, so it is staged over several years">
                                 {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}

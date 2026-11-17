@@ -1,0 +1,29 @@
+JOINT-WIDE'S RESUME CHECK: S023-90 (unit 12) at a smoke's settings
+ small chunks: 60 paths in chunks of 20, stopped after 4 (the runs' own lines in /tmp/jw-resume-1VuLkK)
+  ok   the straight run ends cleanly (exit 0), the stopped one stops as a restart would (exit 75, want 75), and the run again ends cleanly (exit 0)
+  ok   each arm's seven arrays the same byte for byte (differing: none)
+  ok   each person's table digests the same
+  ok   the replays the same
+  ok   the resumed unit's K4 ran in two processes and K2 in one (2 and 1)
+  ok   no saved part is left behind
+ past the check: 230 paths in chunks of 205, stopped after 3 (the runs' own lines in /tmp/jw-resume-sj9cLf)
+  ok   the straight run ends cleanly (exit 0), the stopped one stops as a restart would (exit 75, want 75), and the run again ends cleanly (exit 0)
+  ok   each arm's seven arrays the same byte for byte (differing: none)
+  ok   each person's table digests the same
+  ok   the replays the same
+  ok   the resumed unit's K4 ran in two processes and K2 in one (2 and 1)
+  ok   no saved part is left behind
+RESUME CHECK: ALL PASS (12)
+exit 0
+JOINT-WIDE'S RESUME CHECK: S023-90 (unit 12) at a smoke's settings, the plant offbyone
+ small chunks: 60 paths in chunks of 20, stopped after 4 (the runs' own lines in /tmp/jw-resume-CtwkRd)
+  FAIL the straight run ends cleanly (exit 0), the stopped one stops as a restart would (exit 75, want 75), and the run again ends cleanly (exit 3)
+ past the check: 230 paths in chunks of 205, stopped after 3 (the runs' own lines in /tmp/jw-resume-4ZRymG)
+  ok   the straight run ends cleanly (exit 0), the stopped one stops as a restart would (exit 75, want 75), and the run again ends cleanly (exit 0)
+  FAIL each arm's seven arrays the same byte for byte (differing: K4.survived, K4.failYear, K4.pot, K4.estate, K4.tax, K4.delivered)
+  ok   each person's table digests the same
+  ok   the replays the same
+  ok   the resumed unit's K4 ran in two processes and K2 in one (2 and 1)
+  ok   no saved part is left behind
+RESUME CHECK FAILED: 2 of 7
+exit 1

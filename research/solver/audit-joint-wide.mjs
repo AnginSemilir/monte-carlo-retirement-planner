@@ -11,7 +11,11 @@
  *   K6  each person's top six.
  * Each run by the engine on the same N paths of seed 7002 at arm A's MPAA ages (audit-phase4.mjs runPath), the arms' order
  * rotated by unit (unit k runs ARMS[k mod 3] first), each arm's paths timed by the process's CPU time (process.cpuUsage, user
- * and system) after WARM untimed paths, the wall clock beside; its first CHECK paths then held to E.runTrial. Stored for each
+ * and system) after WARM untimed paths, the wall clock beside; its first CHECK paths then held to E.runTrial. Each arm's paths
+ * run in chunks of CHUNK, each chunk saved as it ends (<out>/parts/<id>-<arm>.json.gz): a unit run again after a restart
+ * takes an arm's saved chunks when they are this unit's as solved now (the stamp, the seed, the paths, the chunk, each person's
+ * table digest and the arm's options) and goes on from the next path; each chunk records its CPU time, the CPU model and the
+ * process it ran in (JOINT-WIDE.md's amendment 2). Stored for each
  * path and arm: survival, the failure year, the pot left, the estate, lifetime tax, spending delivered and unmet spending;
  * each person's table digest before the first arm and after the last; the household's cap; each arm's options read back from
  * the fields the chooser reads (cp.topK among them). The replays on the first REPLAY paths, in the exact model:
@@ -23,7 +27,8 @@
  * Units go to results/joint-wide-<seed>/ (JW_OUT): case<k>.txt, the log, stamped (fair-gate.mjs LOG_STAMP), and <id>.json.gz.
  * reduce-joint-wide.mjs reads them.
  *   node research/solver/audit-joint-wide.mjs part k/n      node research/solver/audit-joint-wide.mjs --units
- *   JW_PTS the points, JW_N the paths, JW_REPLAY the replays' paths (smoke only); JW_OUT the folder
+ *   JW_PTS the points, JW_N the paths, JW_REPLAY the replays' paths; JW_CHUNK the chunk, JW_STOP_AFTER a stop after so many
+ *   chunks, JW_PLANT=offbyone a path skipped on resuming (the resume check, joint-wide-resume.mjs) (each a smoke only); JW_OUT
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -39,15 +44,19 @@ import { PANEL_FILE, solverPlan, wantProblems, coupleProblems } from './audit-co
 import { COUPLES_CANDIDATE, settingsOf } from './audit-couples-share.mjs';
 import { hashOf } from './candidate.mjs';
 import { codeId } from './code-id.mjs';
-import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { writeFileSync, mkdirSync, readFileSync, existsSync, rmSync, renameSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { cpus, loadavg } from 'node:os';
-import { gzipSync } from 'node:zlib';
+import { cpus, loadavg, hostname } from 'node:os';
+import { gzipSync, gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const { solveCouple, withCouple, chooseJoint } = CPL;
-export const SEED = 7002, N = 4000, PTS = 45, W = 0.02, CHECK = 200, REPLAY = 100, WARM = 3;
+export const SEED = 7002, N = 4000, PTS = 45, W = 0.02, CHECK = 200, REPLAY = 100, WARM = 3, CHUNK = 1000;
+/* this process, as each chunk records it (JOINT-WIDE.md's amendment 2: a unit stopped by a restart picks up from its last saved
+   chunk, and the time measure reads the units whose three arms ran in one process) */
+const PROC = `${hostname()}:${process.pid}:${Date.now()}`;
+export const partOf = (out, id, arm) => join(out, 'parts', `${id}-${arm}.json.gz`);
 export const WIDTHS = { K2: 2, K4: 4, K6: 6 }, ARMS = Object.keys(WIDTHS), WIDER = ['K4', 'K6'];
 /* the couples' default joint move, as the page assembles a couple (D99's share rule, D109's LOOKHOLD) */
 export const JOINT = Object.freeze({ shareRule: APP_COUPLE.shareRule, ...appJoint() });
@@ -118,23 +127,48 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const ctxOf = cp => E.buildContext(withCouple({ ...cp.plan, demographics: { ...cp.plan.demographics, mpaaAgeSelf: aDemo.mpaaAgeSelf, mpaaAgePart: aDemo.mpaaAgePart } }, cp));
   const T = ctxOf(base).totalYears, paths = E.pathsForSeed(SEED, n, T).map(zs => Float64Array.from(zs));
   const arms = {};
+  const KEYS = { survived: Uint8Array, failYear: Int16Array, pot: Float64Array, estate: Float64Array, tax: Float64Array, delivered: Float64Array, unmet: Float64Array };
+  const dec = (str, Ty) => { const b = Buffer.from(str, 'base64'), c = new Uint8Array(b.length); c.set(b); return new Ty(c.buffer, 0, b.length / Ty.BYTES_PER_ELEMENT); };
+  const chunk = smoke && Number(process.env.JW_CHUNK) > 0 ? Number(process.env.JW_CHUNK) : CHUNK;
+  let stopAfter = smoke && Number(process.env.JW_STOP_AFTER) > 0 ? Number(process.env.JW_STOP_AFTER) : 0;
+  mkdirSync(join(OUT, 'parts'), { recursive: true });
   for (const arm of order) {
-    const cp = cps[arm], ctx = ctxOf(cp), o = optionsOf(cp);
+    const cp = cps[arm], ctx = ctxOf(cp), o = optionsOf(cp), pf = partOf(OUT, u.id, arm);
     if (ctx.totalYears !== T) { console.error(`audit-joint-wide: ${u.id} ${arm}: another horizon`); process.exit(3); }
-    const A = { survived: new Uint8Array(n), failYear: new Int16Array(n), pot: new Float64Array(n), estate: new Float64Array(n), tax: new Float64Array(n), delivered: new Float64Array(n), unmet: new Float64Array(n) };
-    for (let k = 0; k < Math.min(WARM, n); k++) runPath(ctx, paths[k], false);
-    const load0 = loadavg()[0], c0 = process.cpuUsage(), w0 = performance.now();
-    for (let k = 0; k < n; k++) {
-      const r = runPath(ctx, paths[k], false);
-      A.survived[k] = r.survived ? 1 : 0; A.failYear[k] = r.failYear; A.pot[k] = r.wealth; A.estate[k] = r.estate; A.tax[k] = r.tax; A.delivered[k] = r.delivered; A.unmet[k] = r.unmet;
+    let A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, new Ty(n)])), done = 0, chunks = [];
+    // a saved part of this arm, from a process a restart stopped: taken only when it is this unit's as solved now
+    if (existsSync(pf)) {
+      const P = JSON.parse(gunzipSync(readFileSync(pf)).toString());
+      if (P.stamp.code === STAMP.code && P.stamp.audit === STAMP.audit && P.seed === SEED && P.N === n && P.pts === pts && P.chunk === chunk && js(P.digests) === js(before) && js(P.options) === js(o)) {
+        A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, dec(P.arrays[k], Ty)])); done = P.done; chunks = P.chunks;
+        if (smoke && process.env.JW_PLANT === 'offbyone' && done < n) done += 1;   // the resume check's plant: a path skipped on resuming
+        console.log(`${''.padEnd(8)} resumed ${arm} at path ${done} of ${n}, from a part saved by ${[...new Set(chunks.map(c => c.proc))].join(', ')}`);
+      } else console.log(`${''.padEnd(8)} a saved part of ${arm} is not this unit's as solved now: ${arm} starts again`);
     }
-    const c = process.cpuUsage(c0), wallMs = performance.now() - w0, load1 = loadavg()[0];
+    if (done < n) for (let k = 0; k < Math.min(WARM, n); k++) runPath(ctx, paths[k], false);
+    while (done < n) {
+      const to = Math.min(n, done + chunk), load0 = loadavg()[0], c0 = process.cpuUsage(), w0 = performance.now();
+      for (let k = done; k < to; k++) {
+        const r = runPath(ctx, paths[k], false);
+        A.survived[k] = r.survived ? 1 : 0; A.failYear[k] = r.failYear; A.pot[k] = r.wealth; A.estate[k] = r.estate; A.tax[k] = r.tax; A.delivered[k] = r.delivered; A.unmet[k] = r.unmet;
+      }
+      const c = process.cpuUsage(c0);
+      chunks.push({ from: done, to, cpuUs: c.user + c.system, wallMs: performance.now() - w0, load: [load0, loadavg()[0]], cpu: cpus()[0].model, proc: PROC });
+      done = to;
+      const tmp = `${pf}.tmp`;
+      writeFileSync(tmp, gzipSync(js({ stamp: STAMP, seed: SEED, N: n, pts, chunk, digests: before, options: o, done, chunks, arrays: Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) })));
+      renameSync(tmp, pf);
+      // the resume check's stop (a smoke only): the process ends after so many chunks, as a restart would end it
+      if (stopAfter && --stopAfter === 0) { console.log(`${''.padEnd(8)} stopped after a chunk of ${arm} (JW_STOP_AFTER)`); process.exit(75); }
+    }
     let bad = 0;
     for (let k = 0; k < Math.min(CHECK, n); k++) { const q = E.runTrial(ctx, paths[k]); if (q.survived !== !!A.survived[k] || q.terminalPotNet !== A.estate[k] || q.unmetTotal !== A.unmet[k] || q.lifetimeTax !== A.tax[k]) bad++; }
     if (bad) { console.error(`audit-joint-wide: ${u.id} ${arm}: runPath differs from E.runTrial on ${bad} of the first ${Math.min(CHECK, n)} paths`); process.exit(3); }
-    const surv = 100 * A.survived.reduce((s, v) => s + v, 0) / n;
-    arms[arm] = { options: o, cpuUs: c.user + c.system, wallMs, load: [load0, load1], place: order.indexOf(arm), T, ...Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) };
-    console.log(`${''.padEnd(8)} done ${arm}: ${js({ topK: o.topK, tieJoint: o.tieJoint, tieLook: o.tieLook, holdPast: o.holdPast, shareRule: o.shareRule })}; engine ${surv.toFixed(2)}% on ${n}; CPU ${((c.user + c.system) / 1e6).toFixed(0)} s (${((c.user + c.system) / 1e3 / n).toFixed(1)} ms a path), wall ${(wallMs / 1e3).toFixed(0)} s; runPath the same as E.runTrial on the first ${Math.min(CHECK, n)} paths`);
+    const cpuUs = chunks.reduce((t, x) => t + x.cpuUs, 0), wallMs = chunks.reduce((t, x) => t + x.wallMs, 0), procs = [...new Set(chunks.map(x => x.proc))];
+    arms[arm] = { options: o, cpuUs, wallMs, chunks, procs, cpus: [...new Set(chunks.map(x => x.cpu))], place: order.indexOf(arm), T, ...Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) };
+    // at a smoke's settings no outcome is printed (the figures of a smoke decide nothing and are not the run's)
+    const surv = smoke ? 'a smoke: no figure printed' : `${(100 * A.survived.reduce((t, v) => t + v, 0) / n).toFixed(2)}% on ${n}`;
+    console.log(`${''.padEnd(8)} done ${arm}: ${js({ topK: o.topK, tieJoint: o.tieJoint, tieLook: o.tieLook, holdPast: o.holdPast, shareRule: o.shareRule })}; engine ${surv}; CPU ${(cpuUs / 1e6).toFixed(0)} s (${(cpuUs / 1e3 / n).toFixed(1)} ms a path) in ${chunks.length} chunks and ${procs.length} process${procs.length > 1 ? 'es' : ''}, wall ${(wallMs / 1e3).toFixed(0)} s; runPath the same as E.runTrial on the first ${Math.min(CHECK, n)} paths`);
   }
   // the replays, in the exact model on the first nReplay paths, as runCouplePolicy steps a year
   const along = { decisions: 0, ...Object.fromEntries(WIDER.map(arm => [arm, { lower: 0, worst: 0, higher: 0, funds: 0, unfunded: 0, differ: 0, level: 0, split: 0, tiers: 0, first: null }])) };
@@ -177,5 +211,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`${''.padEnd(8)} along each wider arm's own path: ${WIDER.map(arm => `${arm} its pick differing from K2's at the same state at ${own[arm].differ} of ${own[arm].decisions} (another level ${own[arm].level})`).join('; ')}`);
   const after = await digest();
   writeFileSync(join(OUT, fileOf(u.id)), gzipSync(js({ k: pk, id: u.id, group: u.group, panel: u.panel, cohort: U.cohort, seed: SEED, N: n, nReplay, warm: WARM, pts, W, candidate, joint: JOINT, order, cap, caps, share: base.share, shareRule: base.meta.shareRule, digests: { before, after }, along, own, stamp: STAMP, cpu: cpus()[0].model, solveSecs, arms })));
+  for (const arm of ARMS) rmSync(partOf(OUT, u.id, arm), { force: true });
   console.log(`${''.padEnd(8)} done unit ${pk} secs ${Math.round((Date.now() - t0) / 1000)}`);
 }

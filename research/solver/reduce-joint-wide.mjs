@@ -54,6 +54,9 @@ export function gate(units, ids, audit, size = { N: 4000, seed: 7002, pts: 45 })
       for (const key of Object.keys(KEYS)) if (!x[key] || x[key].length !== U.N) P.push(`${U.id} ${a}: ${key} not one a path`);
       if (js(x.options) !== js(wantOptions(a))) P.push(`${U.id} ${a}: the options read back ${js(x.options)}, not ${js(wantOptions(a))}`);
       if (!(x.cpuUs > 0) || x.place !== U.order.indexOf(a)) P.push(`${U.id} ${a}: no time, or not timed in its place`);
+      const ch = x.chunks || [];
+      if (!ch.length || ch[0].from !== 0 || ch[ch.length - 1].to !== U.N || ch.some((c, i) => i > 0 && c.from !== ch[i - 1].to) || ch.some(c => !c.proc || !c.cpu)) P.push(`${U.id} ${a}: its chunks do not cover its paths in order, each with its process and CPU`);
+      else if (Math.abs(ch.reduce((t, c) => t + c.cpuUs, 0) - x.cpuUs) > 0.5) P.push(`${U.id} ${a}: its time is not its chunks' sum`);
     }
     if (!U.along || !(U.along.decisions > 0) || WIDER.some(a => !U.along[a]) || !U.own || WIDER.some(a => !U.own[a] || !(U.own[a].decisions > 0))) P.push(`${U.id}: no replays`);
   }
@@ -95,7 +98,8 @@ export function against(units, arm, base = 'K2') {
     const capped = X => mean(Array.from(X.pot, v => Math.min(v, U.cap)));
     const tenth = { lower: 0, higher: 0 };
     for (let k = 0; k < b.pot.length; k++) { if (!(b.pot[k] > 0)) continue; if (x.pot[k] < 0.9 * b.pot[k]) tenth.lower++; else if (x.pot[k] > 1.1 * b.pot[k]) tenth.higher++; }
-    return { id: U.id, group: U.group, cells: c, ch, spend: sp.by[i], capped: pct(capped(x), capped(b)), ...potWays(b, x), tax: [mean(b.tax), mean(x.tax)], slower: x.cpuUs / b.cpuUs, tenth,
+    const procs = new Set(ARMS.flatMap(a => (U.arms[a].chunks || []).map(c => c.proc)));
+    return { id: U.id, group: U.group, cells: c, ch, spend: sp.by[i], capped: pct(capped(x), capped(b)), ...potWays(b, x), tax: [mean(b.tax), mean(x.tax)], slower: x.cpuUs / b.cpuUs, oneProc: procs.size === 1, tenth,
       along: base === 'K2' && U.along[arm] ? U.along[arm] : null, own: base === 'K2' ? U.own[arm] : null };
   });
   const pooled = pooledSummed(H.map(h => h.cells)), spend = sp.pooled;
@@ -111,7 +115,10 @@ export function against(units, arm, base = 'K2') {
   ];
   // the gain, in the product's order: survival; then spending, survival not lower beyond noise; then the pot, neither lower
   const gain = pooled.lo > 0 ? 'SURVIVAL' : pooled.hi >= 0 && spend.lo > 0 ? 'SPENDING' : pooled.hi >= 0 && spend.hi >= 0 && typicalP.lo > 0 ? 'THE POT' : null;
-  return { arm, base, H, pooled, spend, cappedP, taxB, taxX, typicalP, lower, parts, holds: parts.slice(0, 4).every(Boolean), stop: !parts[4], gain, slowerMedian: median(H.map(h => h.slower)) };
+  // the time (JOINT-WIDE.md's amendment 2): the median over the units whose three arms ran in one process; over all beside
+  const clean = H.filter(h => h.oneProc);
+  return { arm, base, H, pooled, spend, cappedP, taxB, taxX, typicalP, lower, parts, holds: parts.slice(0, 4).every(Boolean), stop: !parts[4], gain,
+    slowerMedian: clean.length ? median(clean.map(h => h.slower)) : NaN, slowerClean: clean.length, slowerAll: median(H.map(h => h.slower)) };
 }
 /* the rule: K4 and K6 against K2, and the outcome */
 export function rule(units) {
@@ -131,6 +138,7 @@ function planted() {
   // an arm: `lost` paths failing (the odd ones first); each path's pot `pot` times a small spread, or `potAt`; spending `sp`
   // times a small spread (`spAt` instead)
   const arm = (name, lost, o = {}, place = 0) => ({ options: wantOptions(name), cpuUs: o.cpu || 1e8, wallMs: 1e5, load: [0, 0], place, T: 30,
+    chunks: [{ from: 0, to: N, cpuUs: o.cpu || 1e8, wallMs: 1e5, cpu: 'x', proc: o.proc || 'p1' }],
     survived: Uint8Array.from({ length: N }, (_, i) => (i % 2 === 1 && i < 2 * lost ? 0 : 1)), failYear: new Int16Array(N),
     pot: Float64Array.from({ length: N }, (_, i) => (o.potAt ? o.potAt(i) : (o.pot || 1e6) * (1 + 0.02 * Math.sin(i)))), estate: new Float64Array(N).fill(1e6),
     tax: new Float64Array(N).fill(o.tax || 1e5), delivered: Float64Array.from({ length: N }, (_, i) => (o.spAt ? o.spAt(i) : (o.sp || 1e6) * (1 + 0.01 * Math.sin(3 * i)))), unmet: new Float64Array(N) });
@@ -159,6 +167,8 @@ function planted() {
   check('nothing funding a year where K2\'s move does is a STOP', V(set(k => (k === 5 ? { along: { K4: { unfunded: 1 } } } : {}))) === 'STOP');
   check('a gain on one arm and a failed part on the other: the gain goes to the maintainer', (() => { const r = rule(set(() => ({ k6Lost: 360, k4: { sp: 0.999e6 } }))); return r.gains.join() === 'K6' && /THE TRADE/.test(r.verdict); })());
   check('the spending interval: a difference of 1% a path times a sine gives a pooled standard error near 100 x 0.01 / sqrt(2 x 12 x 4000), 0.00323%', (() => { const s = spendOf(set().map(U => [U.arms.K2, { ...U.arms.K2, delivered: Float64Array.from(U.arms.K2.delivered, (v, i) => v * (1 + 0.01 * Math.sin(7 * i + 1))) }])); return s.pooled.se > 0.0030 && s.pooled.se < 0.0035 && Math.abs(s.pooled.d) < 0.01; })());
+  check('a unit whose arms ran in two processes is left out of the time measure, and counted', (() => { const r = rule(set(k => (k === 0 ? { k6: { cpu: 9e8, proc: 'p2' } } : { k6: { cpu: 2e8 } }))).R.K6; return r.slowerClean === 11 && Math.abs(r.slowerMedian - 2) < 1e-12 && r.slowerAll === 2; })());
+  check('the gate refuses an arm whose chunks miss paths, or whose time is not their sum', (() => { const s = set(); s[0].arms.K4.chunks = [{ from: 0, to: N - 1, cpuUs: 1e8, wallMs: 1, cpu: 'x', proc: 'p1' }]; s[1].arms.K6.cpuUs = 2e8; const P = gate(s, ids, 'a'); return P.some(x => /U0 K4: its chunks do not cover/.test(x)) && P.some(x => /U1 K6: its time is not its chunks' sum/.test(x)); })());
   check('the gate refuses a changed table, another width, a missing arm, another seed, a missing unit, another joint move and another order', (() => {
     const s = set(); s[0] = unit('U0', 0, { changed: true }); s[1].arms.K4.options.topK = 3; delete s[2].arms.K6; s[3].seed = 7001; s[4] = unit('U4', 4, { joint: { ...JOINT, tieLook: null } }); s[5] = unit('U5', 5, { order: ['K2', 'K4', 'K6'] }); const t = s.slice(0, 11);
     const P = gate(t, ids, 'a');
@@ -195,7 +205,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     console.log(`  4. the capped pot ${f(r.cappedP)}% pooled (not lower by more than ${-RULE.capped}%); a unit lower by more than ${-RULE.cappedUnit}%: ${r.H.filter(h => h.capped < RULE.cappedUnit).map(h => `${h.id} ${f(h.capped)}%`).join(', ') || 'none'}: ${say(3)}`);
     console.log(`  5. the replays: a best scoring below ${r.base}'s at its state, or nothing funding a year its move funds, at ${r.lower} decisions: ${say(4)}`);
     console.log(`  the gain (survival beyond noise; else spending, survival not lower beyond noise; else the typical-path pot ${iv(r.typicalP)}%, neither lower beyond noise): ${r.gain || 'none'}`);
-    console.log(`  ${r.stop ? 'STOP' : r.holds ? (r.gain ? `HOLDS 1 to 4, A GAIN IN ${r.gain}` : 'HOLDS 1 to 4, NO GAIN') : `FAILS ${r.parts.slice(0, 4).map((p, k) => (p ? null : k + 1)).filter(Boolean).join(', ')}`}; its CPU time a path against ${r.base}'s, the median over the units x${r.slowerMedian.toFixed(3)}`);
+    console.log(`  ${r.stop ? 'STOP' : r.holds ? (r.gain ? `HOLDS 1 to 4, A GAIN IN ${r.gain}` : 'HOLDS 1 to 4, NO GAIN') : `FAILS ${r.parts.slice(0, 4).map((p, k) => (p ? null : k + 1)).filter(Boolean).join(', ')}`}; its CPU time a path against ${r.base}'s, the median over the ${r.slowerClean} units whose arms ran in one process x${r.slowerMedian.toFixed(3)} (over all ${r.H.length} x${r.slowerAll.toFixed(3)})`);
     console.log(`  by unit: ${r.H.map(h => `${h.id} survival ${f(h.ch.d)} (${h.cells.lost} lost, ${h.cells.saved} saved), spending ${f(h.spend.d, 4)}%, the typical path ${f(h.typical.d)}%, the average pound ${iv(h.pound)}%, capped ${f(h.capped)}%, tax ${gbp(h.tax[0])} to ${gbp(h.tax[1])}, x${h.slower.toFixed(2)} a path`).join('; ')}`);
   };
   for (const a of WIDER) show(R.R[a], `${a} against K2`);

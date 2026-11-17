@@ -183,3 +183,30 @@ It runs as a harness-tracked task, relaunched under `RESUME=1` after a restart.
   the rule changed.
 - **The read's line on the timing's order effect** now gives each wider arm's time against K2's by the arm each unit
   started from, in place of a mean that mixed the arms' own speeds. It is beside the rule and decides nothing.
+
+## Amendment 2, 17 Nov (night), after two container restarts, before any outcome of the run is read
+
+- **What happened:** two container restarts stopped the run, at about 23:44 and 01:12 UK, each losing the units in flight.
+  - The first window finished none. The second finished two, S327F and S333F.
+  - Of the run's files, only the stamp lines, the done lines and the files' sizes were looked at. No figure of the run was
+    printed or read.
+  - The units are set aside unread (`results/joint-wide-7002-stopped`).
+- **Not the run's own doing:** one younger couple at full settings peaks at about 1.6 GB, so four at once use about 6.4 GB of
+  the container's 15 GB (`joint-wide-pilot.mjs` on S329F, seed 99001, no outcome printed). The longest units take one and a
+  half to two hours, longer than the gaps between the restarts.
+- **The change, in how the run is carried out only:**
+  - each arm's paths run in chunks of 1,000, and each chunk is saved as it ends;
+  - a unit run again after a restart solves its tables again, then takes an arm's saved chunks only when they are this
+    unit's as solved now: the stamps, the seed, the paths, the chunk, each person's table digest and the arm's options. It
+    goes on from the next path, so a restart loses at most a chunk of each arm in flight;
+  - each chunk records its CPU time, the CPU model and the process it ran in;
+  - the read's gate also checks that each arm's chunks cover its paths in order, and that its time is their sum.
+- **The time measure:** the median over the units whose three arms ran in one process, so that no unit's ratio mixes
+  processes or machines across a restart. The median over all units is printed beside. Nothing else in the rule changes.
+- **Its check (CHECKLIST 5):** `joint-wide-resume.mjs`, its output in `results-joint-wide-resume.txt`. The run is not
+  launched until it has shown both of these:
+  - a unit stopped after four chunks and run again must give the straight run's unit to the bit: each arm's arrays, the
+    digests and the replays;
+  - its plant, a path skipped on resuming, must fail it.
+- At a smoke's settings the audit now prints no outcome.
+- The audit's stamp changes, so every unit runs again from an empty folder, S327F and S333F included.

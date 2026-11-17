@@ -411,7 +411,8 @@ twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/20
      order a one-off cost is met in), so the other order parts from the tested one even at the same estate weight.
    - **Whenever cores are free:** the research queue (B7), the windfall factorial then the savings factorial,
      EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test.
-   - **Open with the maintainer** (below): M3, M6, the cash buffer's size as a lever, `survivalChangeU`'s interval.
+   - **Ruled (D112, 17 Nov), the four left open with the maintainer** (below): M3 and M6 in the page's words with the next
+     batch, the cash buffer's size left for now, `survivalChangeU`'s interval fixed after JOINT-WIDE's read.
 2. **The maintainer's work on the UI.** Its scope is the maintainer's; nothing is planned for it here yet.
 3. **Sharing it publicly.** Before it: the readiness checklist taken again on that commit, and the maintainer's word on
    the solver on by default and the switch's removal.
@@ -508,11 +509,16 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   carries an outcome, and record the statement as made in the re-run's registration for the design review to check.
 - **M3. A one-off pension deposit: what the household pays, or what arrives?** The review's advice: ask in the input's
   label; until then typed deposits stay as they are, and item 4 fixes only the plan's own routing (the windfall split's
-  pension-first variant, the staged transfers, an Auto deposit).
+  pension-first variant, the staged transfers, an Auto deposit). **RULED (D112, 17 Nov): "Pension - yes it depends on
+  input label".** The label says what the engine does: a deposit typed into a pension lands as typed, tax relief not
+  added (the app's own Bed & SIPP route enters the relief as its own deposit from External). The words are the agent's to
+  draft and the maintainer's to change; with the next batch.
 - **M6. The dated rules** (savings rates of 22, 42 and 47% from April 2027; NIC relief on salary sacrifice capped at
   the first £2,000 from April 2029; the thresholds frozen in cash to April 2031, held constant in real terms by the
   engine): carry them by tax year, or state the assumption? The review's advice: state it now (one line on the page,
-  beside item 8's caption), and carry the 2027 savings rates when the 2027/28 figures are next updated.
+  beside item 8's caption), and carry the 2027 savings rates when the 2027/28 figures are next updated. **RULED (D112, 17
+  Nov): "Tax - yes just state".** One line beside item 8's caption, with the next batch; the rules are not carried by
+  tax year.
 - **Items 5 and 10 ruled (D73, 11 Nov) and ported (4e6c6a09; D74, D82, D83): the candidate is af001697ce1b.** The reviewer on the change of
   default: FAIL, then PASS after one fix (`reviews/2026-11-11-default-d73.md`, `2026-11-12-default-d73-2.md`). Item 7 answered by the
   external review and read again in item 13's stage A (D85, D86).
@@ -520,7 +526,7 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   real choice (the ISA is never worse than the taxable account in tax, access or allowance). What would be one is how much
   is kept in cash: the cash buffer's size, a standing rule (D18), the same for singles and couples and in every arm so far.
   Making it a lever is new solver work with its own experiment (the windfall split, D37, is the nearest thing built). Say if
-  it should join the research queue.
+  it should join the research queue. **Left for now (D112, 17 Nov): "Cash buffer - leave for now".** Not queued.
 - **Read, passing (D89): what D73's sweep to the ISA means for a couple, measured before the re-run (`COUPLE-SWEEP.md`, `results-couple-sweep.txt`, EXPLORATORY).** All three parts of the rule hold. For the maintainer to know: the pot's part
   holds on one couple (S059, whose cash ISA money is the largest); six of the twelve leave a smaller mean pot under the sweep to
   the ISA, with survival the same or higher on ten of the twelve and no loss beyond noise. As D87 put it:

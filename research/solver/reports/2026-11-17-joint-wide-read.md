@@ -9,9 +9,10 @@ top six (K6) instead, on today's split, on 28 couples' units, the same 4,000 sim
 **What it found:**
 - **More choices keep the money lasting a little more often.** Pooled, K4 adds `+0.236` points of survival (`+0.190` to
   `+0.282`) and K6 `+0.454` (`+0.402` to `+0.506`), both beyond noise.
-- **One couple's survival is lower beyond noise under K4,** by the rule's own interval by unit: S061-90, `-0.225` points
-  (`-0.465` to `-0.001`; 14 paths lost, 5 saved). That is inside the rule's bar of `-0.3`, and by the exact paired interval
-  it is not beyond noise (`-0.388` to `+0.011`). None under K6.
+- **One couple's survival is just below nought under K4,** by the rule's interval by unit as it stood at the read: S061-90,
+  `-0.225` points (`-0.465` to `-0.001`; 14 paths lost, 5 saved), inside the rule's bar of `-0.3`. With D112's correction
+  to that interval (Newcombe's method 10, worked beside the read) it is `-0.470` to `+0.004`, and by the exact paired
+  interval `-0.388` to `+0.011`: neither beyond noise. None under K6.
 - **The gain is uneven, and one couple carries much of it.** S147-db gains `+5.150` points under K6 (206 paths saved, none
   lost) and `+1.350` under K4. It is two fifths of K6's net paths saved (`40.6%`); without it K6's pooled gain is `+0.280`
   (`+0.232` to `+0.327`) and K4's `+0.194` (`+0.150` to `+0.239`). S147-db is the couple MEANS helped most in the share
@@ -20,7 +21,9 @@ top six (K6) instead, on today's split, on 28 couples' units, the same 4,000 sim
 - **The pot counted up to the estate cap falls on some couples.** Under K4 it is lower on 9 of the 28 units and lower by
   more than half a percent on five, most on S109-sppart (`-5.020%`). Under K6 it is lower on ten, seven by more than half
   a percent, and pooled spending also falls `0.158%` (the bar is `0.05%`). **Why the pot falls is not shown:** no
-  decomposition was run, and the falls do not follow spending (of K4's five, two spend less).
+  decomposition was run. Some falls come with more spending and some do not (of K4's five past the bar three spend more, of
+  K6's seven six), and the capped pot is lower more often where spending rises (K4: on 6 of the 11 units spending more,
+  against 3 of the 17 spending less; K6: 7 of 10 against 3 of 18).
 - **It costs time.** A path takes `x1.51` as long with K4 and `x2.34` with K6. On the one couple measured in the browser,
   where paths were two thirds of the wait, that would make a couple's wait about `x1.34` and `x1.88` (an inference).
 
@@ -68,9 +71,9 @@ couples' default (`'pots'`, LOOKHOLD).
 
 ## What the read cannot show
 
-- **Why the capped pot falls on the units it does.** No decomposition was run. The falls do not follow spending: of K4's
-  five, S109-90 and S061-dbpart spend less. On S109-sppart spending rises `0.44%` and tax falls; how its capped pot comes to
-  be `5%` lower is not shown.
+- **Why the capped pot falls on the units it does.** No decomposition was run. More spending goes with some of the falls
+  and not others (of K4's five, S109-90 and S061-dbpart spend less). On S109-sppart spending rises `0.44%` and tax falls;
+  how its capped pot comes to be `5%` lower is not shown.
 - **Why the gain falls where it does.** The run measures no misreading of the household by the tables; that the couple
   MEANS helped most here gains most here is a lead, not a cause shown.
 - **Anything beyond these 28 units, one seed and one estate weight.** Sixteen of them are the share rules' couples, on which
@@ -87,7 +90,10 @@ output reproduced byte for byte). The findings were all in this write-up's words
 S061-90 named (finding 1); the account of why the pot falls withdrawn, the cause not shown (2); the claim that the gain sits
 where the tables misread the household most withdrawn, S147-db's part of it stated (3); the replays' rates (4), the typical
 path without S147-db (5), the counts with and without their bar (6) and the time groups (7) corrected, each figure printed
-by `joint-wide-beside.mjs`.
+by `joint-wide-beside.mjs`. The reviewer again (`reviews/2026-11-17-read-joint-wide-2.md`): PASS, every finding answered,
+two MINORs, answered: the pot's falls described as coming with more spending on some units and not others, both ways
+counted, where the first fix had said they do not follow spending (1); and S061-90's interval given as it stood at the read
+and with D112's correction, which carries it just above nought (2). The figures for both are printed by the same script.
 
 ## For the maintainer
 

@@ -1,7 +1,7 @@
 JOINT-WIDE, BESIDE ITS READ (EXPLORATORY, deciding nothing; joint-wide-beside.mjs, after the read): 28 units of results/joint-wide-7002, on stats.mjs as it stood at the read
 
-A. survival by unit against K2: the rule's interval (survivalChangeU) and the exact paired one (survivalChange); units wholly below nought by either
-  K4: S061-90 -0.225 (the rule's -0.465 to -0.001; exact -0.388 to +0.011; 14 lost, 5 saved)
+A. survival by unit against K2: the rule's interval (survivalChangeU as it stood at the read), the same with method 10's correction (D112, worked here), and the exact paired one (survivalChange); units wholly below nought by any
+  K4: S061-90 -0.225 (the rule's as at the read -0.465 to -0.001; with method 10's correction -0.470 to +0.004; exact -0.388 to +0.011; 3893/14/5/88 both/lost/saved/neither)
   K6: none
 
 B. S147-db's part of each width's pooled net gain
@@ -29,3 +29,7 @@ F. the order effect's groups (by which arm ran first) and the units each time me
   the library group: 4 units, 4 with their three arms in one process
   the 90/10 group: 8 units, 8 with their three arms in one process
   the feature group: 8 units, 8 with their three arms in one process
+
+G. the capped pot by the direction of spending delivered, against K2: units spending more and less, how many of each with the capped pot lower, and of those past the 0.5% bar how many spend more
+  K4: spending more on 11 units, 6 of them with the capped pot lower; spending less on 17, 3 lower; past the bar 5, 3 of them spending more (S337F more, S109-90 less, S061-dbpart less, S109-sppart more, S377-dbpart more)
+  K6: spending more on 10 units, 7 of them with the capped pot lower; spending less on 18, 3 lower; past the bar 7, 6 of them spending more (S337F more, S109-90 more, S191-90 more, S271-90 more, S061-dbpart less, S109-sppart more, S377-dbpart more)

@@ -18,21 +18,29 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { survivalChangeU, survivalChange, pooledSummed } from './stats.mjs';
+import { survivalChangeU, survivalChange, pooledSummed, wilson, zFor } from './stats.mjs';
 import { armOf, cells } from './reduce-joint-wide.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), DIR = join(HERE, 'results', 'joint-wide-7002');
 const units = readdirSync(DIR).filter(f => /\.json\.gz$/.test(f)).map(f => { const U = JSON.parse(gunzipSync(readFileSync(join(DIR, f))).toString()); for (const a of ['K2', 'K4', 'K6']) U.arms[a] = armOf(U.arms[a]); return U; }).sort((p, q) => p.k - q.k);
 const f3 = x => (x >= 0 ? '+' : '') + x.toFixed(3), pc = x => `${(100 * x).toFixed(1)}%`;
+/* the rule's interval with method 10's correction to the paired correlation (D112's fix, worked here from Newcombe's
+   formulae: ad - bc less N/2 where it exceeds N/2, nought from 0 to N/2, left alone below 0) */
+const method10 = (a, b, c, d) => {
+  const N = a + b + c + d, z = zFor(0.05), pB = (a + c) / N, pA = (a + b) / N, dl = pB - pA, [lB, uB] = wilson(a + c, N, z), [lA, uA] = wilson(a + b, N, z);
+  const den = Math.sqrt((a + c) * (b + d) * (a + b) * (c + d)), num = a * d - b * c, phi = den > 0 ? (num <= 0 ? num : num > N / 2 ? num - N / 2 : 0) / den : 0;
+  return { lo: 100 * (dl - Math.sqrt(Math.max(0, (pB - lB) ** 2 - 2 * phi * (pB - lB) * (uA - pA) + (uA - pA) ** 2))), hi: 100 * (dl + Math.sqrt(Math.max(0, (uB - pB) ** 2 - 2 * phi * (uB - pB) * (pA - lA) + (pA - lA) ** 2))) };
+};
 const mean = a => a.reduce((s, x) => s + x, 0) / a.length;
 console.log(`JOINT-WIDE, BESIDE ITS READ (EXPLORATORY, deciding nothing; joint-wide-beside.mjs, after the read): ${units.length} units of results/joint-wide-7002, on stats.mjs as it stood at the read`);
 
-console.log('\nA. survival by unit against K2: the rule\'s interval (survivalChangeU) and the exact paired one (survivalChange); units wholly below nought by either');
+console.log('\nA. survival by unit against K2: the rule\'s interval (survivalChangeU as it stood at the read), the same with method 10\'s correction (D112, worked here), and the exact paired one (survivalChange); units wholly below nought by any');
 for (const arm of ['K4', 'K6']) {
   const below = [];
   for (const U of units) {
     const c = cells(U.arms.K2, U.arms[arm]), u = survivalChangeU(c.a, c.lost, c.saved, c.d), e = survivalChange(c.lost, c.saved, U.N);
-    if (u.hi < 0 || e.hi < 0) below.push(`${U.id} ${f3(u.d)} (the rule's ${f3(u.lo)} to ${f3(u.hi)}; exact ${f3(e.lo)} to ${f3(e.hi)}; ${c.lost} lost, ${c.saved} saved)`);
+    const m = method10(c.a, c.lost, c.saved, c.d);
+    if (u.hi < 0 || e.hi < 0 || m.hi < 0) below.push(`${U.id} ${f3(u.d)} (the rule's as at the read ${f3(u.lo)} to ${f3(u.hi)}; with method 10's correction ${f3(m.lo)} to ${f3(m.hi)}; exact ${f3(e.lo)} to ${f3(e.hi)}; ${c.a}/${c.lost}/${c.saved}/${c.d} both/lost/saved/neither)`);
   }
   console.log(`  ${arm}: ${below.length ? below.join('; ') : 'none'}`);
 }
@@ -75,3 +83,10 @@ console.log('\nF. the order effect\'s groups (by which arm ran first) and the un
 const one = U => new Set(['K2', 'K4', 'K6'].flatMap(a => (U.arms[a].chunks || []).map(c => c.proc))).size === 1;
 for (const first of ['K2', 'K4', 'K6']) { const g = units.filter(U => U.order[0] === first); console.log(`  ${first} first: ${g.length} units (${g.filter(one).length} in one process): ${g.map(U => U.id).join(', ')}`); }
 for (const grp of ['younger', 'library', '90/10', 'feature']) { const g = units.filter(U => U.group === grp); console.log(`  the ${grp} group: ${g.length} units, ${g.filter(one).length} with their three arms in one process`); }
+
+console.log('\nG. the capped pot by the direction of spending delivered, against K2: units spending more and less, how many of each with the capped pot lower, and of those past the 0.5% bar how many spend more');
+for (const arm of ['K4', 'K6']) {
+  const rows = units.map(U => { const cap = v => mean(Array.from(v, x => Math.min(x, U.cap))), sp = v => v.reduce((t, x) => t + x, 0); return { id: U.id, pot: 100 * (cap(U.arms[arm].pot) / cap(U.arms.K2.pot) - 1), more: sp(U.arms[arm].delivered) > sp(U.arms.K2.delivered) }; });
+  const up = rows.filter(r => r.more), down = rows.filter(r => !r.more), past = rows.filter(r => r.pot < -0.5);
+  console.log(`  ${arm}: spending more on ${up.length} units, ${up.filter(r => r.pot < 0).length} of them with the capped pot lower; spending less on ${down.length}, ${down.filter(r => r.pot < 0).length} lower; past the bar ${past.length}, ${past.filter(r => r.more).length} of them spending more (${past.map(r => `${r.id} ${r.more ? 'more' : 'less'}`).join(', ')})`);
+}

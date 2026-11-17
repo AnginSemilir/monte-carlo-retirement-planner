@@ -1,0 +1,55 @@
+BESIDE STEP 5'S READ (EXPLORATORY, after the read, deciding nothing): 28 units, seed 7002, 4000 paths; survival in points, paired by path (stats.mjs survivalChange)
+
+A. HS less K2, with and without its largest unit
+  pooled: +5.865 (+5.812 to +5.913) on 28 units; without S061-dbpart@gap12 +4.990 (+4.943 to +5.031)
+  even     +3.725 (+3.603 to +3.810) on 4 units; without S061-dbpart@even +1.767 (+1.609 to +1.879)
+  gap8     +6.856 (+6.717 to +6.958) on 4 units; without S147-db@gap8 +2.683 (+2.503 to +2.818)
+  gap12    +13.488 (+13.247 to +13.693) on 4 units; without S061-dbpart@gap12 +8.150 (+7.971 to +8.279)
+  elder2nd +3.925 (+3.790 to +4.024) on 4 units; without S061-dbpart@elder2nd +1.658 (+1.486 to +1.788)
+  part60   +1.150 (+1.001 to +1.271) on 4 units; without S061-dbpart@part60 +0.517 (+0.338 to +0.671)
+  penB90   +7.556 (+7.456 to +7.617) on 4 units; without S061-dbpart@penB90 +2.367 (+2.236 to +2.448)
+  penA100  +4.356 (+4.209 to +4.468) on 4 units; without S061-dbpart@penA100 +0.900 (+0.727 to +1.037)
+
+B. CEIL less HS by shape: the mean over its units (the rule's measure), with and without its largest unit
+  even     +0.100 (S149@even +0.000, S337F@even -0.025, S147-db@even +0.375, S061-dbpart@even +0.050); without S147-db@even +0.008
+  gap8     +0.363 (S149@gap8 +0.150, S337F@gap8 -0.025, S147-db@gap8 +1.350, S061-dbpart@gap8 -0.025); without S147-db@gap8 +0.033
+  gap12    +1.675 (S149@gap12 +0.125, S337F@gap12 +0.175, S147-db@gap12 +2.350, S061-dbpart@gap12 +4.050); without S061-dbpart@gap12 +0.883
+  elder2nd +0.025 (S149@elder2nd +0.025, S337F@elder2nd +0.000, S147-db@elder2nd +0.050, S061-dbpart@elder2nd +0.025); without S147-db@elder2nd +0.017
+  part60   +0.175 (S149@part60 +0.050, S337F@part60 +0.050, S147-db@part60 +0.600, S061-dbpart@part60 +0.000); without S147-db@part60 +0.033
+  penB90   +0.206 (S149@penB90 +0.125, S337F@penB90 +0.100, S147-db@penB90 +0.525, S061-dbpart@penB90 +0.075); without S147-db@penB90 +0.100
+  penA100  +0.288 (S149@penA100 +0.100, S337F@penA100 +0.200, S147-db@penA100 +0.650, S061-dbpart@penA100 +0.200); without S147-db@penA100 +0.167
+
+C. spending delivered on the paths both keep, HS against K2, with and without its largest unit
+  +2.9081% (+2.8931 to +2.9230); without S147-db@elder2nd +2.7792% (+2.7643 to +2.7942)
+
+D. by unit, against the app's rules (APP): K2 less APP and HS less APP; and whether the app's guard hands the couple, as entered, to the solver (src/couplesSwitch.js)
+  S149@even            K2 less APP +11.825 (+11.598 to +11.874); HS less APP +11.750 (+11.566 to +11.750); the guard: the solver (the pots' share 0.600)
+  S149@gap8            K2 less APP +10.950 (+10.766 to +10.950); HS less APP +12.025 (+11.798 to +12.074); the guard: the solver (the pots' share 0.600)
+  S149@gap12           K2 less APP +9.750 (+9.566 to +9.750); HS less APP +11.850 (+11.564 to +11.969); the guard: the solver (the pots' share 0.600)
+  S149@elder2nd        K2 less APP +11.925 (+11.741 to +11.925); HS less APP +11.850 (+11.666 to +11.850); the guard: the solver (the pots' share 0.600, on its mirror)
+  S149@part60          K2 less APP +11.200 (+10.973 to +11.249); HS less APP +11.200 (+11.016 to +11.200); the guard: the solver (the pots' share 0.400)
+  S149@penB90          K2 less APP +10.050 (+9.823 to +10.099); HS less APP +11.825 (+11.641 to +11.825); the guard: the solver (the pots' share 0.450)
+  S149@penA100         K2 less APP +9.650 (+9.423 to +9.699); HS less APP +11.325 (+11.141 to +11.325); the guard: the solver (the pots' share 0.720)
+  S337F@even           K2 less APP +11.475 (+11.291 to +11.475); HS less APP +12.350 (+12.166 to +12.350); the guard: the solver (the pots' share 0.600)
+  S337F@gap8           K2 less APP +10.750 (+10.566 to +10.750); HS less APP +11.075 (+10.891 to +11.075); the guard: the solver (the pots' share 0.600)
+  S337F@gap12          K2 less APP +11.525 (+11.341 to +11.525); HS less APP +12.025 (+11.841 to +12.025); the guard: the solver (the pots' share 0.600)
+  S337F@elder2nd       K2 less APP +10.225 (+10.041 to +10.225); HS less APP +11.675 (+11.491 to +11.675); the guard: the solver (the pots' share 0.600, on its mirror)
+  S337F@part60         K2 less APP +11.525 (+11.341 to +11.525); HS less APP +11.550 (+11.323 to +11.599); the guard: the solver (the pots' share 0.400)
+  S337F@penB90         K2 less APP +9.375 (+9.148 to +9.424); HS less APP +12.700 (+12.473 to +12.749); the guard: the app's rules (uneven; the pots' share 0.350)
+  S337F@penA100        K2 less APP +9.875 (+9.691 to +9.875); HS less APP +11.000 (+10.816 to +11.000); the guard: the solver (the pots' share 0.800)
+  S147-db@even         K2 less APP +8.250 (+8.023 to +8.299); HS less APP +12.750 (+12.566 to +12.750); the guard: the solver (the pots' share 0.600)
+  S147-db@gap8         K2 less APP -6.800 (-7.222 to -6.247); HS less APP +12.575 (+12.391 to +12.575); the guard: the solver (the pots' share 0.600)
+  S147-db@gap12        K2 less APP -10.950 (-11.140 to -10.602); HS less APP +10.900 (+10.716 to +10.900); the guard: the solver (the pots' share 0.600)
+  S147-db@elder2nd     K2 less APP +10.225 (+9.917 to +10.370); HS less APP +13.825 (+13.641 to +13.825); the guard: the solver (the pots' share 0.600, on its mirror)
+  S147-db@part60       K2 less APP +12.100 (+11.916 to +12.100); HS less APP +13.625 (+13.441 to +13.625); the guard: the solver (the pots' share 0.400)
+  S147-db@penB90       K2 less APP +10.775 (+10.591 to +10.775); HS less APP +12.775 (+12.591 to +12.775); the guard: the solver (the pots' share 0.450)
+  S147-db@penA100      K2 less APP +12.650 (+12.423 to +12.699); HS less APP +12.550 (+12.366 to +12.550); the guard: the solver (the pots' share 0.720)
+  S061-dbpart@even     K2 less APP +3.600 (+3.077 to +4.006); HS less APP +13.200 (+13.016 to +13.200); the guard: the solver (the pots' share 0.600)
+  S061-dbpart@gap8     K2 less APP +6.200 (+5.839 to +6.408); HS less APP +12.850 (+12.666 to +12.850); the guard: the solver (the pots' share 0.600)
+  S061-dbpart@gap12    K2 less APP -20.250 (-20.338 to -19.990); HS less APP +9.250 (+8.370 to +10.025); the guard: the solver (the pots' share 0.600)
+  S061-dbpart@elder2nd K2 less APP +3.150 (+2.337 to +3.899); HS less APP +13.875 (+13.691 to +13.875); the guard: the solver (the pots' share 0.600, on its mirror)
+  S061-dbpart@part60   K2 less APP +10.750 (+10.523 to +10.799); HS less APP +13.800 (+13.616 to +13.800); the guard: the solver (the pots' share 0.400)
+  S061-dbpart@penB90   K2 less APP -10.175 (-10.559 to -9.649); HS less APP +12.950 (+12.723 to +12.999); the guard: the app's rules (uneven; the pots' share 0.175)
+  S061-dbpart@penA100  K2 less APP -2.850 (-3.106 to -2.459); HS less APP +11.875 (+11.648 to +11.924); the guard: the app's rules (uneven; the pots' share 0.940)
+  the guard hands to the solver and K2's interval against APP lies wholly below 0: S147-db@gap8 -6.800 (-7.222 to -6.247); S147-db@gap12 -10.950 (-11.140 to -10.602); S061-dbpart@gap12 -20.250 (-20.338 to -19.990)
+  K2 less APP pooled over the units the guard hands to the solver: +7.217 (+7.067 to +7.363) on 25 units; without S061-dbpart@gap12 +8.361 (+8.243 to +8.475)

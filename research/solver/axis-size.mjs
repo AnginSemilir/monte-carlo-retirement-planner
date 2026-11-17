@@ -7,17 +7,24 @@
  * years counted 0 to its last, as ANSWERS.md counts them). For each unit named: the plan's years, the first plan year
  * anyone retires (householdPlanFor's), the plan year the younger person reaches the state pension age, the window's years
  * and the factor; and, as a check on this reading of section 3, the same for the units section 3 names (S023, S149, the
- * younger couples, S377: "3 of 28", "15 of 40", "19 of 61", "21 of 46").
+ * younger couples, S377: "3 of 28", "15 of 40", "19 of 61", "21 of 46"). A shape's unit (<base>@<shape>, step 5's panel) is read
+ * from shapes-panel.json on the plan the solvers are handed (an elder2nd unit as its mirror).
  *   node research/solver/axis-size.mjs <unit id> ...
  */
 import * as E from '../engine.mjs';
 import { UNITS, unitPlans } from './audit-household.mjs';
+import { readShapesPanel, solverPlanOf } from './shapes-panel.mjs';
 
 const ids = process.argv.slice(2);
-const rowOf = id => {
+const planOf = id => {
+  if (id.includes('@')) { const U = readShapesPanel().find(x => x.id === id); return U ? solverPlanOf(U.plan, U.shape).hp : null; }
   const u = UNITS.find(x => x.id === id);
-  if (!u) return `${id}: not one of the lead test's units`;
-  const { hp } = unitPlans(u), ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(hp)));
+  return u ? unitPlans(u).hp : null;
+};
+const rowOf = id => {
+  const hp = planOf(id);
+  if (!hp) return `${id}: not one of the lead test's units or the shapes' panel's`;
+  const ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(hp)));
   const own = { self: ctx.owners.find(o => o.key === 'self'), part: ctx.owners.find(o => o.key === 'part') }, T = ctx.totalYears;
   const ageOf = (k, t) => (k === 'self' ? ctx.ageSelf0 : ctx.agePart0) + t, working = (k, t) => ageOf(k, t) < own[k].retireAge;
   let tR = 0; while (tR <= T && working('self', tR) && working('part', tR)) tR++;

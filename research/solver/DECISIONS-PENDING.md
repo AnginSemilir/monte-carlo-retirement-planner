@@ -11,6 +11,13 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (17 Nov, morning): D112's fix to `survivalChangeU` waits on an unlock.** Built and checked (`stats.mjs`, Newcombe's
+method 10's correction; `research/tests/stats-newcombe.test.mjs` ALL PASS, 4 checks, the reviewer's two worked cases
+reproduced and its plant failing), it moves pinned figures in a protected FAST test, `plan-defaults.test.mjs`'s relative
+margin's floor: identical arms clear from 39 surviving paths to 43 (8,000 and 16,000 paths), 40 to 45 at the look's level
+0.045, 78 to 83 at 0.005 (the decided `marginRelFloor`, report-only, unchanged). The hook refuses the edit without the
+maintainer's "unlock enforcement"; asked.
+
 **OPEN (17 Nov, morning): D111 (3)'s speed work, after JOINT-WIDE's read (FAILS: the joint move stays at two;
 `reports/2026-11-17-joint-wide-read.md`).** By D111 it follows this read. The agent recommends holding it until the external
 review answers on the household plan (`QUESTIONS-2026-11-17.md`): if one plan for the household is taken, it replaces the

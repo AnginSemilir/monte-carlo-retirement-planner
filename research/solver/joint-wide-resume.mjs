@@ -1,9 +1,13 @@
 /*
  * JOINT-WIDE'S RESUME CHECK (JOINT-WIDE.md's amendment 2; CHECKLIST 5): a unit stopped part-way, as a container restart stops
  * it, and run again picks up from its last saved chunk and gives the unit a straight run gives, to the bit. At a smoke's
- * settings (6 points, 60 paths of seed 7002, chunks of 20, the replays on 2), one unit (S023-90 unless named):
+ * settings (6 points, seed 7002, the replays on 2), one unit (S023-90 unless named), in two cases:
+ *   small chunks  60 paths in chunks of 20, stopped after four chunks (K2's three and K4's first);
+ *   past the check 230 paths in chunks of 205, stopped after three (K2's two and K4's first), so K4 resumes at path 205,
+ *                 past the 200 paths the audit holds to E.runTrial (a path lost there only the comparison can catch);
+ * each case:
  *   STRAIGHT  run once to its end;
- *   RESUMED   stopped after four chunks (JW_STOP_AFTER: K2's three and K4's first), then run again to its end.
+ *   RESUMED   stopped (JW_STOP_AFTER), then run again to its end.
  * Compared: each arm's seven arrays (survival, failure year, pot, estate, lifetime tax, spending delivered, unmet spending)
  * byte for byte, each person's table digests, the replays; and that the resumed unit's K4 ran in two processes (it did resume)
  * and left no saved part behind. Its plant (--plant offbyone: a path skipped on resuming) must fail the arrays. No outcome is
@@ -22,21 +26,26 @@ const HERE = dirname(fileURLToPath(import.meta.url)), AUDIT = join(HERE, 'audit-
 const args = process.argv.slice(2), plant = args.includes('--plant') ? args[args.indexOf('--plant') + 1] : null;
 const id = args.find(a => !a.startsWith('--') && a !== plant) || 'S023-90', k = UNITS.findIndex(u => u.id === id);
 if (k < 0) { console.error(`joint-wide-resume: no unit ${id}`); process.exit(2); }
-const base = { ...process.env, JW_PTS: '6', JW_N: '60', JW_REPLAY: '2', JW_CHUNK: '20' };
-delete base.JW_STOP_AFTER; delete base.JW_PLANT;
+const CASES = [{ name: 'small chunks', n: 60, chunk: 20, stop: 4 }, { name: 'past the check', n: 230, chunk: 205, stop: 3 }];
+const env0 = { ...process.env, JW_PTS: '6', JW_REPLAY: '2' };
+delete env0.JW_STOP_AFTER; delete env0.JW_PLANT; delete env0.JW_N; delete env0.JW_CHUNK;
+let base = env0;
 const run = (dir, extra, log) => {
   try { execFileSync(process.execPath, [AUDIT, 'part', `${k}/${UNITS.length}`], { env: { ...base, JW_OUT: dir, ...extra }, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 1 << 26 }); return 0; }
   catch (e) { writeFileSync(join(dir, log), String(e.stdout || '') + String(e.stderr || '')); return e.status; }
 };
-const root = mkdtempSync(join(tmpdir(), 'jw-resume-')), A = join(root, 'straight'), B = join(root, 'resumed');
-execFileSync('mkdir', ['-p', A, B]);
-const s0 = run(A, {}, 'straight.err'), s1 = run(B, { JW_STOP_AFTER: '4' }, 'stopped.err'), s2 = run(B, plant ? { JW_PLANT: plant } : {}, 'resumed.err');
 const read = dir => JSON.parse(gunzipSync(readFileSync(join(dir, `${id}.json.gz`))).toString());
 const checks = [];
 const check = (label, ok) => { checks.push([label, ok]); console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${label}`); };
 console.log(`JOINT-WIDE'S RESUME CHECK: ${id} (unit ${k}) at a smoke's settings${plant ? `, the plant ${plant}` : ''}`);
-check(`the straight run ends cleanly (exit ${s0}), the stopped one stops as a restart would (exit ${s1}, want 75), and the run again ends cleanly (exit ${s2})`, s0 === 0 && s1 === 75 && s2 === 0);
-if (s0 === 0 && s2 === 0) {
+for (const c of CASES) {
+  base = { ...env0, JW_N: String(c.n), JW_CHUNK: String(c.chunk) };
+  const root = mkdtempSync(join(tmpdir(), 'jw-resume-')), A = join(root, 'straight'), B = join(root, 'resumed');
+  execFileSync('mkdir', ['-p', A, B]);
+  const s0 = run(A, {}, 'straight.err'), s1 = run(B, { JW_STOP_AFTER: String(c.stop) }, 'stopped.err'), s2 = run(B, plant ? { JW_PLANT: plant } : {}, 'resumed.err');
+  console.log(` ${c.name}: ${c.n} paths in chunks of ${c.chunk}, stopped after ${c.stop} (the runs' own lines in ${root})`);
+  check(`the straight run ends cleanly (exit ${s0}), the stopped one stops as a restart would (exit ${s1}, want 75), and the run again ends cleanly (exit ${s2})`, s0 === 0 && s1 === 75 && s2 === 0);
+  if (s0 !== 0 || s2 !== 0) continue;
   const X = read(A), Y = read(B), KEYS = ['survived', 'failYear', 'pot', 'estate', 'tax', 'delivered', 'unmet'];
   const differ = ARMS.flatMap(a => KEYS.filter(key => X.arms[a][key] !== Y.arms[a][key]).map(key => `${a}.${key}`));
   check(`each arm's seven arrays the same byte for byte (differing: ${differ.join(', ') || 'none'})`, differ.length === 0);

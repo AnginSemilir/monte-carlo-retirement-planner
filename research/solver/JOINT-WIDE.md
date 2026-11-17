@@ -205,8 +205,9 @@ It runs as a harness-tracked task, relaunched under `RESUME=1` after a restart.
   processes or machines across a restart. The median over all units is printed beside. Nothing else in the rule changes.
 - **Its check (CHECKLIST 5):** `joint-wide-resume.mjs`, its output in `results-joint-wide-resume.txt`. The run is not
   launched until it has shown both of these:
-  - a unit stopped after four chunks and run again must give the straight run's unit to the bit: each arm's arrays, the
-    digests and the replays;
-  - its plant, a path skipped on resuming, must fail it.
+  - a unit stopped part-way and run again must give the straight run's unit to the bit (each arm's arrays, the digests and
+    the replays), in two cases: small chunks (60 paths in chunks of 20), and an arm resumed past the 200 paths the audit
+    holds to the engine's own run (230 paths in chunks of 205), where only the comparison can catch a lost path;
+  - its plant, a path skipped on resuming, must fail both cases.
 - At a smoke's settings the audit now prints no outcome.
 - The audit's stamp changes, so every unit runs again from an empty folder, S327F and S333F included.

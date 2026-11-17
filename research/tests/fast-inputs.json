@@ -3891,6 +3891,7 @@
    "research/solver/results-f1v2-tiers.txt",
    "research/solver/results-f1v2.txt",
    "research/solver/results-fail-delivered.txt",
+   "research/solver/results-fair-gate-allowed.txt",
    "research/solver/results-fair-test-audit.txt",
    "research/solver/results-fast-forcex-mutations.txt",
    "research/solver/results-final-year-staircase.txt",

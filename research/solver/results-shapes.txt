@@ -1,0 +1,42 @@
+THE SHAPES THE LIBRARY LACKS (EXPLORATORY; SHAPES.md): 28 units, seed 7002, 4000 paths, 45 points; HS at the split 'even'; code 603eeb595679, audit 260916d007cd
+THE GATE: fair
+  on two audit stamps (SHAPES.md amendment 1; D125 to D127): the launch's 260916d007cd on 26 units; the amended files' decd98612d68 on S147-db@penA100 and S061-dbpart@penA100, run again after the settings check as launched refused them; their refused logs case20-refused.txt, case27-refused.txt
+
+THE RULE, HS less K2, paired by path (stats.mjs survivalChange), pooled over the units that ran:
+  1. pooled survival +5.865 (+5.812 to +5.913) points over 28 units; its lower end above 0: HOLDS
+  2. units whose interval lies wholly below -0.3: none
+  3. pooled spending delivered on the paths both keep +2.9081 (+2.8931 to +2.9230)% of K2's; not lower by more than 0.05%: HOLDS
+  6. the household table's opening forecast less HS's survival, beyond 2 points: S337F@even -2.84; S147-db@gap12 +2.47; S061-dbpart@gap12 +4.05 (named; the outcome unchanged)
+  by shape: even (4): survival +3.725 (+3.603 to +3.810), spending kept +3.1528%, below the bar 0, CEIL less HS +0.100 on average; gap8 (4): survival +6.856 (+6.717 to +6.958), spending kept +2.3371%, below the bar 0, CEIL less HS +0.363 on average; gap12 (4): survival +13.488 (+13.247 to +13.693), spending kept +2.1364%, below the bar 0, CEIL less HS +1.675 on average; elder2nd (4): survival +3.925 (+3.790 to +4.024), spending kept +3.4161%, below the bar 0, CEIL less HS +0.025 on average; part60 (4): survival +1.150 (+1.001 to +1.271), spending kept +3.0121%, below the bar 0, CEIL less HS +0.175 on average; penB90 (4): survival +7.556 (+7.456 to +7.617), spending kept +2.9980%, below the bar 0, CEIL less HS +0.206 on average; penA100 (4): survival +4.356 (+4.209 to +4.468), spending kept +3.1103%, below the bar 0, CEIL less HS +0.288 on average
+  shapes whose units average more than 1 point of CEIL less HS: gap12 +1.675
+OUTCOME: A SHAPE TO PLACE
+
+BESIDE THE RULE, deciding nothing; by unit: survival APP / K2 / HS / CEIL (%), HS less K2 (interval; saved / lost), CEIL less HS, HS less APP, the forecast less HS, the biases
+  S149@even            86.42 / 98.25 / 98.17 / 98.17; -0.075 (-0.215 to +0.106) (4 / 7); +0.000 (-0.049 to +0.049); +11.750 (+11.566 to +11.750); -0.15; nil
+  S149@gap8            84.80 / 95.75 / 96.83 / 96.97; +1.075 (+0.778 to +1.242) (48 / 5); +0.150 (-0.011 to +0.199); +12.025 (+11.798 to +12.074); -0.03; locked 8, share 0.60, tax left out 0 a year, deposits 0
+  S149@gap12           84.55 / 94.30 / 96.40 / 96.53; +2.100 (+1.756 to +2.307) (91 / 7); +0.125 (-0.060 to +0.242); +11.850 (+11.564 to +11.969); -0.22; locked 12, share 0.60, tax left out 0 a year, deposits 0
+  S149@elder2nd        85.63 / 97.55 / 97.47 / 97.50; -0.075 (-0.283 to +0.157) (8 / 11); +0.025 (-0.111 to +0.140); +11.850 (+11.666 to +11.850); +0.12; locked 3, share 0.40, tax left out 0 a year, deposits 0; handed to the solvers as its mirror
+  S149@part60          86.72 / 97.92 / 97.92 / 97.97; +0.000 (-0.240 to +0.240) (11 / 11); +0.050 (-0.083 to +0.137); +11.200 (+11.016 to +11.200); -0.12; locked 3, share 0.40, tax left out 0 a year, deposits 0
+  S149@penB90          86.03 / 96.08 / 97.85 / 97.97; +1.775 (+1.595 to +1.775) (71 / 0); +0.125 (-0.045 to +0.212); +11.825 (+11.641 to +11.825); -0.04; locked 3, share 0.10, tax left out 0 a year, deposits 0
+  S149@penA100         86.55 / 96.20 / 97.88 / 97.97; +1.675 (+1.427 to +1.763) (69 / 2); +0.100 (-0.091 to +0.240); +11.325 (+11.141 to +11.325); -0.07; locked 3, share 1.00, tax left out 0 a year, deposits 0
+  S337F@even           84.97 / 96.45 / 97.33 / 97.30; +0.875 (+0.535 to +1.111) (44 / 9); -0.025 (-0.074 to +0.061); +12.350 (+12.166 to +12.350); -2.84; nil
+  S337F@gap8           85.58 / 96.33 / 96.65 / 96.63; +0.325 (-0.035 to +0.642) (30 / 17); -0.025 (-0.074 to +0.061); +11.075 (+10.891 to +11.075); -0.07; locked 8, share 0.60, tax left out 0 a year, deposits 0
+  S337F@gap12          84.78 / 96.30 / 96.80 / 96.97; +0.500 (+0.150 to +0.782) (33 / 13); +0.175 (-0.010 to +0.262); +12.025 (+11.841 to +12.025); -0.03; locked 12, share 0.60, tax left out 0 a year, deposits 0
+  S337F@elder2nd       85.15 / 95.38 / 96.83 / 96.83; +1.450 (+1.129 to +1.638) (64 / 6); +0.000 (-0.049 to +0.049); +11.675 (+11.491 to +11.675); -0.52; locked 3, share 0.40, tax left out 0 a year, deposits 0; handed to the solvers as its mirror
+  S337F@part60         84.33 / 95.85 / 95.88 / 95.92; +0.025 (-0.263 to +0.308) (16 / 15); +0.050 (-0.034 to +0.050); +11.550 (+11.323 to +11.599); -0.48; locked 3, share 0.40, tax left out 0 a year, deposits 0
+  S337F@penB90         85.10 / 94.47 / 97.80 / 97.90; +3.325 (+3.024 to +3.470) (137 / 4); +0.100 (-0.060 to +0.187); +12.700 (+12.473 to +12.749); -0.85; locked 3, share 0.10, tax left out 0 a year, deposits 0
+  S337F@penA100        86.65 / 96.53 / 97.65 / 97.85; +1.125 (+0.745 to +1.403) (57 / 12); +0.200 (+0.052 to +0.200); +11.000 (+10.816 to +11.000); -0.39; locked 3, share 1.00, tax left out 0 a year, deposits 0
+  S147-db@even         86.58 / 94.83 / 99.33 / 99.70; +4.500 (+4.317 to +4.500) (180 / 0); +0.375 (+0.211 to +0.375); +12.750 (+12.566 to +12.750); +0.41; locked 0, share 0.60, tax left out 554 a year, deposits 1
+  S147-db@gap8         85.63 / 78.83 / 98.20 / 99.55; +19.375 (+19.191 to +19.375) (775 / 0); +1.350 (+1.133 to +1.399); +12.575 (+12.391 to +12.575); +1.54; locked 8, share 0.60, tax left out 554 a year, deposits 1
+  S147-db@gap12        86.35 / 75.40 / 97.25 / 99.60; +21.850 (+21.666 to +21.850) (874 / 0); +2.350 (+2.128 to +2.399); +10.900 (+10.716 to +10.900); +2.47; locked 12, share 0.60, tax left out 554 a year, deposits 1
+  S147-db@elder2nd     85.83 / 96.05 / 99.65 / 99.70; +3.600 (+3.298 to +3.745) (148 / 4); +0.050 (-0.119 to +0.189); +13.825 (+13.641 to +13.825); -0.00; locked 3, share 0.40, tax left out 554 a year, deposits 1; handed to the solvers as its mirror
+  S147-db@part60       85.42 / 97.53 / 99.05 / 99.65; +1.525 (+1.203 to +1.713) (67 / 6); +0.600 (+0.429 to +0.600); +13.625 (+13.441 to +13.625); +0.72; locked 3, share 0.40, tax left out 554 a year, deposits 1
+  S147-db@penB90       86.38 / 97.15 / 99.15 / 99.67; +2.000 (+1.688 to +2.168) (85 / 5); +0.525 (+0.323 to +0.574); +12.775 (+12.591 to +12.775); +0.63; locked 3, share 0.10, tax left out 554 a year, deposits 1
+  S147-db@penA100      86.47 / 99.13 / 99.03 / 99.67; -0.100 (-0.278 to +0.117) (6 / 10); +0.650 (+0.443 to +0.699); +12.550 (+12.366 to +12.550); +0.75; locked 3, share 1.00, tax left out 554 a year, deposits 1
+  S061-dbpart@even     86.42 / 90.03 / 99.63 / 99.67; +9.600 (+9.416 to +9.600) (384 / 0); +0.050 (-0.061 to +0.099); +13.200 (+13.016 to +13.200); +0.16; locked 0, share 0.60, tax left out 874 a year, deposits 0
+  S061-dbpart@gap8     86.92 / 93.13 / 99.78 / 99.75; +6.650 (+6.467 to +6.650) (266 / 0); -0.025 (-0.025 to +0.024); +12.850 (+12.666 to +12.850); +0.01; locked 5, share 0.60, tax left out 874 a year, deposits 0
+  S061-dbpart@gap12    86.65 / 66.40 / 95.90 / 99.95; +29.500 (+28.658 to +30.205) (1241 / 61); +4.050 (+3.868 to +4.050); +9.250 (+8.370 to +10.025); +4.05; locked 9, share 0.60, tax left out 874 a year, deposits 0
+  S061-dbpart@elder2nd 86.05 / 89.20 / 99.92 / 99.95; +10.725 (+10.541 to +10.725) (429 / 0); +0.025 (-0.024 to +0.025); +13.875 (+13.691 to +13.875); +0.04; locked 0, share 0.40, tax left out 874 a year, deposits 0; handed to the solvers as its mirror
+  S061-dbpart@part60   85.92 / 96.67 / 99.72 / 99.72; +3.050 (+2.868 to +3.050) (122 / 0); +0.000 (-0.049 to +0.049); +13.800 (+13.616 to +13.800); +0.08; locked 0, share 0.40, tax left out 874 a year, deposits 0
+  S061-dbpart@penB90   86.92 / 76.75 / 99.88 / 99.95; +23.125 (+22.941 to +23.125) (925 / 0); +0.075 (-0.031 to +0.075); +12.950 (+12.723 to +12.999); +0.03; locked 0, share 0.10, tax left out 874 a year, deposits 0
+  S061-dbpart@penA100  87.88 / 85.03 / 99.75 / 99.95; +14.725 (+14.465 to +14.813) (591 / 2); +0.200 (+0.052 to +0.200); +11.875 (+11.648 to +11.924); +0.15; locked 0, share 1.00, tax left out 874 a year, deposits 0

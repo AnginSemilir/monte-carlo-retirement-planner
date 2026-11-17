@@ -1,25 +1,32 @@
 /*
- * ONE PLAN FOR THE WHOLE HOUSEHOLD, THE LEAD TEST (HOUSEHOLD.md section 5; D113; EXPLORATORY, the tuning seed). JOINT-WIDE's
- * 28 units (TIE-C2's younger eight and library four, the share rules' 90/10 and feature units, at their landed targets),
- * each solved two ways and run on the same 4,000 paths of seed 7002:
+ * ONE PLAN FOR THE WHOLE HOUSEHOLD, THE LEAD TEST (HOUSEHOLD.md section 5 as amended for step 4, D118; PRESCRIPTIVE-PLAN.md
+ * step 4; EXPLORATORY, the tuning seed). JOINT-WIDE's 28 units (TIE-C2's younger eight and library four, the share rules'
+ * 90/10 and feature units, at their landed targets), each solved twice, the two people's tables and one household table, and
+ * run on the same 4,000 paths of seed 7002 under four arms, in the order ARMS rotated by k % 4:
  *   K2     the couples' default as the app solves a couple (couple.js solveCouple: each person's table by solveForApp at 45
  *          points, the pots' share, LOOKHOLD; JOINT-WIDE's K2, whose arrays this K2 must equal byte for byte);
- *   HOUSE  design A (research/solver/household.mjs): the household's plan as one person's with both people's allowances, solved
- *          by solveForApp at 45 points as a single's plan is, judging the couple's rollout alone (its top three moves at
- *          every funding split, the tie rule and the hold at the couples' default's settings).
- * Each arm held to E.runTrial on its first 200 paths; each arm's paths saved in chunks of 1,000 so a restart loses at most a
- * chunk (JOINT-WIDE.md's amendment 2, as built there). Beside each unit: each arm's solve time and CPU a path, the household
- * table's forecast at the start and the two tables' joint one, design A's two biases (the plan years one person's pension is
- * open and the other's locked while the household spends; the first person's share of the pensions), and along K2's own
- * path on the first 100 paths how often the household's pick differs from K2's (the level, the split, the tiers). At a
- * smoke's settings (HH_PTS, HH_N) no outcome is printed.
+ *   HOUSE  design A as built (research/solver/household.mjs chooseHousehold: the household table's top three moves at every
+ *          funding split, the tie rule and the hold at the couples' default's settings), beside the rule;
+ *   HS5    the household's move from the single solver's own chooser at the best of five splits (chooseHouseholdSingle,
+ *          'best5'), which decides;
+ *   HS1    the same at the even split ('even'), which decides only whether the split's search stays.
+ * The household table is solved once (step 1: solveForApp at the candidate as it stands, its tie-break above the estate cap
+ * on; step 2: inside twoBands), every household arm reading it; the settings check holds its line to the first person's,
+ * the tie-break the one difference and the minimum pot held to the household's own (D124). Each arm held to E.runTrial on its
+ * first 200 paths; each arm's paths saved in chunks of 1,000 so a restart loses at most a chunk (JOINT-WIDE.md's amendment
+ * 2, as built there). Recorded beside: each arm's solve time and CPU a path; the household table's forecast at the start and
+ * the two tables' joint one; biasesOf's five things; step 1's two counts on HS5 and HS1 (the decisions past twice the
+ * table's wealth top, and of those the ones taking a wrapper to a less risky tier); on the first 300 paths, for K2 and HS5,
+ * the spending level taken and the risk held at every decision, by third of the spending years (the review's
+ * scripts/why-pot.mjs's measures); and along K2's own path on the first 100 paths how often HOUSE's pick differs from K2's.
+ * At a smoke's settings (HH_PTS, HH_N) no outcome is printed.
  *   node research/solver/audit-household.mjs part k/28     (batch-household.sh runs every unit)
  *   node research/solver/audit-household.mjs --units
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import * as CPL from '../../src/solver/couple.js';
-import { solveHousehold, withHousehold, chooseHousehold, mergedState, householdContext, householdPlanFor } from './household.mjs';
+import { solveHousehold, withHousehold, withHouseholdSingle, chooseHousehold, mergedState, householdContext, householdPlanFor } from './household.mjs';
 import { vecOf } from '../../src/solver/grid.js';
 import { solveForApp } from '../../src/solverApp.js';
 import { APP_COUPLE, appJoint, APP_CANDIDATE } from '../../src/solverSettings.js';
@@ -41,10 +48,11 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const { solveCouple, withCouple, chooseJoint } = CPL;
-export const SEED = 7002, N = 4000, PTS = 45, W = 0.02, CHECK = 200, REPLAY = 100, WARM = 3, CHUNK = 1000, TOPK = 3;
+export const SEED = 7002, N = 4000, PTS = 45, W = 0.02, CHECK = 200, REPLAY = 100, WARM = 3, CHUNK = 1000, TOPK = 3, WHY = 300;
 const PROC = `${hostname()}:${process.pid}:${Date.now()}`;
 export const partOf = (out, id, arm) => join(out, 'parts', `${id}-${arm}.json.gz`);
-export const ARMS = ['K2', 'HOUSE'];
+export const ARMS = ['K2', 'HOUSE', 'HS5', 'HS1'];
+export const SPLIT_OF = { HS5: 'best5', HS1: 'even' };
 /* the couples' default joint move, as the page assembles a couple (D99's share rule, D109's LOOKHOLD) */
 export const JOINT = Object.freeze({ shareRule: APP_COUPLE.shareRule, ...appJoint() });
 /* JOINT-WIDE's units, in its order (audit-joint-wide.mjs UNITS) */
@@ -54,8 +62,8 @@ export const UNITS = Object.freeze([
   ...['S023', 'S061', 'S109', 'S147', 'S191', 'S227', 'S271', 'S377'].map(c => ({ id: `${c}-90`, panel: 'share', group: '90/10' })),
   ...['S023-db', 'S061-dbpart', 'S109-sppart', 'S147-db', 'S191-dbpart', 'S227-sppart', 'S271-db', 'S377-dbpart'].map(id => ({ id, panel: 'share', group: 'feature' }))
 ].map(Object.freeze));
-/* unit k's order of the arms: each arm first on half the units */
-export const orderOf = k => (k % 2 ? ['HOUSE', 'K2'] : ['K2', 'HOUSE']);
+/* unit k's order of the arms: ARMS rotated by k % 4, so each arm runs in each place on a quarter of the units */
+export const orderOf = k => [...ARMS.slice(k % ARMS.length), ...ARMS.slice(0, k % ARMS.length)];
 export const STAMP_FILES = ['audit-household.mjs', 'household.mjs', 'reduce-household.mjs', 'HOUSEHOLD.md', 'batch-household.sh', 'audit-couples.mjs', 'audit-couples-share.mjs', 'audit-phase4.mjs', 'couple-panel.mjs', 'select-phase4.mjs', 'share-rules-panel.mjs', 'couples-panel-d4b.json', 'share-rules-panel.json', 'stats.mjs', 'candidate.mjs'];
 export function stampFilesHash() {
   const h = createHash('sha256');
@@ -65,7 +73,43 @@ export function stampFilesHash() {
 export const fileOf = id => `${id}.json.gz`;
 export const optionsOf = (arm, cp) => (arm === 'HOUSE'
   ? { household: cp.meta.household, topK: cp.topK, tieJoint: cp.tieJoint ?? null, holdPast: cp.holdPast ?? null }
-  : { shareRule: cp.meta.shareRule ?? null, tieJoint: cp.tieJoint ?? null, tieLook: cp.tieLook ?? null, holdPast: cp.holdPast ?? null, topK: cp.topK ?? null });
+  : SPLIT_OF[arm] ? { household: cp.meta.household, move: 'single', split: cp.split ?? null, tieAboveCap: cp.H.tieAboveCap ?? null }
+    : { shareRule: cp.meta.shareRule ?? null, tieJoint: cp.tieJoint ?? null, tieLook: cp.tieLook ?? null, holdPast: cp.holdPast ?? null, topK: cp.topK ?? null });
+const zeroCounts = () => ({ decisions: 0, far: 0, down: 0 });
+/* the review's scripts/why-pot.mjs's record of one arm on the first n paths: its policy wrapped to keep, at every decision of
+   every path, the spending level the move takes and the risk held coming into it (the mean real return of the tiers each
+   pension and ISA is held at, weighted by the money in them: model.js profileOf; the plan's own profile for the taxable
+   account and cash), each year stepped by the engine to the plan's end; and the plan years in which it spends */
+export function whyRecord(m, plan, paths, n) {
+  const T = m.ctx.totalYears, rec = { level: [], risk: [], spendYear: [] };
+  for (let t = 0; t <= T; t++) { rec.level.push([]); rec.risk.push([]); rec.spendYear.push(false); }
+  const base = plan.spending.policyOverride;
+  const wrapped = { ...base, choose(st, t) {
+    const j = base.choose(st, t), tierHeld = {};
+    for (const o of m.ctx.owners) { const h = st.tierHeld && st.tierHeld[o.key]; tierHeld[o.key] = { pen: h ? h.pen || 0 : 0, isa: h ? h.isa || 0 : 0 }; }
+    const ms = { pots: st.pots, tierHeld };
+    let w = 0, r = 0;
+    for (const acc of m.ctx.accounts) { const v = st.pots[acc.id] || 0; if (v > 0) { w += v; r += v * M.profileOf(m, ms, acc).real; } }
+    if (w > 0) rec.risk[t].push(100 * r / w);
+    rec.level[t].push(j.spendLevel !== undefined ? j.spendLevel : 1);
+    return j;
+  } };
+  const ctx = E.buildContext({ ...plan, spending: { ...plan.spending, policyOverride: wrapped } });
+  for (let k = 0; k < n; k++) {
+    const zs = paths[k], state = E.freshState(ctx), zPath = zs.length > T + 1 ? zs[T + 1] : 0;
+    for (let t = 0; t <= T; t++) { const row = E.stepYear(ctx, state, t, { z: zs[t], zPath }); if (row.targetSpend > 0) rec.spendYear[t] = true; }
+  }
+  return rec;
+}
+/* a record summed over plan years: decisions, the levels' sum, raises, cuts, the risks' sum and count */
+export function whySum(rec, years) {
+  const s = { n: 0, level: 0, raise: 0, cut: 0, riskN: 0, risk: 0 };
+  for (const t of years) {
+    for (const l of rec.level[t]) { s.n++; s.level += l; if (l > 1 + 1e-9) s.raise++; else if (l < 1 - 1e-9) s.cut++; }
+    for (const r of rec.risk[t]) { s.riskN++; s.risk += r; }
+  }
+  return s;
+}
 const js = x => JSON.stringify(x);
 const tiersOf = j => ['self', 'part'].map(w => `${(j.perOwner[w] && j.perOwner[w].tierPen) || 0}/${(j.perOwner[w] && j.perOwner[w].tierIsa) || 0}`).join(' ');
 
@@ -165,7 +209,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const s1 = Date.now();
   const house = solveHousehold(E, M, hp, { solveOne: solveHouse, topK: TOPK, tieJoint: JOINT.tieJoint, holdPast: JOINT.holdPast });
   const s2 = Date.now(), solveSecs = { K2: (s1 - s0) / 1000, HOUSE: (s2 - s1) / 1000 };
-  const cps = { K2: k2, HOUSE: house };
+  solveSecs.HS5 = solveSecs.HS1 = solveSecs.HOUSE;   // one household table, read by every household arm
+  const cps = { K2: k2, HOUSE: house, HS5: { ...house, split: SPLIT_OF.HS5, counts: zeroCounts() }, HS1: { ...house, split: SPLIT_OF.HS1, counts: zeroCounts() } };
   const lines = ['self', 'part'].map(w => settingsOf(k2.tables[w])), hline = settingsOf(house.H);
   // each person's settings and the household table's the couples' registered run's (at a smoke's points the check is skipped)
   const off = [...(smoke ? [] : [...lines.flatMap((line, i) => wantProblems('CANDC', line, W).map(p => `${i ? 'part' : 'self'}: ${p}`)), ...wantProblems('CANDC', hline, W).map(p => `household: ${p}`)]), ...houseLineProblems(k2.tables.self, house.H, k2.m.ctx.solvencyFloor || 0), ...coupleProblems()];
@@ -180,10 +225,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   // (a table of three worlds read as the rollout reads it: each world's survival, weighted)
   const survAt = (tab, s) => (tab.mix ? tab.mix.tables.reduce((x, tb, j) => x + tab.mix.weights[j] * tb.value(s, 0).survival, 0) : tab.value(s, 0).survival);
   const st0 = M.initialState(k2.m), sH = vecOf(house.hm, mergedState(house, st0)), forecast = { HOUSE: survAt(house.H, sH) };
+  forecast.HS5 = forecast.HS1 = forecast.HOUSE;
   { const sA = vecOf(k2.tables.self.m, CPL.ownerState(st0, 'self')), sB = vecOf(k2.tables.part.m, CPL.ownerState(st0, 'part')); forecast.K2 = survAt(k2.tables.self, sA) * survAt(k2.tables.part, sB); }
   console.log(`${''.padEnd(8)} solved: K2 ${solveSecs.K2.toFixed(0)} s, HOUSE ${solveSecs.HOUSE.toFixed(0)} s; share ${k2.share}; caps ${caps.join(' and ')}, the household's ${house.H.estateCap}; design A's biases: ${bias.lockedYears} plan years one pension locked, the first person's share of the pensions ${bias.penShareSelf.toFixed(3)} | self: ${lines[0]} | part: ${lines[1]} | household: ${hline}`);
   const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
-  const engineOf = (arm, cp) => (arm === 'HOUSE' ? withHousehold : withCouple)({ ...cp.plan, demographics: { ...cp.plan.demographics, mpaaAgeSelf: aDemo.mpaaAgeSelf, mpaaAgePart: aDemo.mpaaAgePart } }, cp);
+  const engineOf = (arm, cp) => (arm === 'HOUSE' ? withHousehold : SPLIT_OF[arm] ? withHouseholdSingle : withCouple)({ ...cp.plan, demographics: { ...cp.plan.demographics, mpaaAgeSelf: aDemo.mpaaAgeSelf, mpaaAgePart: aDemo.mpaaAgePart } }, cp);
   const ctxOf = (arm, cp) => E.buildContext(engineOf(arm, cp));
   const T = ctxOf('K2', k2).totalYears, paths = E.pathsForSeed(SEED, n, T).map(zs => Float64Array.from(zs));
   const arms = {};
@@ -195,15 +241,16 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   for (const arm of order) {
     const cp = cps[arm], ctx = ctxOf(arm, cp), o = optionsOf(arm, cp), pf = partOf(OUT, u.id, arm);
     if (ctx.totalYears !== T) { console.error(`audit-household: ${u.id} ${arm}: another horizon`); process.exit(3); }
-    let A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, new Ty(n)])), done = 0, chunks = [];
+    let A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, new Ty(n)])), done = 0, chunks = [], counts = cp.counts ? zeroCounts() : null;
     if (existsSync(pf)) {
       const P = JSON.parse(gunzipSync(readFileSync(pf)).toString());
       if (P.stamp.code === STAMP.code && P.stamp.audit === STAMP.audit && P.seed === SEED && P.N === n && P.pts === pts && P.chunk === chunk && js(P.digests) === js(before) && js(P.options) === js(o)) {
-        A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, dec(P.arrays[k], Ty)])); done = P.done; chunks = P.chunks;
+        A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, dec(P.arrays[k], Ty)])); done = P.done; chunks = P.chunks; if (counts) counts = { ...P.counts };
         console.log(`${''.padEnd(8)} resumed ${arm} at path ${done} of ${n}, from a part saved by ${[...new Set(chunks.map(c => c.proc))].join(', ')}`);
       } else console.log(`${''.padEnd(8)} a saved part of ${arm} is not this unit's as solved now: ${arm} starts again`);
     }
     if (done < n) for (let k = 0; k < Math.min(WARM, n); k++) runPath(ctx, paths[k], false);
+    if (counts) cp.counts = counts;   // the warm-up's decisions not counted; a resumed arm counts on from its saved part
     while (done < n) {
       const to = Math.min(n, done + chunk), load0 = loadavg()[0], c0 = process.cpuUsage(), w0 = performance.now();
       for (let k = done; k < to; k++) {
@@ -214,18 +261,25 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       chunks.push({ from: done, to, cpuUs: c.user + c.system, wallMs: performance.now() - w0, load: [load0, loadavg()[0]], cpu: cpus()[0].model, proc: PROC });
       done = to;
       const tmp = `${pf}.tmp`;
-      writeFileSync(tmp, gzipSync(js({ stamp: STAMP, seed: SEED, N: n, pts, chunk, digests: before, options: o, done, chunks, arrays: Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) })));
+      writeFileSync(tmp, gzipSync(js({ stamp: STAMP, seed: SEED, N: n, pts, chunk, digests: before, options: o, done, chunks, ...(counts ? { counts: { ...cp.counts } } : {}), arrays: Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) })));
       renameSync(tmp, pf);
       if (stopAfter && --stopAfter === 0) { console.log(`${''.padEnd(8)} stopped after a chunk of ${arm} (HH_STOP_AFTER)`); process.exit(75); }
     }
+    const countsDone = counts ? { ...cp.counts } : null;   // before the check against E.runTrial, which runs the policy again
     let bad = 0;
     for (let k = 0; k < Math.min(CHECK, n); k++) { const q = E.runTrial(ctx, paths[k]); if (q.survived !== !!A.survived[k] || q.terminalPotNet !== A.estate[k] || q.unmetTotal !== A.unmet[k] || q.lifetimeTax !== A.tax[k]) bad++; }
     if (bad) { console.error(`audit-household: ${u.id} ${arm}: runPath differs from E.runTrial on ${bad} of the first ${Math.min(CHECK, n)} paths`); process.exit(3); }
     const cpuUs = chunks.reduce((t, x) => t + x.cpuUs, 0), wallMs = chunks.reduce((t, x) => t + x.wallMs, 0), procs = [...new Set(chunks.map(x => x.proc))];
-    arms[arm] = { options: o, cpuUs, wallMs, chunks, procs, cpus: [...new Set(chunks.map(x => x.cpu))], place: order.indexOf(arm), T, solveSecs: solveSecs[arm], forecast: forecast[arm], ...Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) };
+    arms[arm] = { options: o, cpuUs, wallMs, chunks, procs, cpus: [...new Set(chunks.map(x => x.cpu))], place: order.indexOf(arm), T, solveSecs: solveSecs[arm], forecast: forecast[arm], ...(countsDone ? { counts: countsDone } : {}), ...Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) };
     const surv = smoke ? 'a smoke: no figure printed' : `${(100 * A.survived.reduce((t, v) => t + v, 0) / n).toFixed(2)}% on ${n}`;
-    console.log(`${''.padEnd(8)} done ${arm}: ${js(o)}; engine ${surv}; CPU ${(cpuUs / 1e6).toFixed(0)} s (${(cpuUs / 1e3 / n).toFixed(1)} ms a path), in ${procs.length} process${procs.length > 1 ? 'es' : ''}`);
+    console.log(`${''.padEnd(8)} done ${arm}: ${js(o)}; engine ${surv}${countsDone ? `; step 1's counts: ${countsDone.decisions} decisions, past twice the table's wealth top ${countsDone.far}, of those to a less risky tier ${countsDone.down}` : ''}; CPU ${(cpuUs / 1e6).toFixed(0)} s (${(cpuUs / 1e3 / n).toFixed(1)} ms a path), in ${procs.length} process${procs.length > 1 ? 'es' : ''}`);
   }
+  // the record of the spending level and the risk held, K2 beside HS5, on the first WHY paths, by third of K2's spending years
+  const nWhy = Math.min(n, WHY), recs = { K2: whyRecord(k2.m, engineOf('K2', k2), paths, nWhy), HS5: whyRecord(house.m, engineOf('HS5', cps.HS5), paths, nWhy) };
+  const years = []; for (let t = 0; t <= T; t++) if (recs.K2.spendYear[t]) years.push(t);
+  const thirds = [0, 1, 2].map(i => years.slice(Math.floor(i * years.length / 3), Math.floor((i + 1) * years.length / 3)));
+  const why = { n: nWhy, years, thirds, ...Object.fromEntries(['K2', 'HS5'].map(a => [a, { all: whySum(recs[a], years), first: whySum(recs[a], thirds[0]), middle: whySum(recs[a], thirds[1]), last: whySum(recs[a], thirds[2]) }])) };
+  console.log(`${''.padEnd(8)} the record of the level and the risk on ${nWhy} paths: ${years.length} spending years (${years[0]} to ${years[years.length - 1]}); ${['K2', 'HS5'].map(a => `${a} ${why[a].all.n} decisions`).join(', ')}`);
   // the replay: along K2's own path on the first nReplay paths, the household's pick at the same state against K2's
   const along = { decisions: 0, differ: 0, level: 0, higher: 0, lower: 0, split: 0, tiers: 0, unfunded: 0 };
   for (let k = 0; k < nReplay; k++) {
@@ -247,7 +301,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   console.log(`${''.padEnd(8)} the replay on ${nReplay} paths along K2's path: ${along.decisions} decisions; the household's pick differs at ${along.differ} (another level ${along.level}: higher ${along.higher}, lower ${along.lower}; another split ${along.split}; other tiers ${along.tiers}); nothing funds the year for it at ${along.unfunded}`);
   const after = await digest();
-  writeFileSync(join(OUT, fileOf(u.id)), gzipSync(js({ k: pk, id: u.id, group: u.group, panel: u.panel, cohort: U.cohort, seed: SEED, N: n, nReplay, warm: WARM, pts, W, candidate, joint: JOINT, topK: TOPK, order, cap, caps, houseCap: house.H.estateCap, share: k2.share, shareRule: k2.meta.shareRule, bias, stamp: STAMP, digests: { before, after }, along, arms })));
+  writeFileSync(join(OUT, fileOf(u.id)), gzipSync(js({ k: pk, id: u.id, group: u.group, panel: u.panel, cohort: U.cohort, seed: SEED, N: n, nReplay, warm: WARM, pts, W, candidate, joint: JOINT, topK: TOPK, order, cap, caps, houseCap: house.H.estateCap, share: k2.share, shareRule: k2.meta.shareRule, bias, why, stamp: STAMP, digests: { before, after }, along, arms })));
   for (const arm of ARMS) rmSync(partOf(OUT, u.id, arm), { force: true });
   console.log(`${''.padEnd(8)} done unit ${pk} secs ${Math.round((Date.now() - t0) / 1000)}`);
 }

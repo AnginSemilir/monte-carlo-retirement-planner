@@ -3892,6 +3892,7 @@
    "research/solver/results-hodep.txt",
    "research/solver/results-host.txt",
    "research/solver/results-household-line-check.txt",
+   "research/solver/results-household-planted.txt",
    "research/solver/results-household-review-check.txt",
    "research/solver/results-household-test.txt",
    "research/solver/results-hyb.txt",

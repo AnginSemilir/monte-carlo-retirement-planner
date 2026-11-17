@@ -10,8 +10,8 @@ held-out seed was touched, `research/solver/archive/` was not edited, and no uni
 
 **Corrected later on 17 Nov** (section 5, and step 2 of "what next"): with the capital gains band put right the twin
 couples are far closer but not exact to the pound, so the twin test needs a bar on each kind of tax and not an identity
-(`results-twin-trace-mended.txt`). `PRESCRIPTION.md` beside this file turns the answers into steps and carries the
-prompt for the agent.
+(`results-twin-trace-mended.txt`). `PRESCRIPTIVE-PLAN.md` beside this file turns the answers into steps the agent is to
+follow as written, and carries the prompt for the agent.
 
 I was asked to look at the problem whole and not to take the path so far as right. So section 0 says what I think the
 problem is, before the seven answers.
@@ -690,8 +690,8 @@ no default.
      single's chooser's on the same table.
    - `biasesOf` records all five things `results-bias-table.txt` prints, not two.
    - Acceptance: the twin within its bars on the fidelity units (section 5); nothing under `src/` changed, so the fast
-     suite and the solver's code id are as they were. `PRESCRIPTION.md` beside this file has each step's build, test,
-     rule and time box, and the prompt for the agent.
+     suite and the solver's code id are as they were. `PRESCRIPTIVE-PLAN.md` beside this file has each step's build,
+     test, rule and time box, and the prompt for the agent.
 3. **Run the lead test, amended** (2 to 3 hours on four cores, seed 7002 as planned; the amendments dated before
    launch). The arms: K2; HOUSE as built, so the read joins the handover; the mended form at the even split and at the
    best of five. The rule's changes are in section 2. K2 must still equal JOINT-WIDE's byte for byte.

@@ -8,13 +8,14 @@ The questions are `research/solver/QUESTIONS-2026-11-17.md` on `claude/project-a
 | file | what it is |
 |---|---|
 | `ANSWERS.md` | the seven answers, with what I would do next |
-| `PRESCRIPTION.md` | the answers as steps for the agent: each step's build, test, rule and time box, what is asked of the maintainer, and the prompt to send |
+| `PRESCRIPTIVE-PLAN.md` | the answers as steps the agent follows as written: each step's names, checks, rule and time box, what is asked of the maintainer, and the prompt to send |
 | `results-pilot.txt` | the pilot: today's couples default against design A on twelve of the lead test's units |
 | `results-pilot-beside-joint-wide.txt` | the pilot's units beside JOINT-WIDE's read of the same units |
 | `results-pilot-extra.txt` | the same on couples of shapes the library has none of; design A with the capital gains band put right; design A's move taken from the single solver's own chooser |
 | `results-above-cap.txt` | each arm's lifetime tax on the paths that end above the estate cap, and below it |
 | `results-why-pot.txt` | on three units, the spending level each arm takes and the risk it holds, year by year |
 | `results-answers-figures.txt` | every pooled figure, count and range `ANSWERS.md` quotes from the pilot, printed from the unit files |
+| `results-onetable-smoke.txt`, `results-tiebreak-count.txt` | two things the plan prescribes, tried first at a smoke's settings: one household table for every arm and the capital gains band's helper; and where the tie-break above the cap changes the household's move |
 | `results-fidelity.txt` | design A's household plan against the couple under the app's own rules, taken apart |
 | `results-twin-trace.txt` | where a twin couple and its household plan first part, and on what |
 | `results-twin-trace-mended.txt` | the same with the household plan's capital gains band put right |
@@ -49,6 +50,9 @@ node research/reviews/2026-11-17/scripts/twin-trace.mjs S205 S061-dbpart S327F S
 node research/reviews/2026-11-17/scripts/twin-trace.mjs S205 S061-dbpart S327F S227-90 S023-db S149 --paths 100 --mend
 node research/reviews/2026-11-17/scripts/bias-table.mjs
 node research/reviews/2026-11-17/scripts/coverage.mjs
+# the plan's two smokes (6 points; whether paths are the same and counts of decisions, no outcome)
+node research/reviews/2026-11-17/scripts/onetable-smoke.mjs S327F 60
+node research/reviews/2026-11-17/scripts/tiebreak-count.mjs S327F
 ```
 
 **The arms.** K2: today's couples default, as the lead test's audit solves it. HOUSE: design A as that audit runs it

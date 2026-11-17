@@ -1,0 +1,9 @@
+WHERE THE TIE-BREAK ABOVE THE CAP HAS SOMETHING TO DO, AND WHERE THE SPLIT HAS (the review, 17 Nov; EXPLORATORY; a smoke at six points: counts of decisions, no outcome)
+S061-dbpart at 6 points, 20 paths of seed 99002: 720 decisions, the household above its cap at 7, the tie-break changing the chooser's pick at 0, of them at or below the cap 0
+  the split, at the 700 decisions before the plan's last year: no other split scores more than 1e-9 above the even one at 674; at 668 of those the first best in the order 0, 0.25, 0.5, 0.75, 1 is not the even one
+S205 at 6 points, 20 paths of seed 99002: 820 decisions, the household above its cap at 3, the tie-break changing the chooser's pick at 0, of them at or below the cap 0
+  the split, at the 800 decisions before the plan's last year: no other split scores more than 1e-9 above the even one at 707; at 689 of those the first best in the order 0, 0.25, 0.5, 0.75, 1 is not the even one
+S327F at 6 points, 20 paths of seed 99002: 1220 decisions, the household above its cap at 450, the tie-break changing the chooser's pick at 342, of them at or below the cap 0
+  the split, at the 1200 decisions before the plan's last year: no other split scores more than 1e-9 above the even one at 916; at 851 of those the first best in the order 0, 0.25, 0.5, 0.75, 1 is not the even one
+S227-90 at 6 points, 20 paths of seed 99002: 820 decisions, the household above its cap at 46, the tie-break changing the chooser's pick at 5, of them at or below the cap 0
+  the split, at the 800 decisions before the plan's last year: no other split scores more than 1e-9 above the even one at 704; at 701 of those the first best in the order 0, 0.25, 0.5, 0.75, 1 is not the even one

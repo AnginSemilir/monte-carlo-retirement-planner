@@ -66,9 +66,11 @@ dated record, and the agent cites them by commit.
   "nearest exact" clause. Do not build design B yet.
 - Its pilot is EXPLORATORY and has no rule: twelve of the lead test's units on 1,500 paths of seed 99003, design A
   `+1.72` points above today's default pooled and `+0.97` without S147-db. Nothing of seed 7002 was run.
-- **It carries the prompt to send next: `2026-11-17/PRESCRIPTION.md`.** The answers as eight steps for the agent,
-  each with its build, its test, its rule and its time box; what is asked of the maintainer (M1 to M7, the first being
-  whether a smaller pot left is a harm); and the prompt, which restarts the household line that D114 stopped.
+- **It carries the prompt to send next: `2026-11-17/PRESCRIPTIVE-PLAN.md`.** The answers as eight steps the agent is
+  to follow as written: the names to use, the checks to pass with their plants, the rule each read is made by and its
+  outcomes, and each step's time box; what is asked of the maintainer (M1 to M7, the first being whether a smaller pot
+  left is a harm); and the prompt, which restarts the household line that D114 stopped. It replaces the
+  `PRESCRIPTION.md` first pushed, which left the agent choices.
 - **Corrected later on 17 Nov:** with the capital gains band put right the twin couples are far closer but not exact to
   the pound, so the twin test takes a bar on each kind of tax and not an identity (`ANSWERS.md` section 5,
   `results-twin-trace-mended.txt`).

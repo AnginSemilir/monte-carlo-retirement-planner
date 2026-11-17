@@ -73,6 +73,12 @@ one-off cost, S149 named the one exception with its size.
   agent recommends accepting it as corrected. The read and its outcome stand by both rounds.
 - Step 5 was launched without waiting (D120). `AXIS.md` comes after it (D121), then `REFUSALS.md` (D122).
 
+**RULED (17 Nov, evening; D125 to D127): step 5's two refused units run again on an amended check, the read on two stamps.**
+- D125 amends the check, D126 unlocks the fair-test gate's allowed versions, and D127 adds unit 27 and extends the box.
+- The reviewer before use FAILed the amendment's first form (`reviews/2026-11-17-shapes-amendment-1.md`). Its fix
+  follows D127, with the reviewer again before use.
+- The two stop entries below are kept as the account.
+
 **STOP AGAIN (17 Nov, evening): D125's remedy meets the fair-test gate.** The maintainer chose option 1 below (D125).
 Before anything was built, the agent found the block, which its recommendation had not checked:
 - **The block.** `fair-gate.mjs` `checkLogStamps` (protected; the reducers' fair-test gate) refuses the logs of a read on

@@ -59,30 +59,52 @@ D120).
 
 **Time box:** a day to build and land; 4 hours to run; half a day to read. If the box runs out, stop and report.
 
-## Amendment 1 (17 Nov, evening; D125, D126): the settings check, two units run again, the read on two stamps
+## Amendment 1 (17 Nov, evening; D125 to D127): the settings check, two units run again, the read on two stamps
 
-Made after the launch (17 Nov 17:19 UK, from 7ba13e93, audit `260916d007cd`), when unit 20, S147-db@penA100, exited before
-any arm ran: the audit's settings check refused it. The first person's table's lowest spending level is `0.799985`; the
-household table's is `0.8`. Each table's lowest level is its own plan's floor over its own target, rounded to six places.
-On this shape the pots' share (`0.72`) makes the first person's `0.7999849` and the partner's `0.8000387`. That is the
-class D124 (1) ruled on for the minimum pot: a person's table is solved on its share of the household's figures. No
-outcome of any unit has been read. The rule above is unchanged; the amendment is to how the units are checked and read:
+Made after the launch (17 Nov 17:19 UK, from 7ba13e93, audit `260916d007cd`). Two units exited before any arm ran, both
+refused by the audit's settings check:
+- unit 20, S147-db@penA100: its first person's table's lowest spending level is `0.799985`, the household table's `0.8`;
+- unit 27, S061-dbpart@penA100: the first person's lowest level is `0.80002`.
 
-1. **The settings check** (`audit-shapes.mjs` `shapesLineProblems`, used in place of `audit-household.mjs`'s check; the
-   lead test's files are not touched, so its reducer still reproduces its read):
+The cause, in both: each table's lowest level is its own plan's floor over its own target, rounded to six places, and a
+person's figures are the couple's times their share, rounded to the pound. So the pots' share (`0.72`; `0.94`) moves a
+person's ratio off `0.8`. That is the class D124 (1) ruled on for the minimum pot. No outcome of any unit has been read.
+
+The rule above is unchanged. The amendment is to how the units are checked and read:
+
+1. **The settings check** (`audit-shapes.mjs` `shapesLineProblems`, wired by `unitLineProblems`, in place of
+   `audit-household.mjs`'s check; the lead test's files are not touched, so its reducer still reproduces its read):
    - the household table's line is held to the first person's, the tie-break the one difference, as before;
-   - the minimum pot is left out and held to the household's own, as before (D124 (1));
-   - the spending levels are compared with the lowest left out, and the household table's lowest is held to the
-     household's own floor over its target, rounded as the levels are.
-   Its planted cases: `node research/solver/audit-shapes.mjs --planted`.
-2. **The units run again:** unit 20, S147-db@penA100, and unit 27, S061-dbpart@penA100. Unit 27 was refused for the
-   same reason when the batch ended at 19:57 UK: its first person's lowest level is `0.80002` against the household
-   table's `0.8`. They run alone, through the launcher on the amended files (`batch-shapes.sh` with `UNITS_ONLY="20 27"`
-   and `RESUME=1`), each refused log kept beside it as `case<k>-refused.txt`. The other 26 units ran to their end on the
-   launch's files and the old check, which they passed.
-3. **The read on two stamps:** `reduce-shapes.mjs`'s gate takes exactly two audit stamps: the launch's (`260916d007cd`)
-   for every unit not run again, and the amended files' for the two units run again. A unit on the other stamp, or a
-   third stamp, is refused. The fair-test gate is asked to take exactly those two versions on one code (`fair-gate.mjs`'s
-   allowed versions, D126). Its planted cases: `node research/solver/reduce-shapes.mjs --planted`, and
-   `research/tests/fair-gate-allowed.test.mjs` for the fair-test gate.
-4. **The reviewer** on this amendment before it is used (D125, in D94 (1)'s form).
+   - the minimum pot is left out and held to the couple's, as before (D124 (1));
+   - the spending levels are compared with the lowest left out;
+   - the household table's lowest level is held to the couple's own floor over its target, from the couple's model, a
+     source the household table does not set;
+   - the first person's lowest level is held to their share's, round(floor × share) / round(target × share), from the
+     couple's plan as the solvers are handed it;
+   - each held figure is rounded to six places, as the levels are.
+   Its planted cases:
+   - `node research/solver/audit-shapes.mjs --planted`: the check on its lines, each plant failing the case it names;
+   - `node research/solver/audit-shapes.mjs --planted-wiring`: through the audit's own wiring, on unit 20 at a smoke's
+     settings with a household table, and then a first person's table, solved on a floor of 75%. This shows the
+     amendment's first form (the hold from the household table's own model) was blind to the planted household table.
+2. **The units run again:** units 20 and 27 (D125; unit 27 by D127), in one launch through the launcher on the amended
+   files (`batch-shapes.sh` with `RESUME=1` and `UNITS_ONLY="20 27"`).
+   - The batch moves each refused log aside to `case<k>-refused.txt` before the unit runs, and stops rather than
+     overwrite one already there.
+   - It refuses `RESUME=1` without `UNITS_ONLY` while any log carries another stamp, and runs each named unit once.
+   - Its planted cases: `node research/tests/batch-shapes-units.test.mjs`.
+   - The other 26 units ran to their end on the launch's files and the old check, which they passed.
+   - Nothing among the stamped files changes between this launch and the read.
+3. **The read on two stamps:**
+   - `reduce-shapes.mjs`'s gate takes exactly two audit stamps: the launch's (`260916d007cd`) for every unit not run
+     again, and the amended files' for the two units run again. A unit on the other stamp, or a third stamp, is refused.
+   - The fair-test gate is asked to take exactly those two versions on one code (`fair-gate.mjs`'s allowed versions,
+     D126).
+   - The read's record prints both stamps, each with its units, and the refused logs.
+   - Its planted cases: `node research/solver/reduce-shapes.mjs --planted`, and
+     `research/tests/fair-gate-allowed.test.mjs` for the fair-test gate.
+4. **The reviewer** checks the amendment before it is used (D125, in D94 (1)'s form).
+   - First round: FAIL, two BLOCKING (`reviews/2026-11-17-shapes-amendment-1.md`): the household hold could not fail as
+     first wired, and unit 27 was named on this amendment's own clause rather than a ruling. Each was answered as above,
+     with its four MINORs, in one fix.
+   - The reviewer checks it again before use.

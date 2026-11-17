@@ -1,17 +1,19 @@
-node research/tests/fair-gate-allowed.test.mjs (17 Nov; D126)
+node research/tests/fair-gate-allowed.test.mjs (17 Nov; D126; the test as amended after the reviewer before use, finding 6)
 
-on fair-gate.mjs as committed before the edit (31c43368):
+on fair-gate.mjs with the allowed versions (f902905b), the test and its plants:
+  ok   without an allowed list, logs on two versions are refused
+  ok   with the two versions allowed, the same logs pass
+  ok   the planted case: a third version beside the two allowed is refused
+  ok   an allowed list naming two codes is refused, the logs on both of its versions
+  ok   logs on one version pass without a list, and with a list naming it
+  ok   the plant 'acceptall' fails check 3 alone (it fails 3)
+  ok   the plant 'manycodes' fails check 4 alone (it fails 4)
+ALL PASS: 5 checks and 2 plants
+
+the test's first form (before finding 6), on fair-gate.mjs as committed before the edit (31c43368):
   ok   without an allowed list, logs on two versions are refused
   FAIL with the two versions allowed, the same logs pass
   ok   the planted case: a third version beside the two allowed is refused
   ok   an allowed list naming two codes is refused
   ok   logs on one version pass without a list, and with a list naming it
 FAILED: 1 of 5 checks
-
-on fair-gate.mjs with the allowed versions (D126):
-  ok   without an allowed list, logs on two versions are refused
-  ok   with the two versions allowed, the same logs pass
-  ok   the planted case: a third version beside the two allowed is refused
-  ok   an allowed list naming two codes is refused
-  ok   logs on one version pass without a list, and with a list naming it
-ALL PASS: 5 checks

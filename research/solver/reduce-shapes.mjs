@@ -163,6 +163,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`THE SHAPES THE LIBRARY LACKS (EXPLORATORY; SHAPES.md): ${units.length} units, seed ${units[0].seed}, ${units[0].N} paths, ${units[0].pts} points; HS at the split '${units[0].split}'; code ${units[0].stamp.code}, audit ${units[0].stamp.audit}`);
   if (problems.length) { console.log(`THE GATE: REFUSED\n  ${problems.join('\n  ')}`); process.exit(3); }
   console.log('THE GATE: fair');
+  // SHAPES.md amendment 1: the read is on two audit stamps, each with its units, and the units run again keep their refused logs
+  if (!smoke) {
+    const amended = stampFilesHash(), refused = readdirSync(DIR).filter(f => /^case\d+-refused\.txt$/.test(f)).sort();
+    console.log(`  on two audit stamps (SHAPES.md amendment 1; D125 to D127): the launch's ${AMEND.launch} on ${units.filter(U => !AMEND.rerun.includes(U.id)).length} units; the amended files' ${amended} on ${AMEND.rerun.join(' and ')}, run again after the settings check as launched refused them; their refused logs ${refused.join(', ') || 'none found'}`);
+  }
   if (smoke) { console.log('a smoke: the gate read, no figure printed'); process.exit(0); }
   units.sort((p, q) => ids.indexOf(p.id) - ids.indexOf(q.id));
   const X = rule(units), R = X.R, say = ok => (ok ? 'HOLDS' : 'FAILS');

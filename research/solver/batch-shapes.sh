@@ -18,11 +18,28 @@ AUDIT=$(node --input-type=module -e "import { stampFilesHash } from './research/
 NU=$(node research/solver/audit-shapes.mjs --units | tail -1)
 TODO=$(seq 0 $((NU - 1)) | while read -r k; do f="$OUT/case$k.txt"
   { [ -f "$f" ] && head -1 "$f" | grep -q "^stamp: code $CODE audit $AUDIT " && grep -qE "^ +done unit $k secs " "$f"; } || echo "$k"; done)
-# SHAPES.md amendment 1 (17 Nov; D125, D126): UNITS_ONLY="k ..." runs only the units named, again, into the folder that holds
-# the rest (so RESUME=1 with it), each still to do on these files' stamp; the others are left as they ran
+# SHAPES.md amendment 1 (17 Nov; D125 to D127; its guards from the reviewer before use, finding 5): UNITS_ONLY="k ..." runs
+# only the units named (each once), again, into the folder that holds the rest (so RESUME=1 with it), each still to do on
+# these files' stamp; the others are left as they ran. Before a named unit runs, its log on another stamp (the refusal) is
+# moved aside to case<k>-refused.txt by this script, and a refused log already there stops it rather than be overwritten.
+# RESUME=1 without UNITS_ONLY is refused while any unit's log carries another stamp than these files', so a relaunch that
+# dropped UNITS_ONLY cannot run the launched units again over their logs. MOVE_ONLY=1 makes the moves and stops (its test).
+other=""
+for f in "$OUT"/case*.txt; do case "$(basename "$f")" in case[0-9]*-refused.txt) continue ;; case[0-9]*.txt) head -1 "$f" | grep -q "^stamp: code $CODE audit $AUDIT " || other="$other $(basename "$f")" ;; esac; done
+if [ "${RESUME:-0}" = 1 ] && [ -z "${UNITS_ONLY:-}" ] && [ -n "$other" ]; then echo "$0: logs on another stamp than these files' ($(echo $other | wc -w) of them): RESUME=1 needs UNITS_ONLY to name the units to run again"; exit 2; fi
 if [ -n "${UNITS_ONLY:-}" ]; then
   [ "${RESUME:-0}" = 1 ] || { echo "$0: UNITS_ONLY runs named units again beside the rest: it needs RESUME=1"; exit 2; }
+  UNITS_ONLY=$(printf '%s\n' $UNITS_ONLY | awk '!seen[$0]++' | tr '\n' ' ')
   TODO=$(for k in $UNITS_ONLY; do printf '%s\n' $TODO | grep -qx "$k" && echo "$k"; done)
+  if [ "${TODO_ONLY:-0}" != 1 ]; then
+    for k in $TODO; do f="$OUT/case$k.txt"; r="$OUT/case$k-refused.txt"
+      [ -f "$f" ] || continue
+      head -1 "$f" | grep -q "^stamp: code $CODE audit $AUDIT " && continue
+      [ -e "$r" ] && { echo "$0: $r is there already; case$k.txt on another stamp is not moved over it"; exit 2; }
+      mv "$f" "$r" && echo "moved case$k.txt aside to case$k-refused.txt"
+    done
+    [ "${MOVE_ONLY:-0}" = 1 ] && exit 0
+  fi
 fi
 if [ "${TODO_ONLY:-0}" = 1 ]; then echo "stamp: code $CODE audit $AUDIT"; echo "todo: $(echo $TODO)"; exit 0; fi
 echo "SHAPES (EXPLORATORY): $NU units (code $CODE, audit $AUDIT), $(printf '%s\n' $TODO | grep -c .) to run, ${JOBS:-4} at a time, from $(TZ=Europe/London date '+%d %b %H:%M') UK"

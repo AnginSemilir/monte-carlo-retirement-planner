@@ -73,6 +73,33 @@ one-off cost, S149 named the one exception with its size.
   agent recommends accepting it as corrected. The read and its outcome stand by both rounds.
 - Step 5 was launched without waiting (D120). `AXIS.md` comes after it (D121), then `REFUSALS.md` (D122).
 
+**READ (17 Nov, night): step 5, the shapes the library lacks, A SHAPE TO PLACE (gap12).** `results-shapes.txt`, read once;
+`reports/2026-11-17-shapes-read.md`; the reviewer at the read PASS, two MINORs answered.
+- The household plan is above today's default by `+5.865` points pooled, most of it on the two bases with a DB pension.
+- gap12 is placed on its CEIL less HS (`+1.675`, `+0.883` without S061-dbpart@gap12).
+- `AXIS.md` (step 6) and `REFUSALS.md` (step 7) are written and sent; nothing is built.
+- What remains is the maintainer's:
+
+**FOR THE MAINTAINER: today's couples' default on couples with an age gap and a DB pension (the app as it stands).**
+- **The finding.** On three couples the app's guard hands to the solver under the opt-in, K2 survives below the app's
+  own rules: S147-db@gap8 `-6.800`, S147-db@gap12 `-10.950`, S061-dbpart@gap12 `-20.250`. Each is 60/40 with an 8- or
+  12-year age gap and a DB pension. It was found on seed 7002, EXPLORATORY.
+- **It is the app's own route.** It matched the stored K2 path for path on these couples (the reviewer at the read).
+- **The guard.** It reads no age gap, and every couple tested before was three years apart.
+- **The agent's recommendation, not made:** keep a couple whose age gap is beyond three years and who hold a DB pension
+  on the app's rules until a test reads. That is a change of default, so the reviewer would check it first.
+- **Its trade.** A guard on the gap alone would also take the gain of the gap couples without a DB pension (`+10.744`
+  over the app's rules here). The cause is not shown.
+
+**FOR THE MAINTAINER: the axis (`AXIS.md`).**
+- Design B, the axis on the smaller pension's share, is not built. Whether to build it is the maintainer's.
+- On the lead test's three units the household plan's two-band pricing departs from the couple's mostly outside the
+  axis's window.
+- The decomposition on S191-90 is offered, not run: HS5 with the household table's income bands single, and again with
+  its tax-free cash cap single.
+
+**WAITS (D123): step 8, the registered test**, for the maintainer's word now that steps 4 and 5 have read.
+
 **RULED (17 Nov, evening; D125 to D127): step 5's two refused units run again on an amended check, the read on two stamps.**
 - D125 amends the check, D126 unlocks the fair-test gate's allowed versions, and D127 adds unit 27 and extends the box.
 - The reviewer before use FAILed the amendment's first form (`reviews/2026-11-17-shapes-amendment-1.md`). Its fix

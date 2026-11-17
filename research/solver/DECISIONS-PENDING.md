@@ -29,7 +29,7 @@ PLACE (D120); step 6's `AXIS.md` only if a read calls for it (D121); step 7's `R
 started (D123). The pot is recorded and not a bar (D116). EXPLORATORY throughout; nothing under `src/` and not
 `research/engine.mjs` edited, the solver's code id 603eeb595679.
 
-**OPEN (17 Nov, afternoon): three items from the household plan's steps 1 to 3, each the maintainer's; step 4 not started.**
+**RULED (D124, 17 Nov, late morning: "Go with your recommendations"): three items from the household plan's steps 1 to 3, each as the agent suggested below; step 4 next.**
 Steps 1 and 2 are done as written (75267bdd, 742125f5). Step 3 is built (the twin, `biasesOf`'s five things, check 3's
 lifetime tax, the two traces) and stopped where the plan says stop.
 1. **Step 1's settings check cannot pass as worded.** The plan: the audit "holds the household table's line to the first
@@ -54,7 +54,8 @@ lifetime tax, the two traces) and stopped where the plan says stop.
    `householdPlanFor` to mend, and not arm A's rule. The agent's suggestion: name S149 in the check as the one exception
    with its size (on seed 99001 its capital gains tax over the plan £968 against the couple's £1,057, income tax £35,306
    against £35,490), the cause as found. Meanwhile it is printed and held to no bar.
-The working branch's full tier will show `household.test.mjs` failing on item 2 until it is ruled.
+Applied with the ruling's commit: the settings check with the minimum pot left out, S205's twin held to bar 2 without its
+one-off cost, S149 named the one exception with its size.
 
 **HELD (D119): D111 (3)'s speed work on LOOKHOLD,** until the household plan's lead test (step 4) reads.
 

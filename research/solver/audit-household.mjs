@@ -72,12 +72,16 @@ const tiersOf = j => ['self', 'part'].map(w => `${(j.perOwner[w] && j.perOwner[w
 /* the household table's solve (PRESCRIPTIVE-PLAN.md step 1): solveForApp at the candidate as it stands, its tie-break above
    the estate cap left on (APP_CANDIDATE's tieAboveCap); not the two people's `tieAboveCap: undefined` */
 export const householdSolveOne = (pts, light = {}) => (p, o) => solveForApp(E, M, p, { points: pts, ageWith: o.partnerAge0, research: { ...light } });
-/* the settings check (step 1): the household table's line the first person's, the tie-break the one difference */
+/* the settings check (step 1, as D124 rules it): the household table's line the first person's, the tie-break the one
+   difference, with the minimum pot left out of the comparison (a person's table is solved on its share of the household's
+   minimum pot, the household table on the whole: household-line-check.mjs) and the household table's held to the
+   household's own instead */
 export const lineOf = r => `${settingsOf(r)} tieAboveCap ${r.tieAboveCap || 0}`;
-export function houseLineProblems(selfTab, houseTab) {
+export function houseLineProblems(selfTab, houseTab, floor) {
   const kv = line => Object.fromEntries(line.match(/(\S+) (\S+)/g).map(x => x.split(' ')));
   const a = kv(lineOf(selfTab)), b = kv(lineOf(houseTab)), keys = [...new Set([...Object.keys(a), ...Object.keys(b)])];
-  const differ = keys.filter(k => a[k] !== b[k]), bad = differ.filter(k => k !== 'tieAboveCap').map(k => `household: ${k} ${b[k]}, the first person's ${a[k]}`);
+  const differ = keys.filter(k => a[k] !== b[k] && k !== 'minPot'), bad = differ.filter(k => k !== 'tieAboveCap').map(k => `household: ${k} ${b[k]}, the first person's ${a[k]}`);
+  if (!(Number(b.minPot) === Number(floor))) bad.push(`household: minPot ${b.minPot}, not the household's ${floor}`);
   if (Number(b.tieAboveCap) !== APP_CANDIDATE.tieAboveCap) bad.push(`household: tieAboveCap ${b.tieAboveCap} (want the candidate's ${APP_CANDIDATE.tieAboveCap})`);
   if (Number(a.tieAboveCap) !== 0) bad.push(`self: tieAboveCap ${a.tieAboveCap} (want none)`);
   return bad;
@@ -164,7 +168,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const cps = { K2: k2, HOUSE: house };
   const lines = ['self', 'part'].map(w => settingsOf(k2.tables[w])), hline = settingsOf(house.H);
   // each person's settings and the household table's the couples' registered run's (at a smoke's points the check is skipped)
-  const off = [...(smoke ? [] : [...lines.flatMap((line, i) => wantProblems('CANDC', line, W).map(p => `${i ? 'part' : 'self'}: ${p}`)), ...wantProblems('CANDC', hline, W).map(p => `household: ${p}`)]), ...houseLineProblems(k2.tables.self, house.H), ...coupleProblems()];
+  const off = [...(smoke ? [] : [...lines.flatMap((line, i) => wantProblems('CANDC', line, W).map(p => `${i ? 'part' : 'self'}: ${p}`)), ...wantProblems('CANDC', hline, W).map(p => `household: ${p}`)]), ...houseLineProblems(k2.tables.self, house.H, k2.m.ctx.solvencyFloor || 0), ...coupleProblems()];
   if (k2.m.ctx.solvencyFloor !== E.num(U.plan.config.solvencyFloor, 0)) off.push(`the household's minimum pot ${k2.m.ctx.solvencyFloor}, not the panel's ${U.plan.config.solvencyFloor}`);
   if (house.m.ctx.solvencyFloor !== k2.m.ctx.solvencyFloor) off.push(`the household plan's minimum pot ${house.m.ctx.solvencyFloor}, not K2's ${k2.m.ctx.solvencyFloor}`);
   if (off.length) { console.error(`audit-household: ${u.id}: ${off.join('; ')}`); process.exit(3); }

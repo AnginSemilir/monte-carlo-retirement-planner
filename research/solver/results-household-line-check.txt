@@ -29,6 +29,6 @@ THE AUDIT'S SETTINGS CHECK AS STEP 1 WORDS IT, AGAINST THE LEAD TEST'S UNITS (EX
   S377-dbpart  the household's minimum pot 90000; the first person's share 0.5, so their table's 45000
   units with a minimum pot: 28 of 28
 S149 at 6 points: the share 0.5; the fields of the two lines that differ: minPot (the first person's 102500, the household's 205000); tieAboveCap (the first person's 0, the household's 0.0001)
-  the check as worded: household: minPot 205000, the first person's 102500
+  the check as worded: household: minPot 205000, the first person's 102500; as D124 rules it: no problem
 S327F at 6 points: the share 0.5; the fields of the two lines that differ: minPot (the first person's 45000, the household's 90000); tieAboveCap (the first person's 0, the household's 0.0001)
-  the check as worded: household: minPot 90000, the first person's 45000
+  the check as worded: household: minPot 90000, the first person's 45000; as D124 rules it: no problem

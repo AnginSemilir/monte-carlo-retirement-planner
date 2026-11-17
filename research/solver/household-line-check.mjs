@@ -6,7 +6,8 @@
  * (couple.js singlePlanFor), the household table on the whole of it, and the line prints the minimum pot a table was
  * solved on (minPot). Printed: each unit's minimum pot and the first person's share of it, the share as the couples'
  * default takes it (couple.js shareBy, the pots' rule); then, on the units named, the two lines solved at 6 points with the
- * light lattice, field by field, and what the check says.
+ * light lattice, field by field, and what the check says as worded and as D124 rules it (the minimum pot left out of the
+ * comparison, the household table's held to the household's own).
  *   node research/solver/household-line-check.mjs [unit id ...]
  */
 import * as E from '../engine.mjs';
@@ -32,5 +33,6 @@ for (const id of process.argv.slice(2)) {
   const kv = l => Object.fromEntries(l.match(/(\S+) (\S+)/g).map(x => x.split(' ')));
   const a = kv(lineOf(k2.tables.self)), b = kv(lineOf(house.H));
   console.log(`${id} at 6 points: the share ${k2.share}; the fields of the two lines that differ: ${Object.keys({ ...a, ...b }).filter(k => a[k] !== b[k]).map(k => `${k} (the first person's ${a[k]}, the household's ${b[k]})`).join('; ')}`);
-  console.log(`  the check as worded: ${houseLineProblems(k2.tables.self, house.H).join('; ') || 'no problem'}`);
+  const worded = Object.keys({ ...a, ...b }).filter(k => a[k] !== b[k] && k !== 'tieAboveCap').map(k => `household: ${k} ${b[k]}, the first person's ${a[k]}`);
+  console.log(`  the check as worded: ${worded.join('; ') || 'no problem'}; as D124 rules it: ${houseLineProblems(k2.tables.self, house.H, k2.m.ctx.solvencyFloor || 0).join('; ') || 'no problem'}`);
 }

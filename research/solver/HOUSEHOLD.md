@@ -171,3 +171,85 @@ If the box runs out, stop and report.
 **Stopped by the maintainer (D114, 17 Nov, morning), before the lead test's launch:** "Handover your thoughts and the problem
 so far as a prompt for an external reviewer, stop that line of thought for now." The lead test is not run; design A's
 prototype is committed as built, off in code; the handover is `QUESTIONS-2026-11-17.md`.
+
+**Amended before any unit runs (17 Nov, late morning; D118), as `PRESCRIPTIVE-PLAN.md` step 4 words it (the external review,
+`research/reviews/2026-11-17/` on review/external-2026-10-21 at f1f44727). The "nearest exact" clause and its earlier
+amendment above are withdrawn by it. The rule from here is this one; what is above it in this section stands only where
+this does not replace it.**
+
+*Arms.* Each unit's two tables are solved as now. Its household table is solved once, as step 1 says (`solveForApp` at the
+candidate as it stands, 17ff82379838, its tie-break above the estate cap left on; every household arm reads it), through
+step 2's `twoBands`. Every arm runs on the same 4,000 paths of seed 7002, each held to `E.runTrial` on its first 200.
+
+| arm | what | role |
+|---|---|---|
+| `K2` | the couples' default, as written | the base. Its arrays must equal JOINT-WIDE's K2 byte for byte on every unit: a difference is a STOP |
+| `HOUSE` | `chooseHousehold` on the household table: its top three moves, five splits, `tieJoint`, `holdPast` | beside the rule |
+| `HS5` | `chooseHouseholdSingle`, `split: 'best5'` | **decides** |
+| `HS1` | `chooseHouseholdSingle`, `split: 'even'` | decides only whether the split's search stays |
+
+The order of the arms on unit `k` is `ARMS` rotated by `k % 4`.
+
+*Recorded for each unit,* beside what is recorded now: (1) on the first 300 paths, for `K2` and `HS5`, at every decision,
+the spending level taken and the risk held coming into it, as the review's `scripts/why-pot.mjs` records them, stored by
+third of the spending years; (2) `biasesOf`'s five things; (3) step 1's two counts; (4) the household's estate cap (as now)
+and the household table's opening forecast (as now).
+
+*`reduce-household.mjs` prints,* in this order, with a planted check for each rule part, `HS5` less `K2`, paired by path,
+on `stats.mjs` `survivalChange`:
+
+| part | what | holds when |
+|---|---|---|
+| 1 | pooled survival over the 28 units | the interval's lower end is above 0 |
+| 2 | survival by unit | no unit's interval lies wholly below `-0.3` points |
+| 3 | pooled spending delivered on the paths both arms keep, as a percentage of K2's | not lower by more than `0.05%` |
+| 4 | the pot counted up to the cap, pooled and by unit, as a percentage and in pounds a path, beside spending in pounds a path | recorded; not a bar (M1, D116) |
+| 5 | pooled lifetime tax, `HS5` against `HOUSE` | `HS5`'s is lower |
+| 6 | by unit, the household table's opening forecast less `HS5`'s survival | within 2 points; a unit outside is named and does not change the outcome |
+
+Beside the parts, deciding nothing: spending delivered over every path; pooled survival without its largest unit; each
+arm's lifetime tax and pot left on the paths that end above the cap under `K2` and the arm, and on those that end at or
+below it under both and are kept by both (the review's `scripts/above-cap.mjs`); step 1's counts; the record of (1) above,
+`K2` beside `HS5`, by third; `HOUSE` less `K2` on parts 1 to 4; each arm's solve seconds and CPU a path against `K2`'s.
+
+*Outcomes, printed by the reducer:*
+
+| outcome | when | then |
+|---|---|---|
+| `STOP` | `K2` differs from JOINT-WIDE's on any path; or part 5 fails | report; nothing else is read |
+| `A LEAD` | parts 1, 2 and 3 hold | the read to the maintainer; step 5 |
+| `A LEAD, WITH A UNIT TO PLACE` | parts 1 and 3 hold; part 2 fails only on units whose biases are not nil | the same, each such unit printed with its biases and its failing years; step 6 reads them |
+| `NO LEAD` | part 1 fails; or part 3 fails; or part 2 fails on a unit whose biases are nil | the read to the maintainer; nothing further |
+
+A unit's biases are nil when `lockedYears` is 0, `penShareSelf` is between 0.25 and 0.75, `incomeTaxLeftOut.aYear` is under
+£100, `oneOffOwned` is empty, and `cgtBand.household` equals `cgtBand.twoPeople` (step 3).
+
+*The split's search,* `HS1` less `HS5`, printed after the outcome. `THE SEARCH GOES` when all four hold: pooled survival's
+interval reaches 0 or above; no unit's interval lies wholly below `-0.3`; pooled spending on the paths both keep is not lower
+by more than `0.05%`; pooled lifetime tax is not higher by more than `1%`. Otherwise `THE SEARCH STAYS`.
+
+*The reducer's planted checks,* each a changed copy of a unit's arrays: (1) a unit with nil biases put 1 point below K2:
+`NO LEAD`; (2) the same unit given a one-off deposit owned by one person: `A LEAD, WITH A UNIT TO PLACE`; (3) spending on the
+kept paths `0.06%` lower with spending over every path higher: part 3 fails; (4) `HS5`'s tax made higher than `HOUSE`'s:
+`STOP`; (5) a forecast 3 points from its arm: the unit named, the outcome unchanged; (6) `HS1` put 1 point below `HS5` on one
+unit: `THE SEARCH STAYS`; (7) one path of `K2` changed: `STOP`.
+
+*Files.* `audit-household.mjs`, `reduce-household.mjs`, `batch-household.sh` (changed); `results/household-7002/`;
+`results-household.txt` (the reducer's output whole); `reports/<the read's date>-household-read.md`. Chunks of 1,000
+paths, resumable, as now. The audit's settings check as D124 rules it (the household table's line the first person's, the
+tie-break the one difference, the minimum pot left out and held to the household's own).
+
+*Before the launch:* the fast suite; `household.test.mjs` ALL PASS; the reducer's planted checks ALL PASS; a smoke of two
+units at 6 points and 30 paths read through the gate, no figure printed.
+
+*The read.* Once, by the reducer. The reviewer at the read. In the write-up: every cause with the decomposition that shows
+it, or no cause; every pooled figure with and without its largest unit. `results-household.txt` whole to the maintainer
+with the report (D118).
+
+*What the pilot leads us to expect* (the review's, on other seeds, twelve units, 1,500 paths): pooled survival about `+1.7`,
+about `+1.0` without S147-db; the pot counted up to the cap lower by 1.5% to 13% on about two units in three; `HS1`'s path
+at `x0.29` to `x0.44` of `K2`'s and `HS5`'s at `x0.42` to `x0.60`. A read far from that is checked for a fault before it is
+written up.
+
+*Size:* about 12 core-hours (`K2` about 130 ms a path, `HOUSE` 110, `HS5` 70, `HS1` 50, on 112,000 paths; one couple's solve
+and one household solve a unit). *Time box:* half a day to build and smoke; 3 to 4 hours to run; half a day to read.

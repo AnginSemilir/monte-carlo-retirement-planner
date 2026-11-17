@@ -73,6 +73,22 @@ one-off cost, S149 named the one exception with its size.
   agent recommends accepting it as corrected. The read and its outcome stand by both rounds.
 - Step 5 was launched without waiting (D120). `AXIS.md` comes after it (D121), then `REFUSALS.md` (D122).
 
+**STOP AGAIN (17 Nov, evening): D125's remedy meets the fair-test gate.** The maintainer chose option 1 below (D125).
+Before anything was built, the agent found the block, which its recommendation had not checked:
+- **The block.** `fair-gate.mjs` `checkLogStamps` (protected; the reducers' fair-test gate) refuses the logs of a read on
+  more than one code-and-audit version.
+- **Why it applies.** Unit 20 run again on an amended audit carries a new audit stamp, and the other 27 carry the
+  launch's. So the read cannot pass the gate.
+- **What would be a bypass.** Calling the gate on each group of units apart would get past it. The agent counts that as
+  a bypass and does not do it.
+- **Ways on:**
+  - (a) Unlock enforcement for exactly `fair-gate.mjs`'s stamp check, so this read alone takes the two versions the
+    amendment names, with a dated note and its planted case. Then D125 as ruled, about 40 minutes of run.
+  - (b) Option 3 below: all 28 units again on the amended check, about 3.5 hours. One version, no unlock, past step 5's
+    4-hour run box.
+  - (c) Option 2 below: S147-db@penA100 left out. The reducer, amended, names the launch's audit stamp and reads the
+    panel less the unit. One version, no unlock.
+
 **STOP (17 Nov, evening): step 5 cannot be read as written; one unit refused by the audit's settings check.**
 - **What happened.** Unit 20, S147-db@penA100, exited before any arm ran. Its log, `results/shapes-7002/case20.txt`,
   reads: "household: levels 1,1.1,0.95,0.9,0.8, the first person's 1,1.1,0.95,0.9,0.799985".

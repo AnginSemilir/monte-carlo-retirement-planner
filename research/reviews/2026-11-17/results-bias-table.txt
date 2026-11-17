@@ -1,0 +1,32 @@
+DESIGN A'S BIASES, UNIT BY UNIT (the review, 17 Nov; EXPLORATORY; plan arithmetic only)
+unit         group    locked  pen share  nearest exact (the amended rule)  income tax left out: a year, over the plan (% of spending)  one person's windfall  cgt basic band (household / two people)
+S327F        younger     3    0.60       no                                     £0 a year,        £0 (0.00%)                     £81,000 (Myself)       £25,130 / £75,400
+S329F        younger     3    0.60       no                                     £0 a year,        £0 (0.00%)                     none                   £25,130 / £75,400
+S331F        younger     3    0.60       no                                     £0 a year,        £0 (0.00%)                     £171,000 (Myself)      £25,130 / £75,400
+S333F        younger     3    0.60       no                                     £0 a year,        £0 (0.00%)                     none                   £25,130 / £75,400
+S335F        younger     3    0.60       no                                     £0 a year,        £0 (0.00%)                     £432,000 (Myself)      £25,130 / £75,400
+S337F        younger     3    0.60       no                                     £0 a year,        £0 (0.00%)                     none                   £25,130 / £75,400
+S341F        younger     3    0.60       no                                     £0 a year,        £0 (0.00%)                     none                   £25,130 / £75,400
+S343F        younger     3    0.60       no                                     £0 a year,        £0 (0.00%)                     £171,000 (Myself)      £25,130 / £75,400
+S149         library     3    0.60       no                                     £0 a year,        £0 (0.00%)                     none                   £25,130 / £75,400
+S167         library     3    0.60       no                                     £0 a year,        £0 (0.00%)                     £432,000 (Myself)      £25,130 / £75,400
+S205         library     1    0.60       yes                                    £0 a year,        £0 (0.00%)                     none                   £25,130 / £75,400
+S223         library     1    0.60       yes                                    £0 a year,        £0 (0.00%)                     £171,000 (Myself)      £25,130 / £75,400
+S023-90      90/10       0    0.90       no                                     £0 a year,        £0 (0.00%)                     £432,000 (Myself)      £25,130 / £75,400
+S061-90      90/10       0    0.90       no                                     £0 a year,        £0 (0.00%)                     none                   £25,130 / £75,400
+S109-90      90/10       0    0.90       no                                     £0 a year,        £0 (0.00%)                     none                   £25,130 / £75,400
+S147-90      90/10       3    0.90       no                                     £0 a year,        £0 (0.00%)                     £81,000 (Myself)       £25,130 / £75,400
+S191-90      90/10       1    0.90       no                                     £0 a year,        £0 (0.00%)                     £432,000 (Myself)      £25,130 / £75,400
+S227-90      90/10       1    0.90       no                                     £0 a year,        £0 (0.00%)                     £432,000 (Myself)      £25,130 / £75,400
+S271-90      90/10       1    0.90       no                                     £0 a year,        £0 (0.00%)                     £171,000 (Myself)      £25,130 / £75,400
+S377-90      90/10       3    0.90       no                                     £0 a year,        £0 (0.00%)                     none                   £25,130 / £75,400
+S023-db      feature     0    0.60       yes                                  £594 a year,   £22,320 (0.55%)                     £432,000 (Myself)      £25,130 / £75,400
+S061-dbpart  feature     0    0.60       yes                                  £874 a year,   £22,724 (2.95%)                     none                   £25,130 / £75,400
+S109-sppart  feature     0    0.60       yes                                    £0 a year,        £0 (0.00%)                     none                   £25,130 / £75,400
+S147-db      feature     3    0.60       no                                   £554 a year,   £21,392 (1.43%)                     £81,000 (Myself)       £25,130 / £75,400
+S191-dbpart  feature     1    0.60       yes                                  £158 a year,    £3,962 (0.07%)                     £432,000 (Myself)      £25,130 / £75,400
+S227-sppart  feature     1    0.60       yes                                    £0 a year,        £0 (0.00%)                     £432,000 (Myself)      £25,130 / £75,400
+S271-db      feature     1    0.60       yes                                  £554 a year,   £21,946 (0.42%)                     £171,000 (Myself)      £25,130 / £75,400
+S377-dbpart  feature     3    0.60       no                                   £474 a year,   £11,842 (1.01%)                     none                   £25,130 / £75,400
+
+Of the 8 units the amended rule reads as nearest exact, 4 leave out more than £100 a year of income tax on guaranteed incomes alone.

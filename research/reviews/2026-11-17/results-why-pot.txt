@@ -1,0 +1,21 @@
+WHY THE POT LEFT DIFFERS (the review, 17 Nov; EXPLORATORY, deciding nothing): S061-dbpart (feature), the first 300 paths of seed 99003, 45 points; the household spends in plan years 0 to 35; the estate cap £720,000
+  K2    survival 98.3%; over the spending years: the level 0.9973 (a raise at 63.6% of decisions, a cut at 36.3%), the risk held 4.260% a year
+        by third of those years: first, the level 0.8509 (a raise at 15.3% of decisions, a cut at 84.3%), the risk held 4.170% a year; middle, the level 1.0409 (a raise at 75.5% of decisions, a cut at 24.5%), the risk held 4.339% a year; last, the level 1.1000 (a raise at 100.0% of decisions, a cut at 0.0%), the risk held 4.272% a year
+        a path's totals: spending delivered £768,001, lifetime tax £55,685, the pot left £592,156, counted up to the cap £490,483
+  HOUSE survival 100.0%; over the spending years: the level 1.0328 (a raise at 75.1% of decisions, a cut at 24.9%), the risk held 4.298% a year
+        by third of those years: first, the level 0.9109 (a raise at 31.7% of decisions, a cut at 68.3%), the risk held 4.221% a year; middle, the level 1.0874 (a raise at 93.8% of decisions, a cut at 6.3%), the risk held 4.347% a year; last, the level 1.1000 (a raise at 100.0% of decisions, a cut at 0.0%), the risk held 4.325% a year
+        a path's totals: spending delivered £795,645, lifetime tax £50,423, the pot left £506,710, counted up to the cap £431,143
+WHY THE POT LEFT DIFFERS (the review, 17 Nov; EXPLORATORY, deciding nothing): S023-db (feature), the first 300 paths of seed 99003, 45 points; the household spends in plan years 0 to 27; the estate cap £9,600,000
+  K2    survival 96.0%; over the spending years: the level 1.0157 (a raise at 68.2% of decisions, a cut at 27.6%), the risk held 4.306% a year
+        by third of those years: first, the level 0.9570 (a raise at 44.9% of decisions, a cut at 44.0%), the risk held 4.329% a year; middle, the level 1.0120 (a raise at 68.9% of decisions, a cut at 31.0%), the risk held 4.228% a year; last, the level 1.0717 (a raise at 88.5% of decisions, a cut at 9.8%), the risk held 4.356% a year
+        a path's totals: spending delivered £4,107,737, lifetime tax £109,660, the pot left £3,906,392, counted up to the cap £3,327,041
+  HOUSE survival 98.7%; over the spending years: the level 1.0136 (a raise at 68.9% of decisions, a cut at 30.9%), the risk held 4.103% a year
+        by third of those years: first, the level 0.9081 (a raise at 32.4% of decisions, a cut at 67.6%), the risk held 3.787% a year; middle, the level 1.0477 (a raise at 80.8% of decisions, a cut at 19.2%), the risk held 4.095% a year; last, the level 1.0778 (a raise at 91.1% of decisions, a cut at 8.3%), the risk held 4.397% a year
+        a path's totals: spending delivered £4,111,977, lifetime tax £112,323, the pot left £3,244,875, counted up to the cap £2,908,840
+WHY THE POT LEFT DIFFERS (the review, 17 Nov; EXPLORATORY, deciding nothing): S205 (library), the first 300 paths of seed 99003, 45 points; the household spends in plan years 5 to 40; the estate cap £720,000
+  K2    survival 98.0%; over the spending years: the level 0.9748 (a raise at 52.8% of decisions, a cut at 43.0%), the risk held 4.267% a year
+        by third of those years: first, the level 0.8905 (a raise at 20.0% of decisions, a cut at 68.6%), the risk held 3.930% a year; middle, the level 0.9829 (a raise at 57.5% of decisions, a cut at 42.5%), the risk held 4.424% a year; last, the level 1.0512 (a raise at 81.0% of decisions, a cut at 17.8%), the risk held 4.448% a year
+        a path's totals: spending delivered £785,038, lifetime tax £6,968, the pot left £561,907, counted up to the cap £403,945
+  HOUSE survival 98.3%; over the spending years: the level 0.9904 (a raise at 60.3% of decisions, a cut at 39.6%), the risk held 4.286% a year
+        by third of those years: first, the level 0.9099 (a raise at 32.8% of decisions, a cut at 67.2%), the risk held 3.902% a year; middle, the level 1.0014 (a raise at 64.1% of decisions, a cut at 35.9%), the risk held 4.510% a year; last, the level 1.0600 (a raise at 83.9% of decisions, a cut at 15.7%), the risk held 4.448% a year
+        a path's totals: spending delivered £798,320, lifetime tax £6,202, the pot left £530,709, counted up to the cap £369,217

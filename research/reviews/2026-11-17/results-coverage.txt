@@ -1,0 +1,5 @@
+WHAT DESIGN A'S MERGE TAKES AND REFUSES (the review, 17 Nov; EXPLORATORY; plan arithmetic only)
+the library's couples: 210; the household plan built for 210; refused 0
+the first person's age less the partner's, by couple: 3 years: 210
+the first person's retirement age less the partner's: 0: 210
+who holds more of the pots: the first person more: 210, even: 0, the partner more: 0

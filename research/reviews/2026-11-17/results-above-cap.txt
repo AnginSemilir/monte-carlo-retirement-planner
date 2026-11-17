@@ -1,0 +1,17 @@
+LIFETIME TAX ABOVE AND BELOW THE ESTATE CAP (the review, 17 Nov; EXPLORATORY, deciding nothing): each arm against K2 on the same paths of seed 99003
+S147-db (the cap £1,800,000; HOUSE in the two runs the same on every path):
+  HOUSE  both above the cap on  326 paths: tax K2 £130,996, HOUSE £153,176; the pot left K2 £3,085,855, HOUSE £3,497,429 | both below it and kept on  955: tax K2 £73,005, HOUSE £73,864; the pot left K2 £641,104, HOUSE £540,487
+  HOUSEC both above the cap on  326 paths: tax K2 £130,996, HOUSEC £153,313; the pot left K2 £3,085,855, HOUSEC £3,497,349 | both below it and kept on  955: tax K2 £73,005, HOUSEC £73,865; the pot left K2 £641,104, HOUSEC £540,504
+  H0     both above the cap on  332 paths: tax K2 £129,940, H0 £166,830; the pot left K2 £3,067,301, H0 £3,476,014 | both below it and kept on  951: tax K2 £73,005, H0 £76,713; the pot left K2 £636,856, H0 £545,594
+  HT0    both above the cap on  332 paths: tax K2 £129,940, HT0 £82,878; the pot left K2 £3,067,301, HT0 £3,671,881 | both below it and kept on  951: tax K2 £73,005, HT0 £76,713; the pot left K2 £636,856, HT0 £545,594
+  HT5    both above the cap on  332 paths: tax K2 £129,935, HT5 £83,948; the pot left K2 £3,068,086, HT5 £3,688,712 | both below it and kept on  950: tax K2 £73,015, HT5 £77,002; the pot left K2 £635,277, HT5 £544,581
+S227-90 (the cap £9,600,000; HOUSE in the two runs the same on every path):
+  HOUSE  both above the cap on  456 paths: tax K2 £331,728, HOUSE £256,571; the pot left K2 £18,990,851, HOUSE £19,672,162 | both below it and kept on  933: tax K2 £173,906, HOUSE £217,166; the pot left K2 £3,510,430, HOUSE £3,568,220
+  HOUSEC both above the cap on  456 paths: tax K2 £331,728, HOUSEC £258,949; the pot left K2 £18,990,851, HOUSEC £19,667,333 | both below it and kept on  933: tax K2 £173,906, HOUSEC £217,148; the pot left K2 £3,510,430, HOUSEC £3,568,272
+  H0     both above the cap on  457 paths: tax K2 £331,309, H0 £258,014; the pot left K2 £18,972,177, H0 £19,637,036 | both below it and kept on  932: tax K2 £173,931, H0 £217,302; the pot left K2 £3,513,739, H0 £3,566,012
+  HT0    both above the cap on  457 paths: tax K2 £331,309, HT0 £56,887; the pot left K2 £18,972,177, HT0 £20,223,189 | both below it and kept on  932: tax K2 £173,931, HT0 £216,998; the pot left K2 £3,513,739, HT0 £3,566,031
+  HT5    both above the cap on  456 paths: tax K2 £331,728, HT5 £56,791; the pot left K2 £18,990,851, HT5 £20,242,196 | both below it and kept on  934: tax K2 £173,896, HT5 £216,670; the pot left K2 £3,516,834, HT5 £3,571,157
+S327F (the cap £1,800,000; HOUSE in the two runs the same on every path):
+  HOUSE  both above the cap on  863 paths: tax K2 £205,439, HOUSE £580,027; the pot left K2 £6,648,106, HOUSE £8,920,102 | both below it and kept on  508: tax K2 £11,241, HOUSE £13,674; the pot left K2 £702,240, HOUSE £684,840
+  HT0    both above the cap on  859 paths: tax K2 £206,355, HT0 £255,401; the pot left K2 £6,670,262, HT0 £11,098,548 | both below it and kept on  510: tax K2 £11,397, HT0 £13,358; the pot left K2 £705,445, HT0 £685,109
+  HT5    both above the cap on  861 paths: tax K2 £205,889, HT5 £251,951; the pot left K2 £6,659,008, HT5 £11,076,788 | both below it and kept on  510: tax K2 £11,363, HT5 £12,996; the pot left K2 £705,742, HT5 £685,777

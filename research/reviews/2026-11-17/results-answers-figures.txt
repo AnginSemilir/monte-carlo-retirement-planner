@@ -1,0 +1,97 @@
+THE FIGURES ANSWERS.md QUOTES FROM THE PILOT (the review, 17 Nov; EXPLORATORY): each by the name the answers were filled from
+POOLED = +1.72
+POOLEDLO = +1.51
+POOLEDHI = +1.94
+SAVED = 353
+LOST = 43
+NPATHS = 18,000
+GROUPS = the feature units `+3.44` (+3.00 to +3.88; 5), the library units `+0.63` (+0.28 to +0.98; 2), the younger units `+0.50` (+0.11 to +0.89; 2), the 90/10 units `+0.40` (+0.10 to +0.70; 3)
+POOLEDX = +0.97
+POOLEDXLO = +0.78
+POOLEDXHI = +1.16
+BIGSHARE = 48%
+BIGNET = 150
+ALLNET = 310
+SPEARMAN = 0.36
+NUNITS = 12
+NUP = 11
+NSIG = 9
+NDOWNSIG = 0
+FCMEAN = 0.49
+FCMAX = 1.39
+FCK2MEAN = 16.34
+FCK2MAX = 51.87
+NCAPDOWN = 8
+CAPWORST = -12.6%
+NSPENDUP = 11
+CAPLIST = -12.6% (S061-dbpart)`, `-12.5% (S023-db)`, `-8.4% (S191-dbpart)`, `-8.0% (S205)`, `-5.2% (S147-db)`, `-4.8% (S337F)`, `-3.0% (S271-db)`, `-1.5% (S149)
+SOLVE = 0.50
+SOLVELO = 0.39
+SOLVEHI = 0.67
+PATH = 0.86
+PATHLO = 0.64
+PATHHI = 1.09
+REST = 33 to 64
+CEILMS = 27 to 63
+K2MS = 77 to 238
+CEILX = 0.37
+HOUSEC_HOUSE = `+0.00` points (`+0.00` to `+0.00`), 0 saved and 0 lost of 7,500 paths on 5 units
+HOUSEC_HOUSE_IDS = S147-db, S147-db@gap8, S149@gap8, S149@penB90, S227-90
+HOUSEC_HOUSE_SPEND = -0.00% to +0.00%
+HOUSEC_HOUSE_TAX = -0.6% to +0.3%
+HOUSEC_HOUSE_CAP = -0.0% to +0.0%
+HOUSEC_HOUSE_MS = S147-db 103 against 101 ms, S147-db@gap8 105 against 105 ms, S149@gap8 111 against 111 ms, S149@penB90 107 against 106 ms, S227-90 117 against 113 ms
+H0_HOUSE = `+0.07` points (`-0.06` to `+0.20`), 3 saved and 1 lost of 3,000 paths on 2 units
+H0_HOUSE_IDS = S147-db, S227-90
+H0_HOUSE_SPEND = -0.17% to +0.02%
+H0_HOUSE_TAX = +0.3% to +5.7%
+H0_HOUSE_CAP = -0.1% to +1.0%
+H0_HOUSE_MS = S147-db 53 against 101 ms, S227-90 63 against 113 ms
+HT0_HOUSE = `+0.04` points (`-0.04` to `+0.13`), 3 saved and 1 lost of 4,500 paths on 3 units
+HT0_HOUSE_IDS = S147-db, S227-90, S327F
+HT0_HOUSE_SPEND = -0.17% to +0.02%
+HT0_HOUSE_TAX = -55.2% to -14.7%
+HT0_HOUSE_CAP = -0.1% to +1.0%
+HT0_HOUSE_MS = S147-db 46 against 101 ms, S227-90 56 against 113 ms, S327F 69 against 155 ms
+HT5_HOUSE = `+0.02` points (`-0.02` to `+0.07`), 1 saved and 0 lost of 4,500 paths on 3 units
+HT5_HOUSE_IDS = S147-db, S227-90, S327F
+HT5_HOUSE_SPEND = -0.16% to +0.02%
+HT5_HOUSE_TAX = -55.8% to -14.2%
+HT5_HOUSE_CAP = -0.1% to +1.1%
+HT5_HOUSE_MS = S147-db 67 against 101 ms, S227-90 76 against 113 ms, S327F 99 against 155 ms
+HT5_HT0 = `-0.02` points (`-0.10` to `+0.05`), 1 saved and 2 lost of 4,500 paths on 3 units
+HT5_HT0_IDS = S147-db, S227-90, S327F
+HT5_HT0_SPEND = -0.00% to +0.01%
+HT5_HT0_TAX = -1.2% to +0.6%
+HT5_HT0_CAP = +0.0% to +0.0%
+HT5_HT0_MS = S147-db 67 against 46 ms, S227-90 76 against 56 ms, S327F 99 against 69 ms
+HT0_K2X = x0.29 to x0.44
+HT0_K2XMEAN = 0.36
+HT0_K2MS = S147-db 46 ms against 135, S227-90 56 ms against 126, S327F 69 ms against 238
+HT5_K2X = x0.42 to x0.60
+HT5_K2XMEAN = 0.50
+HT5_K2MS = S147-db 67 ms against 135, S227-90 76 ms against 126, S327F 99 ms against 238
+H0_K2X = x0.39 to x0.50
+H0_K2XMEAN = 0.45
+H0_K2MS = S147-db 53 ms against 135, S227-90 63 ms against 126
+PILOTTABLE =
+| unit | group | K2 | HOUSE | HOUSE less K2, points (95%) | spending | the capped pot | the household table's forecast, then HOUSE | the two tables' forecast, then K2 |
+|---|---|---|---|---|---|---|---|---|
+| S023-db | feature | 96.07% | 98.73% | `+2.67` (+1.79 to +3.54) | `-0.06%` | `-12.5%` | 98.8%, 98.7% | 71.7%, 96.1% |
+| S061-dbpart | feature | 97.93% | 99.67% | `+1.73` (+1.07 to +2.39) | `+3.48%` | `-12.6%` | 99.8%, 99.7% | 95.4%, 97.9% |
+| S147-db | feature | 89.27% | 99.27% | `+10.00` (+8.48 to +11.52) | `+4.26%` | `-5.2%` | 99.8%, 99.3% | 43.0%, 89.3% |
+| S191-dbpart | feature | 97.13% | 98.13% | `+1.00` (+0.38 to +1.62) | `+0.97%` | `-8.4%` | 97.8%, 98.1% | 45.3%, 97.1% |
+| S271-db | feature | 92.13% | 93.93% | `+1.80` (+0.97 to +2.63) | `+0.39%` | `-3.0%` | 95.3%, 93.9% | 82.5%, 92.1% |
+| S149 | library | 97.60% | 97.87% | `+0.27` (-0.15 to +0.68) | `+1.12%` | `-1.5%` | 97.8%, 97.9% | 91.1%, 97.6% |
+| S205 | library | 97.93% | 98.93% | `+1.00` (+0.43 to +1.57) | `+1.62%` | `-8.0%` | 98.8%, 98.9% | 90.0%, 97.9% |
+| S327F | younger | 95.47% | 95.80% | `+0.33` (-0.14 to +0.80) | `+0.80%` | `-0.2%` | 95.0%, 95.8% | 85.0%, 95.5% |
+| S337F | younger | 95.80% | 96.47% | `+0.67` (+0.05 to +1.28) | `+1.13%` | `-4.8%` | 95.4%, 96.5% | 80.5%, 95.8% |
+| S023-90 | 90/10 | 97.60% | 98.53% | `+0.93` (+0.35 to +1.52) | `+0.37%` | `+0.9%` | 98.7%, 98.5% | 97.6%, 97.6% |
+| S109-90 | 90/10 | 98.80% | 99.33% | `+0.53` (+0.05 to +1.02) | `+3.98%` | `+8.3%` | 99.6%, 99.3% | 80.4%, 98.8% |
+| S227-90 | 90/10 | 96.13% | 95.87% | `-0.27` (-0.72 to +0.19) | `+0.21%` | `+0.7%` | 96.8%, 95.9% | 93.2%, 96.1% |
+SHAPETABLE =
+| unit | what is changed | locked years | K2 | HOUSE | HOUSE less K2, points (95%) | the household table on its own plan (CEIL) |
+|---|---|---|---|---|---|---|
+| S147-db | the partner eight years younger | 8 | 74.33% | 98.07% | `+23.73` (+21.58 to +25.89) | 99.73% |
+| S149 | the partner eight years younger | 8 | 94.20% | 96.33% | `+2.13` (+1.38 to +2.89) | 96.00% |
+| S149 | the partner holding 90% of the pensions | 3 | 96.00% | 97.80% | `+1.80` (+1.05 to +2.55) | 97.93% |

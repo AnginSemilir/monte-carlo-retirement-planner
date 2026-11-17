@@ -1,0 +1,16 @@
+THE PILOT BESIDE JOINT-WIDE'S READ (the review, 17 Nov; EXPLORATORY): the household plan less K2 (seed 99003, 1,500 paths) and the top six moves less K2 (seed 7002, 4,000 paths; results-joint-wide.txt at a7aed0f6)
+| unit | group | the household plan: survival, points | spending | the capped pot | a path | the top six moves: survival, points | spending | the capped pot | a path |
+|---|---|---|---|---|---|---|---|---|---|
+| S023-db | feature | `+2.67` | `+0.23%` | `-12.5%` | `x0.85` | `+1.225` | `-0.33%` | `-0.4%` | `x2.11` |
+| S061-dbpart | feature | `+1.73` | `+3.49%` | `-12.6%` | `x0.95` | `+0.450` | `-0.61%` | `-0.6%` | `x1.87` |
+| S147-db | feature | `+10.00` | `+3.69%` | `-5.2%` | `x0.77` | `+5.150` | `+0.02%` | `+2.4%` | `x2.36` |
+| S191-dbpart | feature | `+1.00` | `+1.11%` | `-8.4%` | `x0.85` | `+0.350` | `+0.06%` | `+1.3%` | `x2.70` |
+| S271-db | feature | `+1.80` | `+0.70%` | `-3.0%` | `x0.79` | `+0.675` | `-0.07%` | `+0.3%` | `x3.10` |
+| S149 | library | `+0.27` | `+1.08%` | `-1.5%` | `x0.82` | `+0.300` | `-0.50%` | `+2.5%` | `x2.22` |
+| S205 | library | `+1.00` | `+1.63%` | `-8.0%` | `x0.88` | `+0.525` | `-0.38%` | `+0.5%` | `x2.56` |
+| S327F | younger | `+0.33` | `+0.84%` | `-0.2%` | `x0.64` | `+0.175` | `-0.57%` | `+0.9%` | `x2.55` |
+| S337F | younger | `+0.67` | `+1.22%` | `-4.8%` | `x0.66` | `+0.425` | `+0.18%` | `-1.3%` | `x3.47` |
+| S023-90 | 90/10 | `+0.93` | `+0.35%` | `+0.9%` | `x1.02` | `+0.825` | `-0.06%` | `+1.5%` | `x2.03` |
+| S109-90 | 90/10 | `+0.53` | `+3.88%` | `+8.3%` | `x1.09` | `+0.100` | `+0.15%` | `-1.9%` | `x2.46` |
+| S227-90 | 90/10 | `-0.27` | `+0.22%` | `+0.7%` | `x0.92` | `+0.025` | `+0.20%` | `+0.0%` | `x2.31` |
+the mean over these 12 units: the household plan +1.72 points, the top six moves +0.852; spending here is over every path, as JOINT-WIDE's rule takes it

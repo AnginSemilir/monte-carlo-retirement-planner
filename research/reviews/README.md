@@ -1,4 +1,4 @@
-# The external reviews: which document is current (11 Nov)
+# The external reviews: which document is current (17 Nov)
 
 This branch (`review/external-2026-10-21`) holds the external reviewer's work. It is not for merging. Each review is a
 dated record, and the agent cites them by commit.
@@ -57,6 +57,18 @@ dated record, and the agent cites them by commit.
   -0.03 points and inside noise. Nothing is ported.
 - Its patches, script and outputs: `2026-11-11/prototype/`, `scripts/`, `results/`. `2026-11-11/README.md` says how
   to run and read them.
+
+**The answers of 17 Nov on one plan for the whole household: `2026-11-17/ANSWERS.md`.**
+- It answers the agent's seven questions (`research/solver/QUESTIONS-2026-11-17.md` on the working branch, D114), with
+  JOINT-WIDE's read. The direction is right: one table for the household, and stop tuning the two tables.
+- **Run design A as the lead test, amended:** rule on the pot left first; take the household's move from the single
+  solver's own chooser, its tie-break above the cap left on; mend the household plan's capital gains band; drop the
+  "nearest exact" clause. Do not build design B yet.
+- Its pilot is EXPLORATORY and has no rule: twelve of the lead test's units on 1,500 paths of seed 99003, design A
+  `+1.72` points above today's default pooled and `+0.97` without S147-db. Nothing of seed 7002 was run.
+- Its scripts, stored paths and outputs: `2026-11-17/scripts/`, `units/` and the `results-*.txt` files.
+  `2026-11-17/README.md` says how to run and read them.
+- It adds no unit to `touched()`: every unit it ran is one of the lead test's 28, or one of those changed in one way.
 
 **The new planner, step U's spec: `2026-11-03/LAYOUT.md`.**
 - The solver-first layout: four places (Your plan, You, What if, Details), and the classic planner kept for couples.

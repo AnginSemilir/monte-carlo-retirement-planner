@@ -22,7 +22,7 @@ import * as CPL from '../../src/solver/couple.js';
 import { solveHousehold, withHousehold, chooseHousehold, mergedState } from './household.mjs';
 import { vecOf } from '../../src/solver/grid.js';
 import { solveForApp } from '../../src/solverApp.js';
-import { APP_COUPLE, appJoint } from '../../src/solverSettings.js';
+import { APP_COUPLE, appJoint, APP_CANDIDATE } from '../../src/solverSettings.js';
 import { tablesOf, digestOf } from '../../src/solverDigest.js';
 import { readPanel, appPlan } from './couple-panel.mjs';
 import { readSharePanel } from './share-rules-panel.mjs';
@@ -69,6 +69,26 @@ export const optionsOf = (arm, cp) => (arm === 'HOUSE'
 const js = x => JSON.stringify(x);
 const tiersOf = j => ['self', 'part'].map(w => `${(j.perOwner[w] && j.perOwner[w].tierPen) || 0}/${(j.perOwner[w] && j.perOwner[w].tierIsa) || 0}`).join(' ');
 
+/* the household table's solve (PRESCRIPTIVE-PLAN.md step 1): solveForApp at the candidate as it stands, its tie-break above
+   the estate cap left on (APP_CANDIDATE's tieAboveCap); not the two people's `tieAboveCap: undefined` */
+export const householdSolveOne = (pts, light = {}) => (p, o) => solveForApp(E, M, p, { points: pts, ageWith: o.partnerAge0, research: { ...light } });
+/* the settings check (step 1): the household table's line the first person's, the tie-break the one difference */
+export const lineOf = r => `${settingsOf(r)} tieAboveCap ${r.tieAboveCap || 0}`;
+export function houseLineProblems(selfTab, houseTab) {
+  const kv = line => Object.fromEntries(line.match(/(\S+) (\S+)/g).map(x => x.split(' ')));
+  const a = kv(lineOf(selfTab)), b = kv(lineOf(houseTab)), keys = [...new Set([...Object.keys(a), ...Object.keys(b)])];
+  const differ = keys.filter(k => a[k] !== b[k]), bad = differ.filter(k => k !== 'tieAboveCap').map(k => `household: ${k} ${b[k]}, the first person's ${a[k]}`);
+  if (Number(b.tieAboveCap) !== APP_CANDIDATE.tieAboveCap) bad.push(`household: tieAboveCap ${b.tieAboveCap} (want the candidate's ${APP_CANDIDATE.tieAboveCap})`);
+  if (Number(a.tieAboveCap) !== 0) bad.push(`self: tieAboveCap ${a.tieAboveCap} (want none)`);
+  return bad;
+}
+/* a unit's plan as the audit solves it: arm A's policy on the plan prepared for the solver, and arm A's MPAA ages */
+export function unitPlans(u, W0 = W) {
+  const U = unitOf(u);
+  if (!U) return null;
+  const a = armA(appPlan(U.plan), { tournament: false }), aPol = { decumulationPolicy: a.planState.spending.decumulationPolicy, drawdownStrategy: a.planState.spending.drawdownStrategy };
+  return { U, a, hp: solverPlan('CANDC', U.plan, aPol, W0), aDemo: E.resolveMpaa(a.planState).demographics };
+}
 /* a unit's plan, its cohort and (on the share rules' panel) the policy arm A was landed on */
 function unitOf(u) {
   if (u.panel === 'd4b') { const h = readPanel(PANEL_FILE).find(x => x.id === u.id); return h ? { plan: h.plan, cohort: h.cohort, label: null } : null; }
@@ -101,25 +121,27 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const pts = Number(process.env.HH_PTS) || PTS, n = Number(process.env.HH_N) || N, nReplay = Math.min(n, Number(process.env.HH_REPLAY) || REPLAY), smoke = pts !== PTS || n !== N;
   const cid = codeId(), STAMP = { code: cid ? cid.hash : 'unknown', audit: stampFilesHash(), prediction: process.env.PREDICTION_FILE || 'NOT-LAUNCHED', node: process.version };
   console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${process.env.PREDICTION_SHA || '-'}`);   // fair-gate.mjs LOG_STAMP
-  const u = UNITS[pk], t0 = Date.now(), U = unitOf(u);
-  if (!U) { console.error(`audit-household: ${u.id} is not in its panel`); process.exit(2); }
+  const u = UNITS[pk], t0 = Date.now(), UP = unitPlans(u);
+  if (!UP) { console.error(`audit-household: ${u.id} is not in its panel`); process.exit(2); }
+  const { U, a, hp, aDemo } = UP;
   const candidate = hashOf(COUPLES_CANDIDATE), order = orderOf(pk);
   console.log(`HOUSEHOLD (EXPLORATORY): unit ${pk}/${pn}: ${u.id} (${u.group}, ${U.cohort}), seed ${SEED}, ${n} paths, the replay on ${nReplay}, ${pts} points, estate weight ${W}, the couples' candidate ${candidate}, the joint move ${js(JOINT)}, the household's top ${TOPK}, the arms in the order ${order.join(', ')}`);
-  const a = armA(appPlan(U.plan), { tournament: false }), aPol = { decumulationPolicy: a.planState.spending.decumulationPolicy, drawdownStrategy: a.planState.spending.drawdownStrategy };
   if (U.label !== null && a.label !== U.label) { console.error(`audit-household: ${u.id}: arm A's pick ${a.label} differs from the landing's ${U.label}`); process.exit(3); }
-  const hp = solverPlan('CANDC', U.plan, aPol, W), aDemo = E.resolveMpaa(a.planState).demographics;
   const light = pts <= 6 ? { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } : {};
   const memo = new Map();
   const solveOne = (p, o) => { const k = JSON.stringify([p, o.partnerAge0]); if (!memo.has(k)) memo.set(k, solveForApp(E, M, p, { points: pts, ageWith: o.partnerAge0, research: { tieAboveCap: undefined, ...light } })); return memo.get(k); };
+  // the household table (PRESCRIPTIVE-PLAN.md step 1, D117): solved once, as the candidate stands (its tie-break above the
+  // estate cap left on), every household arm reading it; the two people's tables keep the couples' candidate (no tie-break)
+  const solveHouse = householdSolveOne(pts, light);
   const s0 = Date.now();
   const k2 = solveCouple(E, M, hp, { solveOne, ...JOINT });
   const s1 = Date.now();
-  const house = solveHousehold(E, M, hp, { solveOne, topK: TOPK, tieJoint: JOINT.tieJoint, holdPast: JOINT.holdPast });
+  const house = solveHousehold(E, M, hp, { solveOne: solveHouse, topK: TOPK, tieJoint: JOINT.tieJoint, holdPast: JOINT.holdPast });
   const s2 = Date.now(), solveSecs = { K2: (s1 - s0) / 1000, HOUSE: (s2 - s1) / 1000 };
   const cps = { K2: k2, HOUSE: house };
   const lines = ['self', 'part'].map(w => settingsOf(k2.tables[w])), hline = settingsOf(house.H);
   // each person's settings and the household table's the couples' registered run's (at a smoke's points the check is skipped)
-  const off = [...(smoke ? [] : [...lines.flatMap((line, i) => wantProblems('CANDC', line, W).map(p => `${i ? 'part' : 'self'}: ${p}`)), ...wantProblems('CANDC', hline, W).map(p => `household: ${p}`)]), ...coupleProblems()];
+  const off = [...(smoke ? [] : [...lines.flatMap((line, i) => wantProblems('CANDC', line, W).map(p => `${i ? 'part' : 'self'}: ${p}`)), ...wantProblems('CANDC', hline, W).map(p => `household: ${p}`)]), ...houseLineProblems(k2.tables.self, house.H), ...coupleProblems()];
   if (k2.m.ctx.solvencyFloor !== E.num(U.plan.config.solvencyFloor, 0)) off.push(`the household's minimum pot ${k2.m.ctx.solvencyFloor}, not the panel's ${U.plan.config.solvencyFloor}`);
   if (house.m.ctx.solvencyFloor !== k2.m.ctx.solvencyFloor) off.push(`the household plan's minimum pot ${house.m.ctx.solvencyFloor}, not K2's ${k2.m.ctx.solvencyFloor}`);
   if (off.length) { console.error(`audit-household: ${u.id}: ${off.join('; ')}`); process.exit(3); }

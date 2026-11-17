@@ -1,0 +1,24 @@
+ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs
+  ok   each wrapper one account, its balance the two people's: Pensions 135000, S&S ISAs 67500, Other Investments (e.g. GIA) 202500, Cash Savings 45000, Cash ISA 0
+  ok   every per-person allowance doubled (the no-earnings limit at least doubled): 25 names
+  ok   the partner's state pension from the state pension age in the first person's ages: from 71, 9800
+  ok   the later retiree's take-home as tax-free income in plan years 15 to 17 alone, the engine's own sum: years 15,16,17; year 16 18636 against 18636
+  ok   the later retiree's contributions as External deposits in the same three years: pension in plan years 15,16,17
+  ok   the household works on both people's pay until the first retirement: retires at 52, pay 76000
+  ok   each wrapper's pots, the basis, the tax-free cash and the cash ISA added; the plant leaves the partner out: pen 54000, isa 27000, other 81000, cash 18000
+  ok   the household plan tracks the couple under the app's rules on all six (survival within 2 points, median end wealth within 15%): S205 +0.0 pts 3.3%; S061-dbpart +1.3 pts 11.3%; S327F +0.3 pts -1.8%; S227-90 +0.0 pts -13.6%; S149 +0.3 pts -3.6%; S023-db +0.7 pts -0.6%
+  ok   the plant 'nopartsp' fails it on some couple: S205 -23.7 pts -59.6%; S061-dbpart +1.3 pts -56.7%; S327F -3.7 pts -12.5%; S227-90 -1.3 pts -20.0%; S149 -18.7 pts -49.4%
+  ok   the plant 'notakehome' fails it on some couple: S205 -10.0 pts -42.3%; S227-90 -1.3 pts -23.4%
+  ok   the plant 'singleband' fails it on some couple: S061-dbpart -7.0 pts -29.4%; S327F -2.3 pts -3.7%; S149 -4.7 pts -1.2%; S023-db -3.3 pts 8.6%
+  ok   the plant 'nopartpots' fails it on some couple: S205 -40.0 pts -98.6%; S061-dbpart -89.7 pts -18.7%; S327F -20.3 pts -72.3%; S227-90 -4.7 pts -34.8%; S149 -65.0 pts -99.5%; S023-db -53.7 pts -100.0%
+  ok   both people take the household's move: split 0, level 0.8
+  ok   the engine under the household policy and the exact model's path agree on every path: 20 of 20
+  ok   refused: two risks in one wrapper; a later retiree paid in plan year 0: risks refused; year 0 refused
+  ok   (6a) both people take the single chooser's move at every decision (S061-dbpart): 720 of 720
+  ok   (6a) the plant 'partnersecond' fails it: 720 of 720 decisions not the chooser's for both
+  ok   (6b) the engine under householdSinglePolicy and runHouseholdSinglePolicy agree on every path (S061-dbpart): even 20 of 20, best5 20 of 20
+  ok   (6c) the move is chooseAction's on the table as solved, other than with tieAboveCap 0 at 100 decisions or more, each above the estate cap (S327F): tieAboveCap 0.0001, the cap 1800000; 1220 decisions, not the chooser's 0, other than with tieAboveCap 0 at 342, of those at or below the cap 0
+  ok   (6c) the plant 'notiebreak' fails it: 1220 decisions, not the chooser's 311, other than with tieAboveCap 0 at 0, of those at or below the cap 0
+  ok   (6d) 'best5' returns the even split wherever no other scores more than 1e-9 above it, at 600 decisions or more (S061-dbpart): 674 of the 700 decisions before the last year with no split above the even one by more than 1e-9; another split returned at 0
+  ok   (6d) the plant 'tiezero' fails it: 674 of the 700 decisions before the last year with no split above the even one by more than 1e-9; another split returned at 668
+ALL PASS: 22 checks

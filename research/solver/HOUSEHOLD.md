@@ -119,7 +119,7 @@ measured parts; A's are measured by the lead test below.
 
 ## 5. The lead test (EXPLORATORY; its rule below, committed before any launch)
 
-**What runs.** Design A as a research option, off in code (`src/solver/household.js`: the synthetic plan, the merged
+**What runs.** Design A as a research option, off in code (`research/solver/household.mjs`: the synthetic plan, the merged
 position, the household's rollout and its policy for the engine; nothing in the app imports it), each part with its test
 and its plants. Two arms on each unit, on the same 4,000 paths of seed 7002, each held to `E.runTrial` on its first 200:
 - **K2**: the couples' default as the app solves a couple (`APP_COUPLE`, LOOKHOLD; as JOINT-WIDE's K2);
@@ -149,5 +149,25 @@ Outcomes:
 - Losses on the younger or 90/10 units, whatever the outcome, are reported against A's two biases (the locked years; the
   allowance before the state pension age) with the paths' failing years, so they can be told from a fault of the idea.
 
+**Amended before any launch (17 Nov, morning), with the audit and the read built.** "Nearest exact" is read from what the
+audit records for each unit (`audit-household.mjs` `biasesOf`), not from its group: at most one plan year in which the
+household spends with one person's pension open and the other's still locked, and the first person's share of the two
+pensions between 0.25 and 0.75. On the panel that is eight units: S205 and S223 (library; one such year each), S023-db,
+S061-dbpart and S109-sppart (none) and S191-dbpart, S227-sppart and S271-db (one each). The library's S149 and S167 and the
+features S147-db and S377-dbpart have three such years each, and every 90/10 unit holds 90% of the pensions with its first
+person, so each of those carries one of A's biases. Every younger couple has three such years (plan years 21 to 23).
+
+**Built and smoked before any launch (17 Nov, morning).** `research/solver/household.mjs` with `research/tests/household.test.mjs`
+(15 checks, ALL PASS: the plan's construction on S327F, the merged position, the plan's fidelity under the app's own rules
+on six couples with each of its four plants failing it, the rollout's engine and exact model agreeing on 20 paths, the
+refusals); `audit-household.mjs`, `batch-household.sh` and `reduce-household.mjs` (its planted checks ALL PASS, 8); a smoke
+of two units at 6 points and 30 paths read through the gate (fair), no figure printed. The smoke's first read was refused
+for an audit stamp the read had moved after the units ran, as the gate should; the units were run again on the files as
+they stand.
+
 **Time box.** The build and its tests one working day from the commit of this file; the run and the read half a day.
 If the box runs out, stop and report.
+
+**Stopped by the maintainer (D114, 17 Nov, morning), before the lead test's launch:** "Handover your thoughts and the problem
+so far as a prompt for an external reviewer, stop that line of thought for now." The lead test is not run; design A's
+prototype is committed as built, off in code; the handover is `QUESTIONS-2026-11-17.md`.

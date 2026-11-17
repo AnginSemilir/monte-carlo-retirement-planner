@@ -11,7 +11,7 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**OPEN (D113, 17 Nov, morning): one plan for the whole household, before the speed work.** The maintainer: "Look at bigger -
+**STOPPED (D114, 17 Nov, morning: "Handover your thoughts and the problem so far as a prompt for an external reviewer, stop that line of thought for now"), handed to the external review in `QUESTIONS-2026-11-17.md`, the lead test not run. As it was opened (D113): one plan for the whole household, before the speed work.** The maintainer: "Look at bigger -
 one plan for the whole household. Think deeply about how that would work and how much more accurate you'd expect to be,
 and if it could be done without significant increase in timing. After that if you're confident at least there's a good
 lead, follow up on it with tests as needed and then get back to me. Do this before the speed work." The design, the gain

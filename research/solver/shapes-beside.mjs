@@ -57,3 +57,11 @@ for (const U of units) {
 }
 console.log(`  the guard hands to the solver and K2's interval against APP lies wholly below 0: ${harmed.join('; ') || 'none'}`);
 console.log(`  K2 less APP pooled over the units the guard hands to the solver: ${without(units.filter(U => coupleSolverOn(panel.find(u => u.id === U.id).plan).on), 'APP', 'K2')}`);
+console.log('\nE. where the figures lie (the reviewer at the read, its MINORs 1 and 2): by base, and the units with a DB pension (S147-db, S061-dbpart) against those without');
+{
+  const db = U => U.base === 'S147-db' || U.base === 'S061-dbpart', gap = U => U.shape === 'gap8' || U.shape === 'gap12';
+  for (const b of ['S149', 'S337F', 'S147-db', 'S061-dbpart']) console.log(`  HS less K2 on ${b}'s seven: ${iv(pair(units.filter(U => U.base === b), 'K2', 'HS'))}`);
+  console.log(`  HS less K2 on the 14 units without a DB pension ${iv(pair(units.filter(U => !db(U)), 'K2', 'HS'))}; on the 14 with one ${iv(pair(units.filter(db), 'K2', 'HS'))}`);
+  const G = units.filter(gap);
+  console.log(`  K2 less APP on the gap8 and gap12 units: all eight ${iv(pair(G, 'APP', 'K2'))}; the four without a DB pension ${iv(pair(G.filter(U => !db(U)), 'APP', 'K2'))}; the four with one ${iv(pair(G.filter(db), 'APP', 'K2'))}`);
+}

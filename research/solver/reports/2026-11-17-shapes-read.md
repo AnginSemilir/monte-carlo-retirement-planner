@@ -24,6 +24,8 @@ Each couple was run on the same 4,000 simulated markets under four arms:
   keep.
   - No couple's interval lies wholly below the bar.
   - Without the unit that gains most, S061-dbpart@gap12 (`+29.500`), the pooled gain is `+4.990`.
+  - Most of the gain is on the two bases with a DB pension: `+10.723` on their 14 units against `+1.007` on the 14
+    without. By base: S149 `+0.925`, S337F `+1.089`, S147-db `+7.536`, S061-dbpart `+13.911`.
 - **The 12-year gap is the shape to place.** On gap12 the household plan sits further below its own table's forecast,
   CEIL less HS, `+1.675` points on average, past the rule's bar of 1. That rests on two units:
   - S061-dbpart@gap12 `+4.050` and S147-db@gap12 `+2.350`;
@@ -44,13 +46,20 @@ Each couple was run on the same 4,000 simulated markets under four arms:
   - Under the opt-in, those couples are given K2 today (D99). The household plan does far better than the app's rules on
     all three.
   - Over the 25 units the guard hands to the solver, K2 is `+7.217` points above APP pooled (`+8.361` without
-    S061-dbpart@gap12). The harm is confined to these shapes.
+    S061-dbpart@gap12). On these units and this seed, the harm is on these three.
+  - The harm goes with an age gap and a DB pension together. On the gap8 and gap12 units K2 less APP is:
+    - `+10.744` on the four without a DB pension;
+    - `-7.950` on the four with one, S061-dbpart@gap8 among them gaining (`+6.200`);
+    - `+1.397` on all eight.
   - Two other units lose under K2 (S061-dbpart@penB90 `-10.175`, S061-dbpart@penA100 `-2.850`), but the guard keeps
     those couples on the app's rules.
   - Why K2 loses there is not shown: no decomposition was run. It is a lead, on seed 7002 and 4,000 paths, EXPLORATORY.
 - **Two units were run again.** S147-db@penA100 and S061-dbpart@penA100 were first refused by the audit's settings check,
   over a rounding of each person's floor. They were run again on the amended check (SHAPES.md amendment 1; D125 to D127,
   reviewed before use). The read takes both stamps as the amendment has it.
+
+**The reviewer at the read: PASS, two MINORs, answered here** (`reviews/2026-11-17-read-shapes.md`: every figure
+recomputed from the arrays; the stamps, the two units run again and the app's own route on the three couples checked).
 
 **By the rule committed before the run: A SHAPE TO PLACE.** Step 6's AXIS.md is called for and carries gap12's units beside
 the lead test's three. REFUSALS.md follows (step 7). Step 8 is not started.
@@ -78,7 +87,7 @@ of CEIL less HS.
 
 ## Each pooled figure with and without its largest unit
 
-From `results-shapes.txt` and `results-shapes-beside.txt` (sections A to D):
+From `results-shapes.txt` and `results-shapes-beside.txt` (sections A to E):
 
 | figure | all | without its largest unit |
 |---|---|---|
@@ -93,6 +102,8 @@ From `results-shapes.txt` and `results-shapes-beside.txt` (sections A to D):
 | CEIL less HS, gap12's mean | `+1.675` | without S061-dbpart@gap12 `+0.883` |
 | spending on the paths both keep | `+2.9081%` | without S147-db@elder2nd `+2.7792%` |
 | K2 less APP over the 25 units the guard hands to the solver | `+7.217` (`+7.067` to `+7.363`) | without S061-dbpart@gap12 `+8.361` |
+| HS less K2, the 14 units with a DB pension against the 14 without | `+10.723` against `+1.007` | (by base, `results-shapes-beside.txt` section E) |
+| K2 less APP on the gap8 and gap12 units | `+1.397` on all eight | `+10.744` on the four without a DB pension, `-7.950` on the four with one |
 
 ## Beside the rule, deciding nothing
 
@@ -119,9 +130,16 @@ From `results-shapes.txt` and `results-shapes-beside.txt` (sections A to D):
 3. **For the maintainer: today's couples' default on couples with an 8- or 12-year age gap and a DB pension.**
    - On three such couples, which the app's guard hands to the solver under the opt-in, K2 survives `6.8` to `20.3` points
      below the app's own rules on this seed.
+   - The K2 here is what the app gives such a couple. The reviewer at the read ran the page's own route for a couple on
+     the three, and it matched the stored K2 path for path on the first 400 paths; `src/` and the engine are as on
+     `main`.
    - Every couple tested before this was three years apart. The guard reads the pots' share and an age cap, not the age
      gap.
-   - The agent's recommendation, not made: keep a couple whose age gap is beyond what has been tested (three years) on
-     the app's rules, as the guard does for holdings outside the tested band, until a test reads. That would be a change
-     of default, so the reviewer would check it first.
-   - The cause is not shown. The household plan does far better than the app's rules on all three.
+   - **The agent's recommendation, not made:** keep a couple whose age gap is beyond what has been tested (three years)
+     and who hold a DB pension on the app's rules, as the guard does for holdings outside the tested band, until a test
+     reads. That would be a change of default, so the reviewer would check it first.
+   - **Its trade.** A guard on the age gap alone would also keep the four gap couples without a DB pension from their
+     gain over the app's rules (`+10.744` on them here). A guard on the gap with a DB pension takes S061-dbpart@gap8's
+     gain (`+6.200`) with the three losses.
+   - The evidence is four bases on one seed, and the cause is not shown. The household plan does far better than the
+     app's rules on all three.

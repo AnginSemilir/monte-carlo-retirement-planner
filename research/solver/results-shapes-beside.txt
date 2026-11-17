@@ -53,3 +53,11 @@ D. by unit, against the app's rules (APP): K2 less APP and HS less APP; and whet
   S061-dbpart@penA100  K2 less APP -2.850 (-3.106 to -2.459); HS less APP +11.875 (+11.648 to +11.924); the guard: the app's rules (uneven; the pots' share 0.940)
   the guard hands to the solver and K2's interval against APP lies wholly below 0: S147-db@gap8 -6.800 (-7.222 to -6.247); S147-db@gap12 -10.950 (-11.140 to -10.602); S061-dbpart@gap12 -20.250 (-20.338 to -19.990)
   K2 less APP pooled over the units the guard hands to the solver: +7.217 (+7.067 to +7.363) on 25 units; without S061-dbpart@gap12 +8.361 (+8.243 to +8.475)
+
+E. where the figures lie (the reviewer at the read, its MINORs 1 and 2): by base, and the units with a DB pension (S147-db, S061-dbpart) against those without
+  HS less K2 on S149's seven: +0.925 (+0.828 to +1.006)
+  HS less K2 on S337F's seven: +1.089 (+0.967 to +1.197)
+  HS less K2 on S147-db's seven: +7.536 (+7.451 to +7.599)
+  HS less K2 on S061-dbpart's seven: +13.911 (+13.786 to +14.014)
+  HS less K2 on the 14 units without a DB pension +1.007 (+0.931 to +1.076); on the 14 with one +10.723 (+10.651 to +10.785)
+  K2 less APP on the gap8 and gap12 units: all eight +1.397 (+1.030 to +1.762); the four without a DB pension +10.744 (+10.698 to +10.744); the four with one -7.950 (-8.325 to -7.550)

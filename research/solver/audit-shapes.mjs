@@ -29,7 +29,8 @@ import { vecOf } from '../../src/solver/grid.js';
 import { solveForApp } from '../../src/solverApp.js';
 import { tablesOf, digestOf } from '../../src/solverDigest.js';
 import { runPath } from './audit-phase4.mjs';
-import { JOINT, householdSolveOne, biasesOf, houseLineProblems } from './audit-household.mjs';
+import { JOINT, householdSolveOne, biasesOf, lineOf } from './audit-household.mjs';
+import { APP_CANDIDATE } from '../../src/solverSettings.js';
 import { readShapesPanel, solverPlanOf, PANEL as SHAPES_PANEL } from './shapes-panel.mjs';
 import { wantProblems, coupleProblems, PANEL_FILE } from './audit-couples.mjs';
 import { COUPLES_CANDIDATE, settingsOf } from './audit-couples-share.mjs';
@@ -68,8 +69,60 @@ export const optionsOf = (arm, cp) => (arm === 'K2' ? { shareRule: cp.meta.share
 const js = x => JSON.stringify(x);
 const zeroCounts = () => ({ decisions: 0, far: 0, down: 0 });
 
+/* THE SETTINGS CHECK, AS SHAPES.md AMENDMENT 1 HAS IT (17 Nov; D125: D124 (1)'s form for the lowest spending level). On the
+   two tables' settings lines (audit-household.mjs lineOf): the household table's line is the first person's, the tie-break
+   the one difference (the household table takes the candidate's, the first person's none); the minimum pot is left out and
+   the household table's held to the household's own (D124 (1)); the spending levels are compared with the lowest left out,
+   and the household table's lowest held to the household's own floor over its target, rounded to six places as the levels
+   are (each table's lowest level is its own plan's floor over its own target, so a person's table solved on their share
+   of the household's figures can part from the household table's there and nowhere else). SHAPES_PLANT, for the planted
+   checks alone: 'alllevels' compares the levels whole, as before the amendment; 'nolevelhold' skips the hold. */
+export const SHAPES_PLANT = { name: '' };
+const round6 = x => Math.round(x * 1e6) / 1e6;
+export function shapesLineProblems(selfLine, houseLine, floor, houseFloorFrac) {
+  const kv = line => Object.fromEntries(line.match(/(\S+) (\S+)/g).map(x => x.split(' ')));
+  const a = kv(selfLine), b = kv(houseLine), keys = [...new Set([...Object.keys(a), ...Object.keys(b)])];
+  const levels = v => String(v).split(',').map(Number), upper = v => { const l = levels(v), lo = Math.min(...l); return l.filter(x => x !== lo).join(','); };
+  const same = k => (k === 'levels' && SHAPES_PLANT.name !== 'alllevels' ? upper(a[k]) === upper(b[k]) : a[k] === b[k]);
+  const differ = keys.filter(k => k !== 'minPot' && !same(k)), bad = differ.filter(k => k !== 'tieAboveCap').map(k => `household: ${k} ${b[k]}, the first person's ${a[k]}`);
+  if (!(Number(b.minPot) === Number(floor))) bad.push(`household: minPot ${b.minPot}, not the household's ${floor}`);
+  if (Number(b.tieAboveCap) !== APP_CANDIDATE.tieAboveCap) bad.push(`household: tieAboveCap ${b.tieAboveCap} (want the candidate's ${APP_CANDIDATE.tieAboveCap})`);
+  if (Number(a.tieAboveCap) !== 0) bad.push(`self: tieAboveCap ${a.tieAboveCap} (want none)`);
+  if (SHAPES_PLANT.name !== 'nolevelhold') { const lo = Math.min(...levels(b.levels)); if (!(houseFloorFrac > 0) || lo !== round6(houseFloorFrac)) bad.push(`household: its lowest spending level ${lo}, not the household's own floor over its target ${round6(houseFloorFrac)}`); }
+  return bad;
+}
+/* the planted checks of the amended settings check (SHAPES.md amendment 1): each case a pair of lines as lineOf prints
+   them, the household's minimum pot and its floor over its target; each plant fails the case it names */
+function plantedLine() {
+  const line = (levels, extra = {}) => Object.entries({ pts: 45, mix: 3, lambda: 0.0223606797749979, levels, minPot: 100000, coarse: 'w2a3b3g2c2-NT-LRVOH-h3', tieAboveCap: 0, ...extra }).map(([k, v]) => `${k} ${v}`).join(' ');
+  const cases = [
+    ['a person\'s lowest level its own share\'s (S147-db@penA100: 0.799985 against 0.8) passes', line('1,1.1,0.95,0.9,0.799985'), line('1,1.1,0.95,0.9,0.8', { minPot: 120000, tieAboveCap: APP_CANDIDATE.tieAboveCap }), 120000, 0.8, true],
+    ['the household\'s lowest level not its own floor over its target is refused', line('1,1.1,0.95,0.9,0.8'), line('1,1.1,0.95,0.9,0.75', { minPot: 120000, tieAboveCap: APP_CANDIDATE.tieAboveCap }), 120000, 0.8, false],
+    ['another level parting is refused', line('1,1.1,0.95,0.85,0.8'), line('1,1.1,0.95,0.9,0.8', { minPot: 120000, tieAboveCap: APP_CANDIDATE.tieAboveCap }), 120000, 0.8, false],
+    ['another setting parting is refused', line('1,1.1,0.95,0.9,0.8', { lambda: 0.05 }), line('1,1.1,0.95,0.9,0.8', { minPot: 120000, tieAboveCap: APP_CANDIDATE.tieAboveCap }), 120000, 0.8, false],
+    ['the household\'s minimum pot not its own is refused', line('1,1.1,0.95,0.9,0.8'), line('1,1.1,0.95,0.9,0.8', { minPot: 110000, tieAboveCap: APP_CANDIDATE.tieAboveCap }), 120000, 0.8, false]
+  ];
+  const run = () => cases.map(([label, self, house, floor, frac, pass]) => ({ label, ok: (shapesLineProblems(self, house, floor, frac).length === 0) === pass }));
+  let bad = 0;
+  SHAPES_PLANT.name = '';
+  for (const c of run()) { if (!c.ok) bad++; console.log(`  ${c.ok ? 'ok  ' : 'FAIL'} ${c.label}`); }
+  // each plant fails exactly the case it names
+  for (const [plant, want] of [['alllevels', [0]], ['nolevelhold', [1]]]) {
+    SHAPES_PLANT.name = plant;
+    const failed = run().map((c, i) => (c.ok ? -1 : i)).filter(i => i >= 0);
+    SHAPES_PLANT.name = '';
+    const ok = JSON.stringify(failed) === JSON.stringify(want);
+    if (!ok) bad++;
+    console.log(`  ${ok ? 'ok  ' : 'FAIL'} the plant '${plant}' fails case ${want.map(i => i + 1).join(', ')} alone (it fails ${failed.map(i => i + 1).join(', ') || 'none'})`);
+  }
+  console.log(bad ? `PLANTED: ${bad} FAILED` : `PLANTED: ALL PASS (${cases.length + 2})`);
+  return bad;
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const args = process.argv.slice(2), units = readShapesPanel();
+  const args = process.argv.slice(2);
+  if (args[0] === '--planted') process.exit(plantedLine() ? 1 : 0);
+  const units = readShapesPanel();
   if (args[0] === '--units') { units.forEach((u, k) => console.log(`${k} ${u.id}`)); console.log(units.length); process.exit(0); }
   const at = args.indexOf('part'), [pk, pn] = at >= 0 ? args[at + 1].split('/').map(Number) : [NaN, NaN];
   if (!(pn === units.length && pk >= 0 && pk < pn)) { console.error(`audit-shapes: part k/${units.length}`); process.exit(2); }
@@ -94,7 +147,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const s2 = Date.now(), solveSecs = { APP: 0, K2: (s1 - s0) / 1000, HS: (s2 - s1) / 1000, CEIL: (s2 - s1) / 1000 };
   const cps = { K2: k2, HS: { ...house, split, counts: zeroCounts() }, CEIL: house };
   const lines = ['self', 'part'].map(w => settingsOf(k2.tables[w])), hline = settingsOf(house.H);
-  const off = [...(smoke ? [] : [...lines.flatMap((line, i) => wantProblems('CANDC', line, W).map(p => `${i ? 'part' : 'self'}: ${p}`)), ...wantProblems('CANDC', hline, W).map(p => `household: ${p}`)]), ...houseLineProblems(k2.tables.self, house.H, k2.m.ctx.solvencyFloor || 0), ...coupleProblems()];
+  const off = [...(smoke ? [] : [...lines.flatMap((line, i) => wantProblems('CANDC', line, W).map(p => `${i ? 'part' : 'self'}: ${p}`)), ...wantProblems('CANDC', hline, W).map(p => `household: ${p}`)]), ...shapesLineProblems(lineOf(k2.tables.self), lineOf(house.H), k2.m.ctx.solvencyFloor || 0, house.hm.ctx.floorFrac || 0), ...coupleProblems()];
   if (k2.m.ctx.solvencyFloor !== E.num(U.plan.config.solvencyFloor, 0)) off.push(`the household's minimum pot ${k2.m.ctx.solvencyFloor}, not the unit's ${U.plan.config.solvencyFloor}`);
   if (off.length) { console.error(`audit-shapes: ${U.id}: ${off.join('; ')}`); process.exit(3); }
   const digest = async () => ({ self: await digestOf(tablesOf(k2.tables.self)), part: await digestOf(tablesOf(k2.tables.part)), household: await digestOf(tablesOf(house.H)) });

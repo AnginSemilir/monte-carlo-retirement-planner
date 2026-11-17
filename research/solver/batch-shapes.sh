@@ -18,6 +18,12 @@ AUDIT=$(node --input-type=module -e "import { stampFilesHash } from './research/
 NU=$(node research/solver/audit-shapes.mjs --units | tail -1)
 TODO=$(seq 0 $((NU - 1)) | while read -r k; do f="$OUT/case$k.txt"
   { [ -f "$f" ] && head -1 "$f" | grep -q "^stamp: code $CODE audit $AUDIT " && grep -qE "^ +done unit $k secs " "$f"; } || echo "$k"; done)
+# SHAPES.md amendment 1 (17 Nov; D125, D126): UNITS_ONLY="k ..." runs only the units named, again, into the folder that holds
+# the rest (so RESUME=1 with it), each still to do on these files' stamp; the others are left as they ran
+if [ -n "${UNITS_ONLY:-}" ]; then
+  [ "${RESUME:-0}" = 1 ] || { echo "$0: UNITS_ONLY runs named units again beside the rest: it needs RESUME=1"; exit 2; }
+  TODO=$(for k in $UNITS_ONLY; do printf '%s\n' $TODO | grep -qx "$k" && echo "$k"; done)
+fi
 if [ "${TODO_ONLY:-0}" = 1 ]; then echo "stamp: code $CODE audit $AUDIT"; echo "todo: $(echo $TODO)"; exit 0; fi
 echo "SHAPES (EXPLORATORY): $NU units (code $CODE, audit $AUDIT), $(printf '%s\n' $TODO | grep -c .) to run, ${JOBS:-4} at a time, from $(TZ=Europe/London date '+%d %b %H:%M') UK"
 printf '%s\n' $TODO | grep . | xargs -P "${JOBS:-4}" -I{} sh -c \

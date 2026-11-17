@@ -25,6 +25,9 @@ import { spendOn, cells, armOf, biasesNil } from './reduce-household.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 export const RULE = { unit: -0.3, spend: -0.05, forecast: 2, ceil: 1 }, CANDIDATE = 'af001697ce1b';
+/* SHAPES.md amendment 1 (17 Nov; D125, D126): the read takes exactly two audit stamps, the launch's for every unit not run
+   again and the amended files' (stampFilesHash() now) for the units named here, run again on the amended settings check */
+export const AMEND = Object.freeze({ launch: '260916d007cd', rerun: Object.freeze(['S147-db@penA100']) });
 export const JOINT = { shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2 };
 export const ARMS = ['APP', 'K2', 'HS', 'CEIL'], SHAPES = ['even', 'gap8', 'gap12', 'elder2nd', 'part60', 'penB90', 'penA100'];
 export const orderOf = k => [...ARMS.slice(k % ARMS.length), ...ARMS.slice(0, k % ARMS.length)];
@@ -40,8 +43,15 @@ export function gate(units, ids, audit, size = { N: 4000, seed: 7002, pts: 45 },
   const P = [], missing = partial ? [] : ids.filter(id => !units.some(u => u.id === id));
   if (missing.length) P.push(`units missing: ${missing.join(', ')}`);
   const one = (what, f) => { const vs = [...new Set(units.map(f))]; if (vs.length > 1) P.push(`more than one ${what}: ${vs.join(', ')}`); };
-  one('code', u => u.stamp.code); one('audit', u => u.stamp.audit); one('seed', u => u.seed); one('count of paths', u => u.N); one('points', u => u.pts); one('split', u => u.split);
-  if (audit && units.some(u => u.stamp.audit !== audit)) P.push(`a unit's audit is not these files' (${audit})`);
+  one('code', u => u.stamp.code); one('seed', u => u.seed); one('count of paths', u => u.N); one('points', u => u.pts); one('split', u => u.split);
+  // the audit: one stamp, these files' (as launched); or, given { launch, amended, rerun } (SHAPES.md amendment 1), the
+  // launch's on every unit not run again and the amended files' on each unit run again, and no other
+  if (audit && typeof audit === 'object') {
+    for (const U of units) { const again = audit.rerun.includes(U.id), want = again ? audit.amended : audit.launch; if (U.stamp.audit !== want) P.push(`${U.id}: audit ${U.stamp.audit}, not ${again ? "the amended files'" : "the launch's"} ${want}`); }
+  } else {
+    one('audit', u => u.stamp.audit);
+    if (audit && units.some(u => u.stamp.audit !== audit)) P.push(`a unit's audit is not these files' (${audit})`);
+  }
   if (units.some(u => u.candidate !== CANDIDATE)) P.push(`a unit's candidate is not the couples' candidate (${CANDIDATE})`);
   if (size && units.some(u => u.N !== size.N || u.seed !== size.seed || u.pts !== size.pts)) P.push(`a unit is not ${size.N} paths of seed ${size.seed} at ${size.pts} points`);
   for (const U of units) {
@@ -119,6 +129,13 @@ function planted() {
   const U0 = all();
   checks.push(['the gate takes the planted units, refuses one missing and an elder2nd unit not mirrored', gate(U0, ids, 'a', null).length === 0 && gate(U0.slice(1), ids, 'a', null).some(p => /missing/.test(p))
     && gate(U0.map(U => (U.shape === 'elder2nd' && U.id.startsWith('X') ? { ...U, mirrored: false } : U)), ids, 'a', null).some(p => /mirrored/.test(p))]);
+  // SHAPES.md amendment 1: the gate on two stamps
+  const two = { launch: 'L', amended: 'A', rerun: ['X@gap8'] }, stamped = (f) => U0.map(U => ({ ...U, stamp: { code: 'c', audit: f(U) } }));
+  const asNamed = stamped(U => (U.id === 'X@gap8' ? 'A' : 'L'));
+  checks.push(['amendment 1: the units on their two stamps as named pass the gate', gate(asNamed, ids, two, null).length === 0, gate(asNamed, ids, two, null).join('; ')]);
+  checks.push(['amendment 1: a unit not run again on the amended stamp is refused', gate(stamped(U => (U.id === 'X@gap8' || U.id === 'Y@even' ? 'A' : 'L')), ids, two, null).some(p => /Y@even: audit A, not the launch's/.test(p))]);
+  checks.push(['amendment 1: the unit run again on the launch stamp is refused', gate(stamped(() => 'L'), ids, two, null).some(p => /X@gap8: audit L, not the amended files'/.test(p))]);
+  checks.push(['amendment 1: a third stamp is refused', gate(stamped(U => (U.id === 'X@gap8' ? 'A' : U.id === 'Y@even' ? 'Z' : 'L')), ids, two, null).some(p => /Y@even: audit Z/.test(p))]);
   let bad = 0;
   for (const [label, ok, detail] of checks) { if (!ok) bad++; console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${label}${detail ? ` (${detail})` : ''}`); }
   console.log(bad ? `PLANTED: ${bad} of ${checks.length} FAILED` : `PLANTED: ALL PASS (${checks.length})`);
@@ -137,10 +154,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (!smoke) {
     const { requireFairLogs } = await import('./fair-gate.mjs');
     const logs = readdirSync(DIR).filter(f => /^case\d+\.txt$/.test(f)).map(f => readFileSync(join(DIR, f), 'utf8'));
-    requireFairLogs(logs, 'none', { blob: () => '-' });
+    // SHAPES.md amendment 1 (D126): the fair-test gate takes exactly the two versions, on the one code the units ran on
+    const { codeId } = await import('./code-id.mjs'), code = codeId().hash;
+    requireFairLogs(logs, 'none', { blob: () => '-', allowed: [`code ${code} audit ${AMEND.launch}`, `code ${code} audit ${stampFilesHash()}`] });
   }
   const units = files.map(f => { const U = JSON.parse(gunzipSync(readFileSync(join(DIR, f))).toString()); for (const a of ARMS) if (U.arms[a]) U.arms[a] = armOf(U.arms[a]); return U; });
-  const ids = readShapesPanel().map(u => u.id), problems = gate(units, ids, stampFilesHash(), smoke ? null : undefined, smoke);
+  const ids = readShapesPanel().map(u => u.id), problems = gate(units, ids, smoke ? stampFilesHash() : { launch: AMEND.launch, amended: stampFilesHash(), rerun: AMEND.rerun }, smoke ? null : undefined, smoke);
   console.log(`THE SHAPES THE LIBRARY LACKS (EXPLORATORY; SHAPES.md): ${units.length} units, seed ${units[0].seed}, ${units[0].N} paths, ${units[0].pts} points; HS at the split '${units[0].split}'; code ${units[0].stamp.code}, audit ${units[0].stamp.audit}`);
   if (problems.length) { console.log(`THE GATE: REFUSED\n  ${problems.join('\n  ')}`); process.exit(3); }
   console.log('THE GATE: fair');

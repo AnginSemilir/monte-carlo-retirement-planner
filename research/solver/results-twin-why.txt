@@ -1,0 +1,25 @@
+WHY TWINS PART ONCE THE BAND IS RIGHT (EXPLORATORY, deciding nothing): the twin of each unit, under arm A's policy, 100 paths of seed 99002
+S205 (arm A: ISA First; one-off costs: £10,800 in plan year 3)
+  the twins apart in 91.5% of path-years; their wealth first parts: plan year 3 on 100
+  with the one-off costs taken out: apart in 0.0% of path-years; their wealth first parts: never on 100
+S061-dbpart (arm A: Bracket Fill Basic, lump sum; one-off costs: £10,800 in plan year 3)
+  the twins apart in 90.1% of path-years; their wealth first parts: plan year 3 on 100
+  with the one-off costs taken out: apart in 0.0% of path-years; their wealth first parts: never on 100
+S327F (arm A: ISA First, lump sum; one-off costs: £27,000 in plan year 3)
+  the twins apart in 94.1% of path-years; their wealth first parts: plan year 3 on 100
+  with the one-off costs taken out: apart in 0.0% of path-years; their wealth first parts: never on 100
+S227-90 (arm A: Bracket Fill, lump sum; one-off costs: £144,000 in plan year 3)
+  the twins apart in 92.7% of path-years; their wealth first parts: plan year 3 on 100
+  with the one-off costs taken out: apart in 0.0% of path-years; their wealth first parts: never on 100
+S023-db (arm A: ISA First; one-off costs: £144,000 in plan year 3)
+  the twins apart in 89.3% of path-years; their wealth first parts: plan year 3 on 100
+  with the one-off costs taken out: apart in 0.0% of path-years; their wealth first parts: never on 100
+S149 (arm A: Bracket Fill Basic; one-off costs: £27,000 in plan year 3)
+  the twins apart in 92.5% of path-years; their wealth first parts: plan year 3 on 100
+  with the one-off costs taken out: apart in 0.0% of path-years; their wealth first parts: never on 100
+S149's twin, path 17 (the first on which the couple and the household plan part in the cost's year), plan years 2 to 3, the couple's figure then the household plan's:
+  plan year 2: spendLevel £1 / £1; targetSpend £26,400 / £26,400; netGuaranteed £0 / £0; netDrawdown £26,400 / £26,400; drawdownPensions £26,468 / £26,468; taxPaid £68 / £68; dividendTax £68 / £68; savingsTax £0 / £0; cgtPaid £0 / £0; realisedGains £0 / £0; oneOffCost £0 / £0; harvested £0 / £0; sweptToGia £0 / £0; sweptFromGia £0 / £0; sweptToIsa £0 / £0
+    the wrappers at the year's end, the couple / the household plan: pen £500,469 / £500,469; isa £216,663 / £216,663; other £514,542 / £514,542; cash £6,523 / £6,523; each twin: first pen £250,235 isa £108,332 other £257,271 cash £3,261 | second pen £250,235 isa £108,332 other £257,271 cash £3,261
+  plan year 3: spendLevel £1 / £1; targetSpend £26,400 / £26,400; netGuaranteed £0 / £0; netDrawdown £26,400 / £26,400; drawdownPensions £26,862 / £26,862; taxPaid £462 / £462; dividendTax £462 / £462; savingsTax £0 / £0; cgtPaid £1,210 / £670 APART; realisedGains £9,724 / £9,724; oneOffCost £27,000 / £27,000; harvested £0 / £0; sweptToGia £0 / £0; sweptFromGia £0 / £0; sweptToIsa £0 / £0
+    the wrappers at the year's end, the couple / the household plan: pen £482,553 / £482,553; isa £221,501 / £221,501; other £504,695 / £505,248; cash £0 / £0; each twin: first pen £241,277 isa £110,751 other £241,243 cash £0 | second pen £241,277 isa £110,751 other £263,452 cash £0
+  S149's twin, the plan year in which the couple and the household plan first part, over 100 paths: never on 23, plan year 3 on 26, plan year 5 on 1, plan year 6 on 1, plan year 7 on 3, plan year 8 on 1, plan year 9 on 1, plan year 10 on 3, plan year 11 on 1, plan year 12 on 13, plan year 13 on 7, plan year 14 on 4, plan year 15 on 1, plan year 16 on 2, plan year 17 on 1, plan year 18 on 3, plan year 19 on 2, plan year 21 on 2, plan year 23 on 1, plan year 26 on 1, plan year 28 on 1, plan year 37 on 1, plan year 38 on 1

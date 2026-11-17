@@ -29,6 +29,33 @@ PLACE (D120); step 6's `AXIS.md` only if a read calls for it (D121); step 7's `R
 started (D123). The pot is recorded and not a bar (D116). EXPLORATORY throughout; nothing under `src/` and not
 `research/engine.mjs` edited, the solver's code id 603eeb595679.
 
+**OPEN (17 Nov, afternoon): three items from the household plan's steps 1 to 3, each the maintainer's; step 4 not started.**
+Steps 1 and 2 are done as written (75267bdd, 742125f5). Step 3 is built (the twin, `biasesOf`'s five things, check 3's
+lifetime tax, the two traces) and stopped where the plan says stop.
+1. **Step 1's settings check cannot pass as worded.** The plan: the audit "holds the household table's line to the first
+   person's line with the tie-break the one difference". Every one of the 28 units sets a minimum pot, and each person's
+   table is solved on that person's share of it, the household table on the whole (S149: 102,500 against 205,000;
+   `results-household-line-check.txt`), so the lines differ in `minPot` too. Built as worded, it refuses every unit. The
+   agent's suggestion, not built: the same comparison with the minimum pot left out, since the audit already holds the
+   household table's minimum pot to the household's own.
+2. **STOP (the plan's step 3, bar 5): S205's twin outside bar 2 on seed 99001.** On 2 of 100 paths a wrapper parts by more
+   than a pound (the couple's dividend tax £3 over the household plan's in one late year; the largest gap in end wealth
+   £5), where the review's seed 99002 had none. The cause, shown by decomposition (`twin-why.mjs`, `results-twin-why.txt`;
+   `results-twin-step3.txt`): the engine takes a one-off cost person by person, the first person first, so the two twins
+   hold unequal amounts from the cost's year on and one twin's allowance goes partly unused where the household plan has
+   both people's. With the one-off costs taken out and arm A's policy held, the twins are equal in every year of every
+   path on all six units, and S205's twin is 0 of 100 apart on seed 99001. The bar is not moved. The agent's suggestion,
+   not built: hold S205's twin to bar 2 with its one-off cost taken out (the cost's person order is the engine's, not the
+   merge's), bar 1 staying on the twins as they are.
+3. **S149 (trace 2) fits neither of the plan's two branches.** In its cost's year the first figure apart is the capital
+   gains tax on the cost's sale (seed 99002, path 17: the couple £1,210, the household plan £670, the gain £9,724 in both):
+   the couple takes the cost from the first twin's taxable account, so the gain uses one person's exempt amount where the
+   household plan has two. That is the engine's cost order against design A's doubled exempt amount: no defect in
+   `householdPlanFor` to mend, and not arm A's rule. The agent's suggestion: name S149 in the check as the one exception
+   with its size (on seed 99001 its capital gains tax over the plan £968 against the couple's £1,057, income tax £35,306
+   against £35,490), the cause as found. Meanwhile it is printed and held to no bar.
+The working branch's full tier will show `household.test.mjs` failing on item 2 until it is ruled.
+
 **HELD (D119): D111 (3)'s speed work on LOOKHOLD,** until the household plan's lead test (step 4) reads.
 
 **RESTARTED (D115) after its stop (D114, 17 Nov, morning: "Handover your thoughts and the problem so far as a prompt for an external reviewer, stop that line of thought for now"; the lead test not run). As it was opened (D113): one plan for the whole household, before the speed work.** The maintainer: "Look at bigger -

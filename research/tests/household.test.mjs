@@ -28,7 +28,28 @@
  *      plan's band twice a person's in the couple's model ('cgtband'); (b) the engine's default basic band limit the same
  *      before and after solveHousehold and householdContext, a throwing solve among them ('nofinally': a twoBands without
  *      its finally, on a throwing fn); (c) a couple's M.prepare and E.buildContext, called after solveHousehold, carry a
- *      person's band (the same plant); (d) the solver's code id 603eeb595679 (nothing under src/ and not the engine edited).
+ *      person's band (the same plant); (d) the solver's code id 603eeb595679 (nothing under src/ and not the engine edited);
+ *   8. THE TWIN (PRESCRIPTIVE-PLAN.md step 3): on check 3's six units, the couple made of the first person twice (built as the
+ *      review's scripts/twin-trace.mjs builds it), under arm A's policy, 100 paths of seed 99001, the household plan
+ *      (through householdContext) against the couple, year by year: (1) on S205, S061-dbpart, S327F, S227-90 and S023-db
+ *      the household plan's mean capital gains tax over the plan within 3% of the couple's (or £50, where that is more) and
+ *      its mean income tax (with the tax on interest and dividends) within 0.1%; (2) on S205 every wrapper within a pound in
+ *      every plan year on every path; (3) S149 printed, held to no bar (trace 2, below); its plants 'cgtband' (bar 1 failing
+ *      on S327F, S227-90 and S023-db) and 'singleband' (bar 1). The bars are the review's (results-twin-trace.txt before the
+ *      band's mend, results-twin-trace-mended.txt after, seed 99002); a twin outside a bar here that the review's seed put
+ *      inside is printed as a STOP, and the bar is not moved.
+ *      Why the twins part once the band is right (trace 1, twin-why.mjs, results-twin-why.txt): the engine takes a one-off cost
+ *      person by person, the first person first (App.jsx stepYear's one-off cost block: at each step of the cost's order the
+ *      first person's pot before the partner's), so the two twins hold and draw unequal amounts from the cost's year on (on
+ *      all six, their wealth first parts in plan year 3, the cost's, on every path; with the costs taken out and arm A's
+ *      policy held, the twins are equal in every year of every path). Their unequal holdings then leave one twin's
+ *      allowance part unused where the household plan has both people's: S205's two paths apart on seed 99001 are the
+ *      couple's dividend tax £3 over the household plan's in one late year (with the costs taken out, 0 of 100 apart).
+ *      S149 (trace 2): the figure that parts first in its cost's year is the capital gains tax on the cost's sale (seed
+ *      99002 path 17: the couple £1,210, the household plan £670, the gain realised £9,724 in both): the couple takes the
+ *      cost from the first twin's taxable account, so the gain falls on one person's exempt amount where the household plan
+ *      has two. The cause is the engine's cost order against design A's doubled exempt amount: neither householdPlanFor's
+ *      construction nor arm A's rule, the plan's two branches; with the maintainer, S149 held to no bar meanwhile.
  * Measured first by the probe behind check 3 (17 Nov, EXPLORATORY): the largest gaps unplanted 1.3 points of survival
  * (S061-dbpart) and 13.6% of median end wealth (S227-90), every plant past one bar or the other on some couple.
  *   node research/tests/household.test.mjs
@@ -104,10 +125,10 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
       const a = armA(appPlan(planOf(id)), { tournament: false }), cpl = E.resolveMpaa(a.planState);
       const cC = E.buildContext(cpl), cH = householdContext(E, E.resolveMpaa(E.normalizePlan(householdPlanFor(E, cpl)))), T = cC.totalYears;
       if (cH.totalYears !== T) { out.push({ id, ds: Infinity, dw: Infinity }); continue; }
-      let sC = 0, sH = 0; const wC = [], wH = [];
-      for (const zs of E.pathsForSeed(99001, N, T)) { const rc = runPath(cC, zs, false), rh = runPath(cH, zs, false); sC += rc.survived ? 1 : 0; sH += rh.survived ? 1 : 0; wC.push(rc.wealth); wH.push(rh.wealth); }
+      let sC = 0, sH = 0, tC = 0, tH = 0; const wC = [], wH = [];
+      for (const zs of E.pathsForSeed(99001, N, T)) { const rc = runPath(cC, zs, false), rh = runPath(cH, zs, false); sC += rc.survived ? 1 : 0; sH += rh.survived ? 1 : 0; wC.push(rc.wealth); wH.push(rh.wealth); tC += rc.tax; tH += rh.tax; }
       const med = xs => { const s = [...xs].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
-      out.push({ id, ds: 100 * (sH - sC) / N, dw: med(wH) / med(wC) - 1 });
+      out.push({ id, ds: 100 * (sH - sC) / N, dw: med(wH) / med(wC) - 1, dt: (tH - tC) / N });
     }
     HOUSE.plant = '';
     return out;
@@ -115,6 +136,12 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   const fits = g => Math.abs(g.ds) <= 2 && Math.abs(g.dw) <= 0.15, show = gs => gs.map(g => `${g.id} ${g.ds >= 0 ? '+' : ''}${g.ds.toFixed(1)} pts ${(100 * g.dw).toFixed(1)}%`).join('; ');
   const clean = gaps('');
   check('the household plan tracks the couple under the app\'s rules on all six (survival within 2 points, median end wealth within 15%)', clean.every(fits), show(clean));
+  // beside the bars (PRESCRIPTIVE-PLAN.md step 3): each unit's mean lifetime tax, the household plan's less the couple's. Two
+  // differences are expected, the review's figures on seed 99002 beside them: on S061-dbpart the partner's DB pension is taxed
+  // against the first person's spare allowance (-£23,637, design A's allowance bias, lasting the plan); on S227-90 arm A's
+  // bracket-fill rule fills two bands from the merged pension, where in the couple the partner's band is soon empty
+  // (+£88,329, a rule that reads the bands as its target). The bars are not changed.
+  console.log(`  info (3) the mean lifetime tax, the household plan's less the couple's: ${clean.map(g => `${g.id} ${g.dt >= 0 ? '+' : '-'}£${Math.abs(Math.round(g.dt)).toLocaleString('en-GB')}`).join('; ')}`);
   for (const plant of ['nopartsp', 'notakehome', 'singleband', 'nopartpots']) {
     const g = gaps(plant);
     check(`the plant '${plant}' fails it on some couple`, g.some(x => !fits(x)), show(g.filter(x => !fits(x))) || 'none');
@@ -241,6 +268,60 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   check('(7c) the same plant fails it', !(planted[1] === p0 && planted[2] === p0), `${planted[1]} and ${planted[2]}`);
   const cid = codeId();
   check('(7d) the solver\'s code id 603eeb595679', !!cid && cid.hash === '603eeb595679', cid ? cid.hash : 'none');
+}
+
+// 8. the twin (PRESCRIPTIVE-PLAN.md step 3)
+{
+  const TW = ['S205', 'S061-dbpart', 'S327F', 'S227-90', 'S149', 'S023-db'], HELD = TW.filter(id => id !== 'S149'), N = 100;
+  // the review's twin: the first person twice; the partner's own incomes and deposits left out, the first person's deposits halved
+  const twinOf = id => {
+    const base = JSON.parse(JSON.stringify(planOf(id))), d = base.demographics;
+    for (const k of ['currentAge', 'retireAge', 'salary', 'salaryGrowth', 'employment', 'cgtGainsUsed', 'cfBroughtForward', 'mpaaAge', 'statePension']) d[`${k}Part`] = d[`${k}Self`];
+    const mine = base.accounts.filter(a => a.owner === 'Myself');
+    base.accounts = [...mine, ...mine.map(a => ({ ...a, id: String(a.id).replace(/_self$/, '_part'), owner: 'Partner' }))];
+    const inc = (base.otherIncomes || []).filter(i => i.owner === 'Myself');
+    base.otherIncomes = [...inc, ...inc.map(i => ({ ...i, id: `${i.id}_p`, owner: 'Partner' }))];
+    const dep = (base.oneOffContributions || []).filter(c => (c.owner || 'Myself') === 'Myself');
+    base.oneOffContributions = dep.flatMap(c => [{ ...c, amount: Number(c.amount) / 2 }, { ...c, id: `${c.id}_p`, owner: 'Partner', amount: Number(c.amount) / 2 }]);
+    return base;
+  };
+  const cats = (ctx, st) => { const o = { pen: 0, isa: 0, other: 0, cash: 0 }; for (const x of ctx.accounts) o[x.cat] = (o[x.cat] || 0) + (st.pots[x.id] || 0); return o; };
+  const twins = () => TW.map(id => {
+    const a = armA(appPlan(twinOf(id)), { tournament: false }), cpl = E.resolveMpaa(a.planState);
+    const cC = E.buildContext(cpl), cH = householdContext(E, E.resolveMpaa(E.normalizePlan(householdPlanFor(E, cpl)))), T = cC.totalYears;
+    const tot = { C: { income: 0, cgt: 0 }, H: { income: 0, cgt: 0 } };
+    let apart = 0, endGap = 0;
+    for (const zs of E.pathsForSeed(99001, N, T)) {
+      const sC = E.freshState(cC), sH = E.freshState(cH), zPath = zs.length > T + 1 ? zs[T + 1] : 0;
+      let seen = false, rC, rH;
+      for (let t = 0; t <= T; t++) {
+        rC = E.stepYear(cC, sC, t, { z: zs[t], zPath }); rH = E.stepYear(cH, sH, t, { z: zs[t], zPath });
+        tot.C.income += rC.taxPaid; tot.C.cgt += rC.cgtPaid || 0; tot.H.income += rH.taxPaid; tot.H.cgt += rH.cgtPaid || 0;
+        if (!seen) { const a1 = cats(cC, sC), a2 = cats(cH, sH); if (Object.keys(a1).some(k => Math.abs(a1[k] - a2[k]) > 1)) { seen = true; apart++; } }
+      }
+      endGap = Math.max(endGap, Math.abs(rC.totalCombined - rH.totalCombined));
+    }
+    const m = x => x / N;
+    return { id, label: a.label, cgtC: m(tot.C.cgt), cgtH: m(tot.H.cgt), incC: m(tot.C.income), incH: m(tot.H.income), apart, endGap };
+  });
+  const gbp = x => `£${Math.round(x).toLocaleString('en-GB')}`;
+  const bar1 = x => Math.abs(x.cgtH - x.cgtC) <= Math.max(0.03 * x.cgtC, 50) && Math.abs(x.incH - x.incC) <= 0.001 * x.incC;
+  const show = x => `${x.id} (${x.label}): capital gains tax ${gbp(x.cgtH)} against ${gbp(x.cgtC)}, income tax ${gbp(x.incH)} against ${gbp(x.incC)}; apart on ${x.apart} of ${N} paths, the largest gap in end wealth ${gbp(x.endGap)}`;
+  const tw = twins(), held = tw.filter(x => HELD.includes(x.id));
+  check('(8) the twin, bar 1: the household plan\'s capital gains tax within 3% (or £50) and income tax within 0.1% of the couple\'s on S205, S061-dbpart, S327F, S227-90 and S023-db', held.every(bar1), held.map(show).join('; '));
+  const s205 = tw.find(x => x.id === 'S205');
+  check('(8) the twin, bar 2: on S205 every wrapper within a pound in every plan year on every path', s205.apart === 0, show(s205));
+  console.log(`  info (8) the twin, S149, held to no bar until trace 2 is done: ${show(tw.find(x => x.id === 'S149'))}`);
+  // bar 5: on the review's seed (results-twin-trace-mended.txt) every held twin was inside bar 1 and S205 inside bar 2, so a
+  // twin outside either here is a STOP for the maintainer; the bar is not moved
+  const outside = held.filter(x => !bar1(x));
+  if (outside.length) console.log(`  STOP (8) the twin outside bar 1 on seed 99001 where the review's seed put it inside: ${outside.map(show).join('; ')}`);
+  if (s205.apart > 0) console.log(`  STOP (8) the twin outside bar 2 on seed 99001 where the review's seed put it inside (0 of 100 paths apart there): ${show(s205)}`);
+  for (const [plant, must] of [['cgtband', ['S327F', 'S227-90', 'S023-db']], ['singleband', null]]) {
+    HOUSE.plant = plant; const tp = twins().filter(x => HELD.includes(x.id)); HOUSE.plant = '';
+    const failing = tp.filter(x => !bar1(x)).map(x => x.id);
+    check(`(8) the plant '${plant}' fails bar 1${must ? ` on ${must.join(', ')}` : ''}`, must ? must.every(id => failing.includes(id)) : failing.length > 0, tp.filter(x => !bar1(x)).map(show).join('; ') || 'none');
+  }
 }
 
 const bad = results.filter(ok => !ok).length;

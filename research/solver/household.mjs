@@ -180,8 +180,9 @@ let TWO_BANDS = false;
 export function twoBands(E, fn) {
   if (TWO_BANDS) throw new Error('twoBands: called while another call of it is running');
   const old = E.DEFAULT_CONFIG.basicBandLimit;
+  // the plant 'nofinally' leaves the guard alone, so a test can put the default back and go on
+  if (planted('nofinally')) { E.DEFAULT_CONFIG.basicBandLimit = 2 * old; const r = fn(); E.DEFAULT_CONFIG.basicBandLimit = old; return r; }
   TWO_BANDS = true;
-  if (planted('nofinally')) { E.DEFAULT_CONFIG.basicBandLimit = 2 * old; const r = fn(); E.DEFAULT_CONFIG.basicBandLimit = old; TWO_BANDS = false; return r; }
   if (!planted('cgtband')) E.DEFAULT_CONFIG.basicBandLimit = 2 * old;
   try { return fn(); } finally { E.DEFAULT_CONFIG.basicBandLimit = old; TWO_BANDS = false; }
 }

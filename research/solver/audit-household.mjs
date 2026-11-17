@@ -19,7 +19,7 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import * as CPL from '../../src/solver/couple.js';
-import { solveHousehold, withHousehold, chooseHousehold, mergedState } from './household.mjs';
+import { solveHousehold, withHousehold, chooseHousehold, mergedState, householdContext, householdPlanFor } from './household.mjs';
 import { vecOf } from '../../src/solver/grid.js';
 import { solveForApp } from '../../src/solverApp.js';
 import { APP_COUPLE, appJoint, APP_CANDIDATE } from '../../src/solverSettings.js';
@@ -95,9 +95,16 @@ function unitOf(u) {
   const s = readSharePanel().find(x => x.id === u.id);
   return s ? { plan: s.plan, cohort: s.kind === 'feature' ? `feature ${s.feature}` : `held ${s.variant}`, label: s.label } : null;
 }
-/* design A's two biases on a unit (HOUSEHOLD.md section 2): the plan years in which the household spends (anyone retired)
-   and exactly one person's pension is open; the first person's share of the two pensions */
-export function biasesOf(m) {
+/* design A's biases on a unit (HOUSEHOLD.md section 2; PRESCRIPTIVE-PLAN.md step 3, five things, the last three as the
+   review's scripts/bias-table.mjs computes them): the plan years in which the household spends (anyone retired) and exactly
+   one person's pension is open (lockedYears, lockedAt); the first person's share of the two pensions (penShareSelf); the
+   income tax the household plan leaves out on the two people's guaranteed incomes (each state pension and taxable other
+   income taxed on its owner's own bands, less the same taxed together on the household plan's: in the plan's last year
+   once every such income is in payment, over the plan, and that as a share of the plan's spending; incomeTaxLeftOut); the
+   one-off deposits owned by one person (oneOffOwned); the basic-rate band for capital gains the household plan is given,
+   through householdContext, against the two people's (cgtBand). Nil: no locked year, the share from 0.25 to 0.75, under
+   £100 a year of income tax left out, no one-off deposit and the band two people's (biasesNil). */
+export function biasesOf(m, plan) {
   const c = m.ctx, T = c.totalYears, o = { self: c.owners.find(x => x.key === 'self'), part: c.owners.find(x => x.key === 'part') };
   const age = (k, t) => (k === 'self' ? c.ageSelf0 : c.agePart0) + t;
   const lockedAt = [];
@@ -108,8 +115,24 @@ export function biasesOf(m) {
   }
   const pen = k => c.accounts.filter(a => a.owner === k && a.cat === 'pen').reduce((s, a) => s + a.balance, 0);
   const pA = pen('self'), pB = pen('part');
-  return { lockedYears: lockedAt.length, lockedAt, penShareSelf: pA + pB > 0 ? pA / (pA + pB) : 0.5 };
+  const cH = householdContext(E, E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan))));
+  let over = 0, last = 0, spend = 0;
+  for (let t = 0; t <= T; t++) {
+    const g = { self: 0, part: 0 };
+    for (const o of c.owners) if (age(o.key, t) >= c.spa) g[o.key] += o.statePension || 0;
+    for (const i of c.otherIncomes || []) { const ag = age(i.owner, t); if (!i.taxFree && ag >= i.startAge && ag <= i.endAge) g[i.owner] += i.amount; }
+    const couple = E.incomeTax(g.self, c.P) + E.incomeTax(g.part, c.P), house = E.incomeTax(g.self + g.part, cH.P);
+    over += couple - house; last = couple - house;
+    spend += E.spendTargetAtAge(c, age('self', t)) || 0;
+  }
+  const oneOffOwned = (plan.oneOffContributions || []).filter(x => Number(x.amount) > 0).map(x => ({ owner: x.owner === 'Partner' ? 'Partner' : 'Myself', amount: Number(x.amount), year: Number.isFinite(Number(x.year)) && x.year !== '' ? Number(x.year) : parseInt(String(x.date).slice(0, 4)) }));
+  return {
+    lockedYears: lockedAt.length, lockedAt, penShareSelf: pA + pB > 0 ? pA / (pA + pB) : 0.5,
+    incomeTaxLeftOut: { aYear: last, overPlan: over, shareOfSpending: spend > 0 ? over / spend : 0 }, oneOffOwned,
+    cgtBand: { household: cH.P.cgtBandWidth, twoPeople: 2 * c.P.cgtBandWidth }
+  };
 }
+export const biasesNil = b => b.lockedYears === 0 && b.penShareSelf >= 0.25 && b.penShareSelf <= 0.75 && b.incomeTaxLeftOut.aYear < 100 && b.oneOffOwned.length === 0 && b.cgtBand.household === b.cgtBand.twoPeople;
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
@@ -148,7 +171,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const digest = async () => ({ self: await digestOf(tablesOf(k2.tables.self)), part: await digestOf(tablesOf(k2.tables.part)), household: await digestOf(tablesOf(house.H)) });
   const before = await digest();
   const caps = [k2.tables.self.estateCap || 0, k2.tables.part.estateCap || 0], cap = caps[0] + caps[1];
-  const bias = biasesOf(k2.m);
+  const bias = biasesOf(k2.m, hp);
   // the forecasts at the start: the household table's survival where the household opens, and the two tables' product
   // (a table of three worlds read as the rollout reads it: each world's survival, weighted)
   const survAt = (tab, s) => (tab.mix ? tab.mix.tables.reduce((x, tb, j) => x + tab.mix.weights[j] * tb.value(s, 0).survival, 0) : tab.value(s, 0).survival);

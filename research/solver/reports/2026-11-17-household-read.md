@@ -1,8 +1,13 @@
 # One plan for the whole household, the lead test, read (17 Nov): A LEAD, WITH A UNIT TO PLACE; THE SEARCH GOES
 
-Corrected after the reviewer at the read (`reviews/2026-11-17-read-household.md`: the read stands; the write-up's cause
-for the units to place was not shown, and three pooled figures lacked their largest unit). The cause is withdrawn. Each
-figure below is printed by the reducer or by the scripts beside it.
+Corrected after the reviewer at the read.
+- **First round** (`reviews/2026-11-17-read-household.md`): the read stands. The write-up's cause for the units to place
+  was not shown, and three pooled figures lacked their largest unit. Answered in one fix: the cause is withdrawn.
+- **Second round** (`reviews/2026-11-17-read-household-2.md`): FAIL again, on one BLOCKING (the read's entry in
+  DECISIONS-PENDING.md still carried the withdrawn cause) and two MINORs in this report's words. Each was corrected as
+  the reviewer gave it, unreviewed. The FAIL stands after one fix, so this write-up is the maintainer's (D81 (F)).
+
+Each figure below is printed by the reducer or by the scripts beside it.
 
 ## In plain words
 
@@ -48,7 +53,7 @@ PRESCRIPTIVE-PLAN.md step 4 (D118; EXPLORATORY, seed 7002). It ran on JOINT-WIDE
     minimum pot.
   - *Two sizes sit beside the loss, and neither is shown to cause it.*
     - **The bands' part:** the couple's income tax less the same taxable incomes taxed on the household plan's doubled
-      bands. It is about the same size on paths both arms keep as on paths HS5 loses:
+      bands. It is of the same order on paths both arms keep as on paths HS5 loses:
 
       | unit | on the paths HS5 loses | on the first 1,000 paths both keep |
       |---|---|---|
@@ -191,9 +196,12 @@ Survival is the one figure far from the pilot. The check:
    - *All of the household plan's extra failures at the minimum pot are S191-90's.*
      - Over the 28 units, HS5 loses 1,628 paths at the minimum pot against K2's 989, and 2,976 short against K2's 3,941.
      - Without S191-90 it is 956 against 971, and 2,724 against 3,864. The household plan fails less often both ways.
-5. **Two sizes beside the loss, not a cause** (`results-household-tax-why.txt`). Both are taken on the couple's own path
-   under HS5, so the comparison is not across paths that have parted. Each person's income tax was recomputed and found
-   equal to the engine's row to a pound in every plan year.
+5. **Two sizes beside the loss, not a cause** (`results-household-tax-why.txt`).
+   - *The bands' part and the cap counts* are taken on the couple's own path under HS5, so they are not compared across
+     paths that have parted. Each person's income tax was recomputed and found equal to the engine's row to a pound in
+     every plan year.
+   - *The tax-free cash* sets the couple's path under HS5 beside CEIL's own path. CEIL makes its own decisions, and the
+     two part from plan year 0, so that comparison is across paths that have parted.
 
    | unit | the bands' part, lost paths | the bands' part, first 1,000 kept | tax-free cash, lost paths: the couple, CEIL | the first person at their own cap: lost; kept |
    |---|---|---|---|---|

@@ -58,11 +58,20 @@ Applied with the ruling's commit: the settings check with the minimum pot left o
 one-off cost, S149 named the one exception with its size.
 
 **READ (17 Nov, evening): the household plan's lead test (step 4), A LEAD, WITH A UNIT TO PLACE; THE SEARCH GOES.**
-`results-household.txt`, read once; `reports/2026-11-17-household-read.md`. Pooled survival up `+0.291` points, spending up
-on the paths both keep; three units placed (S333F, S335F, S191-90), each losing where the couple pays income tax the
-household plan's doubled bands do not see; the even split as good as the best of five. Checked for a fault first (far
-from the pilot on survival): none found. The reviewer at the read under way. Step 5 launched without waiting (D120);
-`AXIS.md` after it (D121), then `REFUSALS.md` (D122).
+`results-household.txt`, read once; `reports/2026-11-17-household-read.md`.
+- Pooled survival up `+0.291` points, and spending up on the paths both keep.
+- Three units placed: S333F, S335F and S191-90.
+- The even split is as good as the best of five.
+- Checked for a fault first (far from the pilot on survival): no fault found in the table's solve, its forecast or the
+  arm's run. The loss on the three units lies between the household plan and the couple, and its cause is not shown.
+  The figures are sizes: the bands' part of the couple's income tax is of the same order on the paths kept as on those
+  lost; the first person ending at their own tax-free cash cap is an association on S333F and S335F.
+- The reviewer at the read: FAIL, two BLOCKING (the cause the write-up first gave; three pooled figures without their
+  largest unit), answered in one fix (`reviews/2026-11-17-read-household.md`). Then FAIL again on one BLOCKING, this
+  entry still carrying the withdrawn cause, and two MINORs in the report's words (`-2.md`). Each was corrected as the
+  reviewer gave it, unreviewed. The FAIL stands after one fix, so the write-up is the maintainer's (D81 (F)); the
+  agent recommends accepting it as corrected. The read and its outcome stand by both rounds.
+- Step 5 was launched without waiting (D120). `AXIS.md` comes after it (D121), then `REFUSALS.md` (D122).
 
 **FOR THE MAINTAINER (D119's condition met): D111 (3)'s speed work on LOOKHOLD.** D119 held it until the lead test read;
 it has read. The review held it because LOOKHOLD's tie rule, look and hold leave a couple's path if the household's move

@@ -73,6 +73,29 @@ one-off cost, S149 named the one exception with its size.
   agent recommends accepting it as corrected. The read and its outcome stand by both rounds.
 - Step 5 was launched without waiting (D120). `AXIS.md` comes after it (D121), then `REFUSALS.md` (D122).
 
+**STOP (17 Nov, evening): step 5 cannot be read as written; one unit refused by the audit's settings check.**
+- **What happened.** Unit 20, S147-db@penA100, exited before any arm ran. Its log, `results/shapes-7002/case20.txt`,
+  reads: "household: levels 1,1.1,0.95,0.9,0.8, the first person's 1,1.1,0.95,0.9,0.799985".
+- **The cause.** Each table's lowest spending level is its plan's own floor over its own target (the engine's
+  `floorFrac`). The first person's table is solved on their share of the household's target and floor, and on this
+  shape that ratio comes to 0.799985. The household table's is 0.8. This is the same class as D124 (1)'s minimum pot: a
+  person's table is solved on its share of the household's figures. D124 left only the minimum pot out of this check.
+- **Why the read is blocked.** The reducer's gate, as committed, refuses a read with a unit missing. Every remedy
+  touches a stamped file, so no remedy is made: nothing is substituted and no outcome is read. The units already queued
+  are left to finish, since every remedy below uses them.
+- **The options:**
+  1. **(Recommended)** As D124 (1) did for the minimum pot, and in D94 (1)'s form:
+     - a dated amendment to step 5's settings check, with the lowest spending level left out of the comparison and the
+       household table's held to the household's own floor over its target, in `audit-shapes.mjs` alone, so the lead
+       test's reducer still reproduces its read;
+     - unit 20 run again alone on the amended audit (about 40 minutes);
+     - the reducer's gate amended to accept exactly the two audit stamps, the launch's for the other units and the
+       amended one for unit 20, and nothing wider;
+     - each amended file with its planted case, and the reviewer on the amendment before it is used.
+  2. Leave S147-db@penA100 out, printed with its refusal, as SHAPES.md leaves out a unit `householdPlanFor` refuses. The
+     gate is amended to read the panel less it, and penA100 is read on its other three units.
+  3. Run all 28 units again on the amended check: about 3.5 hours.
+
 **FOR THE MAINTAINER (D119's condition met): D111 (3)'s speed work on LOOKHOLD.** D119 held it until the lead test read;
 it has read. The review held it because LOOKHOLD's tie rule, look and hold leave a couple's path if the household's move
 holds, and the move holds here, as a lead. The agent recommends it stays held until the maintainer rules on step 8's

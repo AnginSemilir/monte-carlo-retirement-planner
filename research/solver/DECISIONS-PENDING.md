@@ -14,14 +14,23 @@ below this section says "the beta", read it as history. The order from here:
 **RULED (D129, 18 Nov, evening: "Go ahead. Add the windfall and savings tests to the end"): the agent's seven
 recommendations after D128, in this order, then B7's two factorials at the end.** Each run is EXPLORATORY on seed 7002,
 its rule committed before it runs; none changes anything in the app on its own.
-1. **UNDER WAY: the decomposition of the household plan's three losses** (S191-90, S333F and S335F, wholly below the lead
-   test's bar). The household plan again with each simplification undone in turn: its one pair of income-tax bands,
-   doubled, and its one tax-free cash cap, doubled. Beside HS and K2 on the same paths. Box: half a day to build, an hour
-   to run. It decides items 2 and 3.
+1. **DONE: the decomposition of the household plan's three losses** (S191-90, S333F and S335F, wholly below the lead
+   test's bar), read once (`results-household-decomp.txt`; `reports/2026-11-18-household-decomp-read.md`).
+   - S333F RESTS ON THE BANDS; S191-90 and S335F EITHER.
+   - Leaving the bands single recovers `99.0%`, `67.3%` and `74.6%` of the paths lost. Once the bands are single,
+     leaving the cap single as well adds nothing.
+   - On the paths it recovers, the bands single spend no less and pay far less tax.
+   - The reviewer at the read: PASS, four MINORs in the write-up, each answered
+     (`reviews/2026-11-18-read-household-decomp.md`).
+   - **UNDER WAY: the remedy** its rule calls for (`HOUSEHOLD-REMEDY.md` and its amendment 1). Its two parts:
+     - the bands, then the bands and the cap, priced at `k = 1/s` of the pensions' split;
+     - the year's need funded at the pensions' share.
+   - The remedy is built off in code and tested. Its read (`HOUSEHOLD-REMEDY-READ.md`) runs after the windfall factorial,
+     on the lead test's 28 units.
 2. Design B, the axis (`AXIS.md`), is not built unless the decomposition points to it.
 3. Step 8, the registered test, is held until those losses are fixed and re-checked on the couples that lose. Then its
    registration is drafted, put to the design reviewer and brought to the maintainer before launch.
-4. **Queued: what keys D128's guard.** The four couples 8 or 12 years apart without a DB pension (S149 and S337F at gap8
+4. **UNDER WAY: what keys D128's guard** (`GUARD-KEY.md`; its eight units landed, running). The four couples 8 or 12 years apart without a DB pension (S149 and S337F at gap8
    and gap12), which step 5 read above the app's rules, given first S147-db's `£15,000` a year DB pension from the state
    pension age, then `£15,000` a year of rent instead; today's couples' default (K2) against the app's rules (APP).
    - If the DB pension brings the harm back, the guard stays. If it does not, the guard is keyed on the wrong thing, and

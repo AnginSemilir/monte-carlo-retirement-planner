@@ -1,0 +1,28 @@
+WHAT KEYS THE GUARD (EXPLORATORY; GUARD-KEY.md, D129 (4)): 8 units, seed 7002, 4000 paths, 45 points; code 603eeb595679, audit 8086bcf05f68; landed 8 of 8
+THE GATE: fair
+
+THE RULE, K2 less APP, paired by path (stats.mjs survivalChange):
+  +db: pooled over 4 units +7.150 (+6.867 to +7.402) points; units wholly below -0.3: none: NO HARM
+    S149@gap8+db         K2 less APP +6.325 (+5.758 to +6.764) (279 saved, 26 lost)
+    S149@gap12+db        K2 less APP +4.350 (+3.535 to +5.085) (251 saved, 77 lost)
+    S337F@gap8+db        K2 less APP +9.575 (+9.316 to +9.663) (385 saved, 2 lost)
+    S337F@gap12+db       K2 less APP +8.350 (+7.828 to +8.734) (354 saved, 20 lost)
+  +rent: pooled over 4 units -0.500 (-0.912 to -0.085) points; units wholly below -0.3: S149@gap12+rent -6.850 (-7.622 to -5.984): HARM
+    S149@gap8+rent       K2 less APP +0.450 (-0.454 to +1.345) (170 saved, 152 lost)
+    S149@gap12+rent      K2 less APP -6.850 (-7.622 to -5.984) (81 saved, 355 lost)
+    S337F@gap8+rent      K2 less APP +0.875 (+0.277 to +1.435) (87 saved, 52 lost)
+    S337F@gap12+rent     K2 less APP +3.525 (+2.904 to +4.047) (179 saved, 38 lost)
+OUTCOME: THE GUARD IS KEYED ON THE WRONG THING; the guard's reach past a DB pension (+rent): HARM
+
+BESIDE THE RULE, deciding nothing:
+  S149@gap8+db         target 30000 (step 5 23300); APP 86.90%, K2 93.23%; spending on the paths both keep, K2 against APP +1.9206 (+1.7822 to +2.0589)%; the capped pot +1.316% (£12,777 a path); lifetime tax APP £86,532, K2 £84,212; the app's guard: off (gapincome)
+  S149@gap8+rent       target 37200 (step 5 23300); APP 85.70%, K2 86.15%; spending on the paths both keep, K2 against APP +1.1331 (+1.0250 to +1.2412)%; the capped pot +4.440% (£43,607 a path); lifetime tax APP £98,969, K2 £103,487; the app's guard: off (gapincome)
+  S149@gap12+db        target 29600 (step 5 22500); APP 85.47%, K2 89.83%; spending on the paths both keep, K2 against APP +2.0139 (+1.8561 to +2.1718)%; the capped pot +3.523% (£32,306 a path); lifetime tax APP £94,592, K2 £83,909; the app's guard: off (gapincome)
+  S149@gap12+rent      target 36300 (step 5 22500); APP 85.85%, K2 79.00%; spending on the paths both keep, K2 against APP +2.2300 (+2.1280 to +2.3320)%; the capped pot -3.828% (-£37,561 a path); lifetime tax APP £97,659, K2 £99,084; the app's guard: off (gapincome)
+  S337F@gap8+db        target 31800 (step 5 25400); APP 85.15%, K2 94.73%; spending on the paths both keep, K2 against APP +1.6672 (+1.5429 to +1.7915)%; the capped pot +7.940% (£43,614 a path); lifetime tax APP £71,614, K2 £95,815; the app's guard: off (gapincome)
+  S337F@gap8+rent      target 39700 (step 5 25400); APP 84.90%, K2 85.78%; spending on the paths both keep, K2 against APP +0.9214 (+0.7460 to +1.0967)%; the capped pot +8.253% (£44,811 a path); lifetime tax APP £88,607, K2 £118,852; the app's guard: off (gapincome)
+  S337F@gap12+db       target 32000 (step 5 26900); APP 86.15%, K2 94.50%; spending on the paths both keep, K2 against APP +1.1185 (+0.9987 to +1.2383)%; the capped pot +3.074% (£17,924 a path); lifetime tax APP £64,553, K2 £107,436; the app's guard: off (gapincome)
+  S337F@gap12+rent     target 40400 (step 5 26900); APP 85.82%, K2 89.35%; spending on the paths both keep, K2 against APP +2.6639 (+2.5066 to +2.8212)%; the capped pot +7.991% (£44,430 a path); lifetime tax APP £87,816, K2 £130,835; the app's guard: off (gapincome)
+  the app's guard as built: 'gapincome' on all 8
+  without the income (step 5, results/shapes-7002, their own landings): pooled K2 less APP +10.744 (+10.698 to +10.744); S149@gap8 +10.950 (+10.766 to +10.950); S149@gap12 +9.750 (+9.566 to +9.750); S337F@gap8 +10.750 (+10.566 to +10.750); S337F@gap12 +11.525 (+11.341 to +11.525)
+  the paths: S149@gap8+db K2 119.0 ms, S149@gap8+rent K2 106.6 ms, S149@gap12+db K2 96.8 ms, S149@gap12+rent K2 86.1 ms, S337F@gap8+db K2 190.3 ms, S337F@gap8+rent K2 204.6 ms, S337F@gap12+db K2 183.5 ms, S337F@gap12+rent K2 195.2 ms

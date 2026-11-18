@@ -43,7 +43,7 @@ const prepPlan = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...p
 export const choiceYears = ctx => { const T = ctx.totalYears, out = []; for (let t = 0; t <= T; t++) if (ctx.saveSplitAt && ctx.saveSplitAt(t)) out.push(t); return out; };
 export const saveIds = panel => panel.filter(h => choiceYears(E.buildContext(prepPlan(appPlan(h.plan)))).length).map(h => h.id);
 /* the files the stamp hashes, in this order */
-export const STAMP_FILES = ['audit-save.mjs', 'reduce-save.mjs', 'audit-phase4.mjs', 'phase4-panel.mjs', 'select-phase4.mjs', 'candidate.mjs', 'candidate.json', 'phase4-panel.json', 'B7-FACTORIALS.md', 'b7-verdict.mjs'];
+export const STAMP_FILES = ['audit-save.mjs', 'reduce-save.mjs', 'audit-phase4.mjs', 'phase4-panel.mjs', 'select-phase4.mjs', 'candidate.mjs', 'candidate.json', 'phase4-panel.json', 'B7-FACTORIALS.md', 'b7-verdict.mjs', 'reduce-gainbucket.mjs', 'stats.mjs'];   // the verdict's library too (the windfall read's reviewer, MINOR 7)
 export function stampFilesHash() {
   const h = createHash('sha256');
   for (const f of STAMP_FILES) h.update(readFileSync(f === 'phase4-panel.json' ? PANEL_FILE : join(HERE, f)));

@@ -11,6 +11,31 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**RULED (D129, 18 Nov, evening: "Go ahead. Add the windfall and savings tests to the end"): the agent's seven
+recommendations after D128, in this order, then B7's two factorials at the end.** Each run is EXPLORATORY on seed 7002,
+its rule committed before it runs; none changes anything in the app on its own.
+1. **UNDER WAY: the decomposition of the household plan's three losses** (S191-90, S333F and S335F, wholly below the lead
+   test's bar). The household plan again with each simplification undone in turn: its one pair of income-tax bands,
+   doubled, and its one tax-free cash cap, doubled. Beside HS and K2 on the same paths. Box: half a day to build, an hour
+   to run. It decides items 2 and 3.
+2. Design B, the axis (`AXIS.md`), is not built unless the decomposition points to it.
+3. Step 8, the registered test, is held until those losses are fixed and re-checked on the couples that lose. Then its
+   registration is drafted, put to the design reviewer and brought to the maintainer before launch.
+4. **Queued: what keys D128's guard.** The four couples 8 or 12 years apart without a DB pension (S149 and S337F at gap8
+   and gap12), which step 5 read above the app's rules, given first S147-db's `£15,000` a year DB pension from the state
+   pension age, then `£15,000` a year of rent instead; today's couples' default (K2) against the app's rules (APP).
+   - If the DB pension brings the harm back, the guard stays. If it does not, the guard is keyed on the wrong thing, and
+     re-keying it comes back to the maintainer as a change of default.
+   - The rent case sizes the guard's reach past a DB pension (the reviewer's MINOR 1, below). Box: half a day.
+5. Once item 4 has read, if the guard stays, the couples card says what was found: "In our tests the solver did worse
+   than the app's own rules for some couples like this, so for now your plan follows the app's own rules in the classic
+   planner." It goes to `main` with the next batch on B1's gate.
+6. The first load's ceiling is left as it is. A later batch past it comes to the maintainer as before (D94 (2)).
+7. The speed work on LOOKHOLD stays held.
+8. **At the end: B7's two factorials**, the windfall split's and the savings split's (`WINDFALL-SPLIT.md`,
+   `SAVINGS-SPLIT.md`), each arm saying which menu it takes (D73's reviewer, MINOR 3). A gain goes to the maintainer as a
+   proposal; a harm goes to them at once.
+
 **RULED (D128, 18 Nov, morning: "Go with your recommendations. Unlock enforcement"): the four recommendations of the
 report on steps 4 to 7, as below.**
 1. Step 4's write-up is accepted as corrected, with no third round of its reviewer (D81 (F)).
@@ -27,7 +52,8 @@ report on steps 4 to 7, as below.**
    - The pattern search ran each stored read's own rule before and after the fix: 560 decisions over seven reads,
      none differing (`results-stats-newcombe-rules.txt`). The reads stand as printed.
    - Steps 4 and 5, and every registered read but 7u-F's, use the exact interval, which the fix does not touch.
-4. The speed work on LOOKHOLD stays held. Step 8 waits for the maintainer's word. The decomposition on S191-90 is not run.
+4. The speed work on LOOKHOLD stays held. Step 8 waits for the maintainer's word. The decomposition on S191-90 is not run
+   (D129 (1) now runs it).
 
 **FOR THE MAINTAINER (from the guard's review, 18 Nov):**
 - **Its reach (the reviewer's MINOR 1).** The app has no kind of income for a DB pension: one is entered as "Other

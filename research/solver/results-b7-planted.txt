@@ -1,0 +1,39 @@
+== node research/solver/b7-verdict.mjs --planted
+  ok   nothing moves: NO EFFECT
+  ok   a household losing 40 paths and saving none: A HARM, named
+  ok   two lost against one saved is noise: NO EFFECT
+  ok   the panel's survival up beyond 1.96 se: A GAIN
+  ok   a household's spending up on 300 paths: A GAIN on spending, named
+  ok   spending up on one household and survival down on another: A GAIN AND A HARM
+  ok   the panel's spending down beyond 1.96 se: A HARM
+  ok   a household's spending down on 300 paths: A HARM on spending
+  ok   Holm over the households: one household at p 0.03 alone among 17 is not beyond noise
+  ok   the panel exactly at 1.96 se is not beyond it
+PLANTED: ALL PASS (10)
+== node research/solver/reduce-windfall.mjs --planted
+PASS  a full, fair synthetic set passes the gate
+PASS  a missing unit is refused
+PASS  a CANDW unit that ran without the split is refused
+PASS  a unit on another grid is refused
+PASS  known answer: 8 of 400 paths lost on H1 read as -2 points there (-2), -1 on the panel (-1), none on H2
+PASS  the household losing beyond two se is named, the other not
+PASS  a household whose arms take different menus is refused (B7-FACTORIALS.md)
+PASS  a unit with no menu recorded is refused
+PASS  a household whose arms ran on two arm A picks is refused (amendment 1)
+PASS  the verdict: 8 of 400 paths lost on H1 and none saved is A HARM on H1 (A HARM; survival: the panel down, down on H1; spending: no effect beyond noise)
+PASS  the verdict: nothing moving is NO EFFECT (NO EFFECT)
+ALL PASS
+== node research/solver/reduce-save.mjs --planted
+PASS  a full, fair synthetic set passes the gate
+PASS  a missing unit is refused
+PASS  a CANDS unit that ran without the split is refused
+PASS  a household whose arms differ in the working years to choose is refused
+PASS  a unit on another grid is refused
+PASS  known answer: 8 of 400 paths lost on H1 read as -2 points there (-2), -1 on the panel (-1), none on H2
+PASS  the household losing beyond two se is named, the other not
+PASS  a household whose arms take different menus is refused (B7-FACTORIALS.md)
+PASS  a unit with no menu recorded is refused
+PASS  a household whose arms ran on two arm A picks is refused (amendment 1)
+PASS  the verdict: 8 of 400 paths lost on H1 and none saved is A HARM on H1 (A HARM; survival: the panel down, down on H1; spending: no effect beyond noise)
+PASS  the verdict: nothing moving is NO EFFECT (NO EFFECT)
+ALL PASS

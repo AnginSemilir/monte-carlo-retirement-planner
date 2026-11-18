@@ -2,7 +2,8 @@
  * THE WINDFALL SPLIT ON THE CANDIDATE (STATE.md D37; research/solver/WINDFALL-SPLIT.md; AFTER-PHASE4.md section 1), EXPLORATORY.
  * Phase 4's 17 households with a dated Auto deposit, each solving the plan arm A's policy routes (solverPlanOf, D37), at the
  * estate weight 0.02 and 45 points, each unit executed by the engine on the same paths:
- *   CANDD   the candidate (candidate.json, d71f65ae871e);
+ *   CANDD   the candidate as it stands (candidate.json, 17ff82379838: B7-FACTORIALS.md; each household on the menu the
+ *           candidate takes for it, anchors where the solve can take them, recorded as `ran.menu`);
  *   CANDW   the same with the windfall split (`windfallSplit: true`): the deposit year's move also chooses where that year's
  *           Auto money lands (the plan's routing; the pension, then the ISA; the ISA; all taxable).
  * Each unit records, per path, the survival, the spending delivered, the unmet spending, the estate, the end wealth, the year
@@ -39,7 +40,7 @@ export const HELD_OUT = [7003, 7011, 7012, 7013, 7014, 7018, 7019];
 /* the panel's households with a dated Auto deposit, in the panel's order */
 export const windfallIds = panel => panel.filter(h => (h.plan.oneOffContributions || []).some(x => (x.date || x.year) && x.category === 'Auto (policy decides)')).map(h => h.id);
 /* the files the stamp hashes, in this order */
-export const STAMP_FILES = ['audit-windfall.mjs', 'reduce-windfall.mjs', 'audit-phase4.mjs', 'phase4-panel.mjs', 'select-phase4.mjs', 'candidate.mjs', 'candidate.json', 'phase4-panel.json'];
+export const STAMP_FILES = ['audit-windfall.mjs', 'reduce-windfall.mjs', 'audit-phase4.mjs', 'phase4-panel.mjs', 'select-phase4.mjs', 'candidate.mjs', 'candidate.json', 'phase4-panel.json', 'B7-FACTORIALS.md', 'b7-verdict.mjs'];
 export function stampFilesHash() {
   const h = createHash('sha256');
   for (const f of STAMP_FILES) h.update(readFileSync(f === 'phase4-panel.json' ? PANEL_FILE : join(HERE, f)));
@@ -67,7 +68,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (process.argv[2] === '--units') { console.log(UNITS.length); process.exit(0); }
   const N = Number(process.argv[2]), part = process.argv[3] === 'part' ? process.argv[4] : '0/1', [pk, pn] = part.split('/').map(Number), SEED_RUN = Number(process.argv[5] || SEED);
   if (HELD_OUT.includes(SEED_RUN)) { console.error(`audit-windfall: seed ${SEED_RUN} is held out for another test`); process.exit(2); }
-  if (CANDIDATE_HASH !== 'd71f65ae871e') { console.error(`audit-windfall: the candidate is ${CANDIDATE_HASH}, not d71f65ae871e`); process.exit(2); }
+  if (CANDIDATE_HASH !== '17ff82379838') { console.error(`audit-windfall: the candidate is ${CANDIDATE_HASH}, not 17ff82379838 (B7-FACTORIALS.md)`); process.exit(2); }
   if (!(N >= 1 && pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-windfall: bad paths or part (${process.argv.slice(2, 5).join(' ')})`); process.exit(2); }
   const OUT = process.env.WINDFALL_OUT || join(HERE, 'results', `windfall-${SEED_RUN}`);
   mkdirSync(OUT, { recursive: true });
@@ -82,7 +83,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const h = byId[id], t0 = Date.now();
     console.log(`${id.padEnd(8)} case | unit ${arm} | cohort ${h.cohort} target ${h.target} paths ${N}`);
     const a = armA(appPlan(h.plan), { tournament: false });
-    if (a.label !== h.label) { console.error(`audit-windfall: ${id}: arm A's pick ${a.label} differs from the landing's ${h.label}`); process.exit(3); }
+    // B7-FACTORIALS.md amendment 1: arm A's pick as it stands names the plan both arms solve; the landing's (28 Oct) recorded beside
+    if (a.label !== h.label) console.log(`${''.padEnd(8)} arm A picks ${a.label} on this code; the landing's pick ${h.label}`);
     const plan = prep(solverPlanOf(h.plan, { decumulationPolicy: a.planState.spending.decumulationPolicy }));
     const r = solveCandidate(E, M, plan, { lambda: LAMBDA, points: Number(process.env.WINDFALL_PTS) || CAND_PTS, bequestWeight: W, ...(arm === 'CANDW' ? { windfallSplit: true } : {}) });
     const solveSecs = (Date.now() - t0) / 1000, bad = armProblems(arm, r);
@@ -93,8 +95,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const rooms = [...(ctx.autoSplit || new Map()).entries()].map(([y, e]) => ({ year: y, ...e.room[0] }));
     const levels = [...new Set(r.levelOf)].sort((x, y) => x - y);
     const ran = { arm, pts: r.g.np, actions: r.actions.length, levels, lambda: r.lambda, windfallSplit: r.meta.windfallSplit || 'off', failDelivered: r.meta.failDelivered === true,
+      menu: r.meta.coarse && !r.meta.coarse.off ? 'anchors' : 'whole', coarseOff: (r.meta.coarse && r.meta.coarse.off) || null,
       raiseWeight: r.meta.raiseWeight, failureShortfall: r.failureShortfall, switchCharge: r.switchCharge, tierState: r.meta.tierState, bequestWeight: +Number(r.meta.bequestWeight).toPrecision(10) };
-    console.log(`${''.padEnd(8)} ran ${arm}: windfallSplit ${ran.windfallSplit} levels ${levels.join(',')} pts ${ran.pts} actions ${ran.actions} inputs ${inputs} deposit years ${depT.join(',')} rooms ${JSON.stringify(rooms)} | solve secs ${Math.round(solveSecs)}`);
+    console.log(`${''.padEnd(8)} ran ${arm}: windfallSplit ${ran.windfallSplit} menu ${ran.menu} levels ${levels.join(',')} pts ${ran.pts} actions ${ran.actions} inputs ${inputs} deposit years ${depT.join(',')} rooms ${JSON.stringify(rooms)} | solve secs ${Math.round(solveSecs)}`);
     const paths = E.pathsForSeed(SEED_RUN, N, T), n = paths.length, e0 = Date.now();
     const main = { survived: new Uint8Array(n), delivered: new Float32Array(n), unmet: new Float32Array(n), estate: new Float32Array(n), wealth: new Float32Array(n), failYear: new Int16Array(n), level: new Uint8Array(n * Y) };
     let badCheck = 0;
@@ -119,7 +122,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     }
     const afterMean = after.map(x => (x.n ? { n: x.n, pen: x.pen / x.n, isa: x.isa / x.n, tax: x.tax / x.n } : { n: 0 }));
     console.log(`${''.padEnd(8)} beside ${arm}: the engine alone ${engineOnly}, runPolicy alone ${policyOnly} of ${NB}; splits chosen ${JSON.stringify(chosen)}`);
-    writeFileSync(join(OUT, fileOf(id, arm)), gzipSync(JSON.stringify({ id, arm, cohort: h.cohort, target: ctx.targetSpend, inputs, retireT, depT, rooms, ageSelf0: ctx.ageSelf0, stamp: STAMP, ran, seed: SEED_RUN, N: n, Y,
+    writeFileSync(join(OUT, fileOf(id, arm)), gzipSync(JSON.stringify({ id, arm, label: a.label, landLabel: h.label, cohort: h.cohort, target: ctx.targetSpend, inputs, retireT, depT, rooms, ageSelf0: ctx.ageSelf0, stamp: STAMP, ran, seed: SEED_RUN, N: n, Y,
       solveSecs, engineSecs: eSecs, secs: (Date.now() - t0) / 1000, cpu: cpus()[0].model, beside: { N: NB, engineOnly, policyOnly }, chosen, after: afterMean,
       main: Object.fromEntries(Object.entries(main).map(([k, v]) => [k, b64(v)])) })));
     console.log(`${''.padEnd(8)} done ${arm} secs ${Math.round((Date.now() - t0) / 1000)}`);

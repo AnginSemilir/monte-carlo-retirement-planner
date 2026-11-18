@@ -64,3 +64,24 @@ Nothing changes in the candidate or the app on any outcome.
 - An hour to read each.
 
 The reads go to the maintainer with the `reviewer` agent at each read.
+
+## Amendment 1 (18 Nov, evening, before either runs; found by the windfall audit's smoke)
+
+Phase 4's panel was landed on 28 Oct. On the code as it stands, arm A picks another policy than at that landing on 10 of
+the 17 windfall households and 9 of the 27 saving households (`results-b7-labels.txt`, `b7-labels.mjs`), the engine having
+moved since (item 3's year in HMRC's order, the harvest ceiling, the capital gains bill's fix). Both audits refused such a
+household.
+- They now take arm A's pick as it stands. It names the plan both arms solve, so a windfall is routed alike in both (D37).
+- Each unit records the landing's pick beside it, and the gate holds a household's two arms to one pick.
+- The targets stay the landing's, so arm A no longer survives exactly 85% on them.
+- The factorials compare the two candidate arms with each other, never with arm A, so this moves nothing they compare.
+
+## Amendment 2 (18 Nov, evening, before either runs; found by the windfall audit's smoke)
+
+Both factorials run at `4,000` paths: B7's queue size, as GAIN-BUCKET ran, where `WINDFALL-SPLIT.md` gave the windfall
+`8,000`.
+- The smoke (S026 and S090, 4 points, 100 paths, three other runs on the machine) timed CANDW's engine at `316` and `455`
+  ms a path against CANDD's `113` and `116`: the split's copies make the chooser three to four times as costly a path.
+- At `8,000` paths that puts the windfall factorial near `19` core-hours, against the `10` its design estimated.
+- At `4,000` it is near `10`.
+- Nothing has run, and no figure has been seen.

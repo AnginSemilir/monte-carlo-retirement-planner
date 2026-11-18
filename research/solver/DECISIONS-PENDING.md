@@ -16,7 +16,8 @@ report on steps 4 to 7, as below.**
 1. Step 4's write-up is accepted as corrected, with no third round of its reviewer (D81 (F)).
 2. **The guard: a couple more than three years apart with a DB pension keeps the app's rules** until a test of such couples
    reads. It is built and committed (cf9f8790), with the reviewer on the change of default before it: PASS, four MINORs,
-   each answered (`reviews/2026-11-18-default-gap-guard.md`). It goes to `main` with the eighth batch, on B1's gate.
+   each answered (`reviews/2026-11-18-default-gap-guard.md`). It is on `main` with the eighth batch (pull request 19,
+   91e8d009, 18 Nov 13:52 UTC), merged on B1's gate.
    - On step 5's 28 couples it keeps exactly the four 8 or 12 years apart with a DB pension on the app's rules. The four
      as far apart without one stay with the solver, and every other unit is as before.
    - The couples card says why ("more than three years apart in age, and your plan has other taxable income, such as a

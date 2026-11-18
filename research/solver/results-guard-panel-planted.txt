@@ -1,0 +1,7 @@
+  ok   +db adds exactly one income: the first person's, £15,000 a year, other taxable, from the state pension age to the end
+  ok   +rent adds exactly one income: the first person's, £15,000 a year, other taxable, from now to the end
+  ok   a unit's other fields its step 5 unit's
+  ok   gap12: the partner twelve years younger
+  ok   eight units, four couples by two incomes
+  ok   an income or a couple not in GUARD-KEY.md is refused
+PLANTED: ALL PASS (6)

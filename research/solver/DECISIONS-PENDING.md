@@ -11,12 +11,36 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**OPEN (17 Nov, morning): D112's fix to `survivalChangeU` waits on an unlock.** Built and checked (`stats.mjs`, Newcombe's
-method 10's correction; `research/tests/stats-newcombe.test.mjs` ALL PASS, 4 checks, the reviewer's two worked cases
-reproduced and its plant failing), it moves pinned figures in a protected FAST test, `plan-defaults.test.mjs`'s relative
-margin's floor: identical arms clear from 39 surviving paths to 43 (8,000 and 16,000 paths), 40 to 45 at the look's level
-0.045, 78 to 83 at 0.005 (the decided `marginRelFloor`, report-only, unchanged). The hook refuses the edit without the
-maintainer's "unlock enforcement"; asked.
+**RULED (D128, 18 Nov, morning: "Go with your recommendations. Unlock enforcement"): the four recommendations of the
+report on steps 4 to 7, as below.**
+1. Step 4's write-up is accepted as corrected, with no third round of its reviewer (D81 (F)).
+2. **The guard: a couple more than three years apart with a DB pension keeps the app's rules** until a test of such couples
+   reads. It is built and committed (cf9f8790), with the reviewer on the change of default before it: PASS, four MINORs,
+   each answered (`reviews/2026-11-18-default-gap-guard.md`). It goes to `main` with the eighth batch, on B1's gate.
+   - On step 5's 28 couples it keeps exactly the four 8 or 12 years apart with a DB pension on the app's rules. The four
+     as far apart without one stay with the solver, and every other unit is as before.
+   - The couples card says why ("more than three years apart in age, and your plan has other taxable income, such as a
+     DB (final salary) pension or an annuity"). The coverage line and the scenario list say the same.
+3. **D112's stats fix is in** (c1109d38): `stats-newcombe.test.mjs` in the fast tier, and `plan-defaults.test.mjs`'s
+   floor re-pinned (identical arms clear from 43 surviving paths, not 39; 45 at 0.045, not 40; 83 at 0.005, not 78).
+   - The pattern search ran each stored read's own rule before and after the fix: 560 decisions over seven reads,
+     none differing (`results-stats-newcombe-rules.txt`). The reads stand as printed.
+   - Steps 4 and 5, and every registered read but 7u-F's, use the exact interval, which the fix does not touch.
+4. The speed work on LOOKHOLD stays held. Step 8 waits for the maintainer's word. The decomposition on S191-90 is not run.
+
+**FOR THE MAINTAINER (from the guard's review, 18 Nov):**
+- **Its reach (the reviewer's MINOR 1).** The app has no kind of income for a DB pension: one is entered as "Other
+  taxable income", beside rent, annuities, and interest or dividends entered as an income. So the guard reads any such
+  income above nought, even one the plan never pays. That is the only reading the page's inputs allow, and it errs
+  towards the app's rules. Its cost to the couples it reaches beyond a DB pension is unsized: on the four gap couples
+  tested without one, today's default was `+10.744` points over the app's rules. A floor (on the amount, or an income
+  paid within the plan) is yours to set if you want one.
+- **The words (the reviewer's (d)).** The card says the solver's plans "have not yet been shown to do better than the
+  app's own rules" for such couples. That is true, but it says less than step 5 found: worse on three of the four tested.
+  How much more to say is yours.
+- **Headroom.** The guard adds about 165 compressed bytes (gzip) to the page's first load. The new planner's first load on an empty
+  plan is now 240KB against its 240KB ceiling (239 before), so the next batch has none. And every stored solve is worked
+  out again once after the deploy, the solver worker's code having changed, as with every change to the couples' guard.
 
 **UNDER WAY (D115 to D123, 17 Nov, late morning): the household line restarts on the external review's plan.** The
 review's answers to `QUESTIONS-2026-11-17.md` (`research/reviews/2026-11-17/ANSWERS.md`, review/external-2026-10-21 at
@@ -69,8 +93,8 @@ one-off cost, S149 named the one exception with its size.
 - The reviewer at the read: FAIL, two BLOCKING (the cause the write-up first gave; three pooled figures without their
   largest unit), answered in one fix (`reviews/2026-11-17-read-household.md`). Then FAIL again on one BLOCKING, this
   entry still carrying the withdrawn cause, and two MINORs in the report's words (`-2.md`). Each was corrected as the
-  reviewer gave it, unreviewed. The FAIL stands after one fix, so the write-up is the maintainer's (D81 (F)); the
-  agent recommends accepting it as corrected. The read and its outcome stand by both rounds.
+  reviewer gave it, unreviewed. The FAIL stands after one fix, so the write-up was the maintainer's (D81 (F)):
+  accepted as corrected (D128 (1)). The read and its outcome stand by both rounds.
 - Step 5 was launched without waiting (D120). `AXIS.md` comes after it (D121), then `REFUSALS.md` (D122).
 
 **READ (17 Nov, night): step 5, the shapes the library lacks, A SHAPE TO PLACE (gap12).** `results-shapes.txt`, read once;
@@ -80,14 +104,14 @@ one-off cost, S149 named the one exception with its size.
 - `AXIS.md` (step 6) and `REFUSALS.md` (step 7) are written and sent; nothing is built.
 - What remains is the maintainer's:
 
-**FOR THE MAINTAINER: today's couples' default on couples with an age gap and a DB pension (the app as it stands).**
+**RULED (D128 (2)): today's couples' default on couples with an age gap and a DB pension. The guard is built, above.**
 - **The finding.** On three couples the app's guard hands to the solver under the opt-in, K2 survives below the app's
   own rules: S147-db@gap8 `-6.800`, S147-db@gap12 `-10.950`, S061-dbpart@gap12 `-20.250`. Each is 60/40 with an 8- or
   12-year age gap and a DB pension. It was found on seed 7002, EXPLORATORY.
 - **It is the app's own route.** It matched the stored K2 path for path on these couples (the reviewer at the read).
 - **The guard.** It reads no age gap, and every couple tested before was three years apart.
-- **The agent's recommendation, not made:** keep a couple whose age gap is beyond three years and who hold a DB pension
-  on the app's rules until a test reads. That is a change of default, so the reviewer would check it first.
+- **The agent's recommendation, made (D128 (2)):** keep a couple whose age gap is beyond three years and who hold a DB
+  pension on the app's rules until a test reads. That is a change of default, and the reviewer checked it first.
 - **Its trade.** A guard on the gap alone would also take the gain of the gap couples without a DB pension (`+10.744`
   over the app's rules here). The cause is not shown.
 
@@ -145,7 +169,7 @@ Before anything was built, the agent found the block, which its recommendation h
      gate is amended to read the panel less it, and penA100 is read on its other three units.
   3. Run all 28 units again on the amended check: about 3.5 hours.
 
-**FOR THE MAINTAINER (D119's condition met): D111 (3)'s speed work on LOOKHOLD.** D119 held it until the lead test read;
+**RULED (D128 (4): stays held): D111 (3)'s speed work on LOOKHOLD.** D119 held it until the lead test read;
 it has read. The review held it because LOOKHOLD's tie rule, look and hold leave a couple's path if the household's move
 holds, and the move holds here, as a lead. The agent recommends it stays held until the maintainer rules on step 8's
 registered test. Not started.

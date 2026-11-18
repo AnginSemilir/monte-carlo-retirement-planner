@@ -4009,6 +4009,7 @@
    "research/solver/results-household-decomp.txt",
    "research/solver/results-household-line-check.txt",
    "research/solver/results-household-planted.txt",
+   "research/solver/results-household-remedy-planted.txt",
    "research/solver/results-household-review-check.txt",
    "research/solver/results-household-tax-why.txt",
    "research/solver/results-household-test.txt",

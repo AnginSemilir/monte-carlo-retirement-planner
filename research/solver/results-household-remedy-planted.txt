@@ -1,0 +1,15 @@
+  ok   every arm mends the three and keeps the gain: each MENDS, HSPB taken (the smallest change)
+  ok   HSPB does not mend, HSP does: HSP taken
+  ok   HSPB and HSP leave the three 7.5 points below, HSPS mends: HSPS taken
+  ok   the three mended, the other 25 each losing a point: MENDS THE THREE, NOT THE GAIN, none taken
+  ok   a unit of the three 0.2 points below K2 counts as mended
+  ok   the gate passes 28 clean units
+  ok   HS not the lead test's: refused
+  ok   a remedy plan with a band still doubled: refused
+  ok   a remedy plan with the allowance scaled: refused
+  ok   the bands-alone plan with its cap scaled: refused
+  ok   a remedy's band for gains two people's: refused
+  ok   HSP and HSPS on two tables: refused
+  ok   a unit missing: refused
+  ok   K2 not checked on its first 200 paths: refused
+PLANTED: ALL PASS (14)

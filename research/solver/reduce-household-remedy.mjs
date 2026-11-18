@@ -154,7 +154,7 @@ const iv = (r, f = f3) => `${f(r.d)} (${f(r.lo)} to ${f(r.hi)})`;
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
   if (args.includes('--planted')) process.exit(planted() ? 1 : 0);
-  const { UNITS, stampFilesHash, LEAD_DIR } = await import('./audit-household-remedy.mjs');
+  const { stampFilesHash, LEAD_DIR } = await import('./audit-household-remedy.mjs'), { UNITS } = await import('./audit-household.mjs');
   const DIR = process.env.HR_OUT || join(HERE, 'results', 'household-remedy-7002'), smoke = args.includes('--smoke');
   const files = existsSync(DIR) ? readdirSync(DIR).filter(f => /\.json\.gz$/.test(f)) : [];
   if (!files.length) { console.error(`reduce-household-remedy: no units in ${DIR}`); process.exit(2); }
@@ -168,7 +168,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const problems = gate(units, ids, stampFilesHash(), leadOf, smoke ? null : undefined, smoke);
   console.log(`THE REMEDY'S READ (EXPLORATORY; HOUSEHOLD-REMEDY-READ.md, D129 (3)): ${units.length} units, seed ${units[0].seed}, ${units[0].N} paths, ${units[0].pts} points; code ${units[0].stamp.code}, audit ${units[0].stamp.audit}`);
   if (problems.length) { console.log(`THE GATE: REFUSED\n  ${problems.join('\n  ')}`); process.exit(3); }
-  console.log(`THE GATE: fair; K2 and HS the lead test's K2 and HS1 arrays (each checked on its first 200 paths run again); each remedy plan part 1's`);
+  console.log(`THE GATE: fair; ${smoke ? 'a smoke: K2 and HS run on its own paths, not held to the lead test' : 'K2 and HS the lead test\'s K2 and HS1 arrays (each checked on its first 200 paths run again)'}; each remedy plan part 1's in its form`);
   if (smoke) { console.log('a smoke: the gate read, no figure printed'); process.exit(0); }
   units.sort((p, q) => ids.indexOf(p.id) - ids.indexOf(q.id));
   const X = rule(units), say = ok => (ok ? 'HOLDS' : 'FAILS');

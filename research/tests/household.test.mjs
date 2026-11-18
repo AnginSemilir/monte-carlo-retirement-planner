@@ -53,13 +53,21 @@
  *      cost from the first twin's taxable account, so the gain falls on one person's exempt amount where the household plan
  *      has two. The cause is the engine's cost order against design A's doubled exempt amount: neither householdPlanFor's
  *      construction nor arm A's rule, the plan's two branches; with the maintainer, S149 held to no bar meanwhile.
+ *   9. the decomposition's option (D129 (1); HOUSEHOLD-DECOMP.md; householdPlanFor's opts.single), on S061-dbpart, each
+ *      check shown failing on its plant: (a) each group leaves exactly its allowances at one person's (the bands: the
+ *      personal allowance, the taper's threshold, the UK and Scottish band limits; the cap: the tax-free cash cap), every
+ *      other entry design A's; empty or unset, the plan design A's byte for byte; an unknown group, or a list that is not
+ *      one, refused ('singlenone': the option read as empty); (b) solved at check 4's settings, the household table with the
+ *      bands single carries one person's capital gains band, with the cap single two people's, the engine's default basic
+ *      band the same after each ('singlecgt': the bands single, the solve inside twoBands, which solveHousehold's own check
+ *      then refuses).
  * Measured first by the probe behind check 3 (17 Nov, EXPLORATORY): the largest gaps unplanted 1.3 points of survival
  * (S061-dbpart) and 13.6% of median end wealth (S227-90), every plant past one bar or the other on some couple.
  *   node research/tests/household.test.mjs
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { householdPlanFor, mergedState, solveHousehold, chooseHousehold, runHouseholdPolicy, withHousehold, chooseHouseholdSingle, runHouseholdSinglePolicy, withHouseholdSingle, householdValue, twoBands, householdContext, HOUSE, DOUBLED } from '../solver/household.mjs';
+import { householdPlanFor, mergedState, solveHousehold, chooseHousehold, runHouseholdPolicy, withHousehold, chooseHouseholdSingle, runHouseholdSinglePolicy, withHouseholdSingle, householdValue, twoBands, householdContext, HOUSE, DOUBLED, SINGLE_GROUPS } from '../solver/household.mjs';
 import { codeId } from '../solver/code-id.mjs';
 import { chooseAction } from '../../src/solver/solve.js';
 import { vecOf } from '../../src/solver/grid.js';
@@ -327,6 +335,36 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
     const failing = tp.filter(x => !bar1(x)).map(x => x.id);
     check(`(8) the plant '${plant}' fails bar 1${must ? ` on ${must.join(', ')}` : ''}`, must ? must.every(id => failing.includes(id)) : failing.length > 0, tp.filter(x => !bar1(x)).map(show).join('; ') || 'none');
   }
+}
+
+// 9. the decomposition's option (D129 (1); householdPlanFor's opts.single)
+{
+  const plan = couplePlan('S061-dbpart'), cfg = { ...E.DEFAULT_CONFIG, ...(plan.config || {}) }, one = k => E.num(cfg[k], E.DEFAULT_CONFIG[k]);
+  // the groups as HOUSEHOLD-DECOMP.md names them, typed here, not read from the code under test
+  const WANT = { bands: ['personalAllowance', 'paTaperThreshold', 'basicBandLimit', 'higherBandLimit', 'scotStarterLimit', 'scotBasicLimit', 'scotIntermediateLimit', 'scotHigherLimit', 'scotAdvancedLimit'], cap: ['pclsMaxCap'] };
+  const asBuilt = householdPlanFor(E, plan);
+  const off = (single, singles) => { const hp = householdPlanFor(E, plan, { single }); return DOUBLED.filter(k => hp.config[k] !== (singles.includes(k) ? one(k) : asBuilt.config[k])).concat(Object.keys(hp.config).filter(k => !DOUBLED.includes(k) && hp.config[k] !== asBuilt.config[k])); };
+  const cases = () => ({ bands: off(['bands'], WANT.bands), cap: off(['cap'], WANT.cap), both: off(['bands', 'cap'], [...WANT.bands, ...WANT.cap]) });
+  const refusals = () => [['band'], 'bands', [null]].filter(x => { try { householdPlanFor(E, plan, { single: x }); return false; } catch { return true; } }).length;
+  const c0 = cases(), r0 = refusals();
+  const same = JSON.stringify(householdPlanFor(E, plan, { single: [] })) === JSON.stringify(asBuilt) && JSON.stringify(householdPlanFor(E, plan, {})) === JSON.stringify(asBuilt);
+  const groupsOk = JSON.stringify(SINGLE_GROUPS) === JSON.stringify(WANT);
+  const showC = c => Object.entries(c).map(([g, ks]) => `${g}: ${ks.length ? ks.join(', ') : 'as wanted'}`).join('; ');
+  const fine = c => Object.values(c).every(ks => ks.length === 0);
+  check('(9a) opts.single leaves exactly its groups\' allowances at one person\'s, every other entry design A\'s; empty or unset, the plan design A\'s byte for byte; three bad lists refused', groupsOk && fine(c0) && same && r0 === 3 && one('basicBandLimit') !== 2 * one('basicBandLimit'), `${showC(c0)}; empty the same ${same}; refused ${r0} of 3`);
+  HOUSE.plant = 'singlenone'; const cz = cases(); HOUSE.plant = '';
+  check('(9a) the plant \'singlenone\' fails it', !fine(cz), showC(cz));
+  const light = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } };
+  const solveOne = (p, o) => solveForApp(E, M, p, { points: 6, ageWith: o.partnerAge0, research: { ...light } });
+  const d0 = E.DEFAULT_CONFIG.basicBandLimit, p0 = M.prepare(E, plan).ctx.P.cgtBandWidth;
+  const band = single => { const h = solveHousehold(E, M, plan, { solveOne, single }); return { band: h.H.m.ctx.P.cgtBandWidth, ctx: householdContext(E, h.hplan, single).P.cgtBandWidth, after: E.DEFAULT_CONFIG.basicBandLimit, meta: JSON.stringify(h.meta.single || null) }; };
+  const bB = band(['bands']), bC = band(['cap']);
+  const ok9b = bB.band === p0 && bB.ctx === p0 && Math.abs(bC.band - 2 * p0) < 1e-6 && Math.abs(bC.ctx - 2 * p0) < 1e-6 && bB.after === d0 && bC.after === d0 && bB.meta === '["bands"]' && bC.meta === '["cap"]';
+  check('(9b) solved, the household table with the bands single carries one person\'s capital gains band, with the cap single two people\'s; the engine\'s default the same after each', ok9b, `bands ${bB.band} (its context ${bB.ctx}), cap ${bC.band} (${bC.ctx}), a person's ${p0}; the default after ${bB.after} and ${bC.after}, before ${d0}; meta ${bB.meta} ${bC.meta}`);
+  HOUSE.plant = 'singlecgt'; let threw = '';
+  try { band(['bands']); } catch (e) { threw = e.message; }
+  HOUSE.plant = ''; E.DEFAULT_CONFIG.basicBandLimit = d0;
+  check('(9b) the plant \'singlecgt\' (the bands single, the solve inside twoBands) is refused by solveHousehold\'s own check', /not one person's/.test(threw), threw || 'not refused');
 }
 
 const bad = results.filter(ok => !ok).length;

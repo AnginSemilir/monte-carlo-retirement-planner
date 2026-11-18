@@ -29,7 +29,8 @@
  * exact (the rollout's step); only the table's view of later years carries either.
  * HOUSE.plant (research/tests/household.test.mjs), comma-joined: 'singleband' leaves every allowance single; 'nopartsp' drops
  * the partner's state pension; 'notakehome' drops the later retiree's take-home; 'nopartpots' leaves the partner's pots out
- * of the merged position; the single chooser's (below): 'partnersecond', 'tiezero', 'notiebreak'.
+ * of the merged position; the single chooser's (below): 'partnersecond', 'tiezero', 'notiebreak'; the decomposition's
+ * (SINGLE_GROUPS, below): 'singlenone', 'singlecgt'.
  */
 import { rankFor, tiePick, layerOf, ratesAt, SPLITS } from '../../src/solver/couple.js';
 import { NODES, WEIGHTS, chooseAction } from '../../src/solver/solve.js';
@@ -47,6 +48,32 @@ export const DOUBLED = ['personalAllowance', 'paTaperThreshold', 'basicBandLimit
   'scotIntermediateLimit', 'scotHigherLimit', 'scotAdvancedLimit', 'nicPrimaryThreshold', 'nicUpperEarningsLimit', 'pclsMaxCap', 'isaAnnualAllowance',
   'cashIsaAllowance', 'cashIsaAllowanceUnder65', 'pensionAnnualAllowance', 'pensionNoEarningsLimit', 'mpaaLimit', 'pensionTaperThreshold',
   'pensionTaperFloor', 'cgtAnnualExempt', 'savingsAllowanceBasic', 'savingsAllowanceHigher', 'startingRateSavingsBand', 'dividendAllowance'];
+/* THE DECOMPOSITION'S GROUPS (D129 (1); HOUSEHOLD-DECOMP.md; EXPLORATORY): what householdPlanFor's opts.single leaves at one
+   person's, the rest of DOUBLED doubled as before. 'bands': the income tax's rate bands and the thresholds that move them,
+   UK and Scottish (and with them the capital gains band, which the engine reads off the default basic band and the plan's
+   allowance: solveHousehold then solves outside twoBands, so the household's band for gains is one person's too); 'cap': the
+   tax-free cash cap. Unset, or empty, the household plan is design A's byte for byte. Plants: 'singlenone' (the option
+   read as empty: every allowance doubled), 'singlecgt' (the bands single, the solve still inside twoBands). */
+export const SINGLE_GROUPS = Object.freeze({
+  bands: Object.freeze(['personalAllowance', 'paTaperThreshold', 'basicBandLimit', 'higherBandLimit', 'scotStarterLimit', 'scotBasicLimit',
+    'scotIntermediateLimit', 'scotHigherLimit', 'scotAdvancedLimit']),
+  cap: Object.freeze(['pclsMaxCap'])
+});
+/* the DOUBLED entries a list of groups leaves single; an unknown group, or a list that is not one, refused */
+export function singleKeys(single = []) {
+  if (!Array.isArray(single)) throw new Error(`householdPlanFor: opts.single must be a list of groups (${Object.keys(SINGLE_GROUPS).join(', ')})`);
+  const keys = new Set();
+  if (planted('singlenone')) return keys;
+  for (const g of single) {
+    const ks = SINGLE_GROUPS[g];
+    if (!ks) throw new Error(`householdPlanFor: no group '${g}' to leave single (want ${Object.keys(SINGLE_GROUPS).join(', ')})`);
+    for (const k of ks) keys.add(k);
+  }
+  return keys;
+}
+/* whether a list of groups leaves the bands single: fn is then run as it is, else inside twoBands */
+export const bandsSingle = (single = []) => singleKeys(single).has('basicBandLimit');
+export const inBands = (E, single, fn) => (bandsSingle(single) && !planted('singlecgt') ? fn() : twoBands(E, fn));
 const LABEL_KEYS = { Pensions: 'pen', 'S&S ISAs': 'isa', 'Other Investments (e.g. GIA)': 'other', 'Cash Savings': 'cash', 'Cash ISA': 'cashIsa' };
 
 /*
@@ -60,7 +87,7 @@ const LABEL_KEYS = { Pensions: 'pen', 'S&S ISAs': 'isa', 'Other Investments (e.g
  * rates, a cash ISA subscription, a salaried later retiree in plan year 0 (the engine pro-rates that year), a person whose
  * limits differ from the household's (tierCeilingPart).
  */
-export function householdPlanFor(E, plan) {
+export function householdPlanFor(E, plan, opts = {}) {
   const d = plan.demographics;
   if (d.planningMode !== 'couple') throw new Error('householdPlanFor: a couple\'s plan');
   const ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(plan)));
@@ -119,7 +146,9 @@ export function householdPlanFor(E, plan) {
   // in a pension as the household's two no-earnings limits; where a later retiree pays more into their pension than that,
   // the limit is raised to the most they pay in a year (the household's own routing then sees that much room too)
   const cfg = { ...E.DEFAULT_CONFIG, ...(plan.config || {}) }, config = { ...(plan.config || {}) };
-  if (!planted('singleband')) for (const k of DOUBLED) config[k] = 2 * E.num(cfg[k], E.DEFAULT_CONFIG[k]);
+  // opts.single (the decomposition's, D129 (1)): the groups of SINGLE_GROUPS left at one person's
+  const single = singleKeys(opts.single || []);
+  if (!planted('singleband')) for (const k of DOUBLED) config[k] = single.has(k) ? E.num(cfg[k], E.DEFAULT_CONFIG[k]) : 2 * E.num(cfg[k], E.DEFAULT_CONFIG[k]);
   const maxPen = deposits.filter(x => x.category === E.CATEGORY_LABEL.pen).reduce((s, x) => Math.max(s, x.amount), 0);
   config.pensionNoEarningsLimit = Math.max(E.num(config.pensionNoEarningsLimit, E.DEFAULT_CONFIG.pensionNoEarningsLimit), maxPen);
   const demographics = {
@@ -186,7 +215,7 @@ export function twoBands(E, fn) {
   if (!planted('cgtband')) E.DEFAULT_CONFIG.basicBandLimit = 2 * old;
   try { return fn(); } finally { E.DEFAULT_CONFIG.basicBandLimit = old; TWO_BANDS = false; }
 }
-export const householdContext = (E, hp) => twoBands(E, () => E.buildContext(hp));
+export const householdContext = (E, hp, single = []) => inBands(E, single, () => E.buildContext(hp));
 
 /* The household's plan solved, and what the rollout needs. opts: solveOne (required: solveForApp at the candidate's
    settings), splits, topK (the household table's moves tried a decision, 3 unless set), tieJoint and holdPast (as the
@@ -195,10 +224,13 @@ export function solveHousehold(E, M, plan, opts = {}) {
   if (typeof opts.solveOne !== 'function') throw new Error('solveHousehold: opts.solveOne (solveForApp at the candidate\'s settings)');
   const m0 = M.prepare(E, plan);
   if (!m0.ctx.isCouple) throw new Error('solveHousehold takes a couple');
-  const hp = E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan)));
+  // opts.single (the decomposition's, D129 (1)): the groups of SINGLE_GROUPS left at one person's; with the bands single the
+  // table is solved outside twoBands, so its band for gains is one person's
+  const single = opts.single || [], people = bandsSingle(single) ? 1 : 2;
+  const hp = E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan, { single })));
   const t0 = Date.now();
-  const H = twoBands(E, () => opts.solveOne(hp, { who: 'household', partnerAge0: m0.ctx.agePart0 }));
-  if (!(Math.abs(H.m.ctx.P.cgtBandWidth - 2 * m0.ctx.P.cgtBandWidth) < 1e-6)) throw new Error(`solveHousehold: the household table's capital gains band ${H.m.ctx.P.cgtBandWidth}, not two people's ${2 * m0.ctx.P.cgtBandWidth}`);
+  const H = inBands(E, single, () => opts.solveOne(hp, { who: 'household', partnerAge0: m0.ctx.agePart0 }));
+  if (!(Math.abs(H.m.ctx.P.cgtBandWidth - people * m0.ctx.P.cgtBandWidth) < 1e-6)) throw new Error(`solveHousehold: the household table's capital gains band ${H.m.ctx.P.cgtBandWidth}, not ${people === 1 ? 'one person\'s' : 'two people\'s'} ${people * m0.ctx.P.cgtBandWidth}`);
   const solveMs = Date.now() - t0;
   const tiersBelow = H.meta && H.meta.tiersBelow === 3 ? 3 : 2;
   const m = tiersBelow === 3 ? M.prepare(E, plan, { tiersBelow: 3 }) : m0;
@@ -210,7 +242,7 @@ export function solveHousehold(E, M, plan, opts = {}) {
   return {
     E, M, m, plan, hplan: hp, H, hm: H.m, idOf, household: true, splits: opts.splits || SPLITS, topK: opts.topK || 3, wB: H.wB, switchCost: H.c.switchCost || 0, tiersBelow,
     ...(opts.tieJoint > 0 ? { tieJoint: opts.tieJoint } : {}), ...(opts.holdPast > 0 ? { holdPast: opts.holdPast } : {}),
-    meta: { household: 'A', topK: opts.topK || 3, solveMs, tieJoint: opts.tieJoint || 0, holdPast: opts.holdPast || 0 }
+    meta: { household: 'A', topK: opts.topK || 3, solveMs, tieJoint: opts.tieJoint || 0, holdPast: opts.holdPast || 0, ...(single.length ? { single: [...single] } : {}) }
   };
 }
 

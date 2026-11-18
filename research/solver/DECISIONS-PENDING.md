@@ -30,7 +30,25 @@ its rule committed before it runs; none changes anything in the app on its own.
 2. Design B, the axis (`AXIS.md`), is not built unless the decomposition points to it.
 3. Step 8, the registered test, is held until those losses are fixed and re-checked on the couples that lose. Then its
    registration is drafted, put to the design reviewer and brought to the maintainer before launch.
-4. **UNDER WAY: what keys D128's guard** (`GUARD-KEY.md`; its eight units landed, running). The four couples 8 or 12 years apart without a DB pension (S149 and S337F at gap8
+4. **READ, FOR THE MAINTAINER: what keys D128's guard** (`results-guard.txt`; `reports/2026-11-18-guard-key-read.md`;
+   its reviewer FAIL on the write-up, answered in one fix, then PASS).
+   - With S147-db's DB pension, today's default still beats the app's rules on all four gap couples that did well
+     without one: pooled `+7.150` (`+6.867` to `+7.402`). By the rule, NO HARM, so **the guard is keyed on the wrong
+     thing**, and re-keying it is yours (a change of default). Nothing in the app changes until you rule.
+   - With rent instead it is HARM, pooled `-0.500`, resting on S149@gap12 (`-6.850`).
+     - The rent ran from now only on S149's two couples (pooled `-3.200`): the engine counts an income from its owner's
+       retirement at the earliest.
+     - On S337F's two it ran from the first person's retirement at 52 (pooled `+2.200`; `results-guard-beside.txt`).
+   - **No key fits what has been seen.** Among the gap couples, the default has lost to the app's rules on four: S147-db
+     at gap8 and gap12 and S061-dbpart at gap12 (each with a DB pension) and S149@gap12 with rent. It gained or held
+     level on the other eight with an income.
+   - **The choice:**
+     - keep the guard as built: it errs towards the app's rules, and also keeps couples off where the default gains;
+     - re-key it now: on what is not shown;
+     - find the cause first: a decomposition of the default's loss on the harmed couples, holding arm A's own pick fixed
+       or naming it.
+   - **The agent recommends** keeping the guard as built and finding the cause before re-keying.
+   - Item 5 (the card's words) waits on this ruling. The four couples 8 or 12 years apart without a DB pension (S149 and S337F at gap8
    and gap12), which step 5 read above the app's rules, given first S147-db's `£15,000` a year DB pension from the state
    pension age, then `£15,000` a year of rent instead; today's couples' default (K2) against the app's rules (APP).
    - If the DB pension brings the harm back, the guard stays. If it does not, the guard is keyed on the wrong thing, and

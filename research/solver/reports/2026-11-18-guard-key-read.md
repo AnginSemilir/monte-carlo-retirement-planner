@@ -81,3 +81,6 @@ rule's files unchanged since their commits and the landings after the rule. The 
 2. **MINOR:** the end pot runs against the capped pot, and is printed beside it.
 3. **MINOR:** the counts are the gap couples'; step 5's two losses outside them are named.
 4. **MINOR:** arm A's own pick also parts the comparisons offered.
+
+The reviewer again (`reviews/2026-11-18-read-guard-key-2.md`): PASS, no findings. Both scripts reproduce their files byte
+for byte, and the outcome rests on S149@gap12 with rent: without it, +rent pools `+1.617` and reads NO HARM.

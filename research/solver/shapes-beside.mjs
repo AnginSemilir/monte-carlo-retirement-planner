@@ -20,7 +20,13 @@ import { armOf, cells, spendOn } from './reduce-household.mjs';
 import { ARMS, SHAPES } from './reduce-shapes.mjs';
 import { survivalChange } from './stats.mjs';
 import { readShapesPanel } from './shapes-panel.mjs';
-import { coupleSolverOn } from '../../src/couplesSwitch.js';
+import { coupleSolverOn, PLANT as SWITCH_PLANT } from '../../src/couplesSwitch.js';
+
+// the guard as it stood at the read: since D128 (18 Nov) it keeps a couple more than three years apart with other taxable income
+// on the app's rules, which section D's reading would otherwise print for the four gap units with a DB pension; the plant
+// 'nogapguard' is the guard before D128, so this file reproduces results-shapes-beside.txt as printed (the reviewer on D128,
+// MINOR 3). What the guard gives these units since D128: research/tests/couple-default.test.mjs check 8
+SWITCH_PLANT.rule = 'nogapguard';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), DIR = join(HERE, 'results', 'shapes-7002');
 const panel = readShapesPanel(), ids = panel.map(u => u.id);

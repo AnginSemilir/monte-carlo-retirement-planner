@@ -20,15 +20,21 @@ import { DiagnosticCopy } from './DiagnosticCopy.jsx';
    nor, as the elder, more than 60% and at most 90% (since D104 (1), with SWAP_ELDER on, the elder entered either way), which
    keeps the app's rules until a test of those holdings reads; the card's words on who was tested follow SWAP_ELDER
    (src/couplesSwitch.js coupleSolverOn); 'ages': couples are on, and this one's partner would pass 120 before the plan ends,
-   which a person's table cannot run to (src/couplesSwitch.js horizonFits); `share` the first person's share of the pots */
+   which a person's table cannot run to (src/couplesSwitch.js horizonFits); 'gapincome': couples are on, and this one holds
+   its money as the guard allows but its two people are more than three years apart and it has other taxable income, the
+   kind a DB pension is entered as (D128, src/couplesSwitch.js DB_GAP_UP_TO and gapIncomeOf); `share` the first person's
+   share of the pots */
 export function Couples({ isPhone, onClassic, onOnePerson, why = 'off', share = null }) {
   if (PLANNER_PLANT.has('nocouple')) return null;
   // a share shown at an edge of the guard (10%, 40%, 60%, 90%) is not rounded onto it, so a couple just outside is not told it holds
   // what was tested (the reviewer on D99, finding 5): "just over 90%", "just under 40%"
-  const uneven = why === 'uneven', ages = why === 'ages', pc = x => { const p = 100 * x, r = Math.round(p); return [10, 40, 60, 90].includes(r) && Math.abs(p - r) > 1e-9 ? `just ${p > r ? 'over' : 'under'} ${r}%` : `${r}%`; };
+  const uneven = why === 'uneven', ages = why === 'ages', gapIncome = why === 'gapincome', pc = x => { const p = 100 * x, r = Math.round(p); return [10, 40, 60, 90].includes(r) && Math.abs(p - r) > 1e-9 ? `just ${p > r ? 'over' : 'under'} ${r}%` : `${r}%`; };
   return (
   <section data-planner-couple={why} className="p-5 bg-surface border border-slate-200/90 rounded-xl space-y-3 max-w-3xl">
-    {ages ? <>
+    {gapIncome ? <>
+      <h2 className="text-[15px] font-semibold text-slate-900">The new planner does not work out a plan like yours yet</h2>
+      <p className="text-sm text-slate-600">You two are more than three years apart in age, and your plan has other taxable income, such as a DB (final salary) pension or an annuity. For couples like that, the solver&apos;s plans have not yet been shown to do better than the app&apos;s own rules, so for now your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+    </> : ages ? <>
       <h2 className="text-[15px] font-semibold text-slate-900">The new planner cannot work out a plan this long for the two of you yet</h2>
       <p className="text-sm text-slate-600">Your plan runs until your partner would be past 120, which the new planner cannot plan for yet. Ending the plan at an earlier age brings it within reach; until then your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
     </> : uneven ? <>

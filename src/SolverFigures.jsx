@@ -194,13 +194,14 @@ export function SolverScenarios({ rows, plan, solve, seed, upto, engine, opts, f
       <div className="text-xs font-semibold text-slate-800">The solved plan, scenario by scenario</div>
       <ul className="space-y-0.5">
         {rows.map(r => {
-          // a couple's scenario is solved where couples are on and it holds its money about evenly (Part D, D5; M4 in D66)
+          // a couple's scenario is solved where couples are on and it holds its money about evenly (Part D, D5; M4 in D66), and since
+          // D128 not where its two people are more than three years apart with other taxable income
           const cs = r.plan && r.plan.demographics && r.plan.demographics.planningMode === 'couple' ? coupleSolverOn(r.plan) : null, couple = !!(cs && !cs.on);
           const f = r.isBase ? (here.key === solve.key && here.h ? { h: here.h } : null) : scenarioFigs.get(JSON.stringify(r.plan)) || null;
           return (
             <li key={r.id} data-solver-scenario={r.id} data-solver-scenario-survival={f && f.h ? f.h.survival : ''} className="flex flex-wrap items-center gap-x-2">
               <span className="font-semibold text-slate-800">{r.name}:</span>
-              {couple ? <span>{cs.why === 'uneven' ? 'a couple holding its money this unevenly keeps the app\'s rules for now.' : cs.why === 'ages' ? 'a plan running past your partner\'s 120th year keeps the app\'s rules for now.' : 'a couple\'s plan keeps the app\'s rules for now.'}</span>
+              {couple ? <span>{cs.why === 'uneven' ? 'a couple holding its money this unevenly keeps the app\'s rules for now.' : cs.why === 'ages' ? 'a plan running past your partner\'s 120th year keeps the app\'s rules for now.' : cs.why === 'gapincome' ? 'a couple more than three years apart with other taxable income, such as a DB pension, keeps the app\'s rules for now.' : 'a couple\'s plan keeps the app\'s rules for now.'}</span>
                 : f && f.h ? <span>{dialLineWords(f.h, fmt)}.</span>
                   : f && f.error ? <span>could not be worked out ({f.error}).</span>
                     : r.isBase ? <span>working it out…</span>

@@ -1,0 +1,95 @@
+THE PATTERN SEARCH FOR survivalChangeU's FIX (EXPLORATORY, deciding nothing; stats-newcombe-scan.mjs): before the fix (method 8) and after (method 10), every stored run's every ordered pair of arms, by unit and pooled; a crossing of the bars -0.5, -0.3, -0.25, -0.1, 0 is a lead to check against that run's own rule
+
+allowance-both-7002: 8 units, arms NOW, BOTH, RAWPA; 54 intervals; the largest move of an end 0.003 points; crossings 0 (none)
+
+ceiling-lead-7002: 8 units, arms OFF, RAWPA, NOW; 54 intervals; the largest move of an end 0.003 points; crossings 0 (none)
+
+couple-tiers-7002: 8 units, arms APP, CANDC, CANDCNC; 54 intervals; the largest move of an end 0.002 points; crossings 0 (none)
+
+household-7002: 28 units, arms K2, HOUSE, HS5, HS1; 348 intervals; the largest move of an end 0.013 points; crossings 25
+  S061-90 HS5 less HOUSE: the lower end -0.096 to -0.107 across -0.1
+  S147-db HS5 less HOUSE: the lower end -0.246 to -0.253 across -0.25
+  S227-90 HS5 less HOUSE: the lower end -0.096 to -0.106 across -0.1
+  S227-sppart HS5 less HOUSE: the lower end -0.089 to -0.101 across -0.1
+  S061-90 HS1 less HOUSE: the lower end -0.096 to -0.107 across -0.1
+  S061-90 HOUSE less HS5: the lower end -0.096 to -0.107 across -0.1
+  S227-sppart HOUSE less HS5: the lower end -0.089 to -0.101 across -0.1
+  S023-90 HS1 less HS5: the lower end -0.091 to -0.103 across -0.1
+  S023-db HS1 less HS5: the lower end -0.098 to -0.106 across -0.1
+  S061-90 HS1 less HS5: the lower end -0.096 to -0.107 across -0.1
+  S109-90 HS1 less HS5: the lower end -0.095 to -0.107 across -0.1
+  S109-sppart HS1 less HS5: the lower end -0.095 to -0.107 across -0.1
+  S149 HS1 less HS5: the lower end -0.098 to -0.106 across -0.1
+  S205 HS1 less HS5: the lower end -0.093 to -0.105 across -0.1
+  S271-90 HS1 less HS5: the lower end -0.095 to -0.103 across -0.1
+  S377-90 HS1 less HS5: the lower end -0.094 to -0.106 across -0.1
+  S061-90 HOUSE less HS1: the lower end -0.096 to -0.107 across -0.1
+  S023-90 HS5 less HS1: the lower end -0.091 to -0.103 across -0.1
+  S061-90 HS5 less HS1: the lower end -0.096 to -0.107 across -0.1
+  S109-90 HS5 less HS1: the lower end -0.095 to -0.107 across -0.1
+  S109-sppart HS5 less HS1: the lower end -0.095 to -0.107 across -0.1
+  S147-90 HS5 less HS1: the lower end -0.098 to -0.108 across -0.1
+  S205 HS5 less HS1: the lower end -0.093 to -0.105 across -0.1
+  S331F HS5 less HS1: the lower end -0.094 to -0.103 across -0.1
+  S377-90 HS5 less HS1: the lower end -0.094 to -0.106 across -0.1
+
+joint-wide-7002: 28 units, arms K2, K4, K6; 174 intervals; the largest move of an end 0.010 points; crossings 5
+  S061-90 K4 less K2: the upper end -0.001 to +0.004 across 0
+  S147-90 K6 less K2: the lower end -0.500 to -0.504 across -0.5
+  S327F K6 less K2: the lower end -0.099 to -0.103 across -0.1
+  S061-90 K2 less K4: the lower end +0.001 to -0.004 across 0
+  S109-90 K2 less K4: the lower end -0.295 to -0.302 across -0.3
+
+other-order-7002: 24 units, arms APP, ELDER, APPY, YOUNG, YOUNGE; 500 intervals; the largest move of an end 0.016 points; crossings 9
+  S015-90 YOUNGE less ELDER: the lower end -0.094 to -0.106 across -0.1
+  S183-90 YOUNGE less ELDER: the lower end -0.088 to -0.101 across -0.1
+  S237-90 YOUNGE less ELDER: the lower end -0.096 to -0.106 across -0.1
+  S211-75 ELDER less YOUNG: the lower end -0.296 to -0.301 across -0.3
+  S015-75 YOUNGE less YOUNG: the lower end -0.097 to -0.105 across -0.1
+  S015-90 ELDER less YOUNGE: the lower end -0.094 to -0.106 across -0.1
+  S183-90 ELDER less YOUNGE: the lower end -0.088 to -0.101 across -0.1
+  S211-75 ELDER less YOUNGE: the lower end -0.296 to -0.301 across -0.3
+  S043-75 YOUNG less YOUNGE: the lower end -0.248 to -0.253 across -0.25
+
+shapes-7002: 28 units, arms APP, K2, HS, CEIL; 348 intervals; the largest move of an end 0.014 points; crossings 8
+  S149@part60 HS less K2: the lower end -0.247 to -0.252 across -0.25
+  S149@part60 K2 less HS: the lower end -0.247 to -0.252 across -0.25
+  S149@part60 CEIL less HS: the lower end -0.098 to -0.106 across -0.1
+  S337F@even K2 less CEIL: the upper end -0.502 to -0.499 across -0.5
+  S147-db@penB90 HS less CEIL: the upper end -0.306 to -0.300 across -0.3
+  S149@penA100 HS less CEIL: the lower end -0.298 to -0.304 across -0.3
+  S337F@even HS less CEIL: the lower end -0.098 to -0.107 across -0.1
+  S337F@gap8 HS less CEIL: the lower end -0.097 to -0.106 across -0.1
+
+share-choose-7002: 14 units, arms APP, s0.5, s0.6, s0.7, s0.8, s0.9, means, s0.75; 636 intervals; the largest move of an end 0.008 points; crossings 3
+  S211-75pdb s0.8 less s0.7: the lower end -0.296 to -0.301 across -0.3
+  S291-db means less s0.7: the lower end -0.499 to -0.503 across -0.5
+  S129-90 s0.8 less means: the lower end -0.098 to -0.101 across -0.1
+
+share-ensemble-7002: 10 units, arms APP, s0.5, s0.6, s0.7, s0.9, s0.8, s0.75, s0.65, s0.55; 144 intervals; the largest move of an end 0.005 points; crossings 0 (none)
+
+speed-b-7002: 32 units, arms WHOLE, SPEED; 66 intervals; the largest move of an end 0.013 points; crossings 18
+  S062 SPEED less WHOLE: the lower end -0.094 to -0.106 across -0.1
+  S074 SPEED less WHOLE: the lower end -0.092 to -0.104 across -0.1
+  S096 SPEED less WHOLE: the lower end -0.093 to -0.105 across -0.1
+  S108 SPEED less WHOLE: the lower end -0.092 to -0.104 across -0.1
+  S164 SPEED less WHOLE: the lower end -0.088 to -0.101 across -0.1
+  S204 SPEED less WHOLE: the lower end -0.088 to -0.101 across -0.1
+  S228 SPEED less WHOLE: the lower end -0.091 to -0.103 across -0.1
+  S306F SPEED less WHOLE: the lower end -0.096 to -0.104 across -0.1
+  S314F SPEED less WHOLE: the lower end -0.088 to -0.101 across -0.1
+  S321F SPEED less WHOLE: the lower end -0.246 to -0.253 across -0.25
+  S062 WHOLE less SPEED: the lower end -0.094 to -0.106 across -0.1
+  S074 WHOLE less SPEED: the lower end -0.092 to -0.104 across -0.1
+  S096 WHOLE less SPEED: the lower end -0.093 to -0.105 across -0.1
+  S108 WHOLE less SPEED: the lower end -0.092 to -0.104 across -0.1
+  S164 WHOLE less SPEED: the lower end -0.088 to -0.101 across -0.1
+  S204 WHOLE less SPEED: the lower end -0.088 to -0.101 across -0.1
+  S228 WHOLE less SPEED: the lower end -0.091 to -0.103 across -0.1
+  S314F WHOLE less SPEED: the lower end -0.088 to -0.101 across -0.1
+
+tie-c2-7001: 12 units, arms CANDS, HOLD, LOOKHOLD, TIE4; 156 intervals; the largest move of an end 0.007 points; crossings 0 (none)
+
+tie-couple-7002: 8 units, arms CANDS, TIE5, TIE4; 54 intervals; the largest move of an end 0.007 points; crossings 0 (none)
+
+12 runs, 2588 intervals; the largest move of an end 0.016 points; 68 crossings of a bar, each a lead to check against its run's rule

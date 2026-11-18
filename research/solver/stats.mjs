@@ -22,8 +22,9 @@ export const marginRel = offSim => Math.min(marginFor(offSim), MARGINS.rel * off
 /* the relative margin's floor (the maintainer, 11 Oct, the session: 'Keep a tenth (Recommended)', the cost put correctly -
    the plan-auditor's MINOR 1 of 11 Oct 07:51 UK): a household whose comparison arm keeps so few surviving paths that
    identical arms (none lost, none saved) could not clear the guarded rule at the look's level is never certified, only
-   reported - harm is still read on it - and its report blocks no other household: about 39 surviving paths at a single
-   look at 0.05, 40 at 0.045, 78 at 0.005, at any path count (the plan-auditor's MINOR 1 of 08:03 UK: the look's level);
+   reported - harm is still read on it - and its report blocks no other household: about 43 surviving paths at a single
+   look at 0.05, 45 at 0.045, 83 at 0.005, at any path count (the plan-auditor's MINOR 1 of 08:03 UK: the look's level;
+   39, 40 and 78 before D112's fix to survivalChangeU, Newcombe's method 8 then, 18 Nov);
    a household whose arm never survives can lose nothing, and is reported alike */
 export const relClearable = (alive, N, level = 0.05) => alive > 0 && survivalChangeU(alive, 0, 0, N - alive, level).lo > -marginRel(100 * alive / N);
 
@@ -105,7 +106,7 @@ export function wilson(x, n, z) {
 /*
  * THE PAIRED SURVIVAL CHANGE, UNCONDITIONALLY (Newcombe 1998, "Improved confidence intervals for the difference between
  * binomial proportions based on paired data", method 10: each arm's survival by Wilson's interval, combined through the
- * paired correlation phi). Cells: a both survive, b arm A survives and B fails (lost), c B survives and A fails (saved),
+ * paired correlation phi, corrected as method 10 corrects it since D112). Cells: a both survive, b arm A survives and B fails (lost), c B survives and A fails (saved),
  * d both fail; the change B - A in points at 1 - level. Unlike survivalChange it counts the chance in how many paths
  * differ: at a true one-sided loss exactly at the 0.25 margin it reads "no material harm" at or below the nominal rate on
  * nearly every row of results-sim-unconditional.txt (sim-unconditional.mjs: survival 95% to 99.8%, 1,000 to 8,000 paths),
@@ -113,10 +114,16 @@ export function wilson(x, n, z) {
  * exact either (the eighty-fifth review, MINOR 2). Reported beside the registered exact interval; it replaces it only by
  * the maintainer's decision (the regimen's item 1).
  */
+/* STATS.plant 'nocorrect' (research/tests/stats-newcombe.test.mjs only): the paired correlation uncorrected, as before D112 */
+export const STATS = { plant: '' };
 export function survivalChangeU(a, b, c, d, level = 0.05) {
   const N = a + b + c + d, z = zFor(level), pB = (a + c) / N, pA = (a + b) / N, dl = pB - pA;
   const [lB, uB] = wilson(a + c, N, z), [lA, uA] = wilson(a + b, N, z);
-  const den = Math.sqrt((a + c) * (b + d) * (a + b) * (c + d)), phi = den > 0 ? (a * d - b * c) / den : 0;
+  // method 10 corrects the paired correlation (D112; the reviewer's MINOR 4 at the couples' sweep check's read,
+  // reviews/2026-11-12-read-couple-sweep.md): ad - bc less N/2 where it exceeds N/2, nought from 0 to N/2, left alone below
+  // 0. Uncorrected (his method 8, the code before D112) the interval ran a little narrow where nearly every path survives
+  const den = Math.sqrt((a + c) * (b + d) * (a + b) * (c + d)), num = a * d - b * c;
+  const phi = den > 0 ? (STATS.plant === 'nocorrect' || num <= 0 ? num : num > N / 2 ? num - N / 2 : 0) / den : 0;
   const lo = dl - Math.sqrt(Math.max(0, (pB - lB) ** 2 - 2 * phi * (pB - lB) * (uA - pA) + (uA - pA) ** 2));
   const hi = dl + Math.sqrt(Math.max(0, (uB - pB) ** 2 - 2 * phi * (uB - pB) * (pA - lA) + (pA - lA) ** 2));
   return { d: 100 * dl, lo: 100 * lo, hi: 100 * hi, N };

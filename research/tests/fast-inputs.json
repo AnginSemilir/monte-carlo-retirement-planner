@@ -1376,6 +1376,8 @@
    "research/solver/speed-timing.mjs",
    "research/solver/stage-couples.mjs",
    "research/solver/state.mjs",
+   "research/solver/stats-newcombe-rules.mjs",
+   "research/solver/stats-newcombe-scan.mjs",
    "research/solver/stats.mjs",
    "research/solver/swap.mjs",
    "research/solver/tcform-topcell.mjs",
@@ -1606,6 +1608,7 @@
    "research/tests/spendgrid.test.mjs",
    "research/tests/state-check-full.test.mjs",
    "research/tests/state-check.test.mjs",
+   "research/tests/stats-newcombe.test.mjs",
    "research/tests/stats.test.mjs",
    "research/tests/store-note.test.mjs",
    "research/tests/sweep-words.test.mjs",
@@ -3091,6 +3094,8 @@
    "research/solver/stage-b-figures.sh",
    "research/solver/stage-couples.mjs",
    "research/solver/state.mjs",
+   "research/solver/stats-newcombe-rules.mjs",
+   "research/solver/stats-newcombe-scan.mjs",
    "research/solver/stats.mjs",
    "research/solver/swap.mjs",
    "research/solver/tcform-topcell.mjs",
@@ -3322,6 +3327,7 @@
    "research/tests/spendgrid.test.mjs",
    "research/tests/state-check-full.test.mjs",
    "research/tests/state-check.test.mjs",
+   "research/tests/stats-newcombe.test.mjs",
    "research/tests/stats.test.mjs",
    "research/tests/store-note.test.mjs",
    "research/tests/sweep-words.test.mjs",
@@ -4319,6 +4325,8 @@
    "research/solver/results-speed-mode.txt",
    "research/solver/results-stage-b-figures.txt",
    "research/solver/results-stage-b.txt",
+   "research/solver/results-stats-newcombe-rules.txt",
+   "research/solver/results-stats-newcombe.txt",
    "research/solver/results-step-u-harnesses.txt",
    "research/solver/results-step2.txt",
    "research/solver/results-steps370-preflight.txt",
@@ -5536,6 +5544,17 @@
   "list": [
    "src/solver"
   ],
+  "outdirs": [],
+  "spawns": [],
+  "nodeModules": false
+ },
+ "stats-newcombe.test.mjs": {
+  "read": [
+   "research/solver/stats.mjs",
+   "research/tests/stats-newcombe.test.mjs"
+  ],
+  "probe": [],
+  "list": [],
   "outdirs": [],
   "spawns": [],
   "nodeModules": false

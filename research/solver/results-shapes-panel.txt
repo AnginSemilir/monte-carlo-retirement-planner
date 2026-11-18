@@ -1,0 +1,29 @@
+THE SHAPES' PANEL (EXPLORATORY; SHAPES.md): 28 of 28 units in, landed on 1,000 paths of seed 7005 on code 603eeb595679
+  S149@even            target  24800 (base 24000), arm A 85.9 (Bracket Fill, lump sum): in
+  S149@gap8            target  23300 (base 24000), arm A 84.2 (ISA First): in
+  S149@gap12           target  22500 (base 24000), arm A 84.0 (ISA First): in
+  S149@elder2nd        target  24400 (base 24000), arm A 85.4 (ISA First): in
+  S149@part60          target  24000 (base 24000), arm A 85.8 (ISA First, lump sum): in
+  S149@penB90          target  24000 (base 24000), arm A 84.7 (ISA First, lump sum): in
+  S149@penA100         target  24000 (base 24000), arm A 85.5 (ISA First, lump sum): in
+  S337F@even           target  21800 (base 23900), arm A 84.2 (ISA First (harvest off)): in
+  S337F@gap8           target  25400 (base 23900), arm A 84.9 (Bracket Fill, lump sum): in
+  S337F@gap12          target  26900 (base 23900), arm A 84.3 (Bracket Fill (harvest off)): in
+  S337F@elder2nd       target  23900 (base 23900), arm A 84.2 (Bracket Fill, lump sum): in
+  S337F@part60         target  23900 (base 23900), arm A 84.1 (ISA First): in
+  S337F@penB90         target  22500 (base 23900), arm A 84.0 (ISA First, lump sum): in
+  S337F@penA100        target  22500 (base 23900), arm A 85.9 (ISA First): in
+  S147-db@even         target  38000 (base 37400), arm A 85.9 (ISA First, lump sum): in
+  S147-db@gap8         target  36300 (base 37400), arm A 84.3 (ISA First, lump sum): in
+  S147-db@gap12        target  35400 (base 37400), arm A 85.0 (ISA First, lump sum): in
+  S147-db@elder2nd     target  35700 (base 37400), arm A 85.2 (Bracket Fill, lump sum): in
+  S147-db@part60       target  37400 (base 37400), arm A 84.1 (ISA First, lump sum): in
+  S147-db@penB90       target  36900 (base 37400), arm A 85.0 (ISA First): in
+  S147-db@penA100      target  36900 (base 37400), arm A 85.2 (ISA First, lump sum): in
+  S061-dbpart@even     target  26500 (base 21400), arm A 85.8 (Bracket Fill, lump sum): in
+  S061-dbpart@gap8     target  17500 (base 21400), arm A 84.9 (Bracket Fill, lump sum): in
+  S061-dbpart@gap12    target  14800 (base 21400), arm A 85.3 (Bracket Fill, lump sum): in
+  S061-dbpart@elder2nd target  24500 (base 21400), arm A 85.9 (Bracket Fill, lump sum): in
+  S061-dbpart@part60   target  21400 (base 21400), arm A 84.2 (Bracket Fill, lump sum): in
+  S061-dbpart@penB90   target  20800 (base 21400), arm A 85.8 (Bracket Fill, lump sum): in
+  S061-dbpart@penA100  target  20800 (base 21400), arm A 85.9 (Bracket Fill, lump sum): in

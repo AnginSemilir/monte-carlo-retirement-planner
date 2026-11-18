@@ -1,7 +1,8 @@
 /*
  * ONE PLAN FOR THE WHOLE HOUSEHOLD, DESIGN A (research/solver/HOUSEHOLD.md; D113, stopped by D114 and handed to the external
- * review, QUESTIONS-2026-11-17.md). A research prototype kept outside src/solver: nothing in the app imports it, it moves no
- * solver code stamp, and no couple is solved this way unless a caller asks for it.
+ * review, QUESTIONS-2026-11-17.md; restarted on its plan, D115: research/reviews/2026-11-17/PRESCRIPTIVE-PLAN.md on
+ * review/external-2026-10-21 at f1f44727). A research prototype kept outside src/solver: nothing in the app imports it, it
+ * moves no solver code stamp, and no couple is solved this way unless a caller asks for it.
  *
  * Today a couple is two single people (couple.js): each person's table is solved on a share of the household's spending,
  * from their own pots and incomes, and each year's joint move is judged by the product of the two tables, each reading its
@@ -19,15 +20,19 @@
  *                (mergedState), each tried at every funding split with both people taking it, stepped one year by the exact
  *                couple model (each person's own tax and access), and valued by the household table where it lands.
  *   householdPolicy(cp), withHousehold(plan, cp), runHouseholdPolicy(cp, zs)  the engine's policy and the exact model's path.
+ *   chooseHouseholdSingle(cp, state, t)  the plan's step 1: the household table's one move from the single solver's own
+ *                chooser where the household stands (its tie-break above the estate cap on), both people taking it, at the
+ *                even split or the best of five (cp.split); householdSinglePolicy, withHouseholdSingle and
+ *                runHouseholdSinglePolicy as above.
  * What it approximates (HOUSEHOLD.md section 2): the doubled allowances take the household's taxable income as always
  * splittable evenly; the merged pension reads as open from the first person's access age. This year's tax and access are
  * exact (the rollout's step); only the table's view of later years carries either.
  * HOUSE.plant (research/tests/household.test.mjs), comma-joined: 'singleband' leaves every allowance single; 'nopartsp' drops
  * the partner's state pension; 'notakehome' drops the later retiree's take-home; 'nopartpots' leaves the partner's pots out
- * of the merged position.
+ * of the merged position; the single chooser's (below): 'partnersecond', 'tiezero', 'notiebreak'.
  */
 import { rankFor, tiePick, layerOf, ratesAt, SPLITS } from '../../src/solver/couple.js';
-import { NODES, WEIGHTS } from '../../src/solver/solve.js';
+import { NODES, WEIGHTS, chooseAction } from '../../src/solver/solve.js';
 import { foldedVol, TIER_ORDER } from '../../src/solver/fast.js';
 import { vecOf, readValues } from '../../src/solver/grid.js';
 import { profileOf as M_profileOf } from '../../src/solver/model.js';
@@ -160,6 +165,29 @@ function cutAhead(tab, s, t, layer) {
   return CUT_RD[3];
 }
 
+/*
+ * THE CAPITAL GAINS BAND (PRESCRIPTIVE-PLAN.md step 2; ANSWERS.md section 5). The engine gives a plan the basic-rate band
+ * for capital gains as its own default less the plan's personal allowance (App.jsx taxParams' cgtBandWidth, so a Scottish
+ * taxpayer gets the UK band), so the household plan, its allowance doubled, would be given 25,130 where two people have
+ * 75,400, and no entry of DOUBLED can reach it. twoBands(E, fn) runs fn with the engine's default basic band limit doubled
+ * and puts it back whatever fn does; it throws if called while another call of it is running. householdContext(E, hp) is a
+ * household plan's context built inside it, and solveHousehold solves the household table inside it, each checked: the
+ * household's band two people's, and the couple's model, prepared after, a person's. Research code only: an engine edit
+ * would move the solver's code stamp (code-id.mjs hashes research/engine.mjs). Plants: 'cgtband' runs fn without changing
+ * the default; 'nofinally' puts the default back only if fn returns (a twoBands without its finally).
+ */
+let TWO_BANDS = false;
+export function twoBands(E, fn) {
+  if (TWO_BANDS) throw new Error('twoBands: called while another call of it is running');
+  const old = E.DEFAULT_CONFIG.basicBandLimit;
+  // the plant 'nofinally' leaves the guard alone, so a test can put the default back and go on
+  if (planted('nofinally')) { E.DEFAULT_CONFIG.basicBandLimit = 2 * old; const r = fn(); E.DEFAULT_CONFIG.basicBandLimit = old; return r; }
+  TWO_BANDS = true;
+  if (!planted('cgtband')) E.DEFAULT_CONFIG.basicBandLimit = 2 * old;
+  try { return fn(); } finally { E.DEFAULT_CONFIG.basicBandLimit = old; TWO_BANDS = false; }
+}
+export const householdContext = (E, hp) => twoBands(E, () => E.buildContext(hp));
+
 /* The household's plan solved, and what the rollout needs. opts: solveOne (required: solveForApp at the candidate's
    settings), splits, topK (the household table's moves tried a decision, 3 unless set), tieJoint and holdPast (as the
    couples' default takes them: the tie rule above the household's estate cap, and the hold past twice the table's top). */
@@ -169,10 +197,12 @@ export function solveHousehold(E, M, plan, opts = {}) {
   if (!m0.ctx.isCouple) throw new Error('solveHousehold takes a couple');
   const hp = E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan)));
   const t0 = Date.now();
-  const H = opts.solveOne(hp, { who: 'household', partnerAge0: m0.ctx.agePart0 });
+  const H = twoBands(E, () => opts.solveOne(hp, { who: 'household', partnerAge0: m0.ctx.agePart0 }));
+  if (!(Math.abs(H.m.ctx.P.cgtBandWidth - 2 * m0.ctx.P.cgtBandWidth) < 1e-6)) throw new Error(`solveHousehold: the household table's capital gains band ${H.m.ctx.P.cgtBandWidth}, not two people's ${2 * m0.ctx.P.cgtBandWidth}`);
   const solveMs = Date.now() - t0;
   const tiersBelow = H.meta && H.meta.tiersBelow === 3 ? 3 : 2;
   const m = tiersBelow === 3 ? M.prepare(E, plan, { tiersBelow: 3 }) : m0;
+  if (m.ctx.P.cgtBandWidth !== m0.ctx.P.cgtBandWidth) throw new Error(`solveHousehold: the couple's model carries a capital gains band of ${m.ctx.P.cgtBandWidth}, not a person's ${m0.ctx.P.cgtBandWidth}`);
   if (m.ctx.totalYears !== H.m.ctx.totalYears) throw new Error(`solveHousehold: the household plan runs ${H.m.ctx.totalYears} years and the couple's ${m.ctx.totalYears}`);
   if ((m.ctx.solvencyFloor || 0) !== (H.m.ctx.solvencyFloor || 0)) throw new Error(`solveHousehold: the minimum pots differ (${m.ctx.solvencyFloor}, ${H.m.ctx.solvencyFloor}); the plan must set the household's`);
   const idOf = {};
@@ -307,4 +337,84 @@ export function householdPolicy(cp) {
 }
 export function withHousehold(plan, cp) {
   return { ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...plan.spending, policyOverride: householdPolicy(cp) } };
+}
+
+/*
+ * THE HOUSEHOLD'S MOVE FROM THE SINGLE SOLVER'S OWN CHOOSER (PRESCRIPTIVE-PLAN.md step 1, review/external-2026-10-21 at
+ * f1f44727; ANSWERS.md section 4; D117). The household table's one move where the household stands, asked as bridge.js
+ * tablePolicy asks a single's table (solve.js chooseAction, the candidate's tie-break above the estate cap left on in the
+ * table), both people taking it; the split by cp.split: 'even' (0.5, no step and no table read) or 'best5' (0.5, then 0,
+ * 0.25, 0.75 and 1, each stepped one year by the exact couple model and valued by the household table, or in the plan's
+ * last year by the pots' sum; 0.5 kept unless another scores more than 1e-9 above the best so far; 0.5 where none funds the
+ * year). No ranking of several moves, no tie rule of the couple's own, no look, no hold. cp.counts, where the caller sets
+ * it ({ decisions, far, down }): the decisions, those with the household's wealth past twice the table's wealth top (where
+ * the hold of chooseHousehold acts), and of those the ones whose move takes a wrapper to a less risky tier than it holds.
+ * HOUSE.plant: 'partnersecond' (the partner takes the table's second-ranked move), 'tiezero' (the splits tried in the order
+ * 0, 0.25, 0.5, 0.75, 1, the first best kept), 'notiebreak' (chooseAction asked on a copy of the table with tieAboveCap 0).
+ */
+const SPLITS_BEST5 = [0.5, 0, 0.25, 0.75, 1], SPLITS_TIEZERO = [0, 0.25, 0.5, 0.75, 1];
+export function chooseHouseholdSingle(cp, state, t) {
+  const { m, M, H } = cp, T = m.ctx.totalYears, tH = tiered(H);
+  const hs = state.tierHeld && state.tierHeld.self;
+  const held = tH ? { pen: (hs && hs.pen) || 0, isa: (hs && hs.isa) || 0 } : null;
+  const s = vecOf(H.m, mergedState(cp, state));
+  const ai = chooseAction(planted('notiebreak') ? { ...H, tieAboveCap: 0 } : H, s, t, held), a = H.actions[ai];
+  const level = H.levelOf ? H.levelOf[ai] : a.spendLevel !== undefined ? a.spendLevel : 1;
+  const poOf = x => ({ steps: x.steps, harvest: !!x.harvest, harvestCeil: x.harvestCeil || 'pa', ...(tH ? { tierPen: x.tierPen || 0, tierIsa: x.tierIsa || 0, tierPenName: tierName(H, 'pen', x.tierPen || 0), tierIsaName: tierName(H, 'isa', x.tierIsa || 0) } : {}) });
+  let bi = ai;
+  if (planted('partnersecond')) { const r2 = rankFor(H, s, t, held, 2), o = r2.find(x => x !== ai); if (o !== undefined) bi = o; }
+  const po = poOf(a), pb = bi === ai ? po : poOf(H.actions[bi]);
+  const mk = split => ({ steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', sweepCash: true, ...(a.sweepIsa ? { sweepIsa: true } : {}), lump: !!a.lump, contrib: null, spendLevel: level, split, switchCost: cp.switchCost || 0, perOwner: { self: { ...po }, part: { ...pb } }, ia: ai, ib: bi });
+  if (cp.counts) {
+    cp.counts.decisions++;
+    if (H.g && H.g.axes && H.g.axes.W && s[0] + s[1] + s[2] > 2 * H.g.axes.W.hi) {
+      cp.counts.far++;
+      if (tH && [['pen', 'tierPen'], ['isa', 'tierIsa']].some(([cat, key]) => { const from = held[cat] || 0, to = a[key] || 0, rf = TIER_ORDER.indexOf(tierName(H, cat, from)), rt = TIER_ORDER.indexOf(tierName(H, cat, to)); return to !== from && rf >= 0 && rt >= 0 && rt > rf; })) cp.counts.down++;
+    }
+  }
+  if (cp.split === 'even') return mk(0.5);
+  if (cp.split !== 'best5') throw new Error(`chooseHouseholdSingle: cp.split '${cp.split}' (want 'even' or 'best5')`);
+  const tiezero = planted('tiezero');
+  let best = null, bs = -Infinity;
+  for (const sp of tiezero ? SPLITS_TIEZERO : SPLITS_BEST5) {
+    const j = mk(sp), st = M.cloneState(state), row = M.step(m, st, j, t, null, true);
+    if (row.unmetDemand > 1 || row.preNmpaInsolvent) continue;
+    const v = t >= T ? Object.values(st.pots).reduce((x, y) => x + y, 0) : householdValue(cp, st, t, null, ai);
+    if (!Number.isFinite(v)) throw new Error(`household: non-finite value, year ${t}, split ${sp}, move ${ai}: ${v}`);
+    if (best === null || (tiezero ? v > bs : v > bs + 1e-9)) { best = j; bs = v; }
+  }
+  return best || mk(0.5);
+}
+
+/* One path under the single's chooser, in the exact reduced model (runHouseholdPolicy's form). */
+export function runHouseholdSinglePolicy(cp, zs) {
+  const { m, M } = cp, T = m.ctx.totalYears, state = M.initialState(m);
+  for (let t = 0; t <= T; t++) {
+    const joint = chooseHouseholdSingle(cp, state, t);
+    const row = M.step(m, state, joint, t, ratesAt(m, zs, t));
+    if (row.unmetDemand > 1 || row.preNmpaInsolvent) return { survived: false, failYear: t };
+  }
+  const total = Object.values(state.pots).reduce((a, b) => a + b, 0);
+  return { survived: !(m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor), failYear: m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor ? T : -1 };
+}
+
+/* The engine under the single's chooser (householdPolicy's form). */
+export function householdSinglePolicy(cp) {
+  return {
+    kind: 'table',
+    choose(engineState, t) {
+      const tierHeld = {};
+      for (const o of cp.m.ctx.owners) { const h = engineState.tierHeld && engineState.tierHeld[o.key]; tierHeld[o.key] = { pen: h ? h.pen || 0 : 0, isa: h ? h.isa || 0 : 0 }; }
+      const state = {
+        pots: { ...engineState.pots }, basis: { ...engineState.giaBasis }, cgtCarry: { ...engineState.cgtCarry }, cumPcls: { ...engineState.cumPcls },
+        lumpTaken: { ...engineState.lumpSumTaken }, cashIsa: { ...(engineState.cashIsa || {}) }, guard: null, tierHeld
+      };
+      return chooseHouseholdSingle(cp, state, t);
+    },
+    switchCost: cp.switchCost || 0,
+    tiersBelow: cp.tiersBelow || 2
+  };
+}
+export function withHouseholdSingle(plan, cp) {
+  return { ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...plan.spending, policyOverride: householdSinglePolicy(cp) } };
 }

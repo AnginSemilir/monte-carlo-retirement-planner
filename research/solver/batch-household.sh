@@ -1,9 +1,10 @@
 #!/bin/bash
-# ONE PLAN FOR THE WHOLE HOUSEHOLD, THE LEAD TEST (HOUSEHOLD.md section 5; D113; EXPLORATORY, the tuning seed):
-# audit-household.mjs's 28 units (JOINT-WIDE's), each solved as the couples' default (K2) and as design A's household plan
-# (HOUSE) and run on the same 4,000 paths of seed 7002; one unit a process, JOBS at a time (4 unless set), the longest
-# horizons first, each at low priority and pausing for the gate (run-unit.sh); read by reduce-household.mjs. Launched on
-# frozen code as
+# ONE PLAN FOR THE WHOLE HOUSEHOLD, THE LEAD TEST (HOUSEHOLD.md section 5 as amended for step 4, D118; EXPLORATORY, the
+# tuning seed): audit-household.mjs's 28 units (JOINT-WIDE's), each solved as the couples' default (K2) and once as the
+# household table, and run on the same 4,000 paths of seed 7002 under K2, HOUSE (design A as built), HS5 (the household's
+# move from the single's chooser at the best of five splits, which decides) and HS1 (the same at the even split); one unit a
+# process, JOBS at a time (4 unless set), in the units' order, each at low priority and pausing for the gate (run-unit.sh);
+# read by reduce-household.mjs. Launched on frozen code as
 #   PREDICTION="none:EXPLORATORY: one plan for the whole household (HOUSEHOLD.md)" research/solver/run-from-snapshot.sh bash research/solver/batch-household.sh
 set -u
 SEED=7002

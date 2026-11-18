@@ -37,10 +37,13 @@ ok(!(Math.abs(Math.min(marginFor(0.42), 0.2 * 0.42) - marginRel(0.42)) < 1e-12),
 const relAt = f => [1, 2, 3.3, 4.9].every(x => Math.abs(f(x) - Math.min(marginFor(x), 0.1 * x)) < 1e-12);
 ok(relAt(marginRel), 'marginRel is a tenth of the survival at 1, 2, 3.3 and 4.9 points (0.1, 0.2, 0.33, 0.49)');
 ok(!relAt(x => (x < 1 ? 0.1 * x : marginFor(x))) && !relAt(x => (x > 0.5 ? Math.max(0.25, Math.min(marginFor(x), 0.1 * x)) : 0.1 * x)), 'planted: a form stepping at 1 point, and one flooring at 0.25, fail that line');
-// the floor: report-only where identical arms could not clear (about 39 surviving paths)
-ok(D.marginRelFloor === 'report-only' && !relClearable(38, 8000) && relClearable(39, 8000) && !relClearable(0, 8000) && !relClearable(38, 16000) && relClearable(40, 16000), `the relative margin's floor: decided ${D.marginRelFloor}; identical arms clear from 39 surviving paths (8,000 and 16,000 paths), never at 0`);
-ok(!relClearable(39, 8000, 0.045) && relClearable(40, 8000, 0.045) && !relClearable(77, 8000, 0.005) && relClearable(78, 8000, 0.005), 'the floor at the look\'s level: 40 surviving paths at 0.045, 78 at 0.005 (two looks), at 8,000 paths');
-ok(survivalChangeU(38, 0, 0, 8000 - 38).lo <= -marginRel(100 * 38 / 8000) && !((a, N) => a > 0)(0, 8000) && (a => a > 0)(38), 'planted: a floor that clears every household with survivors would pass 38 of 8,000, which identical arms cannot clear');
+// the floor: report-only where identical arms could not clear (about 43 surviving paths). Re-pinned 18 Nov 2026 (D128 (3), the
+// maintainer's unlock): D112's fix to survivalChangeU (Newcombe's method 10, its paired correlation corrected; research/tests/
+// stats-newcombe.test.mjs) widens the interval identical arms carry, so the floor moved from 39 to 43 surviving paths at 8,000
+// and 16,000 paths, 40 to 45 at the look's level 0.045 and 78 to 83 at 0.005; the decided marginRelFloor, report-only, unchanged
+ok(D.marginRelFloor === 'report-only' && !relClearable(42, 8000) && relClearable(43, 8000) && !relClearable(0, 8000) && !relClearable(42, 16000) && relClearable(43, 16000), `the relative margin's floor: decided ${D.marginRelFloor}; identical arms clear from 43 surviving paths (8,000 and 16,000 paths), never at 0`);
+ok(!relClearable(44, 8000, 0.045) && relClearable(45, 8000, 0.045) && !relClearable(82, 8000, 0.005) && relClearable(83, 8000, 0.005), 'the floor at the look\'s level: 45 surviving paths at 0.045, 83 at 0.005 (two looks), at 8,000 paths');
+ok(survivalChangeU(42, 0, 0, 8000 - 42).lo <= -marginRel(100 * 42 / 8000) && !((a, N) => a > 0)(0, 8000) && (a => a > 0)(42), 'planted: a floor that clears every household with survivors would pass 42 of 8,000, which identical arms cannot clear');
 const r7e = readFileSync(join(HERE, '../solver/reduce-7e.mjs'), 'utf8');
 ok(/const marginOf = marginFor;/.test(r7e) && /POOL_FLOOR = -MARGINS\.pooled/.test(r7e), "7e's reducer reads the decided margins from stats.mjs, not its own numbers");
 // planted: the check must be able to fail

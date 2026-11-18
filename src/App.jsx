@@ -37,7 +37,7 @@ import { SectionTabs, DeckBar } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
 import EditMode from './EditMode.jsx';
 import { useSolverState } from './solverState.js';
-import { coupleSolverOn } from './couplesSwitch.js';
+import { coupleSolverOn, PLANT as COUPLES_SWITCH_PLANT } from './couplesSwitch.js';
 // ============================================================================================
 // Monte-Carlo Retirement Planner v3.4 — single-file build (engine + UI).
 // The engine section is framework-free and unit-tested; the UI section starts at "export default function App".
@@ -8686,6 +8686,11 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
 export default function App({ theme = 'system', setTheme = () => {}, resolvedTheme = 'light',
   numFormat = DEFAULT_NUMBER_FORMAT, setNumFormat = () => {},
   isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 }, onChrome = () => {}, onCross = null, onPlanner = null }) {
+  // plant 'nogapguard' (research/ui-harnesses/solver-planner-ui.cjs check 19, a harness build's PLANNER_PLANT): the couples' guard
+  // running a couple more than three years apart with other taxable income, as before D128. Set here, in the page's own render
+  // before any reader of the guard renders: src/couplesSwitch.js has no imports, and a statement at this file's top level would
+  // be a side effect every worker importing the engine from it would carry
+  if (PLANNER_PLANT.has('nogapguard')) COUPLES_SWITCH_PLANT.rule = 'nogapguard';
   // which planner (step U): the new planner lands on Your plan (the quick start there for an empty plan); the classic as before
   const [planner, setPlannerState] = useState(readPlanner);
   // SOLVER spelled out, not left to plannerOn: with the line false the bundler folds solverOn to false and drops the solver's
@@ -8711,7 +8716,8 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it). A single household's plan, and
   // a couple's where couples are on (Part D, D5 and D6: src/couplesSwitch.js COUPLES, on since D99) and the couple is inside
   // the guard (its first person holding 40% to 60% of the pots, or its elder by age more than 60% and at most 90%: item 6's
-  // stage C, D99); any other couple's plan keeps the app's rules and is not solved (D42), the couples card saying why
+  // stage C, D99; and since D128 not more than three years apart with other taxable income); any other couple's plan keeps the
+  // app's rules and is not solved (D42), the couples card saying why
   const coupleState = plan?.demographics?.planningMode === 'couple' ? coupleSolverOn(plan) : null;
   const solverRules = solverOn && (plan?.demographics?.planningMode === 'single' || !!(coupleState && coupleState.on));
   // the navigation: the new planner's four places, or the classic tabs

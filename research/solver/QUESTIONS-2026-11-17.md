@@ -40,11 +40,13 @@ What the reads since 13 Nov say (files in `research/solver/`):
   0.35 or more on eight of ten comparisons).
 - **The wider joint move on today's split** (JOINT-WIDE, D111 (2): top four and top six against two, 28 units, 4,000
   paths of seed 7002), read 17 Nov 08:45 UK: **FAILS** by its rule, so the joint move stays at two
-  (`results-joint-wide.txt`, `reports/2026-11-17-joint-wide-read.md`). Pooled survival K4 +0.236 and K6 +0.454 points,
-  both beyond noise, no unit lower beyond noise; the gain largest where the two tables misread the household most
-  (S147-db +5.150 under K6, 206 paths saved, none lost); but the capped pot falls past its bar on five units under K4
-  (S109-sppart -5.0%) and seven under K6, K6's spending falls 0.158%, and a path costs x1.51 and x2.34. These are the same
-  28 units the household test would use.
+  (`results-joint-wide.txt`, `reports/2026-11-17-joint-wide-read.md`, `results-joint-wide-beside.txt`). Pooled survival
+  K4 +0.236 and K6 +0.454 points, both beyond noise; one unit just below nought under K4 by the rule's interval as it stood
+  at the read (S061-90, -0.225, inside the rule's -0.3 bar), not beyond noise with D112's correction to that interval or by
+  the exact paired one; none under K6. The gain is uneven: S147-db +5.150
+  under K6 (206 paths saved, none lost) is two fifths of K6's net paths saved, and without it K6 gains +0.280 pooled. The
+  capped pot falls past its bar on five units under K4 (S109-sppart -5.0%) and seven under K6, for reasons not shown; K6's
+  spending falls 0.158%; a path costs x1.51 and x2.34. These are the same 28 units the household test would use.
 - **Time today:** a couple's two tables take 64 to 143 s on one core (Node, `results-joint-wide-pilot.txt`); a couple's
   path 79 to 210 ms, about 3 ms a year, three to four times a single's year (a single's path about 25 to 36 ms). In the
   browser (S069, four parts, a loaded machine, `results-couple-timing.txt`) the two solves took 157 s and the paths 301 s

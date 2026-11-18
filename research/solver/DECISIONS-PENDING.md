@@ -11,12 +11,170 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**OPEN (17 Nov, morning): D111 (3)'s speed work, after JOINT-WIDE's read (FAILS: the joint move stays at two;
-`reports/2026-11-17-joint-wide-read.md`).** By D111 it follows this read. The agent recommends holding it until the external
-review answers on the household plan (`QUESTIONS-2026-11-17.md`): if one plan for the household is taken, it replaces the
-joint move whose cost the speed work targets. Asked of the maintainer.
+**RULED (D128, 18 Nov, morning: "Go with your recommendations. Unlock enforcement"): the four recommendations of the
+report on steps 4 to 7, as below.**
+1. Step 4's write-up is accepted as corrected, with no third round of its reviewer (D81 (F)).
+2. **The guard: a couple more than three years apart with a DB pension keeps the app's rules** until a test of such couples
+   reads. It is built and committed (cf9f8790), with the reviewer on the change of default before it: PASS, four MINORs,
+   each answered (`reviews/2026-11-18-default-gap-guard.md`). It goes to `main` with the eighth batch, on B1's gate.
+   - On step 5's 28 couples it keeps exactly the four 8 or 12 years apart with a DB pension on the app's rules. The four
+     as far apart without one stay with the solver, and every other unit is as before.
+   - The couples card says why ("more than three years apart in age, and your plan has other taxable income, such as a
+     DB (final salary) pension or an annuity"). The coverage line and the scenario list say the same.
+3. **D112's stats fix is in** (c1109d38): `stats-newcombe.test.mjs` in the fast tier, and `plan-defaults.test.mjs`'s
+   floor re-pinned (identical arms clear from 43 surviving paths, not 39; 45 at 0.045, not 40; 83 at 0.005, not 78).
+   - The pattern search ran each stored read's own rule before and after the fix: 560 decisions over seven reads,
+     none differing (`results-stats-newcombe-rules.txt`). The reads stand as printed.
+   - Steps 4 and 5, and every registered read but 7u-F's, use the exact interval, which the fix does not touch.
+4. The speed work on LOOKHOLD stays held. Step 8 waits for the maintainer's word. The decomposition on S191-90 is not run.
 
-**STOPPED (D114, 17 Nov, morning: "Handover your thoughts and the problem so far as a prompt for an external reviewer, stop that line of thought for now"), handed to the external review in `QUESTIONS-2026-11-17.md`, the lead test not run. As it was opened (D113): one plan for the whole household, before the speed work.** The maintainer: "Look at bigger -
+**FOR THE MAINTAINER (from the guard's review, 18 Nov):**
+- **Its reach (the reviewer's MINOR 1).** The app has no kind of income for a DB pension: one is entered as "Other
+  taxable income", beside rent, annuities, and interest or dividends entered as an income. So the guard reads any such
+  income above nought, even one the plan never pays. That is the only reading the page's inputs allow, and it errs
+  towards the app's rules. Its cost to the couples it reaches beyond a DB pension is unsized: on the four gap couples
+  tested without one, today's default was `+10.744` points over the app's rules. A floor (on the amount, or an income
+  paid within the plan) is yours to set if you want one.
+- **The words (the reviewer's (d)).** The card says the solver's plans "have not yet been shown to do better than the
+  app's own rules" for such couples. That is true, but it says less than step 5 found: worse on three of the four tested.
+  How much more to say is yours.
+- **Headroom.** The guard adds about 165 compressed bytes (gzip) to the page's first load. The new planner's first load on an empty
+  plan is now 240KB against its 240KB ceiling (239 before), so the next batch has none. And every stored solve is worked
+  out again once after the deploy, the solver worker's code having changed, as with every change to the couples' guard.
+
+**UNDER WAY (D115 to D123, 17 Nov, late morning): the household line restarts on the external review's plan.** The
+review's answers to `QUESTIONS-2026-11-17.md` (`research/reviews/2026-11-17/ANSWERS.md`, review/external-2026-10-21 at
+f1f44727) turned into steps (`PRESCRIPTIVE-PLAN.md` beside it), each taken as written: step 1, the household's move from
+the single solver's own chooser, held to the review's arrays (3 hours); step 2, the household plan's capital gains band
+(1 hour); step 3, the twin, the biases recorded, two traces (half a day); step 4, the lead test amended, its amendment
+committed first, HS5 deciding, on JOINT-WIDE's 28 units, seed 7002 (D118: `results-household.txt` whole to the
+maintainer with the report); step 5, the shapes the library lacks, without waiting on A LEAD or A LEAD, WITH A UNIT TO
+PLACE (D120); step 6's `AXIS.md` only if a read calls for it (D121); step 7's `REFUSALS.md` after step 5 (D122); step 8 not
+started (D123). The pot is recorded and not a bar (D116). EXPLORATORY throughout; nothing under `src/` and not
+`research/engine.mjs` edited, the solver's code id 603eeb595679.
+
+**RULED (D124, 17 Nov, late morning: "Go with your recommendations"): three items from the household plan's steps 1 to 3, each as the agent suggested below; step 4 next.**
+Steps 1 and 2 are done as written (75267bdd, 742125f5). Step 3 is built (the twin, `biasesOf`'s five things, check 3's
+lifetime tax, the two traces) and stopped where the plan says stop.
+1. **Step 1's settings check cannot pass as worded.** The plan: the audit "holds the household table's line to the first
+   person's line with the tie-break the one difference". Every one of the 28 units sets a minimum pot, and each person's
+   table is solved on that person's share of it, the household table on the whole (S149: 102,500 against 205,000;
+   `results-household-line-check.txt`), so the lines differ in `minPot` too. Built as worded, it refuses every unit. The
+   agent's suggestion, not built: the same comparison with the minimum pot left out, since the audit already holds the
+   household table's minimum pot to the household's own.
+2. **STOP (the plan's step 3, bar 5): S205's twin outside bar 2 on seed 99001.** On 2 of 100 paths a wrapper parts by more
+   than a pound (the couple's dividend tax £3 over the household plan's in one late year; the largest gap in end wealth
+   £5), where the review's seed 99002 had none. The cause, shown by decomposition (`twin-why.mjs`, `results-twin-why.txt`;
+   `results-twin-step3.txt`): the engine takes a one-off cost person by person, the first person first, so the two twins
+   hold unequal amounts from the cost's year on and one twin's allowance goes partly unused where the household plan has
+   both people's. With the one-off costs taken out and arm A's policy held, the twins are equal in every year of every
+   path on all six units, and S205's twin is 0 of 100 apart on seed 99001. The bar is not moved. The agent's suggestion,
+   not built: hold S205's twin to bar 2 with its one-off cost taken out (the cost's person order is the engine's, not the
+   merge's), bar 1 staying on the twins as they are.
+3. **S149 (trace 2) fits neither of the plan's two branches.** In its cost's year the first figure apart is the capital
+   gains tax on the cost's sale (seed 99002, path 17: the couple £1,210, the household plan £670, the gain £9,724 in both):
+   the couple takes the cost from the first twin's taxable account, so the gain uses one person's exempt amount where the
+   household plan has two. That is the engine's cost order against design A's doubled exempt amount: no defect in
+   `householdPlanFor` to mend, and not arm A's rule. The agent's suggestion: name S149 in the check as the one exception
+   with its size (on seed 99001 its capital gains tax over the plan £968 against the couple's £1,057, income tax £35,306
+   against £35,490), the cause as found. Meanwhile it is printed and held to no bar.
+Applied with the ruling's commit: the settings check with the minimum pot left out, S205's twin held to bar 2 without its
+one-off cost, S149 named the one exception with its size.
+
+**READ (17 Nov, evening): the household plan's lead test (step 4), A LEAD, WITH A UNIT TO PLACE; THE SEARCH GOES.**
+`results-household.txt`, read once; `reports/2026-11-17-household-read.md`.
+- Pooled survival up `+0.291` points, and spending up on the paths both keep.
+- Three units placed: S333F, S335F and S191-90.
+- The even split is as good as the best of five.
+- Checked for a fault first (far from the pilot on survival): no fault found in the table's solve, its forecast or the
+  arm's run. The loss on the three units lies between the household plan and the couple, and its cause is not shown.
+  The figures are sizes: the bands' part of the couple's income tax is of the same order on the paths kept as on those
+  lost; the first person ending at their own tax-free cash cap is an association on S333F and S335F.
+- The reviewer at the read: FAIL, two BLOCKING (the cause the write-up first gave; three pooled figures without their
+  largest unit), answered in one fix (`reviews/2026-11-17-read-household.md`). Then FAIL again on one BLOCKING, this
+  entry still carrying the withdrawn cause, and two MINORs in the report's words (`-2.md`). Each was corrected as the
+  reviewer gave it, unreviewed. The FAIL stands after one fix, so the write-up was the maintainer's (D81 (F)):
+  accepted as corrected (D128 (1)). The read and its outcome stand by both rounds.
+- Step 5 was launched without waiting (D120). `AXIS.md` comes after it (D121), then `REFUSALS.md` (D122).
+
+**READ (17 Nov, night): step 5, the shapes the library lacks, A SHAPE TO PLACE (gap12).** `results-shapes.txt`, read once;
+`reports/2026-11-17-shapes-read.md`; the reviewer at the read PASS, two MINORs answered.
+- The household plan is above today's default by `+5.865` points pooled, most of it on the two bases with a DB pension.
+- gap12 is placed on its CEIL less HS (`+1.675`, `+0.883` without S061-dbpart@gap12).
+- `AXIS.md` (step 6) and `REFUSALS.md` (step 7) are written and sent; nothing is built.
+- What remains is the maintainer's:
+
+**RULED (D128 (2)): today's couples' default on couples with an age gap and a DB pension. The guard is built, above.**
+- **The finding.** On three couples the app's guard hands to the solver under the opt-in, K2 survives below the app's
+  own rules: S147-db@gap8 `-6.800`, S147-db@gap12 `-10.950`, S061-dbpart@gap12 `-20.250`. Each is 60/40 with an 8- or
+  12-year age gap and a DB pension. It was found on seed 7002, EXPLORATORY.
+- **It is the app's own route.** It matched the stored K2 path for path on these couples (the reviewer at the read).
+- **The guard.** It reads no age gap, and every couple tested before was three years apart.
+- **The agent's recommendation, made (D128 (2)):** keep a couple whose age gap is beyond three years and who hold a DB
+  pension on the app's rules until a test reads. That is a change of default, and the reviewer checked it first.
+- **Its trade.** A guard on the gap alone would also take the gain of the gap couples without a DB pension (`+10.744`
+  over the app's rules here). The cause is not shown.
+
+**FOR THE MAINTAINER: the axis (`AXIS.md`).**
+- Design B, the axis on the smaller pension's share, is not built. Whether to build it is the maintainer's.
+- On the lead test's three units the household plan's two-band pricing departs from the couple's mostly outside the
+  axis's window.
+- The decomposition on S191-90 is offered, not run: HS5 with the household table's income bands single, and again with
+  its tax-free cash cap single.
+
+**WAITS (D123): step 8, the registered test**, for the maintainer's word now that steps 4 and 5 have read.
+
+**RULED (17 Nov, evening; D125 to D127): step 5's two refused units run again on an amended check, the read on two stamps.**
+- D125 amends the check, D126 unlocks the fair-test gate's allowed versions, and D127 adds unit 27 and extends the box.
+- The reviewer before use FAILed the amendment's first form (`reviews/2026-11-17-shapes-amendment-1.md`). Its fix
+  follows D127, with the reviewer again before use.
+- The two stop entries below are kept as the account.
+
+**STOP AGAIN (17 Nov, evening): D125's remedy meets the fair-test gate.** The maintainer chose option 1 below (D125).
+Before anything was built, the agent found the block, which its recommendation had not checked:
+- **The block.** `fair-gate.mjs` `checkLogStamps` (protected; the reducers' fair-test gate) refuses the logs of a read on
+  more than one code-and-audit version.
+- **Why it applies.** Unit 20 run again on an amended audit carries a new audit stamp, and the other 27 carry the
+  launch's. So the read cannot pass the gate.
+- **What would be a bypass.** Calling the gate on each group of units apart would get past it. The agent counts that as
+  a bypass and does not do it.
+- **Ways on:**
+  - (a) Unlock enforcement for exactly `fair-gate.mjs`'s stamp check, so this read alone takes the two versions the
+    amendment names, with a dated note and its planted case. Then D125 as ruled, about 40 minutes of run.
+  - (b) Option 3 below: all 28 units again on the amended check, about 3.5 hours. One version, no unlock, past step 5's
+    4-hour run box.
+  - (c) Option 2 below: S147-db@penA100 left out. The reducer, amended, names the launch's audit stamp and reads the
+    panel less the unit. One version, no unlock.
+
+**STOP (17 Nov, evening): step 5 cannot be read as written; one unit refused by the audit's settings check.**
+- **What happened.** Unit 20, S147-db@penA100, exited before any arm ran. Its log, `results/shapes-7002/case20.txt`,
+  reads: "household: levels 1,1.1,0.95,0.9,0.8, the first person's 1,1.1,0.95,0.9,0.799985".
+- **The cause.** Each table's lowest spending level is its plan's own floor over its own target (the engine's
+  `floorFrac`). The first person's table is solved on their share of the household's target and floor, and on this
+  shape that ratio comes to 0.799985. The household table's is 0.8. This is the same class as D124 (1)'s minimum pot: a
+  person's table is solved on its share of the household's figures. D124 left only the minimum pot out of this check.
+- **Why the read is blocked.** The reducer's gate, as committed, refuses a read with a unit missing. Every remedy
+  touches a stamped file, so no remedy is made: nothing is substituted and no outcome is read. The units already queued
+  are left to finish, since every remedy below uses them.
+- **The options:**
+  1. **(Recommended)** As D124 (1) did for the minimum pot, and in D94 (1)'s form:
+     - a dated amendment to step 5's settings check, with the lowest spending level left out of the comparison and the
+       household table's held to the household's own floor over its target, in `audit-shapes.mjs` alone, so the lead
+       test's reducer still reproduces its read;
+     - unit 20 run again alone on the amended audit (about 40 minutes);
+     - the reducer's gate amended to accept exactly the two audit stamps, the launch's for the other units and the
+       amended one for unit 20, and nothing wider;
+     - each amended file with its planted case, and the reviewer on the amendment before it is used.
+  2. Leave S147-db@penA100 out, printed with its refusal, as SHAPES.md leaves out a unit `householdPlanFor` refuses. The
+     gate is amended to read the panel less it, and penA100 is read on its other three units.
+  3. Run all 28 units again on the amended check: about 3.5 hours.
+
+**RULED (D128 (4): stays held): D111 (3)'s speed work on LOOKHOLD.** D119 held it until the lead test read;
+it has read. The review held it because LOOKHOLD's tie rule, look and hold leave a couple's path if the household's move
+holds, and the move holds here, as a lead. The agent recommends it stays held until the maintainer rules on step 8's
+registered test. Not started.
+
+**RESTARTED (D115) after its stop (D114, 17 Nov, morning: "Handover your thoughts and the problem so far as a prompt for an external reviewer, stop that line of thought for now"; the lead test not run). As it was opened (D113): one plan for the whole household, before the speed work.** The maintainer: "Look at bigger -
 one plan for the whole household. Think deeply about how that would work and how much more accurate you'd expect to be,
 and if it could be done without significant increase in timing. After that if you're confident at least there's a good
 lead, follow up on it with tests as needed and then get back to me. Do this before the speed work." The design, the gain

@@ -8,15 +8,22 @@ top six (K6) instead, on today's split, on 28 couples' units, the same 4,000 sim
 
 **What it found:**
 - **More choices keep the money lasting a little more often.** Pooled, K4 adds `+0.236` points of survival (`+0.190` to
-  `+0.282`) and K6 `+0.454` (`+0.402` to `+0.506`), both beyond noise. No couple's survival is lower beyond noise under
-  either.
-- **The gain sits where the two tables misread the household most.** S147-db, the couple on which the share rules swung most
-  (MEANS `+9.3` points), gains `+5.150` points under K6 (206 paths saved, none lost) and `+1.350` under K4. S271-90 gains
-  `+1.175` under K4; S023-db `+1.225` under K6. By group under K6: the feature units `+1.016`, the library `+0.312`, the
-  younger `+0.225`, the 90/10 units `+0.191`.
-- **But on other couples it spends the pot.** With K4 the pot counted up to the estate cap falls by more than half a percent
-  on five couples, most on S109-sppart (`-5.020%`; its spending `+0.44%`, its tax lower). With K6 pooled spending falls
-  `0.158%` (the bar is `0.05%`), and the capped pot falls on seven couples.
+  `+0.282`) and K6 `+0.454` (`+0.402` to `+0.506`), both beyond noise.
+- **One couple's survival is just below nought under K4,** by the rule's interval by unit as it stood at the read: S061-90,
+  `-0.225` points (`-0.465` to `-0.001`; 14 paths lost, 5 saved), inside the rule's bar of `-0.3`. With D112's correction
+  to that interval (Newcombe's method 10, worked beside the read) it is `-0.470` to `+0.004`, and by the exact paired
+  interval `-0.388` to `+0.011`: neither beyond noise. None under K6.
+- **The gain is uneven, and one couple carries much of it.** S147-db gains `+5.150` points under K6 (206 paths saved, none
+  lost) and `+1.350` under K4. It is two fifths of K6's net paths saved (`40.6%`); without it K6's pooled gain is `+0.280`
+  (`+0.232` to `+0.327`) and K4's `+0.194` (`+0.150` to `+0.239`). S147-db is the couple MEANS helped most in the share
+  rules' test (`+9.3` points). Elsewhere: S271-90 `+1.175` under K4, S023-db `+1.225` under K6. By group under K6: the
+  feature units `+1.016`, the library `+0.312`, the younger `+0.225`, the 90/10 units `+0.191`.
+- **The pot counted up to the estate cap falls on some couples.** Under K4 it is lower on 9 of the 28 units and lower by
+  more than half a percent on five, most on S109-sppart (`-5.020%`). Under K6 it is lower on ten, seven by more than half
+  a percent, and pooled spending also falls `0.158%` (the bar is `0.05%`). **Why the pot falls is not shown:** no
+  decomposition was run. Some falls come with more spending and some do not (of K4's five past the bar three spend more, of
+  K6's seven six), and the capped pot is lower more often where spending rises (K4: on 6 of the 11 units spending more,
+  against 3 of the 17 spending less; K6: 7 of 10 against 3 of 18).
 - **It costs time.** A path takes `x1.51` as long with K4 and `x2.34` with K6. On the one couple measured in the browser,
   where paths were two thirds of the wait, that would make a couple's wait about `x1.34` and `x1.88` (an inference).
 
@@ -42,37 +49,59 @@ couples' default (`'pots'`, LOOKHOLD).
 
 **OUTCOME: FAILS.**
 
-## Beside the rule, deciding nothing (`results-joint-wide.txt`)
+## Beside the rule, deciding nothing (`results-joint-wide.txt`; and, written after the read for its reviewer's findings, `results-joint-wide-beside.txt` by `joint-wide-beside.mjs`)
 
 - **By group, survival (spending):** K4 younger `+0.062` (`-0.192%`), library `+0.206` (`-0.315%`), 90/10 `+0.234`
   (`+0.179%`), feature `+0.425` (`+0.057%`); K6 younger `+0.225` (`-0.452%`), library `+0.312` (`-0.565%`), 90/10 `+0.191`
   (`+0.432%`), feature `+1.016` (`-0.160%`).
-- **The pot on the typical path** rises with width (K4 `+5.385%`, K6 `+8.787%` pooled, both beyond noise), led by the
-  feature units; lifetime tax falls about a tenth under both (`£272,343` to `£244,986` and `£245,211` pooled). So the pot
-  falls where a couple spends more or ends near its cap, and rises elsewhere.
-- **K6 against K4:** survival `+0.218` beyond noise, spending `-0.116%`, the capped pot lower on five units.
-- **The replays:** at every decision along K2's own path the wider best scores at or above K2's (never below), and the
-  wider pick differs from K2's on a third to a half of decisions (S327F: K4 2,133 of 5,935, K6 2,853), mostly in the split.
-- **The time:** K2 `129.8` ms a path, K4 `219.6`, K6 `358.4` (over all units); the order effect small (K4
-  `x1.489` to `x1.530`, K6 `x2.182` to `x2.441` by which arm ran first); the solve 97 s a couple, the same tables for
-  every arm.
+- **The pot on the typical path** (each path's own change where both arms leave a pot) rises with width, `+5.385%` under
+  K4 and `+8.787%` under K6 pooled, but mostly through S147-db: without it `+3.215%` and `+3.946%`. S147-db's own figure
+  (`+63.982%`, `+139.489%`) comes almost wholly from paths K2 fails, a small pot against a larger one; its median path
+  rises `+2.8%`.
+- **Lifetime tax** falls about a tenth under both (`£272,343` to `£244,986` and `£245,211` pooled).
+- **K6 against K4:** survival `+0.218` beyond noise, spending `-0.116%`; the capped pot lower on twelve units, five by more
+  than half a percent.
+- **The replays:** at every decision along K2's own path the wider best scores at or above K2's, never below. The wider pick
+  differs from K2's on `32.4%` (K4) and `41.9%` (K6) of decisions pooled, from `9.7%` to `66.2%` by unit; a different split
+  is under half of those (`45.7%` and `48.2%`), and under half of a unit's differing picks on 15 of the 28 units.
+- **The time:** K2 `129.8` ms a path, K4 `219.6`, K6 `358.4` (over all units); the solve 97 s a couple, the same tables for
+  every arm. By which arm ran first, K4's median is `x1.489` to `x1.530` and K6's `x2.182` to `x2.441`, but each group is
+  different units, so these do not measure an order effect. The younger group's time is over its four units whose three
+  arms ran in one process.
 
 ## What the read cannot show
 
-- **Why the pot falls on the units it does.** No decomposition was run; on S109-sppart spending rises and tax falls, so
-  the wider move spends the pot sooner there, not on tax.
+- **Why the capped pot falls on the units it does.** No decomposition was run. More spending goes with some of the falls
+  and not others (of K4's five, S109-90 and S061-dbpart spend less). On S109-sppart spending rises `0.44%` and tax falls;
+  how its capped pot comes to be `5%` lower is not shown.
+- **Why the gain falls where it does.** The run measures no misreading of the household by the tables; that the couple
+  MEANS helped most here gains most here is a lead, not a cause shown.
 - **Anything beyond these 28 units, one seed and one estate weight.** Sixteen of them are the share rules' couples, on which
   the replay found the wider set helping (at other shares), so the gain may be larger here than on couples at large.
 - **The time in the app.** The ratios are CPU time in Node with four units at a time; the page's wait is an inference
   from one couple's split.
 
+## The reviewer at the read
+
+`reviews/2026-11-17-read-joint-wide.md`: FAIL, three BLOCKING and four MINORs, the outcome itself sound (the rule's files and
+stamps unchanged since the launch's commit, the amendments before the launches they govern, the four resumed units each
+passing the check against `E.runTrial`, every figure of the results file recomputed from the units' arrays, the reducer's
+output reproduced byte for byte). The findings were all in this write-up's words and the handover's, answered in one fix:
+S061-90 named (finding 1); the account of why the pot falls withdrawn, the cause not shown (2); the claim that the gain sits
+where the tables misread the household most withdrawn, S147-db's part of it stated (3); the replays' rates (4), the typical
+path without S147-db (5), the counts with and without their bar (6) and the time groups (7) corrected, each figure printed
+by `joint-wide-beside.mjs`. The reviewer again (`reviews/2026-11-17-read-joint-wide-2.md`): PASS, every finding answered,
+two MINORs, answered: the pot's falls described as coming with more spending on some units and not others, both ways
+counted, where the first fix had said they do not follow spending (1); and S061-90's interval given as it stood at the read
+and with D112's correction, which carries it just above nought (2). The figures for both are printed by the same script.
+
 ## For the maintainer
 
 - **By its rule, closed:** today's split and each person's top two moves stay the couples' default.
-- **What it adds to the household question** (D114, with the external review in `QUESTIONS-2026-11-17.md`): where the two
-  tables misread the household most, a wider move recovers a lot (S147-db `+5.2` points), which says the misread is real
-  and large on some couples; but the wider move also spends the pot on others, and costs `x1.5` to `x2.3` a path. A plan
-  that does not misread the household in the first place is what the handover asks the reviewer about.
+- **What it adds to the household question** (D114, with the external review in `QUESTIONS-2026-11-17.md`): a wider move's
+  gain is real but uneven, two fifths of K6's net gain one couple (S147-db); elsewhere it gains a few tenths of a point, the
+  capped pot falls on some couples, and a path costs `x1.5` to `x2.3`. It does not by itself say why the gain falls where
+  it does.
 - **The question already put:** D111 (3)'s speed work on LOOKHOLD's cost follows this read by the rule. If the review backs
   one plan for the household, that plan would replace the joint move whose cost the speed work targets, so the agent
   recommends holding the speed work until the review answers.

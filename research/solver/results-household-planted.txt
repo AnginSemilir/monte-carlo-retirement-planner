@@ -1,0 +1,13 @@
+  ok   a gain on every unit, spending and tax as K2, reads A LEAD, THE SEARCH GOES (A LEAD; goes)
+  ok   part 1: nothing gained reads NO LEAD (NO LEAD)
+  ok   (1) a nil-bias unit a point below K2 reads NO LEAD, the pool still gaining (NO LEAD; pooled from 0.533; below A4)
+  ok   (2) the same unit with a one-off deposit owned by one person reads A LEAD, WITH A UNIT TO PLACE (A LEAD, WITH A UNIT TO PLACE)
+  ok   (3) spending on the kept paths 0.06% lower and over every path higher: part 3 fails (kept -0.0600%, every path 5.2063%; NO LEAD)
+  ok   part 4: the capped pot 10% lower is recorded and the outcome stays A LEAD (A LEAD; -10.000%, -10.00 a path)
+  ok   (4) HS5's lifetime tax above HOUSE's reads STOP (STOP)
+  ok   (5) a forecast 3 points from its arm names the unit and leaves the outcome (A LEAD; named A4 3.00)
+  ok   (6) HS1 a point below HS5 on one unit reads THE SEARCH STAYS (stays)
+  ok   (7) one path of K2 changed reads STOP at the identity, and none changed passes it (A3: K2's survived differ from JOINT-WIDE's)
+  ok   the gate takes the planted units and refuses one missing, and a household arm read off another table
+  ok   without its largest unit: the unit saving most is the one left out (A1 0.500)
+PLANTED: ALL PASS (12)

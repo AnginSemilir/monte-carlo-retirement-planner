@@ -255,8 +255,17 @@ function blobText(sha) {
   try { return execSync(`git cat-file -p ${sha}`, { cwd: REPO, stdio: ['ignore', 'pipe', 'ignore'] }).toString(); } catch { return null; }
 }
 function fileText(file) { try { return readFileSync(join(REPO, file), 'utf8'); } catch { return null; } }
-export function checkLogStamps(texts, prediction, { blob = blobOf, textAt = blobText, textNow = fileText } = {}) {
+/*
+ * ALLOWED VERSIONS (17 Nov, D126: the maintainer's unlock for exactly this, "an optional list of allowed versions ... with
+ * a dated note and a planted case refusing a third"). `allowed`, when given, is a list of versions written as the logs give
+ * them ("code <id> audit <hash>"), all on one code: a read's logs may then carry more than one version, each log's one of
+ * those named, and a version not named is refused. Without it, one version across the logs, as before. Step 5's read
+ * (reduce-shapes.mjs, SHAPES.md amendment 1, D125) passes exactly its two: the launch's audit for the units run as launched
+ * and the amended audit for the unit run again. Its planted case: research/tests/fair-gate-allowed.test.mjs.
+ */
+export function checkLogStamps(texts, prediction, { blob = blobOf, textAt = blobText, textNow = fileText, allowed = null } = {}) {
   const bad = [], versions = new Set(), now = blob(prediction), corrected = new Map();
+  if (allowed && (!Array.isArray(allowed) || !allowed.length || new Set(allowed.map(v => String(v).replace(/ audit \S+$/, ''))).size !== 1)) bad.push(`the allowed versions are not a list on one code: ${JSON.stringify(allowed)}`);
   for (const [f, t] of Object.entries(texts)) {
     const all = [...String(t || '').matchAll(LOG_STAMP)];
     if (!all.length) { bad.push(`${f}: no stamp line (not written by the stamped audit-s126.mjs)`); continue; }
@@ -270,12 +279,13 @@ export function checkLogStamps(texts, prediction, { blob = blobOf, textAt = blob
       }
     }
   }
-  if (versions.size > 1) bad.push(`more than one version of the code across the logs: ${[...versions].join('; ')}`);
+  if (allowed) { const out = [...versions].filter(v => !allowed.includes(v)); if (out.length) bad.push(`a version not among the ${Array.isArray(allowed) ? allowed.length : 0} allowed: ${out.join('; ')}`); }
+  else if (versions.size > 1) bad.push(`more than one version of the code across the logs: ${[...versions].join('; ')}`);
   bad.corrections = [...corrected].filter(([, d]) => d).map(([sha, d]) => ({ sha, declared: d }));
   return bad;
 }
-export function requireFairLogs(texts, prediction, { exit = true, blob = blobOf, textAt = blobText, textNow = fileText } = {}) {
-  const bad = checkLogStamps(texts, prediction, { blob, textAt, textNow });
+export function requireFairLogs(texts, prediction, { exit = true, blob = blobOf, textAt = blobText, textNow = fileText, allowed = null } = {}) {
+  const bad = checkLogStamps(texts, prediction, { blob, textAt, textNow, allowed });
   if (bad.length) { console.log(`FAIR-TEST GATE: FAILED (stamps)\n  ${bad.join('\n  ')}`); if (exit) process.exit(1); }
   // a declared correction is printed with the figures, never silent
   for (const c of bad.corrections || []) console.log(`FAIR-TEST GATE: ${prediction} was corrected after launch (${c.sha.slice(0, 8)} at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - ${c.declared.replace(/\s+/g, ' ')}\n`);

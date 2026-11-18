@@ -1,42 +1,59 @@
 /*
- * THE LEAD TEST'S READ (HOUSEHOLD.md section 5; D113; EXPLORATORY): HOUSE (design A, one plan for the whole household)
- * against K2 (the couples' default) on audit-household.mjs's 28 units, by the rule committed before any launch. The gate
- * first (fair-gate.mjs on the units' logs; one code, audit, seed, size and candidate; each unit's arms whole, timed and
- * recorded), then THE IDENTITY (each unit's K2 arrays equal JOINT-WIDE's K2 arrays byte for byte, or STOP), then the rule:
- *   1. pooled survival over the 28 units, HOUSE less K2, paired by path (stats.mjs pooledSummed);
- *   2. by unit: a unit whose interval (stats.mjs survivalChangeU) lies wholly below -0.3 points is lost beyond the bar;
- *   3. pooled spending delivered, as a percentage of K2's, with its paired standard error;
- *   4. the time: HOUSE over K2, the solve and the CPU a path (the median over the units whose two arms ran in one process).
- * A LEAD: pooled survival's interval wholly above 0, or its interval reaching 0 or above and pooled spending's wholly above
- * 0; and no unit where design A is nearest exact lost beyond the bar. NO LEAD otherwise. Nearest exact: at most one plan
- * year in which the household spends with one person's pension open and the other's locked, and the first person's share of
- * the two pensions between 0.25 and 0.75 (HOUSEHOLD.md section 2's two biases, recorded by the audit for each unit). Beside the
- * rule, deciding nothing: each group, each unit, the forecasts, the times, the replay along K2's path, and where a biased
- * unit's lost paths fail against its locked years.
+ * THE LEAD TEST'S READ (HOUSEHOLD.md section 5 as amended for step 4, D118; PRESCRIPTIVE-PLAN.md step 4; EXPLORATORY): the
+ * household's move from the single solver's own chooser at the best of five splits (HS5) against the couples' default (K2)
+ * on audit-household.mjs's 28 units, by the rule committed before any unit ran. The gate first (fair-gate.mjs on the units'
+ * logs; one code, audit, seed, size and candidate; each unit's four arms whole, in their order, timed and recorded), then
+ * THE IDENTITY (each unit's K2 arrays JOINT-WIDE's K2 arrays byte for byte, or STOP), then the rule, HS5 less K2, paired by
+ * path on stats.mjs survivalChange (the exact paired interval):
+ *   1. pooled survival over the 28 units: holds when the interval's lower end is above 0;
+ *   2. survival by unit: holds when no unit's interval lies wholly below -0.3 points;
+ *   3. pooled spending delivered on the paths both arms keep, as a percentage of K2's: holds when not lower by more than
+ *      0.05% (the pooled figure, as JOINT-WIDE's part 3 reads it);
+ *   4. the pot counted up to the cap, pooled and by unit, as a percentage and in pounds a path, beside spending in pounds a
+ *      path: recorded, not a bar (D116);
+ *   5. pooled lifetime tax, HS5 against HOUSE: holds when HS5's is lower;
+ *   6. by unit, the household table's opening forecast less HS5's survival: within 2 points, a unit outside named, the
+ *      outcome unchanged.
+ * Outcomes: STOP (K2 differs from JOINT-WIDE's on any path, or part 5 fails; nothing else is read); A LEAD (parts 1, 2 and
+ * 3 hold); A LEAD, WITH A UNIT TO PLACE (parts 1 and 3 hold, part 2 failing only on units whose biases are not nil, each
+ * printed with its biases and its failing years); NO LEAD (part 1 or part 3 fails, or part 2 fails on a unit whose biases
+ * are nil). Then the split's search, HS1 less HS5: THE SEARCH GOES when pooled survival's interval reaches 0 or above, no
+ * unit's interval lies wholly below -0.3, pooled spending on the paths both keep is not lower by more than 0.05% and pooled
+ * lifetime tax is not higher by more than 1%; otherwise THE SEARCH STAYS. Beside, deciding nothing: spending over every
+ * path; each pooled figure without its largest unit; lifetime tax and the pot above and below the cap; step 1's counts; the
+ * spending level and the risk held, K2 beside HS5, by third; HOUSE less K2 on parts 1 to 4; the solve and CPU a path.
  *   node research/solver/reduce-household.mjs [--smoke] [--planted]
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { survivalChangeU, pooledSummed } from './stats.mjs';
+import { survivalChange } from './stats.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 
-export const RULE = { unit: -0.3, exactShare: [0.25, 0.75], exactLocked: 1 }, CANDIDATE = 'af001697ce1b';
+export const RULE = { unit: -0.3, spend: -0.05, forecast: 2, searchTax: 1 }, CANDIDATE = 'af001697ce1b';
 export const JOINT = { shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2 };
-export const ARMS = ['K2', 'HOUSE'];
-export const wantOptions = arm => (arm === 'HOUSE' ? { household: 'A', topK: 3, tieJoint: 1e-4, holdPast: 2 } : { shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2, topK: 2 });
-export const orderOf = k => (k % 2 ? ['HOUSE', 'K2'] : ['K2', 'HOUSE']);
+export const ARMS = ['K2', 'HOUSE', 'HS5', 'HS1'];
+const SPLIT_OF = { HS5: 'best5', HS1: 'even' };
+export const wantOptions = arm => (arm === 'HOUSE' ? { household: 'A', topK: 3, tieJoint: 1e-4, holdPast: 2 }
+  : SPLIT_OF[arm] ? { household: 'A', move: 'single', split: SPLIT_OF[arm], tieAboveCap: 1e-4 }
+    : { shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2, topK: 2 });
+export const orderOf = k => [...ARMS.slice(k % ARMS.length), ...ARMS.slice(0, k % ARMS.length)];
+/* a unit's biases are nil (PRESCRIPTIVE-PLAN.md step 3): no locked year, the first person's share of the pensions from 0.25
+   to 0.75, under £100 a year of income tax left out, no one-off deposit owned by one person, the band two people's */
+export const biasesNil = b => b.lockedYears === 0 && b.penShareSelf >= 0.25 && b.penShareSelf <= 0.75 && b.incomeTaxLeftOut.aYear < 100 && b.oneOffOwned.length === 0 && b.cgtBand.household === b.cgtBand.twoPeople;
 const Z = 1.959963984540054;
 const dec = (s, T) => { const b = Buffer.from(s, 'base64'), c = new Uint8Array(b.length); c.set(b); return new T(c.buffer, 0, b.length / T.BYTES_PER_ELEMENT); };
 const KEYS = { survived: Uint8Array, failYear: Int16Array, pot: Float64Array, estate: Float64Array, tax: Float64Array, delivered: Float64Array, unmet: Float64Array };
 export const armOf = x => ({ ...x, raw: x, ...Object.fromEntries(Object.entries(KEYS).map(([k, T]) => [k, dec(x[k], T)])) });
-const mean = a => { let s = 0, n = 0; for (const x of a) { s += x; n++; } return n ? s / n : NaN; };
 const sum = a => { let s = 0; for (const x of a) s += x; return s; };
-const sdOf = (a, m) => { let s = 0, n = 0; for (const x of a) { s += (x - m) ** 2; n++; } return n > 1 ? Math.sqrt(s / (n - 1)) : 0; };
+const mean = a => { let s = 0, n = 0; for (const x of a) { s += x; n++; } return n ? s / n : NaN; };
 const median = a => { const s = [...a].sort((p, q) => p - q), k = s.length; return k % 2 ? s[(k - 1) / 2] : (s[k / 2 - 1] + s[k / 2]) / 2; };
 const js = x => JSON.stringify(x);
-export const exactOf = U => U.bias.lockedYears <= RULE.exactLocked && U.bias.penShareSelf >= RULE.exactShare[0] && U.bias.penShareSelf <= RULE.exactShare[1];
+const isCount = c => !!c && ['decisions', 'far', 'down'].every(k => Number.isInteger(c[k]) && c[k] >= 0);
+const isWhy = w => !!w && Array.isArray(w.years) && ['K2', 'HS5'].every(a => w[a] && ['all', 'first', 'middle', 'last'].every(p => w[a][p] && Number.isFinite(w[a][p].n)));
+const isBias = b => !!b && Number.isInteger(b.lockedYears) && Array.isArray(b.lockedAt) && b.penShareSelf >= 0 && b.penShareSelf <= 1 && b.incomeTaxLeftOut && Number.isFinite(b.incomeTaxLeftOut.aYear)
+  && Number.isFinite(b.incomeTaxLeftOut.overPlan) && Array.isArray(b.oneOffOwned) && b.cgtBand && Number.isFinite(b.cgtBand.household) && Number.isFinite(b.cgtBand.twoPeople);
 
 /* the gate over the units (each with its arms decoded), against the design's units: every problem */
 export function gate(units, ids, audit, size = { N: 4000, seed: 7002, pts: 45 }, partial = false) {
@@ -55,17 +72,20 @@ export function gate(units, ids, audit, size = { N: 4000, seed: 7002, pts: 45 },
     if (!d.before || ['self', 'part', 'household'].some(w => !d.before[w] || d.before[w] !== d.after[w])) P.push(`${U.id}: a table changed between the first arm and the last`);
     if (!(U.cap > 0) || !(U.houseCap > 0)) P.push(`${U.id}: no cap recorded`);
     if (U.shareRule !== 'pots' || js(U.joint) !== js(JOINT) || U.topK !== 3) P.push(`${U.id}: the joint move ${js(U.joint)} on ${U.shareRule}, the household's top ${U.topK}`);
-    if (!U.bias || !Number.isInteger(U.bias.lockedYears) || !Array.isArray(U.bias.lockedAt) || !(U.bias.penShareSelf >= 0 && U.bias.penShareSelf <= 1)) P.push(`${U.id}: no biases recorded`);
+    if (!isBias(U.bias)) P.push(`${U.id}: its biases not recorded in full`);
+    if (!isWhy(U.why)) P.push(`${U.id}: no record of the level and the risk`);
     for (const a of ARMS) {
       const x = U.arms[a];
       if (!x) { P.push(`${U.id}: no ${a} arm`); continue; }
       for (const key of Object.keys(KEYS)) if (!x[key] || x[key].length !== U.N) P.push(`${U.id} ${a}: ${key} not one a path`);
       if (js(x.options) !== js(wantOptions(a))) P.push(`${U.id} ${a}: the options read back ${js(x.options)}, not ${js(wantOptions(a))}`);
       if (!(x.cpuUs > 0) || x.place !== U.order.indexOf(a) || !(x.solveSecs > 0) || !(x.forecast >= 0 && x.forecast <= 1)) P.push(`${U.id} ${a}: no time, no solve time or no forecast, or not timed in its place`);
+      if (SPLIT_OF[a] && !isCount(x.counts)) P.push(`${U.id} ${a}: step 1's counts not recorded`);
       const ch = x.chunks || [];
       if (!ch.length || ch[0].from !== 0 || ch[ch.length - 1].to !== U.N || ch.some((c, i) => i > 0 && c.from !== ch[i - 1].to) || ch.some(c => !c.proc || !c.cpu)) P.push(`${U.id} ${a}: its chunks do not cover its paths in order, each with its process and CPU`);
       else if (Math.abs(ch.reduce((t, c) => t + c.cpuUs, 0) - x.cpuUs) > 0.5) P.push(`${U.id} ${a}: its time is not its chunks' sum`);
     }
+    if (U.arms.HOUSE && U.arms.HS5 && U.arms.HS1 && !(U.arms.HOUSE.forecast === U.arms.HS5.forecast && U.arms.HS5.forecast === U.arms.HS1.forecast)) P.push(`${U.id}: the household arms do not read one table's forecast`);
     if (!U.along || !(U.along.decisions > 0)) P.push(`${U.id}: no replay`);
   }
   return P;
@@ -85,89 +105,145 @@ export function identity(units, jwOf) {
 export function cells(A, B) {
   let a = 0, lost = 0, saved = 0, d = 0;
   for (let i = 0; i < A.survived.length; i++) { const x = A.survived[i], y = B.survived[i]; if (x && y) a++; else if (x) lost++; else if (y) saved++; else d++; }
-  return { a, lost, saved, d };
+  return { a, lost, saved, d, N: A.survived.length };
 }
-export function spendOf(pairs) {
+const pooledCells = cs => survivalChange(sum(cs.map(c => c.lost)), sum(cs.map(c => c.saved)), sum(cs.map(c => c.N)));
+/* spending delivered, the arm's against the base's, as a percentage of the base's, over the paths keep(i) picks, with its
+   paired standard error by path, pooled over the pairs and by pair */
+export function spendOn(pairs, kept) {
   let D = 0, B = 0, V = 0;
   const by = pairs.map(([b, x]) => {
-    const n = b.delivered.length, d = Array.from(b.delivered, (y, i) => x.delivered[i] - y), dm = mean(d), s = sdOf(d, dm), Bu = sum(b.delivered), Du = dm * n, Vu = n * s * s;
-    D += Du; B += Bu; V += Vu;
-    const p = 100 * Du / Bu, se = 100 * Math.sqrt(Vu) / Bu;
-    return { d: p, se, lo: p - Z * se, hi: p + Z * se };
+    const I = []; for (let i = 0; i < b.delivered.length; i++) if (!kept || (b.survived[i] && x.survived[i])) I.push(i);
+    const d = I.map(i => x.delivered[i] - b.delivered[i]), dm = mean(d), s = d.length > 1 ? Math.sqrt(sum(d.map(v => (v - dm) ** 2)) / (d.length - 1)) : 0, Bu = sum(I.map(i => b.delivered[i]));
+    const Du = dm * I.length, Vu = I.length * s * s; D += Du; B += Bu; V += Vu;
+    const p = Bu > 0 ? 100 * Du / Bu : 0, se = Bu > 0 ? 100 * Math.sqrt(Vu) / Bu : 0;
+    return { d: p, se, lo: p - Z * se, hi: p + Z * se, D: Du, B: Bu, V: Vu, n: I.length };
   });
-  const p = 100 * D / B, se = 100 * Math.sqrt(V) / B;
+  const p = B > 0 ? 100 * D / B : 0, se = B > 0 ? 100 * Math.sqrt(V) / B : 0;
   return { pooled: { d: p, se, lo: p - Z * se, hi: p + Z * se }, by };
 }
-/* the typical path's pot: each path's own change in percent where both arms leave a pot, averaged */
-function typicalPot(b, x) {
-  const v = [];
-  for (let i = 0; i < b.pot.length; i++) if (b.pot[i] > 0 && x.pot[i] > 0) v.push(100 * (x.pot[i] / b.pot[i] - 1));
-  const m = v.length ? mean(v) : 0, se = v.length > 1 ? sdOf(v, m) / Math.sqrt(v.length) : 0;
-  return { d: m, se, lo: m - Z * se, hi: m + Z * se };
+const spendWithout = (sp, skip) => { let D = 0, B = 0, V = 0; sp.by.forEach((h, i) => { if (i !== skip) { D += h.D; B += h.B; V += h.V; } }); const p = 100 * D / B, se = 100 * Math.sqrt(V) / B; return { d: p, se, lo: p - Z * se, hi: p + Z * se }; };
+/* the pot counted up to a unit's cap: the arm's mean against the base's, in percent and in pounds a path */
+function cappedOf(U, b, x) {
+  let sb = 0, sx = 0; const n = b.pot.length;
+  for (let i = 0; i < n; i++) { sb += Math.min(b.pot[i], U.cap); sx += Math.min(x.pot[i], U.cap); }
+  return { pct: sb > 0 ? 100 * (sx / sb - 1) : 0, gbp: (sx - sb) / n, sb, sx, n };
 }
-/* where a unit's paths lost under HOUSE (K2 keeps them) fail: within the locked years, or not */
-function lostWhere(U, b, x) {
-  const set = new Set(U.bias.lockedAt), out = { lost: 0, inLocked: 0, years: {} };
-  for (let i = 0; i < b.survived.length; i++) if (b.survived[i] && !x.survived[i]) { out.lost++; const y = x.failYear[i]; if (set.has(y)) out.inLocked++; out.years[y] = (out.years[y] || 0) + 1; }
-  return out;
+/* lifetime tax and the pot left above the cap (both arms ending above it) and below it (both at or below it, both kept) */
+function aboveCap(U, b, x) {
+  const hi = [], lo = [];
+  for (let i = 0; i < b.pot.length; i++) {
+    if (b.pot[i] > U.cap && x.pot[i] > U.cap) hi.push(i);
+    else if (b.pot[i] <= U.cap && x.pot[i] <= U.cap && b.survived[i] && x.survived[i]) lo.push(i);
+  }
+  const m = (I, A, k) => (I.length ? mean(I.map(i => A[k][i])) : NaN);
+  return { hi: { n: hi.length, taxB: m(hi, b, 'tax'), taxX: m(hi, x, 'tax'), potB: m(hi, b, 'pot'), potX: m(hi, x, 'pot') }, lo: { n: lo.length, taxB: m(lo, b, 'tax'), taxX: m(lo, x, 'tax'), potB: m(lo, b, 'pot'), potX: m(lo, x, 'pot') } };
 }
-/* the rule, and everything beside it */
+/* where a unit's paths lost (the base keeps, the arm fails) fail, plan year by plan year */
+function failingYears(b, x) { const y = {}; for (let i = 0; i < b.survived.length; i++) if (b.survived[i] && !x.survived[i]) y[x.failYear[i]] = (y[x.failYear[i]] || 0) + 1; return y; }
+/* one arm against a base over the units: parts 1 to 4's figures */
+function compare(units, base, arm) {
+  const H = units.map(U => { const b = U.arms[base], x = U.arms[arm], c = cells(b, x); return { id: U.id, U, cells: c, ch: survivalChange(c.lost, c.saved, c.N), capped: cappedOf(U, b, x), spendGbp: (sum(x.delivered) - sum(b.delivered)) / c.N, tax: [sum(b.tax), sum(x.tax)] }; });
+  const pairs = units.map(U => [U.arms[base], U.arms[arm]]);
+  const kept = spendOn(pairs, true), every = spendOn(pairs, false);
+  const sb = sum(H.map(h => h.capped.sb)), sx = sum(H.map(h => h.capped.sx)), n = sum(H.map(h => h.capped.n));
+  return { H, pooled: pooledCells(H.map(h => h.cells)), kept, every, capped: { pct: 100 * (sx / sb - 1), gbp: (sx - sb) / n }, spendGbp: sum(H.map(h => h.spendGbp * h.cells.N)) / n, tax: [sum(H.map(h => h.tax[0])), sum(H.map(h => h.tax[1]))] };
+}
+/* the rule, the outcome, the split's search, and what is printed beside them */
 export function rule(units) {
-  const sp = spendOf(units.map(U => [U.arms.K2, U.arms.HOUSE]));
-  const H = units.map((U, i) => {
-    const b = U.arms.K2, x = U.arms.HOUSE, c = cells(b, x), ch = survivalChangeU(c.a, c.lost, c.saved, c.d), procs = new Set(ARMS.flatMap(a => (U.arms[a].chunks || []).map(k => k.proc)));
-    const surv = A => 100 * sum(A.survived) / A.survived.length;
-    return { id: U.id, group: U.group, exact: exactOf(U), bias: U.bias, cells: c, ch, spend: sp.by[i], typical: typicalPot(b, x), tax: [mean(b.tax), mean(x.tax)],
-      surv: [surv(b), surv(x)], forecast: [100 * b.forecast, 100 * x.forecast], solve: [b.solveSecs, x.solveSecs], path: [b.cpuUs / 1e3 / U.N, x.cpuUs / 1e3 / U.N], slower: x.cpuUs / b.cpuUs, oneProc: procs.size === 1, along: U.along, lostWhere: lostWhere(U, b, x) };
-  });
-  const pooled = pooledSummed(H.map(h => h.cells)), spend = sp.pooled;
-  const exactLost = H.filter(h => h.exact && h.ch.hi < RULE.unit), anyLost = H.filter(h => h.ch.hi < RULE.unit);
-  const gain = pooled.lo > 0 ? 'SURVIVAL' : pooled.hi >= 0 && spend.lo > 0 ? 'SPENDING' : null;
-  const verdict = gain && !exactLost.length ? `A LEAD (${gain})` : 'NO LEAD';
-  const clean = H.filter(h => h.oneProc);
-  return { H, pooled, spend, gain, exactLost, anyLost, verdict, slowerMedian: clean.length ? median(clean.map(h => h.slower)) : NaN, slowerClean: clean.length, slowerAll: median(H.map(h => h.slower)),
-    solveRatio: median(H.map(h => h.solve[1] / h.solve[0])) };
+  const R = compare(units, 'K2', 'HS5'), Hs = R.H;
+  const part1 = R.pooled.lo > 0;
+  const below = Hs.filter(h => h.ch.hi < RULE.unit), part2 = below.length === 0;
+  const part3 = R.kept.pooled.d >= RULE.spend;
+  const taxHS5 = sum(units.map(U => sum(U.arms.HS5.tax))), taxHOUSE = sum(units.map(U => sum(U.arms.HOUSE.tax))), part5 = taxHS5 < taxHOUSE;
+  const fc = units.map(U => { const s = 100 * sum(U.arms.HS5.survived) / U.N, f = 100 * U.arms.HS5.forecast; return { id: U.id, forecast: f, survival: s, gap: f - s, out: Math.abs(f - s) > RULE.forecast }; });
+  const belowNil = below.filter(h => biasesNil(h.U.bias));
+  const outcome = !part5 ? 'STOP' : !part1 || !part3 || belowNil.length ? 'NO LEAD' : part2 ? 'A LEAD' : 'A LEAD, WITH A UNIT TO PLACE';
+  // the split's search, HS1 less HS5
+  const S = compare(units, 'HS5', 'HS1');
+  const search = { pooled: S.pooled, below: S.H.filter(h => h.ch.hi < RULE.unit), kept: S.kept.pooled, taxPct: 100 * (S.tax[1] / S.tax[0] - 1) };
+  search.goes = search.pooled.hi >= 0 && !search.below.length && search.kept.d >= RULE.spend && search.taxPct <= RULE.searchTax;
+  return { R, parts: [part1, part2, part3, true, part5], below, belowNil, fc, taxHS5, taxHOUSE, outcome, search, H: compare(units, 'K2', 'HOUSE') };
+}
+/* a pooled figure without the unit that contributes most to it */
+export function withoutLargest(R) {
+  const net = R.H.map(h => h.cells.saved - h.cells.lost), iS = net.indexOf(Math.max(...net));
+  const surv = pooledCells(R.H.filter((h, i) => i !== iS).map(h => h.cells));
+  const spK = R.kept.by.map(b => Math.abs(b.D)), iK = spK.indexOf(Math.max(...spK));
+  const potD = R.H.map(h => Math.abs(h.capped.sx - h.capped.sb)), iP = potD.indexOf(Math.max(...potD));
+  const rest = R.H.filter((h, i) => i !== iP), sb = sum(rest.map(h => h.capped.sb)), sx = sum(rest.map(h => h.capped.sx)), n = sum(rest.map(h => h.capped.n));
+  return { survival: { id: R.H[iS].id, ...surv }, kept: { id: R.H[iK].id, ...spendWithout(R.kept, iK) }, capped: { id: R.H[iP].id, pct: 100 * (sx / sb - 1), gbp: (sx - sb) / n } };
 }
 
-/* the planted checks: synthetic units the read must read as the rule says */
+/* the planted checks: synthetic units the read must read as the rule says (PRESCRIPTIVE-PLAN.md step 4's seven, and one
+   for each rule part) */
 function planted() {
-  const n = 1000, ids = ['A1', 'A2', 'A3', 'A4'], checks = [];
+  const n = 4000, ids = ['A1', 'A2', 'A3', 'A4'], checks = [];
   const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
-  const armWith = (surv, deliv = 100) => {
+  const NIL = { lockedYears: 0, lockedAt: [], penShareSelf: 0.6, incomeTaxLeftOut: { aYear: 0, overPlan: 0, shareOfSpending: 0 }, oneOffOwned: [], cgtBand: { household: 75400, twoPeople: 75400 } };
+  const zeroWhy = () => ({ n: 0, level: 0, raise: 0, cut: 0, riskN: 0, risk: 0 }), WHYR = { n: 10, years: [1], thirds: [[1], [], []], K2: { all: zeroWhy(), first: zeroWhy(), middle: zeroWhy(), last: zeroWhy() }, HS5: { all: zeroWhy(), first: zeroWhy(), middle: zeroWhy(), last: zeroWhy() } };
+  const armWith = (surv, o = {}) => {
     const A = Object.fromEntries(Object.entries(KEYS).map(([k, T]) => [k, new T(n)]));
-    for (let i = 0; i < n; i++) { A.survived[i] = surv(i) ? 1 : 0; A.failYear[i] = surv(i) ? -1 : 5; A.pot[i] = 100; A.estate[i] = 100; A.tax[i] = 10; A.delivered[i] = typeof deliv === 'function' ? deliv(i) : deliv; A.unmet[i] = 0; }
-    return Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)]));
+    for (let i = 0; i < n; i++) { const s = surv(i); A.survived[i] = s ? 1 : 0; A.failYear[i] = s ? -1 : 5; A.pot[i] = o.pot ? o.pot(i) : 100; A.estate[i] = A.pot[i]; A.tax[i] = o.tax || 10; A.delivered[i] = o.deliv ? o.deliv(i, s) : 1000; A.unmet[i] = 0; }
+    return A;
   };
-  const unitOf = (id, k, base, house, bias = { lockedYears: 0, lockedAt: [], penShareSelf: 0.6 }) => {
-    const ch = [{ from: 0, to: n, cpuUs: 1e6, wallMs: 1, cpu: 'x', proc: 'p' }];
-    const arm = (A, a, f) => ({ options: wantOptions(a), cpuUs: f * 1e6, chunks: [{ ...ch[0], cpuUs: f * 1e6 }], place: orderOf(k).indexOf(a), solveSecs: 10 * f, forecast: 0.9, ...A });
-    return { id, k, order: orderOf(k), group: 'g', N: n, seed: 7002, pts: 45, candidate: CANDIDATE, stamp: { code: 'c', audit: 'a' }, digests: { before: { self: 's', part: 'p', household: 'h' }, after: { self: 's', part: 'p', household: 'h' } }, cap: 1, houseCap: 1, shareRule: 'pots', joint: JOINT, topK: 3, bias, along: { decisions: 1 },
-      arms: { K2: armOf(arm(base, 'K2', 1)), HOUSE: armOf(arm(house, 'HOUSE', 0.5)) } };
+  const enc = A => Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)]));
+  const unitOf = (id, k, arms, bias = NIL, fcast = null) => {
+    const order = orderOf(k), mk = (A, a, f) => { const x = { options: wantOptions(a), cpuUs: f * 1e6, chunks: [{ from: 0, to: n, cpuUs: f * 1e6, wallMs: 1, cpu: 'x', proc: 'p' }], place: order.indexOf(a), solveSecs: 10, forecast: a === 'K2' ? 0.9 : fcast !== null ? fcast : 0.9, ...(SPLIT_OF[a] ? { counts: { decisions: 1, far: 0, down: 0 } } : {}), ...enc(A) }; return armOf(x); };
+    return { id, k, order, group: 'g', N: n, seed: 7002, pts: 45, candidate: CANDIDATE, stamp: { code: 'c', audit: 'a' }, digests: { before: { self: 's', part: 'p', household: 'h' }, after: { self: 's', part: 'p', household: 'h' } }, cap: 100, houseCap: 100, shareRule: 'pots', joint: JOINT, topK: 3, bias, why: WHYR, along: { decisions: 1 },
+      arms: Object.fromEntries(ARMS.map(a => [a, mk(arms[a], a, a === 'K2' ? 1 : 0.5)])) };
   };
-  // fewer: 25 paths of 1,000 lost (2.5 points, beyond the bar), against three units each saving 50: the pool still gains
-  const base = armWith(i => i % 10 !== 0), more = armWith(i => i % 10 !== 0 || i % 20 === 0), fewer = armWith(i => i % 10 !== 0 && i % 40 !== 1);
-  const gainUnits = ids.map((id, k) => unitOf(id, k, base, more));
-  const r1 = rule(gainUnits);
-  checks.push(['a survival gain on every unit reads A LEAD (SURVIVAL)', r1.verdict === 'A LEAD (SURVIVAL)', r1.verdict]);
-  const r2 = rule([...gainUnits.slice(0, 3), unitOf('A4', 3, base, fewer)]);
-  checks.push(['the pool gaining with a nearest-exact unit lost beyond the bar reads NO LEAD', r2.verdict === 'NO LEAD' && r2.exactLost.length === 1 && r2.pooled.lo > 0, `${r2.verdict}; ${r2.exactLost.map(h => h.id).join(',')}; pooled from ${r2.pooled.lo.toFixed(3)}`]);
-  const r3 = rule([...gainUnits.slice(0, 3), unitOf('A4', 3, base, fewer, { lockedYears: 2, lockedAt: [4, 5], penShareSelf: 0.6 })]);
-  checks.push(['a biased unit lost beyond the bar, the pool gaining, reads A LEAD, its losses placed in its locked years', r3.verdict === 'A LEAD (SURVIVAL)' && r3.anyLost.length === 1 && r3.H[3].lostWhere.inLocked === r3.H[3].lostWhere.lost && r3.H[3].lostWhere.lost > 0, `${r3.verdict}; in the locked years ${r3.H[3].lostWhere.inLocked} of ${r3.H[3].lostWhere.lost}`]);
-  const spendUp = armWith(i => i % 10 !== 0, i => 100 + (i % 3)), r4 = rule(ids.map((id, k) => unitOf(id, k, base, spendUp)));
-  checks.push(['survival level and spending up reads A LEAD (SPENDING)', r4.verdict === 'A LEAD (SPENDING)', r4.verdict]);
-  const r5 = rule(ids.map((id, k) => unitOf(id, k, base, base)));
-  checks.push(['nothing changed reads NO LEAD', r5.verdict === 'NO LEAD', r5.verdict]);
-  checks.push(['the gate takes the planted units and refuses one missing', gate(gainUnits, ids, 'a', null).length === 0 && gate(gainUnits.slice(1), ids, 'a', null).some(p => /missing/.test(p))]);
-  const jw = id => ({ seed: 7002, N: n, pts: 45, arms: { K2: base } }), jwOff = id => ({ seed: 7002, N: n, pts: 45, arms: { K2: id === 'A2' ? more : base } });
-  checks.push(['THE IDENTITY holds on K2 as JOINT-WIDE\'s, and fails where one unit\'s K2 differs', identity(gainUnits, jw).length === 0 && identity(gainUnits, jwOff).length === 1]);
-  checks.push(['the time: the household arm planted at half K2\'s CPU reads x0.50', Math.abs(r1.slowerMedian - 0.5) < 1e-9, `x${r1.slowerMedian}`]);
+  // the base survives 90%; the arms saving 1.25 points (50 of 4,000) on each unit, HOUSE paying more tax than HS5
+  const base = armWith(i => i % 10 !== 0), gain = armWith(i => i % 10 !== 0 || i % 80 === 0), gainHouse = armWith(i => i % 10 !== 0 || i % 80 === 0, { tax: 20 });
+  const arms = (over = {}) => ({ K2: base, HOUSE: gainHouse, HS5: gain, HS1: gain, ...over });
+  // fewer: 40 paths of 4,000 lost (1 point, its interval wholly below the bar), against three units each saving 50
+  const fewer = armWith(i => i % 10 !== 0 && i % 100 !== 1);
+  const gainUnits = ids.map((id, k) => unitOf(id, k, arms()));
+  const rd = us => rule(us);
+  const r0 = rd(gainUnits);
+  checks.push(['a gain on every unit, spending and tax as K2, reads A LEAD, THE SEARCH GOES', r0.outcome === 'A LEAD' && r0.search.goes, `${r0.outcome}; ${r0.search.goes ? 'goes' : 'stays'}`]);
+  const r1p = rd(ids.map((id, k) => unitOf(id, k, arms({ HS5: base, HS1: base }))));
+  checks.push(['part 1: nothing gained reads NO LEAD', r1p.outcome === 'NO LEAD' && !r1p.parts[0], r1p.outcome]);
+  // 1. a unit with nil biases put a point below K2: NO LEAD (part 2, the pool still gaining)
+  const lostNil = [...gainUnits.slice(0, 3), unitOf('A4', 3, arms({ HS5: fewer }))], r1 = rd(lostNil);
+  checks.push(['(1) a nil-bias unit a point below K2 reads NO LEAD, the pool still gaining', r1.outcome === 'NO LEAD' && r1.parts[0] && !r1.parts[1] && r1.belowNil.length === 1, `${r1.outcome}; pooled from ${r1.R.pooled.lo.toFixed(3)}; below ${r1.below.map(h => h.id).join(',')}`]);
+  // 2. the same unit given a one-off deposit owned by one person: A LEAD, WITH A UNIT TO PLACE
+  const r2 = rd([...gainUnits.slice(0, 3), unitOf('A4', 3, arms({ HS5: fewer }), { ...NIL, oneOffOwned: [{ owner: 'Myself', amount: 1000, year: 2030 }] })]);
+  checks.push(['(2) the same unit with a one-off deposit owned by one person reads A LEAD, WITH A UNIT TO PLACE', r2.outcome === 'A LEAD, WITH A UNIT TO PLACE' && r2.below.length === 1 && !r2.belowNil.length, r2.outcome]);
+  // 3. spending on the kept paths 0.06% lower, over every path higher: part 3 fails
+  const lowKept = armWith(i => i % 10 !== 0 || i % 80 === 0, { deliv: (i, s) => (i % 10 !== 0 ? 999.4 : 1000) }), baseLow = armWith(i => i % 10 !== 0, { deliv: (i, s) => (s ? 1000 : 500) });
+  const r3 = rd(ids.map((id, k) => unitOf(id, k, arms({ K2: baseLow, HS5: lowKept }))));
+  checks.push(['(3) spending on the kept paths 0.06% lower and over every path higher: part 3 fails', !r3.parts[2] && r3.R.every.pooled.d > 0 && Math.abs(r3.R.kept.pooled.d + 0.06) < 1e-9 && r3.outcome === 'NO LEAD', `kept ${r3.R.kept.pooled.d.toFixed(4)}%, every path ${r3.R.every.pooled.d.toFixed(4)}%; ${r3.outcome}`]);
+  // part 4: the capped pot 10% lower, survival and spending gaining: recorded, the outcome unchanged
+  const lowPot = armWith(i => i % 10 !== 0 || i % 80 === 0, { pot: () => 90 }), r4p = rd(ids.map((id, k) => unitOf(id, k, arms({ HS5: lowPot }))));
+  checks.push(['part 4: the capped pot 10% lower is recorded and the outcome stays A LEAD', r4p.outcome === 'A LEAD' && Math.abs(r4p.R.capped.pct + 10) < 1e-9 && Math.abs(r4p.R.capped.gbp + 10) < 1e-9, `${r4p.outcome}; ${r4p.R.capped.pct.toFixed(3)}%, ${r4p.R.capped.gbp.toFixed(2)} a path`]);
+  // 4. HS5's tax made higher than HOUSE's: STOP
+  const r4 = rd(ids.map((id, k) => unitOf(id, k, arms({ HS5: armWith(i => i % 10 !== 0 || i % 80 === 0, { tax: 30 }) }))));
+  checks.push(['(4) HS5\'s lifetime tax above HOUSE\'s reads STOP', r4.outcome === 'STOP' && !r4.parts[4], r4.outcome]);
+  // 5. a forecast 3 points from its arm: the unit named, the outcome unchanged
+  const r5 = rd([...gainUnits.slice(0, 3), unitOf('A4', 3, arms(), NIL, (100 * (n - 350) / n + 3) / 100)]);
+  checks.push(['(5) a forecast 3 points from its arm names the unit and leaves the outcome', r5.outcome === 'A LEAD' && r5.fc.filter(f => f.out).map(f => f.id).join(',') === 'A4', `${r5.outcome}; named ${r5.fc.filter(f => f.out).map(f => `${f.id} ${f.gap.toFixed(2)}`).join(',')}`]);
+  // 6. HS1 put a point below HS5 on one unit: THE SEARCH STAYS
+  const hs1Low = armWith(i => (i % 10 !== 0 || i % 80 === 0) && i % 100 !== 1), r6 = rd([...gainUnits.slice(0, 3), unitOf('A4', 3, arms({ HS1: hs1Low }))]);
+  checks.push(['(6) HS1 a point below HS5 on one unit reads THE SEARCH STAYS', !r6.search.goes && r6.search.below.length === 1, r6.search.goes ? 'goes' : 'stays']);
+  // 7. one path of K2 changed: STOP (the identity)
+  const jw = () => ({ seed: 7002, N: n, pts: 45, arms: { K2: enc(base) } });
+  const off = armWith(i => i % 10 !== 0); off.survived[7] = 0;
+  const jwOff = id => (id === 'A3' ? { seed: 7002, N: n, pts: 45, arms: { K2: enc(off) } } : jw());
+  checks.push(['(7) one path of K2 changed reads STOP at the identity, and none changed passes it', identity(gainUnits, jw).length === 0 && identity(gainUnits, jwOff).length === 1, identity(gainUnits, jwOff).join('; ')]);
+  checks.push(['the gate takes the planted units and refuses one missing, and a household arm read off another table', gate(gainUnits, ids, 'a', null).length === 0 && gate(gainUnits.slice(1), ids, 'a', null).some(p => /missing/.test(p))
+    && gate([...gainUnits.slice(0, 3), (U => { U.arms.HS1 = { ...U.arms.HS1, forecast: 0.8 }; return U; })(unitOf('A4', 3, arms()))], ids, 'a', null).some(p => /one table/.test(p))]);
+  const wl = withoutLargest(r1.R);
+  checks.push(['without its largest unit: the unit saving most is the one left out', ['A1', 'A2', 'A3'].includes(wl.survival.id) && wl.survival.d < r1.R.pooled.d + 1e-9, `${wl.survival.id} ${wl.survival.d.toFixed(3)}`]);
   let bad = 0;
   for (const [label, ok, detail] of checks) { if (!ok) bad++; console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${label}${detail ? ` (${detail})` : ''}`); }
   console.log(bad ? `PLANTED: ${bad} of ${checks.length} FAILED` : `PLANTED: ALL PASS (${checks.length})`);
   return bad;
 }
 
-const f2 = x => (x >= 0 ? '+' : '') + x.toFixed(2), f3 = x => (x >= 0 ? '+' : '') + x.toFixed(3);
+const f2 = x => (x >= 0 ? '+' : '') + x.toFixed(2), f3 = x => (x >= 0 ? '+' : '') + x.toFixed(3), f4 = x => (x >= 0 ? '+' : '') + x.toFixed(4);
+const gbp = x => `${x < 0 ? '-' : ''}£${Math.abs(Math.round(x)).toLocaleString('en-GB')}`;
+const iv = (r, f = f3) => `${f(r.d)} (${f(r.lo)} to ${f(r.hi)})`;
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
   if (args.includes('--planted')) process.exit(planted() ? 1 : 0);
@@ -180,33 +256,49 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const logs = readdirSync(DIR).filter(f => /^case\d+\.txt$/.test(f)).map(f => readFileSync(join(DIR, f), 'utf8'));
     requireFairLogs(logs, 'none', { blob: () => '-' });
   }
-  const units = files.map(f => { const U = JSON.parse(gunzipSync(readFileSync(join(DIR, f))).toString()); for (const a of ARMS) U.arms[a] = armOf(U.arms[a]); return U; });
+  const units = files.map(f => { const U = JSON.parse(gunzipSync(readFileSync(join(DIR, f))).toString()); for (const a of ARMS) if (U.arms[a]) U.arms[a] = armOf(U.arms[a]); return U; });
   // a smoke reads the units it ran, each against its place in the design
   const ids = UNITS.map(u => u.id), problems = gate(units, ids, stampFilesHash(), smoke ? null : undefined, smoke);
-  console.log(`ONE PLAN FOR THE WHOLE HOUSEHOLD, THE LEAD TEST (EXPLORATORY; HOUSEHOLD.md section 5): ${units.length} units, seed ${units[0].seed}, ${units[0].N} paths, ${units[0].pts} points; code ${units[0].stamp.code}, audit ${units[0].stamp.audit}`);
+  console.log(`ONE PLAN FOR THE WHOLE HOUSEHOLD, THE LEAD TEST (EXPLORATORY; HOUSEHOLD.md section 5 as amended for step 4, D118): ${units.length} units, seed ${units[0].seed}, ${units[0].N} paths, ${units[0].pts} points; code ${units[0].stamp.code}, audit ${units[0].stamp.audit}`);
   if (problems.length) { console.log(`THE GATE: REFUSED\n  ${problems.join('\n  ')}`); process.exit(3); }
   console.log('THE GATE: fair');
   if (smoke) { console.log('a smoke: the gate read, no figure printed'); process.exit(0); }
   const jwOf = id => { const f = join(JW, `${id}.json.gz`); return existsSync(f) ? JSON.parse(gunzipSync(readFileSync(f)).toString()) : null; };
   const idp = identity(units, jwOf);
-  if (idp.length) { console.log(`THE IDENTITY: STOP\n  ${idp.join('\n  ')}`); process.exit(4); }
+  if (idp.length) { console.log(`THE IDENTITY: K2 differs from JOINT-WIDE's\n  ${idp.join('\n  ')}\nOUTCOME: STOP`); process.exit(4); }
   console.log(`THE IDENTITY: each unit's K2 equals JOINT-WIDE's K2, all seven arrays byte for byte, on ${units.length} units`);
   units.sort((p, q) => ids.indexOf(p.id) - ids.indexOf(q.id));
-  const R = rule(units);
-  console.log('\nTHE RULE, HOUSE less K2:');
-  console.log(`  1. pooled survival ${f3(R.pooled.d)} points (${f3(R.pooled.lo)} to ${f3(R.pooled.hi)})`);
-  console.log(`  2. units lost beyond the bar (interval wholly below ${RULE.unit}): ${R.anyLost.map(h => `${h.id}${h.exact ? ' (nearest exact)' : ''} ${f3(h.ch.d)} (${f3(h.ch.lo)} to ${f3(h.ch.hi)})`).join('; ') || 'none'}; nearest exact among them: ${R.exactLost.length}`);
-  console.log(`  3. pooled spending delivered ${f3(R.spend.d)}% (${f3(R.spend.lo)} to ${f3(R.spend.hi)})`);
-  console.log(`  4. the time, HOUSE over K2: the solve x${R.solveRatio.toFixed(2)} (the median over the units); the CPU a path x${R.slowerMedian.toFixed(2)} (the median over the ${R.slowerClean} units whose two arms ran in one process; over all x${R.slowerAll.toFixed(2)})`);
-  console.log(`OUTCOME: ${R.verdict}`);
+  const X = rule(units), R = X.R, say = ok => (ok ? 'HOLDS' : 'FAILS');
+  console.log('\nTHE RULE, HS5 less K2, paired by path (stats.mjs survivalChange):');
+  console.log(`  1. pooled survival ${iv(R.pooled)} points over ${units.length} units; its lower end above 0: ${say(X.parts[0])}`);
+  console.log(`  2. units whose interval lies wholly below ${RULE.unit}: ${X.below.map(h => `${h.id} ${iv(h.ch)} (${h.cells.saved} saved, ${h.cells.lost} lost; biases ${biasesNil(h.U.bias) ? 'nil' : 'not nil'})`).join('; ') || 'none'}: ${say(X.parts[1])}`);
+  console.log(`  3. pooled spending delivered on the paths both keep ${iv(R.kept.pooled, f4)}% of K2's; not lower by more than ${-RULE.spend}%: ${say(X.parts[2])}`);
+  console.log(`  4. the pot counted up to the cap, pooled ${f3(R.capped.pct)}% (${gbp(R.capped.gbp)} a path), beside spending ${gbp(R.spendGbp)} a path over every path: recorded, not a bar (D116)`);
+  console.log(`  5. pooled lifetime tax, HS5 ${gbp(X.taxHS5)} against HOUSE ${gbp(X.taxHOUSE)} (${f3(100 * (X.taxHS5 / X.taxHOUSE - 1))}%); HS5's lower: ${say(X.parts[4])}`);
+  console.log(`  6. the household table's opening forecast less HS5's survival, beyond ${RULE.forecast} points: ${X.fc.filter(f => f.out).map(f => `${f.id} ${f2(f.gap)} (${f.forecast.toFixed(2)} against ${f.survival.toFixed(2)})`).join('; ') || 'none'} (named; the outcome unchanged)`);
+  console.log(`OUTCOME: ${X.outcome}`);
+  if (X.outcome === 'A LEAD, WITH A UNIT TO PLACE') for (const h of X.below) console.log(`  to place: ${h.id}: locked years ${h.U.bias.lockedYears} (${h.U.bias.lockedAt.join(', ')}); the first person's share of the pensions ${h.U.bias.penShareSelf.toFixed(3)}; income tax left out ${gbp(h.U.bias.incomeTaxLeftOut.aYear)} a year; one-off deposits ${h.U.bias.oneOffOwned.map(d => `${gbp(d.amount)} (${d.owner}, ${d.year})`).join(', ') || 'none'}; its lost paths fail in plan years ${Object.entries(failingYears(h.U.arms.K2, h.U.arms.HS5)).map(([y, c]) => `${y} (${c})`).join(', ')}`);
+  if (X.outcome === 'STOP') process.exit(0);
+  const s = X.search;
+  console.log(`\nTHE SPLIT'S SEARCH, HS1 less HS5: pooled survival ${iv(s.pooled)}; units wholly below ${RULE.unit}: ${s.below.map(h => `${h.id} ${iv(h.ch)}`).join('; ') || 'none'}; pooled spending on the paths both keep ${iv(s.kept, f4)}%; pooled lifetime tax ${f3(s.taxPct)}%: ${s.goes ? 'THE SEARCH GOES' : 'THE SEARCH STAYS'}`);
   console.log('\nBESIDE THE RULE, deciding nothing:');
-  for (const g of ['younger', 'library', '90/10', 'feature']) {
-    const hs = R.H.filter(h => h.group === g); if (!hs.length) continue;
-    const p = pooledSummed(hs.map(h => h.cells)), s = spendOf(units.filter(U => U.group === g).map(U => [U.arms.K2, U.arms.HOUSE])).pooled;
-    console.log(`  ${g.padEnd(8)} (${hs.length}): survival ${f3(p.d)} (${f3(p.lo)} to ${f3(p.hi)}); spending ${f3(s.d)}% (${f3(s.lo)} to ${f3(s.hi)})`);
+  const wl = withoutLargest(R);
+  console.log(`  without its largest unit: pooled survival ${iv(wl.survival)} (without ${wl.survival.id}); spending on the kept paths ${iv(wl.kept, f4)}% (without ${wl.kept.id}); the capped pot ${f3(wl.capped.pct)}% (${gbp(wl.capped.gbp)} a path; without ${wl.capped.id})`);
+  console.log(`  spending delivered over every path ${iv(R.every.pooled, f4)}%`);
+  const H = X.H;
+  console.log(`  HOUSE less K2: pooled survival ${iv(H.pooled)}; units wholly below ${RULE.unit}: ${H.H.filter(h => h.ch.hi < RULE.unit).map(h => `${h.id} ${iv(h.ch)}`).join('; ') || 'none'}; spending on the kept paths ${iv(H.kept.pooled, f4)}%; the capped pot ${f3(H.capped.pct)}% (${gbp(H.capped.gbp)} a path)`);
+  const ac = (base, arm) => { const S = { hi: { n: 0, tb: 0, tx: 0, pb: 0, px: 0 }, lo: { n: 0, tb: 0, tx: 0, pb: 0, px: 0 } }; for (const U of units) { const a = aboveCap(U, U.arms[base], U.arms[arm]); for (const w of ['hi', 'lo']) if (a[w].n) { S[w].n += a[w].n; S[w].tb += a[w].taxB * a[w].n; S[w].tx += a[w].taxX * a[w].n; S[w].pb += a[w].potB * a[w].n; S[w].px += a[w].potX * a[w].n; } } return S; };
+  for (const arm of ['HOUSE', 'HS5', 'HS1']) { const S = ac('K2', arm), q = (w, k) => S[w][k] / S[w].n; console.log(`  ${arm} against K2, above the cap (both end above it; ${S.hi.n} paths): lifetime tax ${gbp(q('hi', 'tb'))} and ${gbp(q('hi', 'tx'))}, the pot left ${gbp(q('hi', 'pb'))} and ${gbp(q('hi', 'px'))}; below it (both at or below, both kept; ${S.lo.n} paths): tax ${gbp(q('lo', 'tb'))} and ${gbp(q('lo', 'tx'))}, the pot ${gbp(q('lo', 'pb'))} and ${gbp(q('lo', 'px'))}`); }
+  const cnt = a => units.reduce((t, U) => ({ decisions: t.decisions + U.arms[a].counts.decisions, far: t.far + U.arms[a].counts.far, down: t.down + U.arms[a].counts.down }), { decisions: 0, far: 0, down: 0 });
+  for (const a of ['HS5', 'HS1']) { const c = cnt(a); console.log(`  step 1's counts, ${a}: ${c.decisions} decisions, past twice the table's wealth top ${c.far}, of those to a less risky tier ${c.down}; by unit where past it: ${units.filter(U => U.arms[a].counts.far).map(U => `${U.id} ${U.arms[a].counts.far}/${U.arms[a].counts.down}`).join(', ') || 'none'}`); }
+  const why = (a, p) => { const z = units.reduce((t, U) => { const w = U.why[a][p]; return { n: t.n + w.n, level: t.level + w.level, raise: t.raise + w.raise, cut: t.cut + w.cut, riskN: t.riskN + w.riskN, risk: t.risk + w.risk }; }, { n: 0, level: 0, raise: 0, cut: 0, riskN: 0, risk: 0 }); return `the level ${(z.level / z.n).toFixed(4)} (a raise at ${(100 * z.raise / z.n).toFixed(1)}%, a cut at ${(100 * z.cut / z.n).toFixed(1)}% of decisions), the risk held ${(z.risk / z.riskN).toFixed(3)}% a year`; };
+  console.log(`  the spending level and the risk held, on each unit's first ${units[0].why.n} paths, pooled over the units (the review's why-pot.mjs measures):`);
+  for (const p of ['all', 'first', 'middle', 'last']) console.log(`    ${p === 'all' ? 'every spending year' : `the ${p} third`}: K2 ${why('K2', p)}; HS5 ${why('HS5', p)}`);
+  const ratio = (a, f) => units.map(U => f(U.arms[a]) / f(U.arms.K2)), one = units.filter(U => new Set(ARMS.flatMap(a => U.arms[a].chunks.map(c => c.proc))).size === 1);
+  console.log(`  the time against K2's, the median over the units (over the ${one.length} whose four arms ran in one process): ${['HOUSE', 'HS5', 'HS1'].map(a => `${a} the solve x${median(ratio(a, x => x.solveSecs)).toFixed(2)}, CPU a path x${median(ratio(a, x => x.cpuUs)).toFixed(3)} (x${one.length ? median(one.map(U => U.arms[a].cpuUs / U.arms.K2.cpuUs)).toFixed(3) : '-'})`).join('; ')}; K2 ${(median(units.map(U => U.arms.K2.cpuUs / 1e3 / U.N))).toFixed(1)} ms a path`);
+  console.log('  by unit: survival K2 / HOUSE / HS5 / HS1 (%); HS5 less K2 (interval; saved / lost); spending on the kept paths %; the capped pot % and a path; lifetime tax K2 / HS5; the forecast less HS5; HS1 less HS5; biases; step 1\'s counts on HS5');
+  for (const h of R.H) {
+    const U = h.U, sv = a => (100 * sum(U.arms[a].survived) / U.N).toFixed(2), sp = R.kept.by[R.H.indexOf(h)], f = X.fc.find(x => x.id === U.id), s1 = X.search.pooled && compare([U], 'HS5', 'HS1').H[0];
+    console.log(`    ${U.id.padEnd(12)} ${U.group.padEnd(8)} ${sv('K2')} / ${sv('HOUSE')} / ${sv('HS5')} / ${sv('HS1')}; ${iv(h.ch)} (${h.cells.saved} / ${h.cells.lost}); ${f4(sp.d)}%; ${f3(h.capped.pct)}% ${gbp(h.capped.gbp)}; ${gbp(h.tax[0] / U.N)} / ${gbp(h.tax[1] / U.N)}; ${f2(f.gap)}; ${iv(s1.ch)}; ${biasesNil(U.bias) ? 'nil' : `locked ${U.bias.lockedYears}, share ${U.bias.penShareSelf.toFixed(2)}, tax left out ${gbp(U.bias.incomeTaxLeftOut.aYear)} a year, deposits ${U.bias.oneOffOwned.length}`}; ${U.arms.HS5.counts.far}/${U.arms.HS5.counts.down}`);
   }
-  const ex = R.H.filter(h => h.exact), pe = ex.length ? pooledSummed(ex.map(h => h.cells)) : null;
-  if (pe) console.log(`  the ${ex.length} nearest exact (${ex.map(h => h.id).join(', ')}): survival ${f3(pe.d)} (${f3(pe.lo)} to ${f3(pe.hi)})`);
-  console.log('  by unit: survival K2 / HOUSE (%), the change (interval; saved/lost), spending %, the typical pot %, lifetime tax K2 / HOUSE, the forecast K2 / HOUSE (%), the solve K2 / HOUSE (s), CPU a path K2 / HOUSE (ms), design A\'s biases, the replay along K2\'s path');
-  for (const h of R.H) console.log(`    ${h.id.padEnd(12)} ${h.group.padEnd(8)} ${h.surv[0].toFixed(2)} / ${h.surv[1].toFixed(2)}; ${f3(h.ch.d)} (${f3(h.ch.lo)} to ${f3(h.ch.hi)}; ${h.cells.saved}/${h.cells.lost}); ${f3(h.spend.d)}%; ${f2(h.typical.d)}%; £${Math.round(h.tax[0]).toLocaleString('en-GB')} / £${Math.round(h.tax[1]).toLocaleString('en-GB')}; ${h.forecast[0].toFixed(1)} / ${h.forecast[1].toFixed(1)}; ${h.solve[0].toFixed(0)} / ${h.solve[1].toFixed(0)}; ${h.path[0].toFixed(1)} / ${h.path[1].toFixed(1)}; locked ${h.bias.lockedYears}, pension share ${h.bias.penShareSelf.toFixed(2)}${h.exact ? ' (nearest exact)' : ''}; differs ${h.along.differ} of ${h.along.decisions} (level ${h.along.level}: up ${h.along.higher}, down ${h.along.lower}; split ${h.along.split}; tiers ${h.along.tiers})${h.lostWhere.lost && h.bias.lockedYears ? `; of its ${h.lostWhere.lost} lost paths ${h.lostWhere.inLocked} fail in its locked years` : ''}`);
 }

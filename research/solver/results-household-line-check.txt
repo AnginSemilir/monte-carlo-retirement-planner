@@ -1,0 +1,34 @@
+THE AUDIT'S SETTINGS CHECK AS STEP 1 WORDS IT, AGAINST THE LEAD TEST'S UNITS (EXPLORATORY, deciding nothing)
+  S327F        the household's minimum pot 90000; the first person's share 0.5, so their table's 45000
+  S329F        the household's minimum pot 205000; the first person's share 0.5, so their table's 102500
+  S331F        the household's minimum pot 73400; the first person's share 0.5, so their table's 36700
+  S333F        the household's minimum pot 135300; the first person's share 0.5, so their table's 67650
+  S335F        the household's minimum pot 141500; the first person's share 0.5, so their table's 70750
+  S337F        the household's minimum pot 35000; the first person's share 0.5, so their table's 17500
+  S341F        the household's minimum pot 40200; the first person's share 0.5, so their table's 20100
+  S343F        the household's minimum pot 72600; the first person's share 0.5, so their table's 36300
+  S149         the household's minimum pot 205000; the first person's share 0.5, so their table's 102500
+  S167         the household's minimum pot 480000; the first person's share 0.5, so their table's 240000
+  S205         the household's minimum pot 22400; the first person's share 0.5, so their table's 11200
+  S223         the household's minimum pot 66300; the first person's share 0.5, so their table's 33150
+  S023-90      the household's minimum pot 132300; the first person's share 0.9, so their table's 119070
+  S061-90      the household's minimum pot 17300; the first person's share 0.9, so their table's 15570
+  S109-90      the household's minimum pot 80000; the first person's share 0.9, so their table's 72000
+  S147-90      the household's minimum pot 90000; the first person's share 0.9, so their table's 81000
+  S191-90      the household's minimum pot 112900; the first person's share 0.9, so their table's 101610
+  S227-90      the household's minimum pot 480000; the first person's share 0.9, so their table's 432000
+  S271-90      the household's minimum pot 90800; the first person's share 0.9, so their table's 81720
+  S377-90      the household's minimum pot 90000; the first person's share 0.9, so their table's 81000
+  S023-db      the household's minimum pot 145100; the first person's share 0.5, so their table's 72550
+  S061-dbpart  the household's minimum pot 21400; the first person's share 0.5, so their table's 10700
+  S109-sppart  the household's minimum pot 80000; the first person's share 0.5, so their table's 40000
+  S147-db      the household's minimum pot 90000; the first person's share 0.5, so their table's 45000
+  S191-dbpart  the household's minimum pot 129800; the first person's share 0.5, so their table's 64900
+  S227-sppart  the household's minimum pot 480000; the first person's share 0.5, so their table's 240000
+  S271-db      the household's minimum pot 100800; the first person's share 0.5, so their table's 50400
+  S377-dbpart  the household's minimum pot 90000; the first person's share 0.5, so their table's 45000
+  units with a minimum pot: 28 of 28
+S149 at 6 points: the share 0.5; the fields of the two lines that differ: minPot (the first person's 102500, the household's 205000); tieAboveCap (the first person's 0, the household's 0.0001)
+  the check as worded: household: minPot 205000, the first person's 102500; as D124 rules it: no problem
+S327F at 6 points: the share 0.5; the fields of the two lines that differ: minPot (the first person's 45000, the household's 90000); tieAboveCap (the first person's 0, the household's 0.0001)
+  the check as worded: household: minPot 90000, the first person's 45000; as D124 rules it: no problem

@@ -1,0 +1,26 @@
+D112's FIX AGAINST EACH READ'S OWN RULE (EXPLORATORY, deciding nothing; stats-newcombe-rules.mjs): each stored run whose reducer reads survivalChangeU or pooledSummed, its rule run on its units before the fix (method 8) and after it (method 10), every decision compared
+
+share-choose-7002 (reduce-share-choose.mjs): 14 units; 52 decisions compared; none differs
+  its verdicts and parts: all.i.holds false; all.ii.holds false; all.iv.light15.holds false; all.iv.light6.holds false; all.verdict "THE FORECAST MISSES"
+
+joint-wide-7002 (reduce-joint-wide.mjs): 28 units; 189 decisions compared; none differs
+  its verdicts and parts: all.R.K4.holds false; all.R.K6.holds false; all.verdict "FAILS"
+
+other-order-7002 (reduce-other-order.mjs): 24 units; 82 decisions compared; none differs
+  its verdicts and parts: all.verdict "NEITHER"
+
+speed-b-7002 (reduce-speed-b.mjs): 32 units; 74 decisions compared; none differs
+  its verdicts and parts: couple.holds false; single.holds true
+
+share-ensemble-7002 (reduce-share-ensemble.mjs): 10 units; 35 decisions compared; none differs
+  its verdicts and parts: all.verdict "THE SHARE'S MEASURE"
+
+tie-c2-7001 (reduce-tie-c2.mjs): 12 units; 77 decisions compared; none differs
+  its verdicts and parts: all.verdict "PASSES (LOOKHOLD)"
+
+tie-couple-7002 (reduce-tie-couple.mjs): 8 units; 51 decisions compared; none differs
+  its verdicts and parts: all.verdict "FAILS"
+
+Not checked, their runs' units not stored here (each read stands as printed, D112): reduce-7aa.mjs, reduce-7af.mjs, reduce-7ag.mjs, reduce-7ah.mjs, reduce-7aj.mjs, reduce-7as.mjs, reduce-7au.mjs, reduce-7aw.mjs, reduce-7u.mjs, reduce-7uf.mjs, reduce-7v.mjs, reduce-P.mjs, reduce-adoptpi.mjs, reduce-copyw.mjs, reduce-copyx.mjs, reduce-dto97.mjs, reduce-isasweep.mjs, reduce-neblend-a.mjs, reduce-negrid-b1.mjs, reduce-negrid-c.mjs, reduce-nesplit.mjs, reduce-o182.mjs, reduce-share.mjs, reduce-speed.mjs, reduce-steps370.mjs
+
+7 runs, 560 decisions compared, 0 differing

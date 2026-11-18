@@ -1,0 +1,53 @@
+WHY THE HOUSEHOLD PLAN LOSES ON THREE COUPLES: THE DECOMPOSITION (EXPLORATORY; HOUSEHOLD-DECOMP.md, D129 (1)): 3 units, seed 7002, 4000 paths, 45 points; code 603eeb595679, audit 8f3c434a5f55
+THE GATE: fair; K2 and HS the lead test's K2 and HS1 byte for byte on all 3 units; each variant's plan its groups single, every other doubled entry as HS's
+
+THE RULE, on each unit (L: the paths K2 keeps and HS loses; a variant's recovery: the paths of L it keeps, less the paths HS keeps that it loses; recovers: half of L or more, and the variant less HS beyond noise):
+  S191-90: L 832 (HS less K2 -20.800 (-20.800 to -20.616))
+    HSB   keeps 824 of L, loses 0 HS keeps: recovery 824 (99.0% of L); HSB less HS +21.300 (+21.116 to +21.300) (852 saved, 0 lost): RECOVERS
+    HSC   keeps 477 of L, loses 5 HS keeps: recovery 472 (56.7% of L); HSC less HS +11.825 (+11.496 to +11.994) (478 saved, 5 lost): RECOVERS
+    HSBC  keeps 821 of L, loses 0 HS keeps: recovery 821 (98.7% of L); HSBC less HS +20.975 (+20.791 to +20.975) (839 saved, 0 lost): RECOVERS
+    OUTCOME: EITHER
+  S333F: L 52 (HS less K2 -1.025 (-1.290 to -0.658))
+    HSB   keeps 43 of L, loses 8 HS keeps: recovery 35 (67.3% of L); HSB less HS +1.050 (+0.714 to +1.272) (50 saved, 8 lost): RECOVERS
+    HSC   keeps 35 of L, loses 17 HS keeps: recovery 18 (34.6% of L); HSC less HS +0.625 (+0.234 to +0.951) (42 saved, 17 lost): does not recover
+    HSBC  keeps 45 of L, loses 8 HS keeps: recovery 37 (71.2% of L); HSBC less HS +1.325 (+0.981 to +1.548) (61 saved, 8 lost): RECOVERS
+    OUTCOME: RESTS ON THE BANDS
+  S335F: L 71 (HS less K2 -1.525 (-1.779 to -1.153))
+    HSB   keeps 57 of L, loses 4 HS keeps: recovery 53 (74.6% of L); HSB less HS +1.625 (+1.334 to +1.770) (69 saved, 4 lost): RECOVERS
+    HSC   keeps 50 of L, loses 4 HS keeps: recovery 46 (64.8% of L); HSC less HS +1.275 (+0.989 to +1.420) (55 saved, 4 lost): RECOVERS
+    HSBC  keeps 57 of L, loses 6 HS keeps: recovery 51 (71.8% of L); HSBC less HS +1.500 (+1.179 to +1.688) (66 saved, 6 lost): RECOVERS
+    OUTCOME: EITHER
+
+BESIDE THE RULE, deciding nothing:
+  S191-90:
+    survival: K2 97.63%, HS 76.83%, HSB 98.13%, HSC 88.65%, HSBC 97.80%, CEIL 98.60%, CEILB 97.60%, CEILC 98.47%, CEILBC 96.10%
+    the lost paths by kind (at the minimum pot at the end / a year unfunded): K2 18/77, HS 673/254, HSB 14/61, HSC 294/160, HSBC 7/81, CEIL 22/34, CEILB 19/77, CEILC 21/40, CEILBC 24/132
+    HSB: less K2 +0.500 (+0.195 to +0.718); spending on the paths both keep against HS -2.2429 (-2.2988 to -2.1870)%, against K2 +0.4613 (+0.4176 to +0.5049)%; the capped pot against HS +9.855% (£473,426 a path), against K2 -0.305% (-£16,128 a path)
+    HSC: less K2 -8.975 (-9.024 to -8.748); spending on the paths both keep against HS -0.3467 (-0.3663 to -0.3272)%, against K2 +2.1924 (+2.1236 to +2.2613)%; the capped pot against HS +1.837% (£88,245 a path), against K2 -7.581% (-£401,309 a path)
+    HSBC: less K2 +0.175 (-0.112 to +0.425); spending on the paths both keep against HS -2.3336 (-2.3982 to -2.2690)%, against K2 +0.3458 (+0.2838 to +0.4077)%; the capped pot against HS +16.411% (£788,350 a path), against K2 +5.645% (£298,796 a path)
+    the end pot, mean / median: K2 £7,706,102 / £5,287,244, HS £7,529,690 / £4,281,292, HSB £8,248,051 / £5,312,033, HSC £7,719,117 / £4,397,436, HSBC £10,020,421 / £6,525,918
+    lifetime tax, mean: K2 £600,613, HS £939,164, HSB £518,641, HSC £879,798, HSBC £470,139
+    each household table's opening forecast against its survival on the couple and on its own plan: HS 98.66% against 76.83% and 98.60%; HSB 97.31% against 98.13% and 97.60%; HSC 98.56% against 88.65% and 98.47%; HSBC 96.86% against 97.80% and 96.10%
+    CEIL less HS, paired by path, each table: CEIL less HS +21.775 (+21.591 to +21.775); CEILB less HSB -0.525 (-0.690 to -0.252); CEILC less HSC +9.825 (+9.641 to +9.825); CEILBC less HSBC -1.700 (-1.700 to -1.520)
+  S333F:
+    survival: K2 92.73%, HS 91.70%, HSB 92.75%, HSC 92.33%, HSBC 93.03%, CEIL 93.27%, CEILB 92.55%, CEILC 93.10%, CEILBC 92.22%
+    the lost paths by kind (at the minimum pot at the end / a year unfunded): K2 20/271, HS 56/276, HSB 19/271, HSC 31/276, HSBC 11/268, CEIL 15/254, CEILB 18/280, CEILC 11/265, CEILBC 14/297
+    HSB: less K2 +0.025 (-0.234 to +0.278); spending on the paths both keep against HS -0.2986 (-0.3254 to -0.2718)%, against K2 +0.1645 (+0.1372 to +0.1917)%; the capped pot against HS -0.697% (-£45,716 a path), against K2 -1.797% (-£119,140 a path)
+    HSC: less K2 -0.400 (-0.701 to -0.046); spending on the paths both keep against HS -0.0534 (-0.0678 to -0.0390)%, against K2 +0.3970 (+0.3707 to +0.4232)%; the capped pot against HS +0.254% (£16,680 a path), against K2 -0.856% (-£56,744 a path)
+    HSBC: less K2 +0.300 (-0.009 to +0.554); spending on the paths both keep against HS -0.4090 (-0.4400 to -0.3780)%, against K2 +0.0499 (+0.0212 to +0.0787)%; the capped pot against HS -0.382% (-£25,018 a path), against K2 -1.485% (-£98,442 a path)
+    the end pot, mean / median: K2 £27,374,331 / £11,498,683, HS £29,766,013 / £11,362,323, HSB £29,308,255 / £10,884,474, HSC £29,748,101 / £11,288,454, HSBC £29,345,862 / £10,860,205
+    lifetime tax, mean: K2 £1,334,911, HS £1,466,928, HSB £1,512,509, HSC £1,472,732, HSBC £1,509,633
+    each household table's opening forecast against its survival on the couple and on its own plan: HS 93.10% against 91.70% and 93.27%; HSB 91.86% against 92.75% and 92.55%; HSC 92.96% against 92.33% and 93.10%; HSBC 91.59% against 93.03% and 92.22%
+    CEIL less HS, paired by path, each table: CEIL less HS +1.575 (+1.328 to +1.663); CEILB less HSB -0.200 (-0.381 to +0.043); CEILC less HSC +0.775 (+0.520 to +0.893); CEILBC less HSBC -0.800 (-0.918 to -0.544)
+  S335F:
+    survival: K2 94.45%, HS 92.92%, HSB 94.55%, HSC 94.20%, HSBC 94.42%, CEIL 94.65%, CEILB 94.25%, CEILC 94.60%, CEILBC 94.05%
+    the lost paths by kind (at the minimum pot at the end / a year unfunded): K2 14/208, HS 66/217, HSB 15/203, HSC 18/214, HSBC 13/210, CEIL 19/195, CEILB 18/212, CEILC 18/198, CEILBC 10/228
+    HSB: less K2 +0.100 (-0.222 to +0.406); spending on the paths both keep against HS -0.3884 (-0.4110 to -0.3658)%, against K2 -0.2661 (-0.2959 to -0.2363)%; the capped pot against HS -0.582% (-£39,722 a path), against K2 -1.452% (-£99,989 a path)
+    HSC: less K2 -0.250 (-0.536 to +0.076); spending on the paths both keep against HS -0.0504 (-0.0604 to -0.0405)%, against K2 +0.0671 (+0.0400 to +0.0942)%; the capped pot against HS -0.076% (-£5,191 a path), against K2 -0.950% (-£65,458 a path)
+    HSBC: less K2 -0.025 (-0.317 to +0.272); spending on the paths both keep against HS -0.5104 (-0.5378 to -0.4830)%, against K2 -0.3858 (-0.4170 to -0.3545)%; the capped pot against HS -0.233% (-£15,890 a path), against K2 -1.106% (-£76,157 a path)
+    the end pot, mean / median: K2 £28,028,315 / £12,108,229, HS £31,072,950 / £12,136,771, HSB £30,665,626 / £11,829,764, HSC £30,983,606 / £12,034,116, HSBC £30,713,022 / £11,857,720
+    lifetime tax, mean: K2 £1,353,244, HS £1,457,341, HSB £1,484,542, HSC £1,472,603, HSBC £1,481,474
+    each household table's opening forecast against its survival on the couple and on its own plan: HS 94.30% against 92.92% and 94.65%; HSB 93.10% against 94.55% and 94.25%; HSC 94.17% against 94.20% and 94.60%; HSBC 92.83% against 94.42% and 94.05%
+    CEIL less HS, paired by path, each table: CEIL less HS +1.725 (+1.433 to +1.870); CEILB less HSB -0.300 (-0.388 to -0.093); CEILC less HSC +0.400 (+0.166 to +0.518); CEILBC less HSBC -0.375 (-0.463 to -0.160)
+  the three units pooled, each variant's recovery: HSB 912 of 955 (95.5%); HSC 536 of 955 (56.1%); HSBC 909 of 955 (95.2%)
+  the solves and the paths: S191-90 K2 123.6 ms a path, HS 51.4 ms a path, HSB 53.7 ms a path, HSC 50.4 ms a path, HSBC 55.2 ms a path; S333F K2 239.7 ms a path, HS 66.9 ms a path, HSB 60.3 ms a path, HSC 64.0 ms a path, HSBC 55.0 ms a path; S335F K2 256.2 ms a path, HS 68.5 ms a path, HSB 59.1 ms a path, HSC 65.8 ms a path, HSBC 55.5 ms a path

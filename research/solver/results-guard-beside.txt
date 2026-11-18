@@ -1,0 +1,42 @@
+node research/solver/guard-beside.mjs (18 Nov, after the read; EXPLORATORY)
+BESIDE THE GUARD TEST'S READ (EXPLORATORY, after the read, deciding nothing; the reviewer's findings 1 to 4): 8 units from /home/user/monte-carlo-retirement-planner/research/solver/results/guard-7002, seed 7002, 4000 paths; code 603eeb595679, audit 8086bcf05f68
+
+1. Where each unit's income starts as the engine counts it (from its owner's retirement at the earliest):
+  S149@gap8+db         typed from 68, counted from 68 (plan year 12); the first person 56 now, retiring at 55
+  S149@gap8+rent       typed from 56, counted from 56 (plan year 0); the first person 56 now, retiring at 55
+  S149@gap12+db        typed from 68, counted from 68 (plan year 12); the first person 56 now, retiring at 55
+  S149@gap12+rent      typed from 56, counted from 56 (plan year 0); the first person 56 now, retiring at 55
+  S337F@gap8+db        typed from 68, counted from 68 (plan year 31); the first person 37 now, retiring at 52
+  S337F@gap8+rent      typed from 37, counted from 52 (plan year 15); the first person 37 now, retiring at 52
+  S337F@gap12+db       typed from 68, counted from 68 (plan year 31); the first person 37 now, retiring at 52
+  S337F@gap12+rent     typed from 37, counted from 52 (plan year 15); the first person 37 now, retiring at 52
+  K2 less APP pooled over the rent units counted from plan year 0 (S149@gap8+rent, S149@gap12+rent): -3.200 (-3.834 to -2.541)
+  K2 less APP pooled over the rent units counted later (S337F@gap8+rent, S337F@gap12+rent): +2.200 (+1.768 to +2.595)
+
+2. The end pot, APP against K2 (mean / median over every path):
+  S149@gap8+db         mean £1,834,287 / £1,262,536 (K2 -31.170%); median £855,924 / £853,992 (K2 -0.226%)
+  S149@gap8+rent       mean £2,077,425 / £1,440,745 (K2 -30.648%); median £875,368 / £1,015,573 (K2 +16.017%)
+  S149@gap12+db        mean £1,723,879 / £1,217,187 (K2 -29.393%); median £761,961 / £796,342 (K2 +4.512%)
+  S149@gap12+rent      mean £2,143,529 / £1,290,150 (K2 -39.812%); median £873,473 / £862,455 (K2 -1.261%)
+  S337F@gap8+db        mean £18,887,618 / £1,809,104 (K2 -90.422%); median £2,108,641 / £1,103,621 (K2 -47.662%)
+  S337F@gap8+rent      mean £17,183,649 / £2,021,221 (K2 -88.238%); median £2,097,445 / £1,273,299 (K2 -39.293%)
+  S337F@gap12+db       mean £19,953,429 / £1,980,231 (K2 -90.076%); median £2,546,594 / £1,180,598 (K2 -53.640%)
+  S337F@gap12+rent     mean £17,997,877 / £2,147,789 (K2 -88.066%); median £2,374,724 / £1,293,573 (K2 -45.527%)
+
+3. Arm A's own pick on each gap couple (step 5's from shapes-panel.json, this test's from guard-panel.json; the lump sum where the label names it):
+  S149@gap8            ISA First
+  S149@gap12           ISA First
+  S337F@gap8           Bracket Fill, lump sum (the lump sum)
+  S337F@gap12          Bracket Fill (harvest off)
+  S147-db@gap8         ISA First, lump sum (the lump sum)
+  S147-db@gap12        ISA First, lump sum (the lump sum)
+  S061-dbpart@gap8     Bracket Fill, lump sum (the lump sum)
+  S061-dbpart@gap12    Bracket Fill, lump sum (the lump sum)
+  S149@gap8+db         Bracket Fill (harvest off), lump sum (the lump sum)
+  S149@gap8+rent       ISA First, lump sum (the lump sum)
+  S149@gap12+db        ISA First
+  S149@gap12+rent      ISA First, lump sum (the lump sum)
+  S337F@gap8+db        ISA First
+  S337F@gap8+rent      ISA First, lump sum (the lump sum)
+  S337F@gap12+db       Bracket Fill
+  S337F@gap12+rent     ISA First (harvest off), lump sum (the lump sum)

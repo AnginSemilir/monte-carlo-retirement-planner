@@ -86,3 +86,14 @@ rule committed first. EXPLORATORY: nothing in the app, its defaults or the candi
 - Half a day to read.
 
 When the box runs out, stop and report.
+
+## Amendment 1 (18 Nov, evening, before anything of it is built or run; the decomposition's reviewer, finding 4)
+
+The decomposition's reviewer found that once the bands are single, leaving the cap single as well adds nothing: both
+single less the bands single is `-0.325` on S191-90 (beyond noise), `-0.125` on S335F and `+0.275` on S333F
+(`results-household-decomp-beside.txt`; `reviews/2026-11-18-read-household-decomp.md`). So part 1 comes in two forms, and
+the read prices the bands alone as well:
+- `opts.scale: 'bands'`: the bands priced at the pensions' split, the cap doubled as in design A;
+- `opts.scale: 'pensions'`: the bands and the cap, as above.
+
+The test checks both forms. The read gains the arm HSPB, the bands alone at the even split.

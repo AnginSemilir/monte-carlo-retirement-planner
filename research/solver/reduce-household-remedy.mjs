@@ -1,16 +1,17 @@
 /*
- * THE REMEDY'S READ (HOUSEHOLD-REMEDY-READ.md; HOUSEHOLD-REMEDY.md; D129 (3); EXPLORATORY): the household plan with its
- * allowances priced at the pensions' split (HSP, the even split; HSPS, the split at the pensions' share too) against today's
+ * THE REMEDY'S READ (HOUSEHOLD-REMEDY-READ.md as amended; HOUSEHOLD-REMEDY.md; D129 (3); EXPLORATORY): the household plan
+ * with its allowances priced at the pensions' split (HSPB, the bands alone; HSP, the bands and the cap; each at the even
+ * split; HSPS, HSP's table at the pensions' share) against today's
  * couples' default (K2) and the household plan as built (HS) on the lead test's 28 units, by the rule committed before any
  * unit ran. The gate first (fair-gate.mjs on the units' logs; one code, audit, seed, size and candidate; every unit there
  * with its four arms whole; K2 and HS the lead test's arrays, checked on their first 200 paths by the audit and here against
- * the lead test's unit files whole; each remedy plan part 1's, recomputed from HS's own entries; its band for gains k
- * times one person's). Then for each of HSP and HSPS, against K2, paired by path (stats.mjs survivalChange):
+ * the lead test's unit files whole; each remedy plan part 1's in its form, recomputed from HS's own entries; its band for
+ * gains k times one person's). Then for each of HSPB, HSP and HSPS, against K2, paired by path (stats.mjs survivalChange):
  *   1. THE THREE MENDED: on S191-90, S333F and S335F the interval does not lie wholly below -0.3 points;
  *   2. THE GAIN KEPT: pooled survival's interval has its lower end above nought, no unit's interval lies wholly below
  *      -0.3, and pooled spending on the paths both keep is not lower than K2's by more than 0.05%.
  * Each arm: MENDS (1 and 2), MENDS THE THREE, NOT THE GAIN (1 alone), DOES NOT MEND (1 fails). The arm taken: HSP if it
- * MENDS, else HSPS if it MENDS, else none. Beside, deciding nothing: each arm less HS; the capped pot; lifetime tax; each
+ * MENDS, else HSP, else HSPS, the smallest change first (the amendment), else none. Beside, deciding nothing: each arm less HS; the capped pot; lifetime tax; each
  * unit's k; the forecasts; the three couples' lost paths by kind; the pooled figures without their largest unit.
  *   node research/solver/reduce-household-remedy.mjs [--smoke] [--planted]
  */
@@ -22,21 +23,22 @@ import { survivalChange } from './stats.mjs';
 import { armOf, cells, spendOn } from './reduce-household.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-export const ARMS = ['K2', 'HS', 'HSP', 'HSPS'], NEW = ['HSP', 'HSPS'], THREE = ['S191-90', 'S333F', 'S335F'];
+export const ARMS = ['K2', 'HS', 'HSPB', 'HSP', 'HSPS'], NEW = ['HSPB', 'HSP', 'HSPS'], THREE = ['S191-90', 'S333F', 'S335F'];
+export const FORM = { HSPB: { scale: 'bands', split: 'even' }, HSP: { scale: 'pensions', split: 'even' }, HSPS: { scale: 'pensions', split: 'pensions' } };
 export const RULE = { unit: -0.3, spend: -0.05 }, CANDIDATE = 'af001697ce1b', FAIL_TOLERANCE = 1;
 export const JOINT = { shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2 };
 export const SCALED = ['paTaperThreshold', 'basicBandLimit', 'higherBandLimit', 'scotStarterLimit', 'scotBasicLimit', 'scotIntermediateLimit', 'scotHigherLimit', 'scotAdvancedLimit'];
 export const LEAD_ARM = { K2: 'K2', HS: 'HS1' };
-export const wantOptions = (arm, k) => (arm === 'K2' ? { ...JOINT } : arm === 'HS' ? { move: 'single', split: 'even' } : { move: 'single', split: arm === 'HSP' ? 'even' : 'pensions', scale: 'pensions', k });
+export const wantOptions = (arm, k) => (arm === 'K2' ? { ...JOINT } : arm === 'HS' ? { move: 'single', split: 'even' } : { move: 'single', split: FORM[arm].split, scale: FORM[arm].scale, k });
 const KEYS = ['survived', 'failYear', 'pot', 'estate', 'tax', 'delivered', 'unmet'];
 const sum = a => { let s = 0; for (const x of a) s += x; return s; };
 const mean = a => (a.length ? sum(a) / a.length : NaN);
 const js = x => JSON.stringify(x);
 
 /* part 1's plan from HS's own entries (each doubled: one person's is half), as HOUSEHOLD-REMEDY.md has it */
-export function wantPlan(hs, k) {
+export function wantPlan(hs, k, cap = true) {
   const pa = hs.personalAllowance / 2, out = {};
-  for (const key of Object.keys(hs)) out[key] = key === 'personalAllowance' ? hs[key] : SCALED.includes(key) ? 2 * pa + k * (hs[key] / 2 - pa) : key === 'pclsMaxCap' ? k * (hs[key] / 2) : hs[key];
+  for (const key of Object.keys(hs)) out[key] = key === 'personalAllowance' ? hs[key] : SCALED.includes(key) ? 2 * pa + k * (hs[key] / 2 - pa) : key === 'pclsMaxCap' && cap ? k * (hs[key] / 2) : hs[key];
   return out;
 }
 /* THE GATE: each unit against the design; leadOf(id) the lead test's unit file, or null (a smoke) */
@@ -55,9 +57,9 @@ export function gate(units, ids, audit, leadOf, size = { N: 4000, seed: 7002, pt
     if (js(U.joint) !== js(JOINT)) P.push(`${U.id}: the joint move ${js(U.joint)}`);
     const k = U.split && U.split.k;
     if (!(k >= 1 - 1e-12 && k <= 2 + 1e-12) || !(Math.abs(k - 1 / U.split.s) < 1e-12)) P.push(`${U.id}: k ${k} not 1/s in [1, 2]`);
-    if (!U.plans || !U.plans.HS || !U.plans.remedy) P.push(`${U.id}: the plans not recorded`);
-    else { const want = wantPlan(U.plans.HS, k), off = Object.keys(want).filter(key => U.plans.remedy[key] !== want[key]); if (off.length || js(Object.keys(U.plans.remedy)) !== js(Object.keys(want))) P.push(`${U.id}: the remedy's plan's ${off.join(', ') || 'entries'} not part 1's`); }
-    if (!(U.bands && Math.abs(U.bands.remedy - k * U.bands.person) < 1e-6)) P.push(`${U.id}: the remedy's band for gains ${U.bands && U.bands.remedy}, not k x ${U.bands && U.bands.person}`);
+    if (!U.plans || !U.plans.HS || !U.plans.bands || !U.plans.pensions) P.push(`${U.id}: the plans not recorded`);
+    else for (const form of ['bands', 'pensions']) { const want = wantPlan(U.plans.HS, k, form === 'pensions'), off = Object.keys(want).filter(key => U.plans[form][key] !== want[key]); if (off.length || js(Object.keys(U.plans[form])) !== js(Object.keys(want))) P.push(`${U.id}: the '${form}' plan's ${off.join(', ') || 'entries'} not part 1's`); }
+    for (const form of ['bands', 'pensions']) if (!(U.bands && Math.abs(U.bands[form] - k * U.bands.person) < 1e-6)) P.push(`${U.id}: the '${form}' band for gains ${U.bands && U.bands[form]}, not k x ${U.bands && U.bands.person}`);
     if (!(U.cap > 0) || !(U.T > 0)) P.push(`${U.id}: no cap or horizon recorded`);
     for (const a of ARMS) {
       const x = U.arms[a];
@@ -100,7 +102,7 @@ export function armRule(units, arm) {
 }
 export function rule(units) {
   const out = Object.fromEntries(NEW.map(a => [a, armRule(units, a)]));
-  const taken = out.HSP.outcome === 'MENDS' ? 'HSP' : out.HSPS.outcome === 'MENDS' ? 'HSPS' : null;
+  const taken = NEW.find(a => out[a].outcome === 'MENDS') || null;   // the smallest change first: HSPB, HSP, HSPS
   return { out, taken };
 }
 export const kinds = (A, T) => { let floor = 0, unfunded = 0; for (let i = 0; i < A.survived.length; i++) if (!A.survived[i]) { if (A.failYear[i] === T && A.unmet[i] <= FAIL_TOLERANCE) floor++; else unfunded++; } return { floor, unfunded }; };
@@ -115,16 +117,17 @@ function planted() {
   const run = (keep, extra) => arr(Array.from({ length: N }, (_, i) => (i < 3600 ? (i < keep ? 1 : 0) : (i < 3600 + extra ? 1 : 0))));
   const hsPlan = { personalAllowance: 25140, paTaperThreshold: 200000, basicBandLimit: 100540, higherBandLimit: 250280, scotStarterLimit: 33074, scotBasicLimit: 59052, scotIntermediateLimit: 87324, scotHigherLimit: 150000, scotAdvancedLimit: 250280, pclsMaxCap: 536550, isaAnnualAllowance: 40000 };
   const unit = (id, k, arms) => {
-    const A = { K2: run(3600, 0), HS: arms.HS, HSP: arms.HSP, HSPS: arms.HSPS }, kk = 1.25;
-    return { k, id, seed: 7002, N, pts: 45, candidate: CANDIDATE, stamp: { code: 'c', audit: 'a' }, joint: JOINT, split: { s: 0.8, k: kk }, plans: { HS: hsPlan, remedy: wantPlan(hsPlan, kk) }, bands: { remedy: kk * 37700, person: 37700 }, cap: 1e6, T,
+    const A = { K2: run(3600, 0), HS: arms.HS, HSPB: arms.HSPB, HSP: arms.HSP, HSPS: arms.HSPS }, kk = 1.25;
+    return { k, id, seed: 7002, N, pts: 45, candidate: CANDIDATE, stamp: { code: 'c', audit: 'a' }, joint: JOINT, split: { s: 0.8, k: kk }, plans: { HS: hsPlan, bands: wantPlan(hsPlan, kk, false), pensions: wantPlan(hsPlan, kk) }, bands: { bands: kk * 37700, pensions: kk * 37700, person: 37700 }, cap: 1e6, T,
       arms: Object.fromEntries(ARMS.map(a => [a, { ...A[a], raw: raw(A[a]), options: wantOptions(a, kk), forecast: 0.9, ...(LEAD_ARM[a] ? { stored: { arm: LEAD_ARM[a], checked: 200 } } : { chunks: [{ from: 0, to: N, cpuUs: 1, proc: 'p', cpu: 'c' }] }) }])) };
   };
   // the three lose 400 paths under HS; elsewhere HS gains 40
-  const build = (hsp, hsps) => ids.map((id, k) => unit(id, k, THREE.includes(id) ? { HS: run(3200, 0), HSP: hsp.three, HSPS: hsps.three } : { HS: run(3600, 40), HSP: hsp.rest, HSPS: hsps.rest }));
+  const build = (hsp, hsps, hspb = hsp) => ids.map((id, k) => unit(id, k, THREE.includes(id) ? { HS: run(3200, 0), HSPB: hspb.three, HSP: hsp.three, HSPS: hsps.three } : { HS: run(3600, 40), HSPB: hspb.rest, HSP: hsp.rest, HSPS: hsps.rest }));
   const mend = { three: run(3600, 0), rest: run(3600, 40) }, noMend = { three: run(3300, 0), rest: run(3600, 40) }, loseRest = { three: run(3600, 0), rest: run(3560, 0) };
   const checks = [], t = (label, got, want) => checks.push([label, got, want]);
-  { const r = rule(build(mend, mend)); t('both arms mend the three and keep the gain: both MENDS, HSP taken', `${r.out.HSP.outcome} | ${r.out.HSPS.outcome} | ${r.taken}`, 'MENDS | MENDS | HSP'); }
-  { const r = rule(build(noMend, mend)); t('HSP leaves the three 7.5 points below, HSPS mends: HSP DOES NOT MEND, HSPS taken', `${r.out.HSP.outcome} | ${r.taken}`, 'DOES NOT MEND | HSPS'); }
+  { const r = rule(build(mend, mend)); t('every arm mends the three and keeps the gain: each MENDS, HSPB taken (the smallest change)', `${r.out.HSPB.outcome} | ${r.out.HSP.outcome} | ${r.out.HSPS.outcome} | ${r.taken}`, 'MENDS | MENDS | MENDS | HSPB'); }
+  { const r = rule(build(mend, mend, noMend)); t('HSPB does not mend, HSP does: HSP taken', `${r.out.HSPB.outcome} | ${r.taken}`, 'DOES NOT MEND | HSP'); }
+  { const r = rule(build(noMend, mend)); t('HSPB and HSP leave the three 7.5 points below, HSPS mends: HSPS taken', `${r.out.HSP.outcome} | ${r.taken}`, 'DOES NOT MEND | HSPS'); }
   { const r = rule(build(loseRest, loseRest)); t('the three mended, the other 25 each losing a point: MENDS THE THREE, NOT THE GAIN, none taken', `${r.out.HSP.outcome} | ${r.taken}`, 'MENDS THE THREE, NOT THE GAIN | null'); }
   { const r = rule(build({ three: run(3592, 0), rest: run(3600, 40) }, noMend)); t('a unit of the three 0.2 points below K2 counts as mended', `${r.out.HSP.mended} ${r.out.HSP.three[0].ch.d.toFixed(2)}`, 'true -0.20'); }
   // the gate
@@ -132,9 +135,10 @@ function planted() {
   const clean = build(mend, mend);
   t('the gate passes 28 clean units', gate(clean, ids, 'a', leadFrom(clean)).length, 0);
   { const us = build(mend, mend), lead = leadFrom(build(mend, mend)); us[5].arms.HS.raw = { ...us[5].arms.HS.raw, survived: Buffer.from(new Uint8Array(N)).toString('base64') }; t('HS not the lead test\'s: refused', gate(us, ids, 'a', lead).some(p => /U02 HS: survived not the lead test's HS1/.test(p)), true); }
-  { const us = build(mend, mend); us[0].plans.remedy = { ...us[0].plans.remedy, basicBandLimit: 100540 }; t('a remedy plan with a band still doubled: refused', gate(us, ids, 'a', leadFrom(us)).some(p => /S191-90: the remedy's plan's basicBandLimit/.test(p)), true); }
-  { const us = build(mend, mend); us[1].plans.remedy = { ...us[1].plans.remedy, personalAllowance: 1.25 * 12570 }; t('a remedy plan with the allowance scaled: refused', gate(us, ids, 'a', leadFrom(us)).some(p => /S333F: the remedy's plan's personalAllowance/.test(p)), true); }
-  { const us = build(mend, mend); us[2].bands = { remedy: 75400, person: 37700 }; t('the remedy\'s band for gains two people\'s: refused', gate(us, ids, 'a', leadFrom(us)).some(p => /S335F: the remedy's band for gains/.test(p)), true); }
+  { const us = build(mend, mend); us[0].plans.pensions = { ...us[0].plans.pensions, basicBandLimit: 100540 }; t('a remedy plan with a band still doubled: refused', gate(us, ids, 'a', leadFrom(us)).some(p => /S191-90: the 'pensions' plan's basicBandLimit/.test(p)), true); }
+  { const us = build(mend, mend); us[1].plans.pensions = { ...us[1].plans.pensions, personalAllowance: 1.25 * 12570 }; t('a remedy plan with the allowance scaled: refused', gate(us, ids, 'a', leadFrom(us)).some(p => /S333F: the 'pensions' plan's personalAllowance/.test(p)), true); }
+  { const us = build(mend, mend); us[1].plans.bands = { ...us[1].plans.bands, pclsMaxCap: 1.25 * 268275 }; t('the bands-alone plan with its cap scaled: refused', gate(us, ids, 'a', leadFrom(us)).some(p => /S333F: the 'bands' plan's pclsMaxCap/.test(p)), true); }
+  { const us = build(mend, mend); us[2].bands = { bands: 1.25 * 37700, pensions: 75400, person: 37700 }; t('a remedy\'s band for gains two people\'s: refused', gate(us, ids, 'a', leadFrom(us)).some(p => /S335F: the 'pensions' band for gains/.test(p)), true); }
   { const us = build(mend, mend); us[3].arms.HSPS = { ...us[3].arms.HSPS, forecast: 0.5 }; t('HSP and HSPS on two tables: refused', gate(us, ids, 'a', leadFrom(us)).some(p => /U00: HSP and HSPS do not read one table/.test(p)), true); }
   { const us = build(mend, mend).slice(0, 27); t('a unit missing: refused', gate(us, ids, 'a', leadFrom(us)).some(p => /units missing: U24/.test(p)), true); }
   { const us = build(mend, mend); us[4].arms.K2 = { ...us[4].arms.K2, stored: { arm: 'K2', checked: 0 } }; t('K2 not checked on its first 200 paths: refused', gate(us, ids, 'a', leadFrom(us)).some(p => /U01 K2: not recorded as the lead test's K2/.test(p)), true); }
@@ -185,10 +189,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     console.log(`  ${a} less HS: pooled survival ${iv(S.pooled)}; units wholly below ${RULE.unit}: ${S.H.filter(h => h.ch.hi < RULE.unit).map(h => `${h.id} ${iv(h.ch)}`).join('; ') || 'none'}; spending on the paths both keep ${iv(S.kept.pooled, f4)}%`);
     console.log(`  ${a}: the capped pot against K2 ${f3(capPct(cK))}% (${gbp(capGbp(cK))} a path), against HS ${f3(capPct(cH))}% (${gbp(capGbp(cH))} a path); lifetime tax, mean a unit, K2 ${gbp(mean(units.map(U => mean(U.arms.K2.tax))))}, HS ${gbp(mean(units.map(U => mean(U.arms.HS.tax))))}, ${a} ${gbp(mean(units.map(U => mean(U.arms[a].tax))))}; pooled survival against K2 without its largest unit (${X.out[a].R.H[iL].id}) ${iv(without)}`);
   }
-  console.log('  by unit (k; survival K2 / HS / HSP / HSPS; HSP less K2; HSPS less K2; the table\'s forecast against HSP\'s survival):');
+  console.log('  by unit (k; survival K2 / HS / HSPB / HSP / HSPS; HSPB, HSP and HSPS less K2; each remedy table\'s forecast against its even split\'s survival):');
   for (const U of units) {
     const s = a => pct(sum(U.arms[a].survived) / U.N), d = a => { const c = cells(U.arms.K2, U.arms[a]); return iv(survivalChange(c.lost, c.saved, c.N)); };
-    console.log(`    ${U.id.padEnd(12)} k ${U.split.k.toFixed(3)}; ${s('K2')} / ${s('HS')} / ${s('HSP')} / ${s('HSPS')}; ${d('HSP')}; ${d('HSPS')}; ${pct(U.arms.HSP.forecast)} against ${s('HSP')}`);
+    console.log(`    ${U.id.padEnd(12)} k ${U.split.k.toFixed(3)}; ${s('K2')} / ${s('HS')} / ${s('HSPB')} / ${s('HSP')} / ${s('HSPS')}; ${d('HSPB')}; ${d('HSP')}; ${d('HSPS')}; ${pct(U.arms.HSPB.forecast)} against ${s('HSPB')}, ${pct(U.arms.HSP.forecast)} against ${s('HSP')}`);
   }
   for (const U of units.filter(x => THREE.includes(x.id))) console.log(`  ${U.id}: the lost paths by kind (at the minimum pot at the end / a year unfunded): ${ARMS.map(a => { const kd = kinds(U.arms[a], U.T); return `${a} ${kd.floor}/${kd.unfunded}`; }).join(', ')}`);
 }

@@ -4,11 +4,14 @@
  *   K2, HS   the lead test's stored arrays (K2; HS1, the household plan at the even split), used only after this unit's K2
  *            tables and HS's household table are solved again with the lead test's digests and each arm, run again on its
  *            first 200 paths, is the lead test's arrays there byte for byte;
- *   HSP      the remedy's part 1 (household.mjs householdPlanFor's opts.scale 'pensions'), at the even split;
- *   HSPS     parts 1 and 2 (cp.split 'pensions': the year's need at the pensions' share as they stand).
- * HSP and HSPS read one household table, solved as the lead test's was but on part 1's plan (bandsAt: a band for gains of k
- * times one person's); its plan checked (the allowance doubled, each SCALED limit 2 x PA + k x (L - PA), the cap k times
- * one person's, every other doubled entry HS's) and its band for gains, before any path. Each new arm held to E.runTrial on
+ *   HSPB     the remedy's part 1 in its bands-alone form (opts.scale 'bands', HOUSEHOLD-REMEDY.md amendment 1: the cap
+ *            doubled), at the even split;
+ *   HSP      part 1 (household.mjs householdPlanFor's opts.scale 'pensions': the bands and the cap), at the even split;
+ *   HSPS     parts 1 and 2 (cp.split 'pensions': the year's need at the pensions' share as they stand), on HSP's table.
+ * Each form of part 1 has its own household table, solved as the lead test's was but on that form's plan (bandsAt: a band
+ * for gains of k times one person's); each plan checked (the allowance doubled, each SCALED limit 2 x PA + k x (L - PA),
+ * the cap k times one person's or, in the bands-alone form, HS's, every other doubled entry HS's) and its band for gains,
+ * before any path. Each new arm held to E.runTrial on
  * its first 200 paths and saved in chunks of 1,000. At a smoke's settings (HR_PTS, HR_N) no outcome is printed and the
  * lead test's digests and arrays are not compared.
  *   node research/solver/audit-household-remedy.mjs part k/28     (batch-household-remedy.sh runs every unit)
@@ -37,7 +40,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const { solveCouple, withCouple } = CPL;
 const PROC = `${hostname()}:${process.pid}:${Date.now()}`;
-export const NEW = Object.freeze({ HSP: 'even', HSPS: 'pensions' });
+export const NEW = Object.freeze({ HSPB: Object.freeze({ scale: 'bands', split: 'even' }), HSP: Object.freeze({ scale: 'pensions', split: 'even' }), HSPS: Object.freeze({ scale: 'pensions', split: 'pensions' }) });
 export const ARMS = Object.freeze(['K2', 'HS', ...Object.keys(NEW)]);
 export const LEAD_ARM = Object.freeze({ K2: 'K2', HS: 'HS1' });
 export const LEAD_DIR = process.env.HR_LEAD || join(HERE, 'results', `household-${SEED}`);
@@ -56,9 +59,9 @@ const dec = (str, Ty) => { const b = Buffer.from(str, 'base64'), c = new Uint8Ar
 
 /* part 1's plan against what HOUSEHOLD-REMEDY.md says it is: the allowance doubled, each SCALED limit 2 x PA + k x (L - PA),
    the cap k times one person's, every other doubled entry as the as-built household plan's */
-export function scaleProblems(hp, asBuilt, cfg, k) {
+export function scaleProblems(hp, asBuilt, cfg, k, cap = true) {
   const one = key => E.num(cfg[key], E.DEFAULT_CONFIG[key]), pa = one('personalAllowance');
-  const want = key => (key === 'personalAllowance' ? 2 * pa : SCALED.includes(key) ? 2 * pa + k * (one(key) - pa) : key === 'pclsMaxCap' ? k * one(key) : asBuilt.config[key]);
+  const want = key => (key === 'personalAllowance' ? 2 * pa : SCALED.includes(key) ? 2 * pa + k * (one(key) - pa) : key === 'pclsMaxCap' && cap ? k * one(key) : asBuilt.config[key]);
   const bad = DOUBLED.filter(key => hp.config[key] !== want(key)).map(key => `${key} ${hp.config[key]}, not ${want(key)}`);
   for (const key of Object.keys({ ...hp.config, ...asBuilt.config })) if (!DOUBLED.includes(key) && js(hp.config[key]) !== js(asBuilt.config[key])) bad.push(`${key} ${js(hp.config[key])}, not design A's ${js(asBuilt.config[key])}`);
   return bad;
@@ -90,36 +93,40 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   solveSecs.K2 = (Date.now() - s0) / 1000; s0 = Date.now();
   const hs = solveHousehold(E, M, hp, { solveOne: solveHouse, topK: TOPK, tieJoint: JOINT.tieJoint, holdPast: JOINT.holdPast });
   solveSecs.HS = (Date.now() - s0) / 1000; s0 = Date.now();
-  const rem = solveHousehold(E, M, hp, { solveOne: solveHouse, topK: TOPK, tieJoint: JOINT.tieJoint, holdPast: JOINT.holdPast, scale: 'pensions' });
-  solveSecs.HSP = solveSecs.HSPS = (Date.now() - s0) / 1000;
-  // the checks before any path (HOUSEHOLD-REMEDY-READ.md 1 and 2)
+  // one household table for each form of part 1 (HSP and HSPS share the 'pensions' table)
+  const rems = {};
+  for (const scale of ['bands', 'pensions']) { s0 = Date.now(); rems[scale] = solveHousehold(E, M, hp, { solveOne: solveHouse, topK: TOPK, tieJoint: JOINT.tieJoint, holdPast: JOINT.holdPast, scale }); rems[scale].secs = (Date.now() - s0) / 1000; }
+  for (const [arm, o] of Object.entries(NEW)) solveSecs[arm] = rems[o.scale].secs;
+  // the checks before any path (HOUSEHOLD-REMEDY-READ.md 1 and 2, as amended)
   const off = [], sp = pensionsSplit(E, hp), cfg = { ...E.DEFAULT_CONFIG, ...(hp.config || {}) };
-  off.push(...scaleProblems(rem.hplan, hs.hplan, cfg, sp.k).map(p => `the remedy's plan: ${p}`));
-  if (!(rem.meta.scale && Math.abs(rem.meta.scale.k - sp.k) < 1e-12)) off.push(`the remedy's table solved with ${js(rem.meta.scale)}, not k ${sp.k}`);
-  if (!(Math.abs(rem.H.m.ctx.P.cgtBandWidth - sp.k * k2.m.ctx.P.cgtBandWidth) < 1e-6)) off.push(`the remedy's band for gains ${rem.H.m.ctx.P.cgtBandWidth}, not k x ${k2.m.ctx.P.cgtBandWidth}`);
-  for (const [w, h] of [['HS', hs], ['the remedy', rem]]) {
+  for (const [scale, rem] of Object.entries(rems)) {
+    off.push(...scaleProblems(rem.hplan, hs.hplan, cfg, sp.k, scale === 'pensions').map(p => `the '${scale}' plan: ${p}`));
+    if (!(rem.meta.scale && rem.meta.scale.rule === scale && Math.abs(rem.meta.scale.k - sp.k) < 1e-12)) off.push(`the '${scale}' table solved with ${js(rem.meta.scale)}, not k ${sp.k}`);
+    if (!(Math.abs(rem.H.m.ctx.P.cgtBandWidth - sp.k * k2.m.ctx.P.cgtBandWidth) < 1e-6)) off.push(`the '${scale}' band for gains ${rem.H.m.ctx.P.cgtBandWidth}, not k x ${k2.m.ctx.P.cgtBandWidth}`);
+  }
+  for (const [w, h] of [['HS', hs], ["the 'bands' table", rems.bands], ["the 'pensions' table", rems.pensions]]) {
     if (!smoke) off.push(...wantProblems('CANDC', settingsOf(h.H), W).map(p => `${w}: ${p}`));
     off.push(...houseLineProblems(k2.tables.self, h.H, k2.m.ctx.solvencyFloor).map(p => `${w}: ${p}`));
     if (h.m.ctx.solvencyFloor !== k2.m.ctx.solvencyFloor) off.push(`${w}: the minimum pot ${h.m.ctx.solvencyFloor}, not K2's ${k2.m.ctx.solvencyFloor}`);
   }
   if (!smoke) for (const w of ['self', 'part']) off.push(...wantProblems('CANDC', settingsOf(k2.tables[w]), W).map(p => `${w}: ${p}`));
-  const digests = { self: await digestOf(tablesOf(k2.tables.self)), part: await digestOf(tablesOf(k2.tables.part)), HS: await digestOf(tablesOf(hs.H)), remedy: await digestOf(tablesOf(rem.H)) };
+  const digests = { self: await digestOf(tablesOf(k2.tables.self)), part: await digestOf(tablesOf(k2.tables.part)), HS: await digestOf(tablesOf(hs.H)), bands: await digestOf(tablesOf(rems.bands.H)), pensions: await digestOf(tablesOf(rems.pensions.H)) };
   if (lead) {
     if (digests.self !== lead.digests.before.self || digests.part !== lead.digests.before.part) off.push(`K2's tables are not the lead test's`);
     if (digests.HS !== lead.digests.before.household) off.push(`HS's household table is not the lead test's`);
   }
-  if (sp.k < 2 - 1e-12 && digests.remedy === digests.HS) off.push('the remedy\'s table is HS\'s though k is under 2');
+  if (sp.k < 2 - 1e-12) for (const scale of ['bands', 'pensions']) if (digests[scale] === digests.HS) off.push(`the '${scale}' table is HS's though k is under 2`);
   if (off.length) { console.error(`audit-household-remedy: ${u.id}: ${off.join('; ')}`); process.exit(3); }
   const survAt = (tab, s) => (tab.mix ? tab.mix.tables.reduce((x, tb, j) => x + tab.mix.weights[j] * tb.value(s, 0).survival, 0) : tab.value(s, 0).survival);
-  const st0 = M.initialState(k2.m), forecast = { HS: survAt(hs.H, vecOf(hs.hm, mergedState(hs, st0))), HSP: survAt(rem.H, vecOf(rem.hm, mergedState(rem, st0))) };
-  forecast.HSPS = forecast.HSP;
+  const st0 = M.initialState(k2.m), forecast = { HS: survAt(hs.H, vecOf(hs.hm, mergedState(hs, st0))) };
+  for (const [arm, o] of Object.entries(NEW)) { const r = rems[o.scale]; forecast[arm] = survAt(r.H, vecOf(r.hm, mergedState(r, st0))); }
   { const sA = vecOf(k2.tables.self.m, CPL.ownerState(st0, 'self')), sB = vecOf(k2.tables.part.m, CPL.ownerState(st0, 'part')); forecast.K2 = survAt(k2.tables.self, sA) * survAt(k2.tables.part, sB); }
-  console.log(`${''.padEnd(8)} solved: ${Object.entries(solveSecs).filter(([key]) => key !== 'HSPS').map(([key, s]) => `${key} ${s.toFixed(0)} s`).join(', ')}; the pensions' split s ${sp.s.toFixed(4)}, k ${sp.k.toFixed(4)}; the remedy's band for gains ${rem.H.m.ctx.P.cgtBandWidth} (a person's ${k2.m.ctx.P.cgtBandWidth}); the tables ${smoke ? 'a smoke\'s' : 'K2\'s and HS\'s the lead test\'s'}; the remedy's plan part 1's`);
+  console.log(`${''.padEnd(8)} solved: K2 ${solveSecs.K2.toFixed(0)} s, HS ${solveSecs.HS.toFixed(0)} s, 'bands' ${rems.bands.secs.toFixed(0)} s, 'pensions' ${rems.pensions.secs.toFixed(0)} s; the pensions' split s ${sp.s.toFixed(4)}, k ${sp.k.toFixed(4)}; the remedy's bands for gains ${rems.bands.H.m.ctx.P.cgtBandWidth} and ${rems.pensions.H.m.ctx.P.cgtBandWidth} (a person's ${k2.m.ctx.P.cgtBandWidth}); the tables ${smoke ? 'a smoke\'s' : 'K2\'s and HS\'s the lead test\'s'}; each remedy plan part 1's`);
   const withAges = p => ({ ...p, demographics: { ...p.demographics, mpaaAgeSelf: aDemo.mpaaAgeSelf, mpaaAgePart: aDemo.mpaaAgePart } });
   const ctxOf = arm => (arm === 'K2' ? E.buildContext(withCouple(withAges(k2.plan), k2))
     : arm === 'HS' ? E.buildContext(withHouseholdSingle(withAges(hs.plan), { ...hs, split: 'even' }))
-      : E.buildContext(withHouseholdSingle(withAges(rem.plan), { ...rem, split: NEW[arm] })));
-  const optionsOf = arm => (arm === 'K2' ? { ...JOINT } : arm === 'HS' ? { move: 'single', split: 'even' } : { move: 'single', split: NEW[arm], scale: 'pensions', k: sp.k });
+      : E.buildContext(withHouseholdSingle(withAges(rems[NEW[arm].scale].plan), { ...rems[NEW[arm].scale], split: NEW[arm].split })));
+  const optionsOf = arm => (arm === 'K2' ? { ...JOINT } : arm === 'HS' ? { move: 'single', split: 'even' } : { move: 'single', split: NEW[arm].split, scale: NEW[arm].scale, k: sp.k });
   const T = ctxOf('K2').totalYears, paths = E.pathsForSeed(SEED, n, T).map(zs => Float64Array.from(zs));
   const arms = {};
   // K2 and HS: the first CHECK paths again, against the lead test's arrays there; then the lead test's arrays whole
@@ -170,8 +177,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const surv = smoke ? 'a smoke: no figure printed' : `${(100 * A.survived.reduce((t, v) => t + v, 0) / n).toFixed(2)}% on ${n}`;
     console.log(`${''.padEnd(8)} done ${arm}: ${js(o)}; engine ${surv}; CPU ${(cpuUs / 1e6).toFixed(0)} s (${(cpuUs / 1e3 / n).toFixed(1)} ms a path)`);
   }
-  const plan = Object.fromEntries(DOUBLED.map(key => [key, rem.hplan.config[key]])), planHS = Object.fromEntries(DOUBLED.map(key => [key, hs.hplan.config[key]]));
-  writeFileSync(join(OUT, fileOf(u.id)), gzipSync(js({ k: pk, id: u.id, group: u.group, panel: u.panel, cohort: U.cohort, seed: SEED, N: n, pts, W, candidate, joint: JOINT, topK: TOPK, stamp: STAMP, digests, split: { s: sp.s, k: sp.k, self: sp.self, partner: sp.partner }, plans: { HS: planHS, remedy: plan }, bands: { remedy: rem.H.m.ctx.P.cgtBandWidth, person: k2.m.ctx.P.cgtBandWidth }, floor: k2.m.ctx.solvencyFloor, caps: [k2.tables.self.estateCap || 0, k2.tables.part.estateCap || 0], cap: (k2.tables.self.estateCap || 0) + (k2.tables.part.estateCap || 0), T, lead: lead ? { dir: LEAD_DIR, stamp: lead.stamp } : null, arms })));
+  const planOf = h => Object.fromEntries(DOUBLED.map(key => [key, h.hplan.config[key]]));
+  writeFileSync(join(OUT, fileOf(u.id)), gzipSync(js({ k: pk, id: u.id, group: u.group, panel: u.panel, cohort: U.cohort, seed: SEED, N: n, pts, W, candidate, joint: JOINT, topK: TOPK, stamp: STAMP, digests, split: { s: sp.s, k: sp.k, self: sp.self, partner: sp.partner }, plans: { HS: planOf(hs), bands: planOf(rems.bands), pensions: planOf(rems.pensions) }, bands: { bands: rems.bands.H.m.ctx.P.cgtBandWidth, pensions: rems.pensions.H.m.ctx.P.cgtBandWidth, person: k2.m.ctx.P.cgtBandWidth }, floor: k2.m.ctx.solvencyFloor, caps: [k2.tables.self.estateCap || 0, k2.tables.part.estateCap || 0], cap: (k2.tables.self.estateCap || 0) + (k2.tables.part.estateCap || 0), T, lead: lead ? { dir: LEAD_DIR, stamp: lead.stamp } : null, arms })));
   for (const arm of Object.keys(NEW)) rmSync(partOf(OUT, u.id, arm), { force: true });
   console.log(`${''.padEnd(8)} done unit ${pk} secs ${Math.round((Date.now() - t0) / 1000)}`);
 }

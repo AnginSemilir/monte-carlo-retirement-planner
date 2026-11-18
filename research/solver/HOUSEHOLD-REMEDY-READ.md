@@ -70,3 +70,14 @@ Each arm's outcome, the first that holds:
 - Its build and planted checks within the remedy's half day.
 - The run, about five core-hours, when the cores are free: after the windfall factorial and before the savings factorial.
 - Half a day to read, with the `reviewer` agent at the read.
+
+## Amendment 1 (18 Nov, evening, before any unit runs; the decomposition's reviewer, finding 4)
+
+The remedy's design gains a form of part 1 that prices the bands alone, the cap doubled (`HOUSEHOLD-REMEDY.md`
+amendment 1). So the read runs three new arms, each with its own household table where its plan differs:
+- **HSPB:** the bands alone priced (`scale 'bands'`), at the even split;
+- **HSP:** the bands and the cap priced (`scale 'pensions'`), at the even split;
+- **HSPS:** HSP's table, at the pensions' split.
+
+The rule is the same for each. The arm taken is the smallest change that MENDS: HSPB, then HSP, then HSPS. The gate
+checks HSPB's plan as part 1's with the cap HS's.

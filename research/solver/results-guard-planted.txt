@@ -1,0 +1,12 @@
+  ok   every +db unit losing 10 points: HARM, the guard stays; +rent gaining: NO HARM
+  ok   one +db unit losing 10 points, three gaining 5: SOME HARM (the pooled not wholly below nought), the guard stays
+  ok   every +db unit gaining: NO HARM, the guard keyed on the wrong thing; +rent losing: HARM
+  ok   a unit losing 0.2 points, within -0.3 of nought: not harm
+  ok   one +db unit landed: STOP
+  ok   the gate passes the eight clean units
+  ok   a unit missing: refused
+  ok   two audit stamps: refused
+  ok   K2's tables changed during the unit: refused
+  ok   a unit's arms in another order: refused
+  ok   the app's guard's answer not recorded: refused
+PLANTED: ALL PASS (11)

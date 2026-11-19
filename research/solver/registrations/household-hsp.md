@@ -64,6 +64,9 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
      by more than 0.05%.
   - **The pot's ruling (D116, M1):** where HSP keeps more paths and delivers no less spending, a smaller pot left is not a
     harm. It is recorded, capped at the two people's estate caps and in pounds a path beside the spending, and is not a bar.
+    It is read pooled and, beside it, by unit (`reduce-household-hsp.mjs m1ByUnit`). A unit where HSP keeps more paths but
+    spends less on the paths both keep, beyond noise, is named with its pot; M1's condition is not met there. It is not a
+    bar.
   - **Against APP, beside the rule:** HSP and K2 against APP, pooled and by unit. D34's harm flags against APP each send
     their unit to investigation and do not block on their own (D34 (3)).
 - **Outcomes:**

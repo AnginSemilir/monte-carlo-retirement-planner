@@ -15,7 +15,9 @@
  *      than 0.05%.
  * PASS if all three hold, else FAIL with the parts that fail. The pot's ruling (D116, M1) is in the rule as given: a smaller
  * pot left is not a harm where HSP keeps more paths and delivers no less spending; the pot is recorded, capped at the two
- * people's estate caps and in pounds a path, and is not a bar. Beside, deciding nothing: HSP and K2 against APP (pooled and by
+ * people's estate caps and in pounds a path, and is not a bar. M1 is read unit by unit as well (the remedy's reviewer,
+ * MINOR 3): each unit's spending on the paths both keep and its capped pot are printed, and a unit where HSP keeps more paths
+ * but spends less on the paths both keep beyond noise is named with its pot, M1's condition not met there; not a bar. Beside, deciding nothing: HSP and K2 against APP (pooled and by
  * unit, D34's flags against APP for investigation, D34 (3)); a comparison whose 1-point rate at its realised discordance falls
  * below 0.90 named with its rate (D34 (4)); the pot; lifetime tax; each table's forecast against its survival; the rollout
  * beside the engine on K2's first paths; the times.
@@ -83,13 +85,20 @@ export function compare(units, base, arm = 'HSP') {
   return { base, arm, rows, pooled, kept: spendOn(units.map(u => [u.arms[base], u.arms[arm]]), true) };
 }
 /* the rule (STEP8.md), HSP against K2 */
+/* M1 by unit: HSP against K2, the units that keep more paths but spend less on the paths both keep beyond noise */
+export function m1ByUnit(units) {
+  return units.map(u => {
+    const c = cells(u.arms.K2, u.arms.HSP), sp = spendOn([[u.arms.K2, u.arms.HSP]], true).by[0], cap = cappedOf(u.caps[0] + u.caps[1], u.arms.K2, u.arms.HSP);
+    return { id: u.id, net: c.saved - c.lost, spend: sp, cap, unmet: c.saved - c.lost > 0 && sp.hi < 0 };
+  });
+}
 export function rule(units) {
   const C = compare(units, 'K2'), flagged = C.rows.filter(r => r.flag);
   const parts = { harm: flagged.length === 0, gain: C.pooled.lo > POOL_BAR, spend: C.kept.pooled.d >= SPEND_BAR };
   return { C, flagged, parts, outcome: parts.harm && parts.gain && parts.spend ? 'PASS' : 'FAIL' };
 }
 const mean = a => sum(a) / a.length, median = a => { const s = [...a].sort((p, q) => p - q), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
-const cappedOf = (cap, b, x) => { let sb = 0, sx = 0; for (let i = 0; i < b.pot.length; i++) { sb += Math.min(b.pot[i], cap); sx += Math.min(x.pot[i], cap); } return { pct: sb > 0 ? 100 * (sx / sb - 1) : 0, gbp: (sx - sb) / b.pot.length }; };
+function cappedOf(cap, b, x) { let sb = 0, sx = 0; for (let i = 0; i < b.pot.length; i++) { sb += Math.min(b.pot[i], cap); sx += Math.min(x.pot[i], cap); } return { pct: sb > 0 ? 100 * (sx / sb - 1) : 0, gbp: (sx - sb) / b.pot.length }; }
 
 function planted() {
   const cases = [], arr = (n, f) => { const a = new Uint8Array(n); for (let i = 0; i < n; i++) a[i] = f(i) ? 1 : 0; return a; };
@@ -97,7 +106,7 @@ function planted() {
     const n = 4000, fl = (x, i) => Float64Array.from({ length: n }, () => x);
     const A = s => ({ config: '', survived: arr(n, s), failYear: new Int16Array(n), pot: fl(100), estate: fl(100), tax: fl(1), delivered: fl(o.spend || 1000), unmet: fl(0) });
     const K = A(sK2), H = A(sHSP); H.delivered = Float64Array.from({ length: n }, () => (o.spendH || 1000));
-    return { id, cohort: 'lib', variant: 'own', N: n, split: { s: 0.6, k: 1 / 0.6 }, arms: { APP: A(sK2), K2: K, HSP: H } };
+    return { id, cohort: 'lib', variant: 'own', N: n, split: { s: 0.6, k: 1 / 0.6 }, caps: [1e9, 1e9], arms: { APP: A(sK2), K2: K, HSP: H } };
   };
   // HSP keeps more on every unit: PASS; a unit losing 2% of paths: flagged, FAIL; no pooled gain: FAIL; spending lower: FAIL
   const gainU = id => unit(id, i => i % 10 !== 0, i => i % 20 !== 0);
@@ -109,6 +118,17 @@ function planted() {
     cases.push(['HSP the same as K2 on every path: no gain, FAIL', `${R.outcome} ${R.parts.gain}`, 'FAIL false']); }
   { const g = id => { const u = gainU(id); u.arms.HSP.delivered = Float64Array.from({ length: u.N }, () => 999); return u; }, R = rule([g('a'), g('b')]);
     cases.push(['HSP spending 0.1% less on the paths both keep: FAIL on spending alone', `${R.outcome} ${R.parts.harm} ${R.parts.gain} ${R.parts.spend}`, 'FAIL true true false']); }
+  // the bar either side by one path, through the rule's own wiring (the remedy's reviewer, MINOR 1): K2 keeps every path of
+  // unit b and HSP loses its first m; m found as the first loss D34 flags at b's own discordance; a unit that gains carries the
+  // pooled part
+  { const lose = m => unit('b', () => true, i => i >= m), big = unit('a', i => i % 10 !== 0, () => true);
+    let m = 1; while (m < 400 && !harmExact(lose(m).arms.HSP, lose(m).arms.K2, 4000).flag) m++;
+    const below = rule([big, lose(m - 1)]), over = rule([big, lose(m)]);
+    cases.push([`a unit one path under its D34 bar (net loss ${m - 1}) is not flagged, one path over (${m}) is, the rest of the rule the same`, `${below.parts.harm} ${over.parts.harm} ${below.parts.gain && over.parts.gain} ${below.outcome} ${over.outcome}`, 'true false true PASS FAIL']); }
+  // M1 by unit: more paths kept but less spent on the paths both keep is named; more paths and no less spent is not
+  { const keepsLessSpend = (() => { const u = gainU('a'); u.arms.HSP.delivered = Float64Array.from({ length: u.N }, (_, i) => 990 + (i % 3)); return u; })();
+    const M = m1ByUnit([keepsLessSpend, gainU('b')]);
+    cases.push(['M1 by unit: a unit keeping more paths but spending less beyond noise is named, one spending no less is not', M.filter(x => x.unmet).map(x => x.id).join(','), 'a']); }
   // the gate on built units
   { const want = [{ id: 'a', target: 1, label: 'x' }, { id: 'b', target: 1, label: 'x' }];
     const mk = id => { const u = gainU(id); return { ...u, target: 1, label: 'x', seed: 9, W, pts: PTS, guard: { on: true }, stamp: { code: 'c', audit: 'a', prediction: 'p', node: 'n' }, arms: Object.fromEntries(ARMS.map(x => [x, { ...u.arms[x], config: configOf(x) }])) }; };
@@ -174,13 +194,16 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   const capOf = u => u.caps[0] + u.caps[1], cap = units.map(u => cappedOf(capOf(u), u.arms.K2, u.arms.HSP));
   console.log(`  the pot capped at the two people's estate caps, HSP against K2: ${f3(mean(cap.map(c => c.pct)))}% the mean of the units' (${gbp(mean(cap.map(c => c.gbp)))} a path); the pot left, the mean a unit: APP ${gbp(mean(units.map(u => mean(u.arms.APP.pot))))}, K2 ${gbp(mean(units.map(u => mean(u.arms.K2.pot))))}, HSP ${gbp(mean(units.map(u => mean(u.arms.HSP.pot))))}`);
+  const m1 = m1ByUnit(units), unmetM1 = m1.filter(x => x.unmet);
+  console.log(`  M1 by unit (D116): the units where HSP keeps more paths but spends less on the paths both keep beyond noise: ${unmetM1.length ? unmetM1.map(x => `${x.id} (net ${x.net >= 0 ? '+' : ''}${x.net} paths, spending ${f4(x.spend.d)}% se ${x.spend.se.toFixed(4)}, the capped pot ${f3(x.cap.pct)}% ${gbp(x.cap.gbp)} a path)`).join('; ') : 'none'}`);
   console.log(`  lifetime tax, the mean a unit: APP ${gbp(mean(units.map(u => mean(u.arms.APP.tax))))}, K2 ${gbp(mean(units.map(u => mean(u.arms.K2.tax))))}, HSP ${gbp(mean(units.map(u => mean(u.arms.HSP.tax))))}`);
   console.log(`  the rollout beside the engine on K2's first paths: ${sum(units.map(u => u.beside.engineOnly + u.beside.modelOnly))} paths differ of ${sum(units.map(u => u.beside.N))}`);
-  console.log('  by unit (k; survival APP / K2 / HSP; HSP less K2; D34 against K2: net loss in paths and threshold; the forecasts K2 / HSP):');
+  console.log('  by unit (k; survival APP / K2 / HSP; HSP less K2; D34 against K2: net loss in paths and threshold; spending on the paths both keep and the capped pot, HSP against K2; the forecasts K2 / HSP):');
   const sv = A => 100 * sum(A.survived) / A.survived.length;
   for (const u of units) {
     const r = C.rows.find(x => x.id === u.id);
-    console.log(`    ${u.id.padEnd(13)} k ${u.split.k.toFixed(3)}; ${sv(u.arms.APP).toFixed(2)}% / ${sv(u.arms.K2).toFixed(2)}% / ${sv(u.arms.HSP).toFixed(2)}%; ${iv(r.ch)} (${r.cells.saved} saved, ${r.cells.lost} lost); net ${r.lost - r.saved} against ${r.j}${r.flag ? ' FLAGGED' : ''}; ${(100 * u.arms.K2.forecast).toFixed(2)}% / ${(100 * u.arms.HSP.forecast).toFixed(2)}%`);
+    const x = m1.find(y => y.id === u.id);
+    console.log(`    ${u.id.padEnd(13)} k ${u.split.k.toFixed(3)}; ${sv(u.arms.APP).toFixed(2)}% / ${sv(u.arms.K2).toFixed(2)}% / ${sv(u.arms.HSP).toFixed(2)}%; ${iv(r.ch)} (${r.cells.saved} saved, ${r.cells.lost} lost); net ${r.lost - r.saved} against ${r.j}${r.flag ? ' FLAGGED' : ''}; spending ${f4(x.spend.d)}% (se ${x.spend.se.toFixed(4)}), the capped pot ${f3(x.cap.pct)}%; ${(100 * u.arms.K2.forecast).toFixed(2)}% / ${(100 * u.arms.HSP.forecast).toFixed(2)}%`);
   }
   console.log(`  the time a path (CPU, the mean a unit): APP ${(mean(units.map(u => u.arms.APP.cpuUs / u.N)) / 1e3).toFixed(1)} ms, K2 ${(mean(units.map(u => u.arms.K2.cpuUs / u.N)) / 1e3).toFixed(1)} ms, HSP ${(mean(units.map(u => u.arms.HSP.cpuUs / u.N)) / 1e3).toFixed(1)} ms; the solve, the median a unit: K2 ${median(units.map(u => u.arms.K2.solveSecs)).toFixed(0)} s, HSP ${median(units.map(u => u.arms.HSP.solveSecs)).toFixed(0)} s`);
 }

@@ -70,7 +70,10 @@ paths. HSP passes if all three hold against K2:
 
 **The pot's ruling (D116, M1)** is in the rule as the maintainer gave it: where HSP keeps more paths and delivers no less
 spending, a smaller pot left is not a harm. It is recorded, capped at four times opening wealth and in pounds a path
-beside the spending, and is not a bar.
+beside the spending, and is not a bar. It is read pooled, as part 3 is, and by unit beside it: each unit's spending on the
+paths both keep and its capped pot are printed. A unit where HSP keeps more paths but spends less on the paths both keep,
+beyond noise, is named with its pot, since M1's condition is not met there; it is not a bar. The remedy's read had two
+such units (S023-db and S167; `results-household-remedy-beside.txt` section 4; its reviewer's MINOR 3).
 
 **Against APP, beside the rule:** HSP less APP on survival and spending, pooled and by unit, and D34's harm flags against
 APP, each sending its unit to investigation without blocking on its own (D34 (3)).
@@ -97,7 +100,9 @@ APP, each sending its unit to investigation without blocking on its own (D34 (3)
 2. **Five units a couple, all inside the guard.** The review's "the guard looked at again" is left to its own units after
    a PASS, so a FAIL here cannot be read as the guard's.
 3. **The rule against K2 alone, with APP beside it**, as stage C and the share rules were.
-4. **The cost,** measured by the pilot on this machine with nothing else running (D21) before the registration is
+4. **M1 by unit.** It is printed and its exceptions named, not a bar. The alternative is to make a named unit block the
+   default, as a flagged one does.
+5. **The cost,** measured by the pilot on this machine with nothing else running (D21) before the registration is
    complete: K2's path is the slowest of the three (the decomposition's times, `results-household-decomp.txt`).
 
 ## Box

@@ -33,7 +33,10 @@ its rule committed before it runs; none changes anything in the app on its own.
        `-0.314`).
      - HSP's pass on S191-90 is by `0.38` of a path, and S191-90 still loses beyond noise under it
        (`results-household-remedy-beside.txt`).
-     - By the rule, step 8's registration is drafted on HSP (item 3). The reviewer at the read is next.
+     - By the rule, step 8's registration is drafted on HSP (item 3). The reviewer at the read: PASS, three MINORs, each
+       answered (`reviews/2026-11-19-read-household-remedy.md`). Among them, **M1 by unit:** on S023-db and S167 HSP
+       keeps more paths but spends less on the paths both keep beyond noise, S023-db with the largest fall in the capped
+       pot (`-13.055%`); the rule reads spending pooled, so the outcome stands, and step 8 names such units.
 2. Design B, the axis (`AXIS.md`), is not built unless the decomposition points to it.
 3. **UNDER WAY, on HSP (`STEP8.md`, `registrations/household-hsp.md`, both DRAFT):** the panel landing, then the pilot
    and the sizing, the design review, then to you before launch. **Yours before launch:** the held-out seed (7024

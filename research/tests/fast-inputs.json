@@ -157,6 +157,8 @@
    "research/solver/results-gate5.txt",
    "research/solver/results-gia-look.txt",
    "research/solver/results-hodep-s370.txt",
+   "research/solver/results-isa-allowance-sizing.txt",
+   "research/solver/results-isa-allowance.txt",
    "research/solver/results-joint-wide.txt",
    "research/solver/results-lock-check.txt",
    "research/solver/results-n4-identity.txt",

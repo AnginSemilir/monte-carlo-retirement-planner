@@ -35,7 +35,9 @@ its rule committed before it runs; none changes anything in the app on its own.
        (`results-household-remedy-beside.txt`).
      - By the rule, step 8's registration is drafted on HSP (item 3). The reviewer at the read is next.
 2. Design B, the axis (`AXIS.md`), is not built unless the decomposition points to it.
-3. **UNDER WAY, on HSP:** step 8, the registered test, is held until those losses are fixed and re-checked on the couples that lose. Then its
+3. **UNDER WAY, on HSP (`STEP8.md`, `registrations/household-hsp.md`, both DRAFT):** the panel landing, then the pilot
+   and the sizing, the design review, then to you before launch. **Yours before launch:** the held-out seed (7024
+   proposed) reserved in `check-prediction.mjs`, a protected file, so your unlock. Step 8, the registered test, is held until those losses are fixed and re-checked on the couples that lose. Then its
    registration is drafted, put to the design reviewer and brought to the maintainer before launch.
 4. **READ, FOR THE MAINTAINER: what keys D128's guard** (`results-guard.txt`; `reports/2026-11-18-guard-key-read.md`;
    its reviewer FAIL on the write-up, answered in one fix, then PASS).

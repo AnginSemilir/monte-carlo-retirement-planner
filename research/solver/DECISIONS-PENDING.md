@@ -39,6 +39,9 @@ below this section says "the beta", read it as history. The order from here:
    - **Next, by the rule:** step 8 registered on HSPA. Its arm, the audit's plan checks and the panel's refusals become
      HSPA's; the panel landed again on the fixed code, the pilot and the sizing taken again; then the design reviewer's
      second round, seed 7024's unlock with it (item 4), and the registration to you before launch.
+   - **Done (9c1dc08d):** the machinery switched to HSPA (its planted checks pass); the panel landed again on code
+     71fb4271c681, the same eight couples and 40 units with every target and arm A's survival unchanged. The pilot on the
+     fixed code runs (19 Nov from 15:05 UK), then the sizing fills Paths, Budget and the pilot's figures.
 3. **D80 lifted for the household table alone** (its tie-break kept).
 4. **Seed 7024** reserved when the registration goes to its second design review.
 5. **The guard kept as built**, so D129 (5)'s words on the couples card go with the next batch.

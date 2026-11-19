@@ -113,9 +113,12 @@ its rule committed before it runs; none changes anything in the app on its own.
      - Survival up on the panel (`+0.398` points) and on 14 of 27 households beyond noise, down on none.
      - Spending up on the panel (`+0.4233%`) and on 23; down on S308F (`-0.250%`), the harm, at once by B7.
      - **The harm, with what is beside it** (`results-save-beside.txt`, section 7): S308F loses `£4,904` of `£1,963,500` a
-       path, its survival level (`-0.050`). Its estate's mean is `+£424,840` a path, the upper tail's: on the median path
-       it is `-£25,840`. It spends more in its first six retired years and less after, and retires with `£115,652` more
-       in its ISA and `£116,968` less in its pension on average. Why the same retirement policy then spends less is not
+       path. Its survival is level (`-0.050`), but its failures move from the bridge to late life (CANDD 50 in the bridge
+       and 38 after it, CANDS 3 and 87). Three-fifths of the loss (`-£2,923`) is in the years both arms pay, where its
+       policy sets higher levels in the bridge and lower after. Two-fifths (`-£1,981`) is deeper ruin from the first
+       failure year on (unmet spending `+£2,567` a path). Its estate's mean is `+£424,840` a path, the upper tail's: on the
+       median path it is `-£25,840`. It retires with `£115,652` more in its ISA and `£116,968` less in its pension on
+       average. Why that policy, from that state, sets lower levels after the bridge and fails later but deeper is not
        shown.
      - The split put the saving pension first on 12 households, and ISA first on five of the younger cohort (S308F among
        them).
@@ -131,7 +134,8 @@ its rule committed before it runs; none changes anything in the app on its own.
        anchors, CANDS's shortlists are drawn from a menu three times as long as CANDD's, unmeasured), after the ISA
        defect is fixed.
      - The reviewer at the read: FAIL, one BLOCKING and two MINORs (`reviews/2026-11-19-read-save.md`), answered in one fix;
-       the reviewer again next.
+       the reviewer again: PASS, one MINOR (S308F's bands were the levels set, years after ruin included, and the
+       failures' move was not said), answered (`reviews/2026-11-19-read-save-2.md`).
    - **The savings factorial ran as D129 ordered, the defect said beside its read: it reaches one household, in both arms
      alike.** Checked on plan inputs alone (`save-isa-deposits.mjs`, `results-save-isa-deposits.txt`):
      - under arm A's own pick, none of its 27 households has a dated deposit or drip into an ISA in a working year with

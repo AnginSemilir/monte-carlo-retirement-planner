@@ -18,11 +18,16 @@
  *      read's own read(), beside S310F's own adjusted p from section 1;
  *   7. S308F, the harm, beside it the effects the units show, and the other four households whose saves went ISA first:
  *      lifetime spending delivered in pounds a path; the estate's mean, its median and the paths where it is higher or lower
- *      by more than a pound; the year's spending in points of the year's target (the engine's level, audit-phase4.mjs runPath:
- *      100 times the year's spending over the plan's target at that age), CANDS less CANDD, summed over three bands of
- *      retired years on the path-years where both arms spend and taken a path, and its mean a path-year; the first year the
- *      two arms' levels part; the pots at the top of the first retired year (runPolicy's first 1,000 paths, as the read
- *      prints them).
+ *      by more than a pound; the levels the policy set (audit-phase4.mjs runPath's level: 100 times the year's living target
+ *      as the move sets it, over the plan's target at that age; set, not paid), CANDS less CANDD a path-year, over three bands
+ *      of retired years, in every year (the years after a path runs out included) and before each path's first failure year
+ *      in either arm; the lifetime spending change split at that year (before it the levels set times the plan's target,
+ *      flat on these households, the largest residual on a path printed; from it on the levels set less the unmet), each
+ *      part with its se by path, and the unmet change; the failures in the bridge (the reader's years, as results-save-skip.txt
+ *      prints them) and after it, and the paths each arm keeps or loses by when the other fails; the first year the two
+ *      arms' levels part; the pots at the top of the first retired year (runPolicy's first 1,000 paths, as the read prints
+ *      them). The levels set, the split and the failures' move added after the reviewer's second round
+ *      (reviews/2026-11-19-read-save-2.md).
  *   node research/solver/save-beside.mjs
  */
 import { readFileSync, readdirSync } from 'node:fs';
@@ -79,6 +84,9 @@ console.log('\n7. S308F, the harm, and beside it the other four households whose
 { const by = {}; for (const u of units) (by[u.id] ||= {})[u.arm] = u;
   const decF = (u, k) => { const b = Buffer.from(u.main[k], 'base64'), c = new Uint8Array(b.length); c.set(b); return new Float32Array(c.buffer); };
   const decU = (u, k) => { const b = Buffer.from(u.main[k], 'base64'), c = new Uint8Array(b.length); c.set(b); return c; };
+  const decI = (u, k) => { const b = Buffer.from(u.main[k], 'base64'), c = new Uint8Array(b.length); c.set(b); return new Int16Array(c.buffer); };
+  // the bridge reader's years of each household, as the probe after the read printed them (results-save-skip.txt)
+  const skip = readFileSync(join(HERE, 'results-save-skip.txt'), 'utf8').split(/\n(?=S\d)/).map(blk => { const m = /^(S\w+): /.exec(blk), r = /the reader's tables in years (\d+)-(\d+):/.exec(blk); return m ? { id: m[1], reader: r ? [Number(r[1]), Number(r[2])] : null } : null; }).filter(Boolean);
   const med = a => { const s = Float64Array.from(a).sort(), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
   const gbp = x => `${x < 0 ? '-' : '+'}£${Math.abs(Math.round(x)).toLocaleString('en-GB')}`;
   for (const id of ['S308F', 'S304F', 'S306F', 'S310F', 'S340F']) {
@@ -87,13 +95,33 @@ console.log('\n7. S308F, the harm, and beside it the other four households whose
     let DA = 0, DB = 0; for (let k = 0; k < n; k++) { DA += da[k]; DB += db[k]; }
     const de = Array.from(eb, (v, k) => v - ea[k]); let up = 0, dn = 0; for (const x of de) { if (x > 1) up++; else if (x < -1) dn++; }
     const mE = de.reduce((x, v) => x + v, 0) / n, sE = Math.sqrt(Math.max(0, de.reduce((x, v) => x + v * v, 0) / n - mE * mE) / n);
-    const bands = [[R0, Math.min(R0 + 6, Y)], [R0 + 6, Math.min(R0 + 16, Y)], [R0 + 16, Y]].map(([x, y]) => { let s = 0, c = 0; for (let k = 0; k < n; k++) for (let t = x; t < y; t++) { const p = la[k * Y + t], q = lb[k * Y + t]; if (p > 0 && q > 0) { s += q - p; c++; } } return `years ${x}-${y - 1} ${s / n >= 0 ? '+' : ''}${(s / n).toFixed(2)} a path (${c} path-years, ${c ? `${s / c >= 0 ? '+' : ''}${(s / c).toFixed(3)} a path-year` : '-'})`; });
+    // the levels the policy set (runPath's level: 100 x the year's living target as the move sets it, over the plan's target
+    // at that age; set, not paid, so the years after a path runs out are in it), a path-year: in every retired year, and before
+    // each path's first failure year in either arm (the years both arms still pay)
+    const fa = decI(a, 'failYear'), fb = decI(b, 'failYear'), ua = decF(a, 'unmet'), ub = decF(b, 'unmet'), firstFail = k => Math.min(fa[k] < 0 ? Y : fa[k], fb[k] < 0 ? Y : fb[k]);
+    const BANDS = [[R0, Math.min(R0 + 6, Y)], [R0 + 6, Math.min(R0 + 16, Y)], [R0 + 16, Y]];
+    const bandOf = before => BANDS.map(([x, y]) => { let s = 0, c = 0; for (let k = 0; k < n; k++) { const f = before ? firstFail(k) : Y; for (let t = x; t < Math.min(y, f); t++) { s += lb[k * Y + t] - la[k * Y + t]; c++; } } return `years ${x}-${y - 1} ${c ? `${s / c >= 0 ? '+' : ''}${(s / c).toFixed(3)}` : '-'} (${c} path-years)`; });
+    // the lifetime spending change split at each path's first failure year in either arm: before it the levels set times the
+    // plan's target (flat on these households: the residual checks it), from it on the levels set less the unmet; each with
+    // its se by path; and the unmet change
+    const msd = xs => { const m = xs.reduce((x, v) => x + v, 0) / xs.length, v = xs.reduce((x, y) => x + (y - m) ** 2, 0) / (xs.length - 1); return [m, Math.sqrt(v / xs.length)]; };
+    const pre = [], post = [], tot = [], du = []; let nf = 0, resid = 0;
+    for (let k = 0; k < n; k++) { const f = firstFail(k); if (f < Y) nf++; let p = 0, q = 0; for (let t = 0; t < Y; t++) { const d = (lb[k * Y + t] - la[k * Y + t]) / 100 * a.target; if (t < f) p += d; else q += d; }
+      pre.push(p); post.push(q - (ub[k] - ua[k])); tot.push(db[k] - da[k]); du.push(ub[k] - ua[k]); resid = Math.max(resid, Math.abs(db[k] - da[k] - p - (q - (ub[k] - ua[k])))); }
+    const [mT, sT] = msd(tot), [mP, sP] = msd(pre), [mQ, sQ] = msd(post), [mU, sU] = msd(du);
+    // the failures by when: in the bridge (the reader's years, results-save-skip.txt) or after it
+    const rd = (skip.find(x => x.id === id) || {}).reader, inB = f => rd && f >= rd[0] && f <= rd[1], when = f => (f < 0 ? 'kept' : inB(f) ? 'bridge' : 'after');
+    const cnt = (f, w) => { let c = 0; for (let k = 0; k < n; k++) if (when(f[k]) === w) c++; return c; };
+    const cross = (wa, wb) => { let c = 0, xa = 0, xb = 0; for (let k = 0; k < n; k++) if (when(fa[k]) === wa && when(fb[k]) === wb) { c++; xa += ua[k]; xb += ub[k]; } return { c, xa, xb }; };
+    const kB = cross('bridge', 'kept'), lB = cross('bridge', 'after'), bB = cross('bridge', 'bridge'), lostA = cross('kept', 'after'), lostB = cross('kept', 'bridge'), bothA = cross('after', 'after');
     let never = 0; const first = {}; for (let k = 0; k < n; k++) { let t0 = -1; for (let t = 0; t < Y; t++) if (la[k * Y + t] !== lb[k * Y + t]) { t0 = t; break; } if (t0 < 0) never++; else first[t0] = (first[t0] || 0) + 1; }
     const firstTxt = Object.entries(first).sort((x, y) => y[1] - x[1] || x[0] - y[0]).slice(0, 4).map(([t, c]) => `year ${t} on ${c}`).join(', ');
     const pa = (a.after || [])[0] || {}, pb = (b.after || [])[0] || {};
     console.log(`  ${id} (retired from year ${R0}; ${n} paths): lifetime spending delivered CANDD £${Math.round(DA / n).toLocaleString('en-GB')} a path, CANDS ${gbp((DB - DA) / n)} a path (${f4(100 * (DB - DA) / DA)}%)`);
     console.log(`    the estate: the mean ${gbp(mE)} a path (se ${Math.round(sE).toLocaleString('en-GB')}), the median ${gbp(med(de))}; higher by more than £1 on ${up} paths, lower on ${dn}; CANDD's own median estate £${Math.round(med(Array.from(ea))).toLocaleString('en-GB')}`);
-    console.log(`    the year's spending in points of its target, CANDS less CANDD, where both arms spend: ${bands.join('; ')}`);
+    console.log(`    the levels the policy set, CANDS less CANDD, in points of the year's target a path-year: in every retired year, the years after a path runs out included: ${bandOf(false).join('; ')}; before each path's first failure year in either arm: ${bandOf(true).join('; ')}`);
+    console.log(`    the lifetime spending change split at each path's first failure year in either arm (one fails on ${nf} paths): ${gbp(mT)} a path (se ${Math.round(sT).toLocaleString('en-GB')}) = before it ${gbp(mP)} (se ${Math.round(sP).toLocaleString('en-GB')}) + from it on ${gbp(mQ)} (se ${Math.round(sQ).toLocaleString('en-GB')}); the largest residual on a path £${resid.toFixed(2)}; the unmet spending ${gbp(mU)} a path (se ${Math.round(sU).toLocaleString('en-GB')})`);
+    if (rd) console.log(`    the failures, in the bridge (years ${rd[0]}-${rd[1]}, the reader's) and after it: CANDD ${cnt(fa, 'bridge') + cnt(fa, 'after')} (${cnt(fa, 'bridge')} and ${cnt(fa, 'after')}), CANDS ${cnt(fb, 'bridge') + cnt(fb, 'after')} (${cnt(fb, 'bridge')} and ${cnt(fb, 'after')}); of CANDD's in the bridge CANDS keeps ${kB.c}, fails after it on ${lB.c} and in it on ${bB.c}; the paths CANDS loses that CANDD keeps ${lostA.c + lostB.c} (after the bridge ${lostA.c}${lostA.c ? `, unmet ${gbp(lostA.xb / lostA.c).slice(1)} each, ${gbp(lostA.xb / n)} a path over the ${n}` : ''}); the paths both lose after the bridge ${bothA.c}${bothA.c ? `, unmet CANDD ${gbp(bothA.xa / bothA.c).slice(1)} and CANDS ${gbp(bothA.xb / bothA.c).slice(1)} each, ${gbp((bothA.xb - bothA.xa) / n)} a path over the ${n}` : ''}`);
     console.log(`    the first year the two arms' levels part: never on ${never} paths; else most often ${firstTxt}`);
     console.log(`    the pots at the top of the first retired year (runPolicy's first ${pa.n || 0} paths), CANDS less CANDD: pension ${gbp((pb.pen || 0) - (pa.pen || 0))}, ISA ${gbp((pb.isa || 0) - (pa.isa || 0))}, taxable ${gbp((pb.tax || 0) - (pa.tax || 0))}`);
   } }

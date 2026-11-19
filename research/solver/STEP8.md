@@ -220,6 +220,16 @@ Also from the round: the audit's header and the sizing's line on shapes were sta
 batch's own order beside longest first (the reviewer's figure: 15.93 hours against 14.7), with a planted case. The edits
 move the audit's stamp, so the pilot runs again on the final files before the sizing is taken.
 
+Done before the launch commit:
+- the preflight (`results-household-hsp-preflight.txt`): the 25 units, none refused;
+- the pilot again on the final files (19 Nov 19:10 to 19:53 UK, audit 7fa755346a65, its gate fair): its arrays the same in
+  every stored figure on every path as the run before the edits;
+- the sizing (`results-household-hsp-sizing.txt`): every unit at 16,000 paths; the budget 54.5 core-hours, 14.8 hours on
+  four cores in the batch's own order, the longest unit 3.48 hours.
+
+Because the answers changed the registration's Outcomes and its gate after the pilot was read, they go back to the reviewer
+for a check of exactly those answers (`reviews/2026-11-19-household-hsp-design-3.md`), as the registration's own rule asks.
+
 ## Box
 
 A day to build, land, pilot and size (from 19 Nov 01:00 UK). Then the design reviewer, then the maintainer before launch.

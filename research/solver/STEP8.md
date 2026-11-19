@@ -17,7 +17,11 @@ allowance fixed (`HOUSEHOLD-ARM.md`, EXPLORATORY, seed 7002). The read (`results
 - HSPA passed all three parts, no unit flagged.
 
 So step 8 is registered on HSPA: its arm, the audit's plan checks and the panel's refusals are HSPA's. The panel, the pilot
-and the sizing are taken again on the fixed code. D80 is lifted for the household table (D130 (3)). Seed 7024 is reserved
+and the sizing are taken again on the fixed code:
+- the panel landed again on 71fb4271c681, the same couples and units, every target and arm A's survival unchanged;
+- the pilot on HSPA (19 Nov 15:05 to 15:53 UK; its gate fair) and its sizing (`results-household-hsp-sizing.txt`): every
+  unit at 16,000 paths; were the pilot's changes the truth, S273-45 flagged with chance 0.145 and every other unit at most
+  0.018; the budget 58.2 core-hours, about 14.7 hours on four cores, one relaunch at the 12-hour limit. D80 is lifted for the household table (D130 (3)). Seed 7024 is reserved
 when the registration goes to its second design review (D130 (4)). Below, HSP's history stays as it was written; the arms,
 the rule and the outcomes read HSPA.
 

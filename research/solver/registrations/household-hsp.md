@@ -44,10 +44,13 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     procedure), arm A from 84.1% to 86.0%: own (60/40); 45 and 90 (every wrapper re-held so the first person holds that
     share); a feature at 60/40 by the couple's place (the first person's `£15,000` a year DB pension from the state pension
     age, the same of the partner's, or the partner's state pension at 60%); gap8 (the partner eight years younger, no other
-    income). Each unit's own guard on (`src/couplesSwitch.js` `coupleSolverOn`) and `householdPlanFor` taking it.
+    income). Each unit's own guard on (`src/couplesSwitch.js` `coupleSolverOn`) and `householdPlanFor` taking it at
+    HSPA's form.
   - Reserves landed beside, unused: S033, S353F and S359F.
+  - Landed again on the fixed code 71fb4271c681 (D130 (1); `results/household-hsp-land.log`): the same couples and units,
+    every target, arm A's survival and pick the same as on 603eeb595679.
 - **Seed:** 7024 `<reserved in check-prediction.mjs for household-hsp*.md by the maintainer's unlock, named in its commit>`. As a whole number it appears nowhere before in the repository; the batch names it on a line the launcher's seed check reads; the pilot runs on 7002.
-- **Paths:** `<D34's size for each unit's HSPA-against-K2 comparison, from the pilot on the fixed code: household-hsp-paths.json; results-household-hsp-sizing.txt>`. The floor is 16,000 and the cap D61's 19,000. A comparison whose 1-point rate at its realised discordance falls below 0.90 is read there and named with its rate (D34 (4), as D61 and D96 (2) ruled).
+- **Paths:** 16,000 for every unit (`household-hsp-paths.json`; `results-household-hsp-sizing.txt`). D34's size for each unit's HSPA-against-K2 comparison at the pilot's discordance, its upper 95% bound, is the floor of 16,000 on all 15 pilot units (that bound at most 3.43%), and at 16,000 a true 1-point loss reads as harm at least 90% of the time up to a discordance of 10.50%. The cap is D61's 19,000. A comparison whose 1-point rate at its realised discordance falls below 0.90 is read there and named with its rate (D34 (4), as D61 and D96 (2) ruled).
 - **Primary metric:** survival scored by the engine (`audit-phase4.mjs runPath`, held to `E.runTrial` on the first 200 paths of every arm), paired on the same paths of the held-out seed across the arms.
   - Beside it: spending delivered, the pot left and lifetime tax.
   - The couples' rollout runs beside the engine on K2's first 500 paths; a path the two score differently is a fidelity gap,
@@ -106,10 +109,23 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     A's as built), and its band for gains `k` times one person's.
   - A part of a unit's run saved before a restart is taken up again only under the same stamp, registration hash and Node
     version.
-- **What the pilot shows:** `<the pilot's 15 units of three couples, 1,000 paths a unit on seed 7002, on the fixed code (results-household-hsp-sizing.txt; EXPLORATORY, deciding nothing)>`. The pilots before, on HSP and the code before the fix, are kept unread or superseded (`STEP8.md`).
-- **Budget:** `<core-hours and hours on four cores, longest first, and the longest unit, from the pilot on the fixed code (results-household-hsp-sizing.txt)>`
+- **What the pilot shows:** the pilot's 15 units of three couples (S025, S273 and S351F, every shape), 1,000 paths a unit on seed 7002, on the fixed code (`results-household-hsp-sizing.txt`; EXPLORATORY, deciding nothing)
+  - HSPA against K2 from `-0.30` to `+2.30` points; by shape, the mean over the pilot's couples: db `+1.20`, 90 `+0.90`,
+    gap8 `+0.80`, dbpart `+0.60`, own `+0.00`, sppart `-0.10`, 45 `-0.10`.
+  - Were each pilot change the truth, D34 at 16,000 would flag S273-45 (`-0.30`, 3 of 1,000 paths discordant) with chance
+    0.145 and S351F-own (`-0.20`) with 0.018; every other unit at most 0.001. Under HSP the pilot on the code before gave
+    S273-sppart 0.901 (BLOCKING 1's direction); under HSPA it is `-0.10`, its chance nought.
+  - Its gate fair (`reduce-household-hsp.mjs --pilot`). It ran 19 Nov 15:05 to 15:53 UK, audit a11dd70ee278: stopped once by
+    its task's 30-minute limit with 12 units done, the other three resumed under `RESUME=1` from their saved parts
+    (`results/household-hsp-pilot-3.log`, `-4.log`). The pilots before, on HSP and the code before the fix, are kept aside
+    unread or superseded (`STEP8.md`).
+- **Budget:** 58.2 core-hours; on four cores, longest first, 14.7 hours; the longest unit 3.81 hours (`results-household-hsp-sizing.txt`)
   - It counts the 200 checked paths of each arm and one relaunch of the longest unit.
-  - It is measured from the pilot's units on this machine (D21), four at a time, with nothing else running.
-  - A window that reaches the task's 12-hour limit is relaunched under `RESUME=1`.
+  - It is measured from the pilot's units on this machine (D21, an Intel Xeon at 2.10GHz), four at a time and three for the
+    resumed units, with nothing else running; the load at the units' chunks was 3.1 to 4.5 on four cores. The sizing before
+    (HSP on the code before the fix, the pilot of 19 Nov 03:29 UK) gave 44.3 core-hours: K2's path on the same units ran
+    about a quarter slower in this pilot (S025-own `91.4` ms against `71.7`), the cause not measured.
+  - The run passes the task's 12-hour limit once: that window is relaunched under `RESUME=1`, each unit done kept and each
+    unfinished one resumed from its saved chunks.
 - **The launch:** `<the stamp: code 71fb4271c681 audit <audit-household-hsp.mjs stampFilesHash> at the launch commit>`
 - **Design review:** `<the reviewer's second round: research/solver/reviews/2026-11-19-household-hsp-design-2.md>` (the first round: `reviews/2026-11-19-household-hsp-design.md`, FAIL)

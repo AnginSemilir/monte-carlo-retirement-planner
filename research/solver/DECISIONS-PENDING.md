@@ -47,7 +47,7 @@ below this section says "the beta", read it as history. The order from here:
      preflight, two paths of seed 7002); under a PASS each unit M1 names goes to you with the read before the default
      changes; the gate's re-checks gain planted cases on a real record; the launch stamp is filled by hand. The edits move
      the audit's stamp, so the pilot runs again on the final files and the Budget is taken from it.
-   - **Yours:** seed 7024's reservation, an unlock of `check-prediction.mjs` by name (item 4); then the launch.
+   - **Seed 7024 reserved** under your unlock (D131, 744eee1a); the registration complete by `check-prediction.mjs`. Before the launch: the preflight of the 25 units the pilot did not run, the pilot again on the final files and the Budget from it. **Yours, then:** the launch (D129 (3)).
 3. **D80 lifted for the household table alone** (its tie-break kept).
 4. **Seed 7024** reserved when the registration goes to its second design review.
 5. **The guard kept as built**, so D129 (5)'s words on the couples card go with the next batch.

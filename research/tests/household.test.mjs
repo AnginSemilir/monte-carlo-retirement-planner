@@ -436,6 +436,18 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
     w.n > 0 && w.bad === 0 && w.moved > 0 && w.agree === 20, `${w.n - w.bad} of ${w.n} decisions; the share moved at ${w.moved}; agree ${w.agree} of 20`);
   HOUSE.plant = 'splitstart'; const wz = walk(); HOUSE.plant = '';
   check('(10c) the plant \'splitstart\' fails it', wz.bad > 0, `${wz.bad} of ${wz.n} decisions not the year's share`);
+  // (10d) HSPA (D130 (2)): the allowance k times one person's as well, so each band limit k x L (its width above the
+  // allowance k times one person's, as part 1's), the cap k times; every other doubled entry design A's; k = 2 design A's plan
+  const offA = hp => DOUBLED.filter(key => Math.abs(hp.config[key] - (key === 'personalAllowance' ? k * pa : LIMITS.includes(key) ? k * one(key) : key === 'pclsMaxCap' ? k * one(key) : asBuilt.config[key])) > 1e-6);
+  const oA = offA(householdPlanFor(E, plan, { scale: 'pensionsPA' })), evenA = JSON.stringify(householdPlanFor(E, even, { scale: 'pensionsPA' })) === JSON.stringify(householdPlanFor(E, even));
+  check('(10d) HSPA on S191-90: the allowance and each band limit k times one person\'s, the cap k times, every other doubled entry design A\'s; even pensions (k = 2) design A\'s plan byte for byte',
+    oA.length === 0 && evenA, `off ${oA.join(', ') || 'none'}; even ${evenA}`);
+  HOUSE.plant = 'pakdouble'; const oAz = offA(householdPlanFor(E, plan, { scale: 'pensionsPA' })); HOUSE.plant = '';
+  check('(10d) the plant \'pakdouble\' (the allowance left doubled) fails it', oAz.includes('personalAllowance'), oAz.join(', ') || 'none');
+  const hA = solveHousehold(E, M, plan, { solveOne, scale: 'pensionsPA' });
+  check('(10d) HSPA\'s solve: the table\'s allowance k times one person\'s and its band for gains k times one person\'s, the engine\'s default the same after, the rule recorded',
+    Math.abs(hA.H.m.ctx.P.pa - k * pa) < 1e-6 && Math.abs(hA.H.m.ctx.P.cgtBandWidth - k * p0) < 1e-6 && E.DEFAULT_CONFIG.basicBandLimit === d0 && hA.meta.scale.rule === 'pensionsPA' && hA.hopts.scale.paK === true,
+    `the allowance ${hA.H.m.ctx.P.pa} against k x ${pa} = ${k * pa}; the band ${hA.H.m.ctx.P.cgtBandWidth} against ${k * p0}; the default ${E.DEFAULT_CONFIG.basicBandLimit}; meta ${JSON.stringify(hA.meta.scale)}`);
 }
 
 const bad = results.filter(ok => !ok).length;

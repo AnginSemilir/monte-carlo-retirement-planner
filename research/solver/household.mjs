@@ -83,6 +83,9 @@ export const inBands = (E, single, fn) => (bandsSingle(single) && !planted('sing
    solved inside a band for gains of k times one person's (bandsAt). k = 1 / s is exact when the two draw their pensions in
    proportion; k = 2, doubling, is its even case. Plants: 'scaleall' (the allowance scaled too, k x PA), 'scalecgt' (the
    bands scaled, the solve inside twoBands). */
+/* the remedy's forms: 'pensions' (HSP), 'bands' (HSPB, its amendment 1) and 'pensionsPA' (HSPA, D130 (2): the personal
+   allowance k times one person's as well, each SCALED limit then k x PA + k x (L - PA) = k x L) */
+export const SCALES = Object.freeze(['pensions', 'bands', 'pensionsPA']);
 export const SCALED = Object.freeze(['paTaperThreshold', 'basicBandLimit', 'higherBandLimit', 'scotStarterLimit', 'scotBasicLimit', 'scotIntermediateLimit',
   'scotHigherLimit', 'scotAdvancedLimit']);
 export function pensionsSplit(E, plan) {
@@ -92,15 +95,17 @@ export function pensionsSplit(E, plan) {
 }
 /* fn run with the engine's default basic band limit at 2 x PA + k x (limit - PA), so a household plan whose allowance is
    2 x PA has a band for gains of k times one person's; put back whatever fn does. k = 2 is twoBands. */
-export function bandsAt(E, k, paOne, fn) {
+export function bandsAt(E, k, paOne, fn, paK = false) {
   if (TWO_BANDS) throw new Error('bandsAt: called while twoBands or bandsAt is running');
   const old = E.DEFAULT_CONFIG.basicBandLimit;
   TWO_BANDS = true;
-  E.DEFAULT_CONFIG.basicBandLimit = 2 * paOne + k * (old - paOne);
+  // the household's allowance two people's, or k times one person's (paK, 'pensionsPA'): the band for gains k times one
+  // person's either way
+  E.DEFAULT_CONFIG.basicBandLimit = (paK ? k * paOne : 2 * paOne) + k * (old - paOne);
   try { return fn(); } finally { E.DEFAULT_CONFIG.basicBandLimit = old; TWO_BANDS = false; }
 }
 /* the household plan's options as a solve or a context needs them: the band for gains each asks for */
-export const householdBands = (E, hopts, fn) => (hopts && hopts.scale && !planted('scalecgt') ? bandsAt(E, hopts.scale.k, hopts.scale.paOne, fn) : inBands(E, (hopts && hopts.single) || [], fn));
+export const householdBands = (E, hopts, fn) => (hopts && hopts.scale && !planted('scalecgt') ? bandsAt(E, hopts.scale.k, hopts.scale.paOne, fn, !!hopts.scale.paK) : inBands(E, (hopts && hopts.single) || [], fn));
 const LABEL_KEYS = { Pensions: 'pen', 'S&S ISAs': 'isa', 'Other Investments (e.g. GIA)': 'other', 'Cash Savings': 'cash', 'Cash ISA': 'cashIsa' };
 
 /*
@@ -175,12 +180,16 @@ export function householdPlanFor(E, plan, opts = {}) {
   const cfg = { ...E.DEFAULT_CONFIG, ...(plan.config || {}) }, config = { ...(plan.config || {}) };
   // opts.single (the decomposition's, D129 (1)): the groups of SINGLE_GROUPS left at one person's; opts.scale 'pensions' (the
   // remedy's part 1, HOUSEHOLD-REMEDY.md): each band's width above the allowance, and the cap, k times one person's; opts.scale
-  // 'bands' (its amendment 1): the bands alone, the cap doubled
+  // 'bands' (its amendment 1): the bands alone, the cap doubled; opts.scale 'pensionsPA' (D130 (2)): as 'pensions', the
+  // personal allowance k times one person's too, so each band limit is k times one person's (its width above the allowance k
+  // times, as 'pensions')
   const single = singleKeys(opts.single || []);
-  if (opts.scale !== undefined && opts.scale !== 'pensions' && opts.scale !== 'bands') throw new Error(`householdPlanFor: opts.scale '${opts.scale}' (want 'pensions' or 'bands')`);
+  if (opts.scale !== undefined && !SCALES.includes(opts.scale)) throw new Error(`householdPlanFor: opts.scale '${opts.scale}' (want ${SCALES.map(x => `'${x}'`).join(', ')})`);
   if (opts.scale && single.size) throw new Error('householdPlanFor: opts.scale and opts.single together');
   const sc = opts.scale ? pensionsSplit(E, plan) : null, paOne = E.num(cfg.personalAllowance, E.DEFAULT_CONFIG.personalAllowance);
-  const scaled = (k, one) => (k === 'personalAllowance' ? (planted('scaleall') ? sc.k * one : 2 * one) : SCALED.includes(k) ? 2 * paOne + sc.k * (one - paOne) : k === 'pclsMaxCap' && opts.scale === 'pensions' ? sc.k * one : 2 * one);
+  // the plant 'pakdouble' (D130 (2)'s test): 'pensionsPA' read with the allowance left doubled, as 'pensions' has it
+  const paK = opts.scale === 'pensionsPA' && !planted('pakdouble'), paH = paK ? sc && sc.k * paOne : 2 * paOne;
+  const scaled = (k, one) => (k === 'personalAllowance' ? (paK || planted('scaleall') ? sc.k * one : 2 * one) : SCALED.includes(k) ? paH + sc.k * (one - paOne) : k === 'pclsMaxCap' && (opts.scale === 'pensions' || paK) ? sc.k * one : 2 * one);
   if (!planted('singleband')) for (const k of DOUBLED) config[k] = single.has(k) ? E.num(cfg[k], E.DEFAULT_CONFIG[k]) : sc ? scaled(k, E.num(cfg[k], E.DEFAULT_CONFIG[k])) : 2 * E.num(cfg[k], E.DEFAULT_CONFIG[k]);
   const maxPen = deposits.filter(x => x.category === E.CATEGORY_LABEL.pen).reduce((s, x) => Math.max(s, x.amount), 0);
   config.pensionNoEarningsLimit = Math.max(E.num(config.pensionNoEarningsLimit, E.DEFAULT_CONFIG.pensionNoEarningsLimit), maxPen);
@@ -263,7 +272,7 @@ export function solveHousehold(E, M, plan, opts = {}) {
   // person's (bandsAt)
   const single = opts.single || [], sc = opts.scale ? pensionsSplit(E, plan) : null;
   const paOne = E.num({ ...E.DEFAULT_CONFIG, ...(plan.config || {}) }.personalAllowance, E.DEFAULT_CONFIG.personalAllowance);
-  const people = sc ? sc.k : bandsSingle(single) ? 1 : 2, hopts = { single, ...(sc ? { scale: { k: sc.k, paOne } } : {}) };
+  const people = sc ? sc.k : bandsSingle(single) ? 1 : 2, hopts = { single, ...(sc ? { scale: { k: sc.k, paOne, paK: opts.scale === 'pensionsPA' } } : {}) };
   const hp = E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan, { single, ...(opts.scale ? { scale: opts.scale } : {}) })));
   const t0 = Date.now();
   const H = householdBands(E, hopts, () => opts.solveOne(hp, { who: 'household', partnerAge0: m0.ctx.agePart0 }));

@@ -9,6 +9,13 @@ holds, against today's default and against the app's rules, with the pot's rulin
 first. Then the change of default, the reviewer on it, and the guard looked at again." This note is that design. The
 registration (`registrations/household-hsp.md`) is drafted from it once the panel is landed and the pilot sized.
 
+**HELD (D130 (2), 19 Nov).** Before step 8 is registered, HSP and HSPA (the personal allowance priced at `k` as well) are
+read by this note's own rule on the lead test's 28 units and step 5's 28 shapes, on the code with the ISA allowance fixed
+(`HOUSEHOLD-ARM.md`, EXPLORATORY, seed 7002). Step 8 is registered on the arm that passes on every unit; if neither
+passes, it goes back to the maintainer with the units that flag. D80 is lifted for the household table (D130 (3)). Seed
+7024 is reserved when the registration goes to its second design review (D130 (4)). The panel, pilot and sizing are
+taken again on the fixed code.
+
 ## The question
 
 Does the household plan (HSP) keep more couples solvent than today's couples' default (K2), delivering no less spending,

@@ -1,0 +1,52 @@
+STEP 8, THE PANEL (household-hsp-panel.json, built 2026-11-19T01:10:44.059Z, code 603eeb595679; the scan 318 ids, hash acedff4811b5; the orders frozen 2026-11-19T00:49:25.436Z)
+lib: 4 couples taken evenly over the untouched order (91 couples); passed over: S111 (own: not landed)
+  place 0 S025 ages 68/65; its feature: db
+      S025-own      target 22500, arm A 84.9% (ISA First, lump sum); the first person holds 60.0% of the pots
+      S025-45       target 22400, arm A 86.0% (ISA First, lump sum); the first person holds 45.0% of the pots
+      S025-90       target 22400, arm A 85.3% (Bracket Fill, lump sum); the first person holds 90.0% of the pots
+      S025-db       target 34600, arm A 84.1% (ISA First, lump sum); the first person holds 60.0% of the pots
+      S025-gap8     target 21700, arm A 85.1% (ISA First, lump sum); the first person holds 60.0% of the pots
+  place 1 S193 ages 55/52; its feature: dbpart
+      S193-own      target 22300, arm A 84.2% (Bracket Fill, lump sum); the first person holds 60.0% of the pots
+      S193-45       target 22300, arm A 84.3% (Bracket Fill, lump sum); the first person holds 45.0% of the pots
+      S193-90       target 22300, arm A 84.7% (Bracket Fill, lump sum); the first person holds 90.0% of the pots
+      S193-dbpart   target 28800, arm A 84.4% (ISA First); the first person holds 60.0% of the pots
+      S193-gap8     target 24500, arm A 85.4% (Bracket Fill, lump sum); the first person holds 60.0% of the pots
+  place 2 S273 ages 45/42; its feature: sppart
+      S273-own      target 161000, arm A 85.3% (Bracket Fill Basic); the first person holds 60.0% of the pots
+      S273-45       target 161000, arm A 85.5% (Bracket Fill Basic); the first person holds 45.0% of the pots
+      S273-90       target 161000, arm A 85.1% (Bracket Fill Basic); the first person holds 90.0% of the pots
+      S273-sppart   target 161000, arm A 84.9% (Bracket Fill Basic); the first person holds 60.0% of the pots
+      S273-gap8     target 171100, arm A 85.8% (Bracket Fill Basic); the first person holds 60.0% of the pots
+  place 3 S027 ages 68/65; its feature: db
+      S027-own      target 39700, arm A 85.8% (ISA First, lump sum); the first person holds 60.0% of the pots
+      S027-45       target 39700, arm A 85.1% (ISA First, lump sum); the first person holds 45.0% of the pots
+      S027-90       target 39900, arm A 85.9% (Bracket Fill Basic); the first person holds 90.0% of the pots
+      S027-db       target 52400, arm A 85.7% (ISA First, lump sum); the first person holds 60.0% of the pots
+      S027-gap8     target 39700, arm A 85.0% (Windfall to ISA, lump sum); the first person holds 60.0% of the pots
+young: 4 couples taken evenly over the untouched order (6 couples); passed over: none
+  place 0 S349F ages 37/34; its feature: db
+      S349F-own     target 21500, arm A 85.9% (Bracket Fill (harvest off), lump sum); the first person holds 60.0% of the pots
+      S349F-45      target 22300, arm A 84.4% (Bracket Fill (harvest off), lump sum); the first person holds 45.0% of the pots
+      S349F-90      target 22300, arm A 84.3% (Bracket Fill, lump sum); the first person holds 90.0% of the pots
+      S349F-db      target 27600, arm A 85.2% (ISA First (harvest off), lump sum); the first person holds 60.0% of the pots
+      S349F-gap8    target 24500, arm A 84.1% (Bracket Fill); the first person holds 60.0% of the pots
+  place 1 S351F ages 37/34; its feature: dbpart
+      S351F-own     target 43700, arm A 84.8% (Bracket Fill, lump sum); the first person holds 60.0% of the pots
+      S351F-45      target 43700, arm A 84.8% (Bracket Fill); the first person holds 45.0% of the pots
+      S351F-90      target 42600, arm A 85.7% (Bracket Fill Basic); the first person holds 90.0% of the pots
+      S351F-dbpart  target 49300, arm A 85.8% (Bracket Fill, lump sum); the first person holds 60.0% of the pots
+      S351F-gap8    target 46000, arm A 84.1% (Bracket Fill); the first person holds 60.0% of the pots
+  place 2 S355F ages 37/34; its feature: sppart
+      S355F-own     target 70800, arm A 84.2% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots
+      S355F-45      target 70800, arm A 84.2% (Bracket Fill Basic, lump sum); the first person holds 45.0% of the pots
+      S355F-90      target 70800, arm A 84.2% (Bracket Fill Basic, lump sum); the first person holds 90.0% of the pots
+      S355F-sppart  target 67900, arm A 85.6% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots
+      S355F-gap8    target 73600, arm A 84.3% (Bracket Fill, lump sum); the first person holds 60.0% of the pots
+  place 3 S357F ages 37/34; its feature: db
+      S357F-own     target 114900, arm A 84.5% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots
+      S357F-45      target 114900, arm A 84.6% (Bracket Fill Basic, lump sum); the first person holds 45.0% of the pots
+      S357F-90      target 110800, arm A 85.2% (Bracket Fill Basic, lump sum); the first person holds 90.0% of the pots
+      S357F-db      target 123100, arm A 84.5% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots
+      S357F-gap8    target 123100, arm A 84.4% (Bracket Fill Basic); the first person holds 60.0% of the pots
+40 units; arm A's pick takes the full lump sum on 28 of them (by its label)

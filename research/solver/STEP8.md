@@ -102,7 +102,10 @@ APP, each sending its unit to investigation without blocking on its own (D34 (3)
 3. **The rule against K2 alone, with APP beside it**, as stage C and the share rules were.
 4. **M1 by unit.** It is printed and its exceptions named, not a bar. The alternative is to make a named unit block the
    default, as a flagged one does.
-5. **The cost,** measured by the pilot on this machine with nothing else running (D21) before the registration is
+5. **The engine's ISA defect** (`reports/2026-11-18-windfall-read.md`) reaches one unit: S027-gap8, whose own pick is
+   Windfall to ISA, so a dated deposit lands in its ISA in all three arms. If the defect is fixed before the launch, the
+   code moves and the panel is landed again, since the audit refuses a run on code other than the panel's.
+6. **The cost,** measured by the pilot on this machine with nothing else running (D21) before the registration is
    complete: K2's path is the slowest of the three (the decomposition's times, `results-household-decomp.txt`).
 
 ## Box

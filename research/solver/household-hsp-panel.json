@@ -1,0 +1,384 @@
+{
+ "built": "2026-11-19T01:10:44.059Z",
+ "code": "603eeb595679",
+ "touched": {
+  "count": 318,
+  "hash": "acedff4811b5"
+ },
+ "cohorts": [
+  {
+   "cohort": "lib",
+   "passed": [
+    {
+     "id": "S111",
+     "place": 1,
+     "not": [
+      "own: not landed"
+     ]
+    }
+   ],
+   "panel": [
+    {
+     "couple": "S025",
+     "base": "S025",
+     "cohort": "lib",
+     "place": 0,
+     "feature": "db",
+     "units": [
+      {
+       "id": "S025-own",
+       "variant": "own",
+       "target": 22500,
+       "survival": 84.89999999999999,
+       "label": "ISA First, lump sum"
+      },
+      {
+       "id": "S025-45",
+       "variant": "45",
+       "target": 22400,
+       "survival": 86,
+       "label": "ISA First, lump sum"
+      },
+      {
+       "id": "S025-90",
+       "variant": "90",
+       "target": 22400,
+       "survival": 85.3,
+       "label": "Bracket Fill, lump sum"
+      },
+      {
+       "id": "S025-db",
+       "variant": "db",
+       "target": 34600,
+       "survival": 84.1,
+       "label": "ISA First, lump sum"
+      },
+      {
+       "id": "S025-gap8",
+       "variant": "gap8",
+       "target": 21700,
+       "survival": 85.1,
+       "label": "ISA First, lump sum"
+      }
+     ]
+    },
+    {
+     "couple": "S193",
+     "base": "S193",
+     "cohort": "lib",
+     "place": 1,
+     "feature": "dbpart",
+     "units": [
+      {
+       "id": "S193-own",
+       "variant": "own",
+       "target": 22300,
+       "survival": 84.2,
+       "label": "Bracket Fill, lump sum"
+      },
+      {
+       "id": "S193-45",
+       "variant": "45",
+       "target": 22300,
+       "survival": 84.3,
+       "label": "Bracket Fill, lump sum"
+      },
+      {
+       "id": "S193-90",
+       "variant": "90",
+       "target": 22300,
+       "survival": 84.7,
+       "label": "Bracket Fill, lump sum"
+      },
+      {
+       "id": "S193-dbpart",
+       "variant": "dbpart",
+       "target": 28800,
+       "survival": 84.39999999999999,
+       "label": "ISA First"
+      },
+      {
+       "id": "S193-gap8",
+       "variant": "gap8",
+       "target": 24500,
+       "survival": 85.39999999999999,
+       "label": "Bracket Fill, lump sum"
+      }
+     ]
+    },
+    {
+     "couple": "S273",
+     "base": "S273",
+     "cohort": "lib",
+     "place": 2,
+     "feature": "sppart",
+     "units": [
+      {
+       "id": "S273-own",
+       "variant": "own",
+       "target": 161000,
+       "survival": 85.3,
+       "label": "Bracket Fill Basic"
+      },
+      {
+       "id": "S273-45",
+       "variant": "45",
+       "target": 161000,
+       "survival": 85.5,
+       "label": "Bracket Fill Basic"
+      },
+      {
+       "id": "S273-90",
+       "variant": "90",
+       "target": 161000,
+       "survival": 85.1,
+       "label": "Bracket Fill Basic"
+      },
+      {
+       "id": "S273-sppart",
+       "variant": "sppart",
+       "target": 161000,
+       "survival": 84.89999999999999,
+       "label": "Bracket Fill Basic"
+      },
+      {
+       "id": "S273-gap8",
+       "variant": "gap8",
+       "target": 171100,
+       "survival": 85.8,
+       "label": "Bracket Fill Basic"
+      }
+     ]
+    },
+    {
+     "couple": "S027",
+     "base": "S027",
+     "cohort": "lib",
+     "place": 3,
+     "feature": "db",
+     "units": [
+      {
+       "id": "S027-own",
+       "variant": "own",
+       "target": 39700,
+       "survival": 85.8,
+       "label": "ISA First, lump sum"
+      },
+      {
+       "id": "S027-45",
+       "variant": "45",
+       "target": 39700,
+       "survival": 85.1,
+       "label": "ISA First, lump sum"
+      },
+      {
+       "id": "S027-90",
+       "variant": "90",
+       "target": 39900,
+       "survival": 85.9,
+       "label": "Bracket Fill Basic"
+      },
+      {
+       "id": "S027-db",
+       "variant": "db",
+       "target": 52400,
+       "survival": 85.7,
+       "label": "ISA First, lump sum"
+      },
+      {
+       "id": "S027-gap8",
+       "variant": "gap8",
+       "target": 39700,
+       "survival": 85,
+       "label": "Windfall to ISA, lump sum"
+      }
+     ]
+    }
+   ],
+   "complete": true
+  },
+  {
+   "cohort": "young",
+   "passed": [],
+   "panel": [
+    {
+     "couple": "S349F",
+     "base": "S349",
+     "cohort": "young",
+     "place": 0,
+     "feature": "db",
+     "units": [
+      {
+       "id": "S349F-own",
+       "variant": "own",
+       "target": 21500,
+       "survival": 85.9,
+       "label": "Bracket Fill (harvest off), lump sum"
+      },
+      {
+       "id": "S349F-45",
+       "variant": "45",
+       "target": 22300,
+       "survival": 84.39999999999999,
+       "label": "Bracket Fill (harvest off), lump sum"
+      },
+      {
+       "id": "S349F-90",
+       "variant": "90",
+       "target": 22300,
+       "survival": 84.3,
+       "label": "Bracket Fill, lump sum"
+      },
+      {
+       "id": "S349F-db",
+       "variant": "db",
+       "target": 27600,
+       "survival": 85.2,
+       "label": "ISA First (harvest off), lump sum"
+      },
+      {
+       "id": "S349F-gap8",
+       "variant": "gap8",
+       "target": 24500,
+       "survival": 84.1,
+       "label": "Bracket Fill"
+      }
+     ]
+    },
+    {
+     "couple": "S351F",
+     "base": "S351",
+     "cohort": "young",
+     "place": 1,
+     "feature": "dbpart",
+     "units": [
+      {
+       "id": "S351F-own",
+       "variant": "own",
+       "target": 43700,
+       "survival": 84.8,
+       "label": "Bracket Fill, lump sum"
+      },
+      {
+       "id": "S351F-45",
+       "variant": "45",
+       "target": 43700,
+       "survival": 84.8,
+       "label": "Bracket Fill"
+      },
+      {
+       "id": "S351F-90",
+       "variant": "90",
+       "target": 42600,
+       "survival": 85.7,
+       "label": "Bracket Fill Basic"
+      },
+      {
+       "id": "S351F-dbpart",
+       "variant": "dbpart",
+       "target": 49300,
+       "survival": 85.8,
+       "label": "Bracket Fill, lump sum"
+      },
+      {
+       "id": "S351F-gap8",
+       "variant": "gap8",
+       "target": 46000,
+       "survival": 84.1,
+       "label": "Bracket Fill"
+      }
+     ]
+    },
+    {
+     "couple": "S355F",
+     "base": "S355",
+     "cohort": "young",
+     "place": 2,
+     "feature": "sppart",
+     "units": [
+      {
+       "id": "S355F-own",
+       "variant": "own",
+       "target": 70800,
+       "survival": 84.2,
+       "label": "Bracket Fill Basic, lump sum"
+      },
+      {
+       "id": "S355F-45",
+       "variant": "45",
+       "target": 70800,
+       "survival": 84.2,
+       "label": "Bracket Fill Basic, lump sum"
+      },
+      {
+       "id": "S355F-90",
+       "variant": "90",
+       "target": 70800,
+       "survival": 84.2,
+       "label": "Bracket Fill Basic, lump sum"
+      },
+      {
+       "id": "S355F-sppart",
+       "variant": "sppart",
+       "target": 67900,
+       "survival": 85.6,
+       "label": "Bracket Fill Basic, lump sum"
+      },
+      {
+       "id": "S355F-gap8",
+       "variant": "gap8",
+       "target": 73600,
+       "survival": 84.3,
+       "label": "Bracket Fill, lump sum"
+      }
+     ]
+    },
+    {
+     "couple": "S357F",
+     "base": "S357",
+     "cohort": "young",
+     "place": 3,
+     "feature": "db",
+     "units": [
+      {
+       "id": "S357F-own",
+       "variant": "own",
+       "target": 114900,
+       "survival": 84.5,
+       "label": "Bracket Fill Basic, lump sum"
+      },
+      {
+       "id": "S357F-45",
+       "variant": "45",
+       "target": 114900,
+       "survival": 84.6,
+       "label": "Bracket Fill Basic, lump sum"
+      },
+      {
+       "id": "S357F-90",
+       "variant": "90",
+       "target": 110800,
+       "survival": 85.2,
+       "label": "Bracket Fill Basic, lump sum"
+      },
+      {
+       "id": "S357F-db",
+       "variant": "db",
+       "target": 123100,
+       "survival": 84.5,
+       "label": "Bracket Fill Basic, lump sum"
+      },
+      {
+       "id": "S357F-gap8",
+       "variant": "gap8",
+       "target": 123100,
+       "survival": 84.39999999999999,
+       "label": "Bracket Fill Basic"
+      }
+     ]
+    }
+   ],
+   "complete": true
+  }
+ ]
+}

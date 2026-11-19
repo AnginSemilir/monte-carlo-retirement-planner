@@ -108,7 +108,15 @@ its rule committed before it runs; none changes anything in the app on its own.
        the split's copies are skipped exactly outside the deposit year (or on anchors with the skip's part measured
        beside it: the reviewer's second round, MINOR 2). The fix moves the solver's code id and may move pinned figures
        in protected tests, so it needs the maintainer's "unlock enforcement".
-   - **The savings factorial runs now (D129), the defect said beside its read: it reaches one household, in both arms
+   - **READ, FOR THE MAINTAINER: the savings factorial** (`results-save.txt`; `reports/2026-11-19-save-read.md`): A GAIN
+     AND A HARM.
+     - Survival up on the panel (`+0.398` points) and on 14 of 27 households beyond noise, down on none.
+     - Spending up on the panel (`+0.4233%`) and on 23; down on S308F (`-0.250%`), the harm, at once by B7.
+     - The split put the saving pension first on 12 households, and ISA first on five of the younger cohort (S308F among
+       them).
+     - **The agent recommends** a v2 registered test of the savings split, after the ISA defect is fixed, on the whole menu
+       (on anchors the copies' skip is not exact). The reviewer at the read is next.
+   - **The savings factorial ran as D129 ordered, the defect said beside its read: it reaches one household, in both arms
      alike.** Checked on plan inputs alone (`save-isa-deposits.mjs`, `results-save-isa-deposits.txt`):
      - under arm A's own pick, none of its 27 households has a dated deposit or drip into an ISA in a working year with
        a save choice (S290 would only under a policy it does not take on this code);

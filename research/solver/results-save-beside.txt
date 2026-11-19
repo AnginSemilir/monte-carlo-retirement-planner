@@ -1,0 +1,57 @@
+BESIDE THE SAVINGS FACTORIAL'S READ (EXPLORATORY, after the read, deciding nothing; as the windfall read's reviewer asked of that read): 54 units from /home/user/monte-carlo-retirement-planner/research/solver/results/save-7002, seed 7002, 4000 paths; code 603eeb595679, audit c7952db773b5; the verdict A GAIN AND A HARM
+
+1. Each household, CANDS against CANDD (one-sided p, then Holm over the households):
+  S188   survival: harm p 9.81e-1 (Holm 1.00e+0), gain p 7.30e-2 (Holm 5.84e-1); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S204   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 9.00e-5 (Holm 1.71e-3); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S228   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 4.28e-4 (Holm 7.27e-3); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S244   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 5.86e-3 (Holm 7.62e-2); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S260   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 1.25e-7 (Holm 3.00e-6); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S272   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 1.08e-10 (Holm 2.80e-9); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S290   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 1.55e-4 (Holm 2.80e-3); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S304F  survival: harm p 8.68e-1 (Holm 1.00e+0), gain p 2.29e-1 (Holm 1.00e+0); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S306F  survival: harm p 9.76e-1 (Holm 1.00e+0), gain p 3.92e-2 (Holm 3.92e-1); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S308F  survival: harm p 4.50e-1 (Holm 1.00e+0), gain p 6.48e-1 (Holm 1.00e+0); spending: loss p 5.00e-5 (Holm 1.35e-3), gain p 1.00e+0 (Holm 1.00e+0)
+  S310F  survival: harm p 9.59e-1 (Holm 1.00e+0), gain p 6.42e-2 (Holm 5.78e-1); spending: loss p 9.85e-1 (Holm 1.00e+0), gain p 1.55e-2 (Holm 6.20e-2)
+  S314F  survival: harm p 9.96e-1 (Holm 1.00e+0), gain p 1.33e-2 (Holm 1.46e-1); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S316F  survival: harm p 5.00e-1 (Holm 1.00e+0), gain p 7.09e-1 (Holm 1.00e+0); spending: loss p 9.98e-1 (Holm 1.00e+0), gain p 2.55e-3 (Holm 1.27e-2)
+  S320F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 2.09e-7 (Holm 4.80e-6); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S322F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 5.25e-6 (Holm 1.10e-4); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S326F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 2.31e-14 (Holm 6.24e-13); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S328F  survival: harm p 9.98e-1 (Holm 1.00e+0), gain p 6.77e-3 (Holm 8.12e-2); spending: loss p 7.16e-2 (Holm 1.00e+0), gain p 9.28e-1 (Holm 1.00e+0)
+  S332F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 5.46e-6 (Holm 1.10e-4); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S334F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 3.83e-7 (Holm 8.43e-6); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S338F  survival: harm p 9.41e-1 (Holm 1.00e+0), gain p 1.51e-1 (Holm 1.00e+0); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S340F  survival: harm p 1.05e-1 (Holm 1.00e+0), gain p 9.62e-1 (Holm 1.00e+0); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S344F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 5.59e-8 (Holm 1.40e-6); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S346F  survival: harm p 7.29e-1 (Holm 1.00e+0), gain p 4.19e-1 (Holm 1.00e+0); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S350F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 1.16e-3 (Holm 1.74e-2); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S352F  survival: harm p 8.91e-1 (Holm 1.00e+0), gain p 3.44e-1 (Holm 1.00e+0); spending: loss p 6.12e-1 (Holm 1.00e+0), gain p 3.88e-1 (Holm 1.00e+0)
+  S356F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 1.30e-3 (Holm 1.82e-2); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S358F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 7.57e-4 (Holm 1.21e-2); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+
+2. The panel's spending delivered, CANDS against CANDD:
+  each household counted once: +0.4233% (+0.4129 to +0.4336); without S308F (its spending down beyond noise): +0.4491% (+0.4392 to +0.4590)
+  pooled in pounds: +0.3942% (+0.3802 to +0.4082)
+
+3. The run's cost: the solves CANDD 0.58 and CANDS 0.50 core-hours, the engine 5.19; the units whole (the checks and runPolicy beside included) 7.45 core-hours at 4000 paths; at 8000 paths the engine twice, about 12.63 (the units ran arm by arm, CANDD's first, so the two arms' solve times were taken under different loads)
+
+4. Where CANDS put the year's saving over the working years (runPolicy beside the engine; the plan / pension first / ISA first):
+  pension first on 90% or more of the decisions: 12 of 27 households (S188, S204, S228, S244, S260, S272, S290, S320F, S322F, S332F, S334F, S346F)
+  S304F  the plan 0%, pension first 0%, ISA first 100% of 15000
+  S306F  the plan 4%, pension first 3%, ISA first 93% of 15000
+  S308F  the plan 0%, pension first 1%, ISA first 99% of 15000
+  S310F  the plan 9%, pension first 1%, ISA first 90% of 15000
+  S314F  the plan 5%, pension first 74%, ISA first 21% of 15000
+  S316F  the plan 7%, pension first 76%, ISA first 17% of 15000
+  S326F  the plan 1%, pension first 89%, ISA first 10% of 15000
+  S328F  the plan 29%, pension first 66%, ISA first 5% of 15000
+  S338F  the plan 16%, pension first 46%, ISA first 38% of 15000
+  S340F  the plan 1%, pension first 4%, ISA first 95% of 15000
+  S344F  the plan 4%, pension first 82%, ISA first 14% of 15000
+  S350F  the plan 12%, pension first 48%, ISA first 39% of 15000
+  S352F  the plan 24%, pension first 31%, ISA first 46% of 15000
+  S356F  the plan 2%, pension first 71%, ISA first 27% of 15000
+  S358F  the plan 0%, pension first 90%, ISA first 10% of 15000
+
+5. The panel's survival, CANDS against CANDD, by path (each path's change averaged over the households):
+  by path +0.398 (0.331 to 0.466), se 0.0345, on 4000 paths of 27 households

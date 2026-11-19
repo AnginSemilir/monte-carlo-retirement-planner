@@ -89,6 +89,35 @@ split cuts is a harm, however the panel gains.
   split's solve costs about three times as much in its working years. The pilot measures it, and the budget is given before
   launch.
 
+## The machinery (built 19 Nov, night, while step 8 runs; nothing of it run beyond its planted checks and a smoke)
+
+- **The panel**, `save-v2-panel.mjs` (`--planted`, 8 checks):
+  - `freeze` takes the pool, the scan of the day and the two orders once, into `save-v2-orders.json`. The scan decides
+    nothing here: each household's status (untouched, or touched by another run) is recorded for the registration to state.
+  - `land` is Phase 4's procedure (`phase4-panel.mjs` `landTarget`). A household landed with no working year to choose is
+    passed over.
+  - `combine` walks the younger cohort first, then the library's to 40 (the planted walk: a younger household not landed
+    gives its place to the next older one).
+- **The audit**, `audit-save-v2.mjs` (`--planted`, 13 checks): the four arms, one solve held at a time, each with its checks
+  before any path; each arm held to `E.runTrial` on its first 200 paths; `runPolicy` beside the engine on its first `1,000`,
+  recording each working year's save and tier pair and the pots at the top of the first retired year; chunks of `1,000`
+  paths, resumed after a restart; no outcome in a log under the registration.
+- **The read**, `reduce-save-v2.mjs` (`--planted`, 12 checks): the stamps, the gate (26 planted refusals), the rule and
+  the report, an anchors flag named in the outcome under a PASS.
+- **The sizing**, `size-save-v2.mjs` (`--planted`, 3 checks), and **the batch**, `batch-save-v2.sh` (`registered`, `pilot`,
+  `preflight`, `RESUME=1`).
+- **The pilot:** four households, the younger cohort's places 0 and 5 and the library's places 0 and 15. Seed 7002, `1,000`
+  paths, all four arms, one household a core. **The preflight:** the other 36, each through every check before any path,
+  then two paths.
+- **Found while building it, for the design reviewer: the stamp's reading of a shell script.**
+  - The stamp follows a batch script's inline `node -e` import as though it were a module beside the script. So three
+    earlier audits name a file that does not exist in their stamps: stage C's (`audit-couples-share.mjs`), the share rules'
+    (`audit-share-rules.mjs`) and step 8's (`audit-household-hsp.mjs`).
+  - Each hashes that name and the word `missing` the same way every time, so no stamp, result or resume check is affected.
+  - Those audits are frozen (two read, one running), so they are left as they are.
+  - This audit reads a shell script only for the solver scripts it names. Its planted check (no file in the stamp missing
+    but the run's own data) fails with that line taken out.
+
 ## Box
 
 The design and the registration: half a day, while step 8 runs. The panel, the pilot and the sizing: half a day, when the

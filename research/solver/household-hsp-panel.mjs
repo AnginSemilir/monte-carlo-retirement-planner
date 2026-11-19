@@ -1,6 +1,7 @@
 /*
  * STEP 8, THE PANEL (STEP8.md; registrations/household-hsp.md, DRAFT; D129 (3)): held-out couples for the registered test of
- * the household plan priced at the pensions' split (HSP) against today's couples' default (K2) and the app's rules (APP).
+ * the household plan priced at the pensions' split (HSPA, the arm the arm read took: D130 (2), results-household-arm.txt) against
+ * today's couples' default (K2) and the app's rules (APP).
  *   - touched: held-out.mjs touchedAll run on the day, with the households the tests take by place (couple-panel.mjs
  *     byIndex) and the base of every unit the household line has read (audit-household.mjs UNITS, shapes-panel.mjs BASES,
  *     guard-panel.mjs UNIT_IDS: the unit's id without its variant, shape or cohort's F), taken once and frozen with the
@@ -21,7 +22,7 @@
  *   - landing: each candidate's seven variants (the three features among them, so a couple can take any place) landed so
  *     arm A, searched anew at each target, survives 85 +/- 1% on 1,000 paths of seed 7005 (phase4-panel.mjs landTarget,
  *     D4's procedure); at its target each landed variant read by the app's own guard (src/couplesSwitch.js coupleSolverOn:
- *     on, so K2 is what the app runs for it) and by householdPlanFor at HSP's settings (scale 'pensions') on the plan as the
+ *     on, so K2 is what the app runs for it) and by householdPlanFor at HSPA's settings (scale 'pensionsPA') on the plan as the
  *     solvers are handed it (shapes-panel.mjs solverPlanOf: arm A's policy, the couples' solver plan);
  *   - the panel (combine): each cohort's order walked; a couple joins at its cohort's next place if its own, 45, 90 and gap8
  *     variants and the feature of that place all landed, are on by the guard and are taken by householdPlanFor, is passed
@@ -55,7 +56,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const COHORTS = ['lib', 'young'], N_PER = 4;
 export const HOLDS = { 45: 0.45, 90: 0.9 };
 export const VARIANTS = ['own', ...Object.keys(HOLDS), ...FEATURES, 'gap8'];
-export const HSP_OPTS = Object.freeze({ scale: 'pensions' });
+export const HOUSE_OPTS = Object.freeze({ scale: 'pensionsPA' });   // HSPA's form (household.mjs; HOUSEHOLD-ARM.md)
 export const ORDERS = join(HERE, 'household-hsp-orders.json'), PANEL = process.env.HOUSEHOLD_HSP_PANEL || join(HERE, 'household-hsp-panel.json');
 const OUT = process.env.HOUSEHOLD_HSP_LAND_OUT || join(HERE, 'results', 'household-hsp-land');
 export const unitIdOf = (cid, v) => `${cid}-${v}`;
@@ -74,12 +75,12 @@ export function variantPlan(h, v) {
 }
 /* the unit's plan at a target, as every arm runs it */
 export const unitPlan = (h, cohort, v, target) => planOf({ ...h, plan: variantPlan(h, v) }, cohort, target);
-/* the app's guard on the unit's plan (on: the app runs K2 for it), and householdPlanFor at HSP's settings on the plan as the
+/* the app's guard on the unit's plan (on: the app runs K2 for it), and householdPlanFor at HSPA's settings on the plan as the
    solvers are handed it (null: it takes the plan) */
 export function guardOf(plan) { const g = coupleSolverOn(plan); return { on: g.on, why: g.why, share: g.share }; }
 export function refusalOf(plan) {
   const { hp } = solverPlanOf(plan, 'own');
-  try { householdPlanFor(E, hp, HSP_OPTS); return null; } catch (e) { return e.message; }
+  try { householdPlanFor(E, hp, HOUSE_OPTS); return null; } catch (e) { return e.message; }
 }
 /* n taken evenly in a pool (select-7u-broad.mjs pick's places, without its age filter), then the rest in order */
 export function evenly(pool, n) {

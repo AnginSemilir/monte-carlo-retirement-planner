@@ -1,7 +1,7 @@
 /*
  * STEP 8, THE SIZING FROM ITS PILOT (STEP8.md; registrations/household-hsp.md, Paths and Budget; D34 (2) and (4), as D61 and
  * D96 (2) applied them): the pilot's units (audit-household-hsp.mjs pilot: three couples of the panel, all five of their units,
- * seed 7002, 1,000 paths; EXPLORATORY) give each unit's discordance between HSP and K2 and its Clopper-Pearson upper 95%
+ * seed 7002, 1,000 paths; EXPLORATORY) give each unit's discordance between HSPA and K2 and its Clopper-Pearson upper 95%
  * bound; D34's size for each (size-phase4.mjs sizeFor: the smallest N from 16,000 at which a true 1-point loss is read as harm
  * at least 90% of the time with a quarter-point loss at most 5%). The run takes one N for every unit: the largest of those, at
  * most D61's 19,000; a comparison past it is read at 19,000 and named at the read with its rate (D34 (4)).
@@ -43,7 +43,7 @@ export function unitSecs(p, N, scale, check = CHECK) {
   const solve = ARMS.reduce((t, a) => t + (p.arms[a].solveSecs || 0), 0), paths = ARMS.reduce((t, a) => t + (p.arms[a].cpuUs / 1e6 / p.N) * (N + Math.min(check, N)), 0);
   return scale * (solve + paths + (p.beside ? p.beside.secs : 0));
 }
-/* D34's chance of flagging a unit at N were its pilot change (HSP less K2, points) its true change: the threshold at the
+/* D34's chance of flagging a unit at N were its pilot change (HSPA less K2, points) its true change: the threshold at the
    pilot's discordance (its upper bound) and N, the rate at a true loss of the pilot's loss (none where the pilot gains) */
 export function flagChance(s, change, N) { const t = thresholdFor(s.dUp, N); return { t, chance: harmRate(s.dUp, N, t, Math.max(0, -change)) }; }
 export function makespan(secs, cores = CORES) {
@@ -58,7 +58,7 @@ function planted() {
   { const s = sizeOf(arr(1000, 40), arr(1000, 0)); cases.push(['4% discordant on 1,000 paths: its upper bound above 4%, D34\'s size 16,000 (the floor)', `${s.k} ${s.dUp > 0.04} ${s.N}`, '40 true 16000']); }
   { const s = sizeOf(arr(1000, 140), arr(1000, 0)); cases.push(['14% discordant: a size past 19,000', `${s.N > 19000}`, 'true']); }
   cases.push(['the run\'s N: the largest size, at most 19,000', `${runN([{ N: 16000 }, { N: 17000 }])} ${runN([{ N: 16000 }, { N: 25000 }])}`, '17000 19000']);
-  { const p = { N: 1000, arms: { APP: { solveSecs: 0, cpuUs: 5e6 }, K2: { solveSecs: 100, cpuUs: 200e6 }, HSP: { solveSecs: 60, cpuUs: 50e6 } }, beside: { secs: 40 } };
+  { const p = { N: 1000, arms: { APP: { solveSecs: 0, cpuUs: 5e6 }, K2: { solveSecs: 100, cpuUs: 200e6 }, HSPA: { solveSecs: 60, cpuUs: 50e6 } }, beside: { secs: 40 } };
     cases.push(['a unit\'s seconds: the two solves, each arm\'s CPU a path at 16,000 and on its 200 checked paths, and the rollout beside', `${unitSecs(p, 16000, 1)}`, `${160 + 16.2 * 255 + 40}`]); }
   { const s = sizeOf(arr(1000, 30), arr(1000, 0)), a = flagChance(s, -1, 16000), b = flagChance(s, +0.5, 16000);
     cases.push(['D34\'s chance at 16,000 paths: a true loss of a point at 3% discordance flagged at least 90% of the time; a gain at most 5%', `${a.chance >= 0.9} ${b.chance <= 0.05}`, 'true true']); }
@@ -85,14 +85,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`STEP 8, THE SIZING from its pilot (${DIR.replace(/.*research\/solver\//, '')}; ${pu.length} units of ${new Set(pu.map(u => u.couple)).size} couples, seed ${PILOT_SEED}, ${PILOT_N} paths a unit, code ${codes[0]}; EXPLORATORY)`);
   const sizes = {};
   for (const u of pu) {
-    const r = U[u.id], s = sizeOf(r.arms.HSP.survived, r.arms.K2.survived); sizes[u.id] = s;
-    console.log(`  ${u.id.padEnd(13)} HSP against K2: ${(sv(r.arms.HSP) - sv(r.arms.K2) >= 0 ? '+' : '') + (sv(r.arms.HSP) - sv(r.arms.K2)).toFixed(2)} points (APP ${sv(r.arms.APP).toFixed(1)}%); discordant ${s.k} of ${s.n} (${(100 * s.dHat).toFixed(2)}%, its upper bound ${(100 * s.dUp).toFixed(2)}%): D34's size ${Number.isFinite(s.N) ? s.N : 'past every size tried'}`);
+    const r = U[u.id], s = sizeOf(r.arms.HSPA.survived, r.arms.K2.survived); sizes[u.id] = s;
+    console.log(`  ${u.id.padEnd(13)} HSPA against K2: ${(sv(r.arms.HSPA) - sv(r.arms.K2) >= 0 ? '+' : '') + (sv(r.arms.HSPA) - sv(r.arms.K2)).toFixed(2)} points (APP ${sv(r.arms.APP).toFixed(1)}%); discordant ${s.k} of ${s.n} (${(100 * s.dHat).toFixed(2)}%, its upper bound ${(100 * s.dUp).toFixed(2)}%): D34's size ${Number.isFinite(s.N) ? s.N : 'past every size tried'}`);
   }
   const N = runN(Object.values(sizes)), lim = tpLimit(N), past = Object.entries(sizes).filter(([, s]) => s.N > N);
   console.log(`what the pilot shows, at the registered ${N} paths (each unit's pilot change were it the truth; EXPLORATORY, deciding nothing):`);
   const byShape = {};
-  for (const u of pu) { const r = U[u.id], ch = sv(r.arms.HSP) - sv(r.arms.K2), fc = flagChance(sizes[u.id], ch, N); (byShape[u.variant] = byShape[u.variant] || []).push(ch); console.log(`  ${u.id.padEnd(13)} ${(ch >= 0 ? '+' : '') + ch.toFixed(2)} points; D34's threshold at ${N} ${fc.t.toFixed(3)}; the chance it is flagged ${fc.chance.toFixed(3)}`); }
-  console.log(`  by shape, the mean change over the pilot's couples: ${Object.entries(byShape).map(([v, xs]) => `${v} ${(xs.reduce((t, x) => t + x, 0) / xs.length >= 0 ? '+' : '') + (xs.reduce((t, x) => t + x, 0) / xs.length).toFixed(2)}`).join(', ')}; the panel's 45 and gap8 units are shapes HSP has not run before (the pilot holds ${pu.filter(u => u.variant === '45' || u.variant === 'gap8').length} of the panel's ${panel.filter(u => u.variant === '45' || u.variant === 'gap8').length})`);
+  for (const u of pu) { const r = U[u.id], ch = sv(r.arms.HSPA) - sv(r.arms.K2), fc = flagChance(sizes[u.id], ch, N); (byShape[u.variant] = byShape[u.variant] || []).push(ch); console.log(`  ${u.id.padEnd(13)} ${(ch >= 0 ? '+' : '') + ch.toFixed(2)} points; D34's threshold at ${N} ${fc.t.toFixed(3)}; the chance it is flagged ${fc.chance.toFixed(3)}`); }
+  console.log(`  by shape, the mean change over the pilot's couples: ${Object.entries(byShape).map(([v, xs]) => `${v} ${(xs.reduce((t, x) => t + x, 0) / xs.length >= 0 ? '+' : '') + (xs.reduce((t, x) => t + x, 0) / xs.length).toFixed(2)}`).join(', ')}; the panel's 45 and gap8 units are shapes HSPA has not run before (the pilot holds ${pu.filter(u => u.variant === '45' || u.variant === 'gap8').length} of the panel's ${panel.filter(u => u.variant === '45' || u.variant === 'gap8').length})`);
   console.log(`the run: every unit at ${N} paths (the largest of the pilot's sizes, at most D61's ${RUN_MAX}); at ${N} a true 1-point loss reads as harm at least 90% of the time up to a discordance (its upper bound) of ${(100 * lim).toFixed(2)}%${past.length ? `; past it: ${past.map(([id]) => id).join(', ')}, read at ${N} and named with their rate (D34 (4))` : ''}`);
   const pilotCouples = [...new Set(pu.map(u => u.couple))].map(c => ({ couple: c, years: yearsOf(pu.find(u => u.couple === c)) }));
   const unitRows = panel.map(u => {
@@ -102,7 +102,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   });
   const all0 = unitRows.map(r => r.secs), longest = Math.max(...all0), all = [...all0, longest], total = all.reduce((s, x) => s + x, 0), span = makespan(all);
   console.log(`the budget (D21: measured from the pilot's units on this machine), over ${panel.length} units and the longest once more for a relaunch: ${(total / 3600).toFixed(1)} core-hours; on ${CORES} cores longest first ${(span / 3600).toFixed(1)} hours; the longest unit ${(longest / 3600).toFixed(2)} hours`);
-  for (const u of pu) { const r = U[u.id]; console.log(`  pilot ${u.id.padEnd(13)} the solves K2 ${Math.round(r.arms.K2.solveSecs)} s and HSP ${Math.round(r.arms.HSP.solveSecs)} s; a path APP ${(r.arms.APP.cpuUs / 1e3 / r.N).toFixed(1)} ms, K2 ${(r.arms.K2.cpuUs / 1e3 / r.N).toFixed(1)} ms, HSP ${(r.arms.HSP.cpuUs / 1e3 / r.N).toFixed(1)} ms; beside ${Math.round(r.beside.secs)} s; the load at its chunks ${r.arms.K2.chunks.map(c => c.load[0].toFixed(1)).join(', ')}`); }
+  for (const u of pu) { const r = U[u.id]; console.log(`  pilot ${u.id.padEnd(13)} the solves K2 ${Math.round(r.arms.K2.solveSecs)} s and HSPA ${Math.round(r.arms.HSPA.solveSecs)} s; a path APP ${(r.arms.APP.cpuUs / 1e3 / r.N).toFixed(1)} ms, K2 ${(r.arms.K2.cpuUs / 1e3 / r.N).toFixed(1)} ms, HSPA ${(r.arms.HSPA.cpuUs / 1e3 / r.N).toFixed(1)} ms; beside ${Math.round(r.beside.secs)} s; the load at its chunks ${r.arms.K2.chunks.map(c => c.load[0].toFixed(1)).join(', ')}`); }
   writeFileSync(PATHS_FILE, JSON.stringify({ built: new Date().toISOString(), pilot: { seed: PILOT_SEED, n: PILOT_N, code: codes[0], units: pu.map(u => u.id), sizes }, N, coreHours: +(total / 3600).toFixed(1), hours: +(span / 3600).toFixed(1), paths: Object.fromEntries(panel.map(u => [u.id, N])) }, null, 1) + '\n');
   console.log(`written: household-hsp-paths.json (${panel.length} units at ${N})`);
 }

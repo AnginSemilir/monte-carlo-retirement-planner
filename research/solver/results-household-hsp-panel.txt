@@ -1,4 +1,4 @@
-STEP 8, THE PANEL (household-hsp-panel.json, built 2026-11-19T01:10:44.059Z, code 603eeb595679; the scan 318 ids, hash acedff4811b5; the orders frozen 2026-11-19T00:49:25.436Z)
+STEP 8, THE PANEL (household-hsp-panel.json, built 2026-11-19T15:04:54.519Z, code 71fb4271c681; the scan 318 ids, hash acedff4811b5; the orders frozen 2026-11-19T00:49:25.436Z)
 lib: 4 couples taken evenly over the untouched order (91 couples); passed over: S111 (own: not landed)
   place 0 S025 ages 68/65; its feature: db
       S025-own      target 22500, arm A 84.9% (ISA First, lump sum); the first person holds 60.0% of the pots

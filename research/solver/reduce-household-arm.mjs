@@ -80,7 +80,7 @@ export function report(units) {
   for (const arm of ORDER) {
     const A = compare(units, 'APP', arm), K = compare(units, 'APP', 'K2');
     const big = R[arm].C.rows.reduce((b, x) => (!b || Math.abs(x.ch.d) > Math.abs(b.ch.d) ? x : b), null), rest = units.filter(u => u.id !== big.id), C2 = compare(rest, 'K2', arm);
-    const m1 = m1ByUnit(units.map(u => ({ ...u, arms: { ...u.arms, HSP: u.arms[arm] } }))).filter(x => x.unmet);
+    const m1 = m1ByUnit(units, arm).filter(x => x.unmet);   // the arm named (step 8's reader reads HSPA by default since the arm read)
     out.push(`  ${arm}: against APP ${f(A.pooled.d)} (${f(A.pooled.lo)} to ${f(A.pooled.hi)}), K2 against APP ${f(K.pooled.d)}; without its largest unit (${big.id}) against K2 ${f(C2.pooled.d)} (${f(C2.pooled.lo)} to ${f(C2.pooled.hi)}); M1 not met on ${m1.length ? m1.map(x => `${x.id} (${x.net > 0 ? '+' : ''}${x.net} paths, spending ${f(x.spend.d, 3)}%)`).join(', ') : 'no unit'}`);
   }
   out.push('  by unit (k; survival against K2 in points, saved and lost paths, a flag; the forecast less the survival):');

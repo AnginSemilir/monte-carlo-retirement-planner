@@ -6,15 +6,16 @@
  *   K2   today's couples' default as the app solves a couple: each person's table at the couples' candidate
  *        (audit-couples-share.mjs COUPLES_CANDIDATE), the joint move JOINT (the pots' share and LOOKHOLD), arm A's MPAA ages,
  *        as the lead test's K2 (audit-household.mjs);
- *   HSP  the household plan priced at the pensions' split: one household table at the candidate with its tie-break
+ *   HSPA the household plan priced at the pensions' split, the arm the arm read took (D130 (2); HOUSEHOLD-ARM.md,
+ *        results-household-arm.txt): one household table at the candidate with its tie-break
  *        (audit-household.mjs householdSolveOne), its plan householdPlanFor's with scale 'pensions' (each band above two
  *        personal allowances and the tax-free cash cap at k = 1 / s, its band for gains k times one person's), the year's
  *        move household.mjs chooseHouseholdSingle at the even split, as the remedy's read ran it (audit-household-remedy.mjs).
  * Checked before any path, a failure ending the unit (exit 3): arm A's pick the landing's; the app's guard on
  * (src/couplesSwitch.js coupleSolverOn); each person's settings and the household table's (audit-couples.mjs wantProblems
  * 'CANDC'); the household table's line against the first person's (audit-shapes.mjs unitLineProblems, as amended); the
- * household's minimum pot; the couples' path and D80; HSP's plan part 1's with the cap (audit-household-remedy.mjs
- * scaleProblems) and its band for gains k times one person's. Each arm's first CHECK paths are held to E.runTrial. K2's first
+ * household's minimum pot; the couples' path and D80; HSPA's plan as its form says (audit-household-arm.mjs scalePAProblems:
+ * the allowance, each band limit and the cap k times one person's) and its band for gains k times one person's. Each arm's first CHECK paths are held to E.runTrial. K2's first
  * BESIDE paths are run by the couples' rollout in the exact model beside the engine (a fidelity gap reported, not deciding).
  * Each arm is saved in chunks of 1,000 and resumes from them. Under the registration a log carries no outcome.
  *   node research/solver/audit-household-hsp.mjs --units [pilot]
@@ -33,12 +34,12 @@ import { solveForApp } from '../../src/solverApp.js';
 import { tablesOf, digestOf } from '../../src/solverDigest.js';
 import { runPath, inputsHash } from './audit-phase4.mjs';
 import { JOINT, householdSolveOne, lineOf } from './audit-household.mjs';
-import { scaleProblems } from './audit-household-remedy.mjs';
+import { scalePAProblems } from './audit-household-arm.mjs';
 import { unitLineProblems, shareFloorFrac } from './audit-shapes.mjs';
 import { solverPlanOf } from './shapes-panel.mjs';
 import { wantProblems, coupleProblems, d80Of, d80Problems } from './audit-couples.mjs';
 import { COUPLES_CANDIDATE, settingsOf } from './audit-couples-share.mjs';
-import { readHspPanel, guardOf, HSP_OPTS, PANEL } from './household-hsp-panel.mjs';
+import { readHspPanel, guardOf, HOUSE_OPTS, PANEL } from './household-hsp-panel.mjs';
 import { APP_CANDIDATE } from '../../src/solverSettings.js';
 import { hashOf } from './candidate.mjs';
 import { codeId, codeFiles } from './code-id.mjs';
@@ -51,7 +52,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), REPO = join(HERE, '../..');
 export const SEED = 7024, PILOT_SEED = 7002, PTS = 45, W = 0.02, CHECK = 200, BESIDE = 500, PILOT_N = 1000, WARM = 3, CHUNK = 1000, TOPK = 3;
-export const ARMS = ['APP', 'K2', 'HSP'];
+export const ARMS = ['APP', 'K2', 'HSPA'];
 export const REGISTRATION = 'research/solver/registrations/household-hsp.md';
 export const PATHS_FILE = join(HERE, 'household-hsp-paths.json');
 export const orderOf = k => [...ARMS.slice(k % ARMS.length), ...ARMS.slice(0, k % ARMS.length)];
@@ -61,7 +62,7 @@ export const fileOf = id => `${id}.json.gz`;
 export const CONFIG = Object.freeze({
   APP: { app: 'armA', tournament: false },
   K2: { ...COUPLES_CANDIDATE, ...JOINT },
-  HSP: { ...APP_CANDIDATE, household: 'A', move: 'single', split: 'even', scale: HSP_OPTS.scale, topK: TOPK, tieJoint: JOINT.tieJoint, holdPast: JOINT.holdPast }
+  HSPA: { ...APP_CANDIDATE, household: 'A', move: 'single', split: 'even', scale: HOUSE_OPTS.scale, topK: TOPK, tieJoint: JOINT.tieJoint, holdPast: JOINT.holdPast }
 });
 export const configOf = arm => hashOf(CONFIG[arm]);
 /* the pilot: every unit of three couples, the library's places 0 and 2 and the younger cohort's place 1 */
@@ -104,8 +105,8 @@ const dec = (str, Ty) => { const b = Buffer.from(str, 'base64'), c = new Uint8Ar
 /* arm A's pick against the landing's, and the app's guard (on: K2 is what the app runs for the unit) */
 export const pickGuardProblems = (U, a, guard) => [...(a.label !== U.label ? [`arm A's pick ${a.label} differs from the landing's ${U.label}`] : []), ...(!guard.on ? [`the app's guard keeps the unit on the app's rules (${guard.why})`] : [])];
 /* the problems the unit's solves show before any path (the header's list); smoke at a smoke's settings. The settings, the
-   household line and HSP's plan checks have their planted cases in their own files (audit-couples.mjs, audit-shapes.mjs
-   --planted, reduce-household-remedy.mjs --planted, household.test.mjs group 10) */
+   household line and HSPA's plan checks have their planted cases in their own files (audit-couples.mjs, audit-shapes.mjs
+   --planted, audit-household-arm.mjs --planted (HSPA's plan check), household.test.mjs group 10) */
 export function solveProblems({ U, a, hp, k2, house, sp, guard, smoke }) {
   const off = [...pickGuardProblems(U, a, guard)];
   if (!smoke) {
@@ -116,9 +117,9 @@ export function solveProblems({ U, a, hp, k2, house, sp, guard, smoke }) {
   if (k2.m.ctx.solvencyFloor !== E.num(U.plan.config.solvencyFloor, 0)) off.push(`the household's minimum pot ${k2.m.ctx.solvencyFloor}, not the unit's ${U.plan.config.solvencyFloor}`);
   if (house.m.ctx.solvencyFloor !== k2.m.ctx.solvencyFloor) off.push(`the household table's minimum pot ${house.m.ctx.solvencyFloor}, not K2's ${k2.m.ctx.solvencyFloor}`);
   const cfg = { ...E.DEFAULT_CONFIG, ...(hp.config || {}) };
-  off.push(...scaleProblems(house.hplan, householdPlanFor(E, hp), cfg, sp.k, true).map(p => `HSP's plan: ${p}`));
-  if (!(house.meta.scale && house.meta.scale.rule === HSP_OPTS.scale && Math.abs(house.meta.scale.k - sp.k) < 1e-12)) off.push(`HSP's table solved with ${js(house.meta.scale)}, not k ${sp.k}`);
-  if (!(Math.abs(house.H.m.ctx.P.cgtBandWidth - sp.k * k2.m.ctx.P.cgtBandWidth) < 1e-6)) off.push(`HSP's band for gains ${house.H.m.ctx.P.cgtBandWidth}, not k x ${k2.m.ctx.P.cgtBandWidth}`);
+  off.push(...scalePAProblems(house.hplan, householdPlanFor(E, hp), cfg, sp.k).map(p => `HSPA's plan: ${p}`));
+  if (!(house.meta.scale && house.meta.scale.rule === HOUSE_OPTS.scale && Math.abs(house.meta.scale.k - sp.k) < 1e-12)) off.push(`HSPA's table solved with ${js(house.meta.scale)}, not k ${sp.k}`);
+  if (!(Math.abs(house.H.m.ctx.P.cgtBandWidth - sp.k * k2.m.ctx.P.cgtBandWidth) < 1e-6)) off.push(`HSPA's band for gains ${house.H.m.ctx.P.cgtBandWidth}, not k x ${k2.m.ctx.P.cgtBandWidth}`);
   off.push(...coupleProblems(), ...d80Problems(d80Of(undefined, [k2.tables.self, k2.tables.part])));
   return off;
 }
@@ -126,8 +127,8 @@ export function solveProblems({ U, a, hp, k2, house, sp, guard, smoke }) {
 async function planted() {
   const cases = [], panel = readHspPanel();
   cases.push(['the three configurations differ', ARMS.map(configOf).every((c, i, x) => x.indexOf(c) === i) ? 'three' : 'NOT three', 'three']);
-  cases.push(['K2\'s carries no tie-break; HSP\'s the candidate\'s', `${'tieAboveCap' in CONFIG.K2} ${CONFIG.HSP.tieAboveCap === APP_CANDIDATE.tieAboveCap}`, 'false true']);
-  cases.push(['the arms\' order rotates with the unit', [0, 1, 2, 3].map(k => orderOf(k)[0]).join(','), 'APP,K2,HSP,APP']);
+  cases.push(['K2\'s carries no tie-break; HSPA\'s the candidate\'s', `${'tieAboveCap' in CONFIG.K2} ${CONFIG.HSPA.tieAboveCap === APP_CANDIDATE.tieAboveCap}`, 'false true']);
+  cases.push(['the arms\' order rotates with the unit', [0, 1, 2, 3].map(k => orderOf(k)[0]).join(','), 'APP,K2,HSPA,APP']);
   cases.push(['the pilot\'s units: every unit of the library\'s places 0 and 2 and the younger cohort\'s place 1',
     pilotUnits([{ id: 'a', cohort: 'lib', place: 0 }, { id: 'b', cohort: 'lib', place: 1 }, { id: 'c', cohort: 'lib', place: 2 }, { id: 'd', cohort: 'young', place: 1 }, { id: 'e', cohort: 'young', place: 0 }]).map(u => u.id).join(','), 'a,c,d']);
   { const f = stampFiles(), need = ['research/solver/reduce-share-rules.mjs', 'research/solver/fair-gate.mjs', 'research/solver/stats.mjs', 'research/solver/household.mjs', 'src/solverApp.js', 'src/solverSettings.js', 'src/couplesSwitch.js', ...STAMP_DATA];
@@ -177,18 +178,18 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const memo = new Map();
   const solveOne = (p, o) => { const k = js([p, o.partnerAge0]); if (!memo.has(k)) memo.set(k, solveForApp(E, M, p, { points: pts, ageWith: o.partnerAge0, research: { tieAboveCap: undefined, ...light } })); return memo.get(k); };
   const s0 = Date.now(), k2 = CPL.solveCouple(E, M, hp, { solveOne, ...JOINT }), s1 = Date.now();
-  const house = solveHousehold(E, M, hp, { solveOne: householdSolveOne(pts, light), topK: TOPK, tieJoint: JOINT.tieJoint, holdPast: JOINT.holdPast, ...HSP_OPTS }), s2 = Date.now();
-  const solveSecs = { APP: 0, K2: (s1 - s0) / 1000, HSP: (s2 - s1) / 1000 };
+  const house = solveHousehold(E, M, hp, { solveOne: householdSolveOne(pts, light), topK: TOPK, tieJoint: JOINT.tieJoint, holdPast: JOINT.holdPast, ...HOUSE_OPTS }), s2 = Date.now();
+  const solveSecs = { APP: 0, K2: (s1 - s0) / 1000, HSPA: (s2 - s1) / 1000 };
   const off = solveProblems({ U, a, hp, k2, house, sp, guard, smoke });
   if (off.length) { console.error(`audit-household-hsp: ${U.id}: ${off.join('; ')}`); process.exit(3); }
   const digest = async () => ({ self: await digestOf(tablesOf(k2.tables.self)), part: await digestOf(tablesOf(k2.tables.part)), household: await digestOf(tablesOf(house.H)) });
   const before = await digest();
   const survAt = (tab, s) => (tab.mix ? tab.mix.tables.reduce((x, tb, j) => x + tab.mix.weights[j] * tb.value(s, 0).survival, 0) : tab.value(s, 0).survival);
-  const st0 = M.initialState(k2.m), forecast = { APP: null, HSP: survAt(house.H, vecOf(house.hm, mergedState(house, st0))) };
+  const st0 = M.initialState(k2.m), forecast = { APP: null, HSPA: survAt(house.H, vecOf(house.hm, mergedState(house, st0))) };
   { const sA = vecOf(k2.tables.self.m, CPL.ownerState(st0, 'self')), sB = vecOf(k2.tables.part.m, CPL.ownerState(st0, 'part')); forecast.K2 = survAt(k2.tables.self, sA) * survAt(k2.tables.part, sB); }
-  console.log(`${''.padEnd(8)} solved: K2 ${solveSecs.K2.toFixed(0)} s, HSP ${solveSecs.HSP.toFixed(0)} s; K2's share ${k2.share}; the pensions' split s ${sp.s.toFixed(4)}, k ${sp.k.toFixed(4)}; the guard ${guard.on ? 'on' : 'off'}`);
+  console.log(`${''.padEnd(8)} solved: K2 ${solveSecs.K2.toFixed(0)} s, HSPA ${solveSecs.HSPA.toFixed(0)} s; K2's share ${k2.share}; the pensions' split s ${sp.s.toFixed(4)}, k ${sp.k.toFixed(4)}; the guard ${guard.on ? 'on' : 'off'}`);
   const aDemo = E.resolveMpaa(a.planState).demographics, withAges = plan => ({ ...plan, demographics: { ...plan.demographics, mpaaAgeSelf: aDemo.mpaaAgeSelf, mpaaAgePart: aDemo.mpaaAgePart } });
-  const cpHSP = { ...house, split: 'even', counts: { decisions: 0, far: 0, down: 0 } };
+  const cpHouse = { ...house, split: 'even', counts: { decisions: 0, far: 0, down: 0 } };
   const ctxOf = arm => {
     if (arm === 'APP') {
       const ctx = E.buildContext(E.resolveMpaa(a.planState));
@@ -196,7 +197,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       return ctx;
     }
     if (arm === 'K2') return E.buildContext(CPL.withCouple(withAges(k2.plan), k2));
-    return E.buildContext(withHouseholdSingle(withAges(house.plan), cpHSP));
+    return E.buildContext(withHouseholdSingle(withAges(house.plan), cpHouse));
   };
   const T = ctxOf('K2').totalYears, paths = E.pathsForSeed(seed, n, T).map(zs => Float64Array.from(zs));
   const inputs = Object.fromEntries(ARMS.map(x => [x, inputsHash(ctxOf(x))])), arms = {};
@@ -244,14 +245,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (js(after) !== js(before)) { console.error(`audit-household-hsp: ${U.id}: the tables changed while the paths ran`); process.exit(3); }
   // what the read's gate checks again from the record (the design review, MINOR 6): each table's settings line; the settings
   // check's inputs (the household's minimum pot, its floor over its target, the first person's share's); one person's
-  // allowances and HSP's, each of DOUBLED; one person's band for gains and HSP's
+  // allowances and HSPA's, each of DOUBLED; one person's band for gains and HSPA's
   const cfgOne = { ...E.DEFAULT_CONFIG, ...(hp.config || {}) };
   const record = {
     settings: { self: settingsOf(k2.tables.self), part: settingsOf(k2.tables.part), household: settingsOf(house.H) },
     lines: { self: lineOf(k2.tables.self), household: lineOf(house.H), floor: k2.m.ctx.solvencyFloor || 0, houseFloorFrac: k2.m.ctx.floorFrac || 0, selfFloorFrac: shareFloorFrac(hp, k2.share) },
-    plan: { person: Object.fromEntries(DOUBLED.map(key => [key, E.num(cfgOne[key], E.DEFAULT_CONFIG[key])])), hsp: Object.fromEntries(DOUBLED.map(key => [key, house.hplan.config[key]])),
-      asBuilt: (cfgA => Object.fromEntries(DOUBLED.map(key => [key, cfgA[key]])))(householdPlanFor(E, hp).config) },   // design A's as built: HSP's other doubled entries are its (the pilot's S273 units)
-    band: { person: k2.m.ctx.P.cgtBandWidth, hsp: house.H.m.ctx.P.cgtBandWidth }
+    plan: { person: Object.fromEntries(DOUBLED.map(key => [key, E.num(cfgOne[key], E.DEFAULT_CONFIG[key])])), hspa: Object.fromEntries(DOUBLED.map(key => [key, house.hplan.config[key]])),
+      asBuilt: (cfgA => Object.fromEntries(DOUBLED.map(key => [key, cfgA[key]])))(householdPlanFor(E, hp).config) },   // design A's as built: HSPA's other doubled entries are its (the pilot's S273 units)
+    band: { person: k2.m.ctx.P.cgtBandWidth, hspa: house.H.m.ctx.P.cgtBandWidth }
   };
   writeFileSync(join(OUT, fileOf(U.id)), gzipSync(js({ k: pk, id: U.id, couple: U.couple, base: U.base, cohort: U.cohort, place: U.place, variant: U.variant, feature: U.feature, target: U.target, label: a.label, seed, N: n, warm: WARM, pts, W, stamp: STAMP, configs: Object.fromEntries(ARMS.map(x => [x, configOf(x)])), joint: JOINT, order, digests: before, share: k2.share, split: { s: sp.s, k: sp.k }, guard, caps: [k2.tables.self.estateCap || 0, k2.tables.part.estateCap || 0], houseCap: house.H.estateCap, solvencyFloor: k2.m.ctx.solvencyFloor, T, beside, record, arms })));
   for (const arm of ARMS) rmSync(partOf(OUT, U.id, arm), { force: true });

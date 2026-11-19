@@ -66,6 +66,11 @@ the same year's own flows also fill the ISA. Those flows are the cash ISA's shel
   - no v2 test of the windfall split until the defect is fixed;
   - then this factorial run again on the fixed engine, which says whether the gains are the split's own;
   - the savings factorial held until the fix too, since its ISA route may meet the same defect.
+- **Since checked (19 Nov, plan inputs alone): the savings factorial is not reached by the defect, so it runs now, as D129
+  orders.** The savings split's own ISA route goes through the year's regular contributions, which are counted. Under arm
+  A's own pick, none of its 27 households has a dated deposit or drip into an ISA in a year with a save choice
+  (`save-isa-deposits.mjs`, `results-save-isa-deposits.txt`). Only S290 would, under Windfall to ISA, and arm A picks
+  Bracket Fill for it on this code.
 
 ## Beside, for the record
 

@@ -48,12 +48,13 @@ its rule committed before it runs; none changes anything in the app on its own.
      - find the cause first: a decomposition of the default's loss on the harmed couples, holding arm A's own pick fixed
        or naming it.
    - **The agent recommends** keeping the guard as built and finding the cause before re-keying.
-   - Item 5 (the card's words) waits on this ruling. The four couples 8 or 12 years apart without a DB pension (S149 and S337F at gap8
-   and gap12), which step 5 read above the app's rules, given first S147-db's `£15,000` a year DB pension from the state
-   pension age, then `£15,000` a year of rent instead; today's couples' default (K2) against the app's rules (APP).
-   - If the DB pension brings the harm back, the guard stays. If it does not, the guard is keyed on the wrong thing, and
-     re-keying it comes back to the maintainer as a change of default.
-   - The rent case sizes the guard's reach past a DB pension (the reviewer's MINOR 1, below). Box: half a day.
+   - Item 5 (the card's words) waits on this ruling.
+   - **The test, as ruled:** the four couples 8 or 12 years apart without a DB pension (S149 and S337F at gap8 and
+     gap12), which step 5 read above the app's rules, given first S147-db's `£15,000` a year DB pension from the state
+     pension age, then `£15,000` a year of rent instead; today's couples' default (K2) against the app's rules (APP).
+     - If the DB pension brings the harm back, the guard stays. If it does not, the guard is keyed on the wrong thing,
+       and re-keying it comes back to the maintainer as a change of default.
+     - The rent case sizes the guard's reach past a DB pension (the reviewer's MINOR 1, below). Box: half a day.
 5. Once item 4 has read, if the guard stays, the couples card says what was found: "In our tests the solver did worse
    than the app's own rules for some couples like this, so for now your plan follows the app's own rules in the classic
    planner." It goes to `main` with the next batch on B1's gate.
@@ -62,6 +63,26 @@ its rule committed before it runs; none changes anything in the app on its own.
 8. **At the end: B7's two factorials**, the windfall split's and the savings split's (`WINDFALL-SPLIT.md`,
    `SAVINGS-SPLIT.md`), each arm saying which menu it takes (D73's reviewer, MINOR 3). A gain goes to the maintainer as a
    proposal; a harm goes to them at once.
+   - **READ, FOR THE MAINTAINER: the windfall factorial** (`results-windfall.txt`; `reports/2026-11-18-windfall-read.md`):
+     A GAIN AND A HARM, both small and in spending alone.
+     - Survival: no effect beyond noise, on the panel (`+0.012` points) or on any household after Holm.
+     - The harm: S026 spends `0.306%` less over its lifetime. The gains: five households spend more, by under a twentieth
+       of a percent each.
+     - The reviewer at the read: FAIL, four BLOCKING and three MINORs, answered in one fix (d32f4ed1); its second round
+       next.
+   - **AN ENGINE DEFECT, FOR THE MAINTAINER (found by that reviewer):** in a year with a dated deposit or a staged drip
+     into an ISA, the deposit is not counted against the year's ISA subscription. The same year's cash ISA shelter,
+     surplus sweep and re-wraps read that subscription, so they can put more than the allowance into the ISA. It is in
+     the engine (on `main`), the exact model and the forward run.
+     - It can favour the windfall split's ISA routes, so the five gains are not shown to be the split's own.
+     - **The agent proposes:** fix it with a test of its class across the three, sized on the library, to `main` with the
+       next batch on B1's gate; then the windfall factorial run again on the fixed engine. The fix moves the solver's
+       code id and may move pinned figures in protected tests, so it needs the maintainer's "unlock enforcement".
+   - **The savings factorial is not reached by the defect, so it runs now (D129).** Checked on plan inputs alone
+     (`save-isa-deposits.mjs`, `results-save-isa-deposits.txt`): under arm A's own pick, none of its 27 households has a
+     dated deposit or drip into an ISA in a working year with a save choice. Only S290 would, under a policy it does not
+     take on this code. Its other ISA deposits fall outside the years with a save choice, where both arms route them
+     alike.
 
 **RULED (D128, 18 Nov, morning: "Go with your recommendations. Unlock enforcement"): the four recommendations of the
 report on steps 4 to 7, as below.**

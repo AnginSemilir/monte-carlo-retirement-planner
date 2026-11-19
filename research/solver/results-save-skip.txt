@@ -1,0 +1,143 @@
+THE SAVINGS SPLIT'S COPIES OUTSIDE THE WORKING YEARS, ON ANCHORS (EXPLORATORY, after the savings factorial's read, deciding nothing; no path run): 27 households of the savings factorial's panel, each solved as audit-save.mjs solves it, CANDD and CANDS; code 603eeb595679
+S188: retired from year 5; working years with a choice 0-4; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 46.1 s and 43.2 s
+  the layer tables differ in years 0-4; outside the working years with a choice, years 5-40 (44089920 entries): the same to the bit
+  the reader's tables in years none: the same in every year; the adaptive reference none
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S204: retired from year 5; working years with a choice 0-4; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 46.5 s and 43.7 s
+  the layer tables differ in years 0-4; outside the working years with a choice, years 5-40 (44089920 entries): the same to the bit
+  the reader's tables in years none: the same in every year; the adaptive reference none
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S228: retired from year 5; working years with a choice 0-4; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 45.8 s and 44.1 s
+  the layer tables differ in years 0-4; outside the working years with a choice, years 5-40 (44089920 entries): the same to the bit
+  the reader's tables in years none: the same in every year; the adaptive reference none
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S244: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 46.0 s and 51.8 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-51 (45314640 entries): the same to the bit
+  the reader's tables in years none: the same in every year; the adaptive reference none
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S260: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 45.3 s and 53.3 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-51 (45314640 entries): the same to the bit
+  the reader's tables in years none: the same in every year; the adaptive reference none
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S272: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 46.8 s and 54.1 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-51 (45314640 entries): the same to the bit
+  the reader's tables in years none: the same in every year; the adaptive reference none
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S290: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 48.8 s and 53.7 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-51 (45314640 entries): the same to the bit
+  the reader's tables in years none: the same in every year; the adaptive reference none
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S304F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 70.2 s and 78.9 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S306F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 68.8 s and 77.8 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S308F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 67.1 s and 75.0 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S310F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 65.9 s and 76.6 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S314F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 78.8 s and 75.8 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S316F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 71.6 s and 67.2 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S320F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 69.4 s and 67.3 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S322F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 71.8 s and 67.0 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S326F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 77.0 s and 79.3 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S328F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 68.8 s and 69.2 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S332F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 67.7 s and 72.6 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S334F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 66.2 s and 70.9 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S338F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 76.6 s and 72.7 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S340F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 73.8 s and 68.4 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S344F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 67.9 s and 68.1 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S346F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 68.6 s and 71.6 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S350F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 76.8 s and 77.8 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S352F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 68.4 s and 70.8 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S356F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 68.7 s and 68.2 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+S358F: retired from year 15; working years with a choice 0-14; a year without a choice before one with a choice: none
+  CANDD 800 moves, the split's arm 2400 (saveSplit on); menu anchors / anchors; 45 points; the solves 68.5 s and 66.5 s
+  the layer tables differ in years 0-14; outside the working years with a choice, years 15-60 (56337120 entries): the same to the bit
+  the reader's tables in years 15-20: the same in every year; the adaptive reference the same
+  THE SAME OUTSIDE THE YEARS WITH A CHOICE
+THE CONTROL (a difference outside the years with a choice is expected where a year without one comes first):
+S026 (the control: the windfall split): retired from year -2; deposit years 4; a year without a choice before one with a choice: yes (3)
+  CANDD 800 moves, the split's arm 3200 (windfallSplit on); menu anchors / anchors; 45 points; the solves 37.2 s and 35.0 s
+  the layer tables differ in years 0-4; outside the deposit years, years 0-3,5-27 (33067440 entries): DIFFER in 0-3
+  the reader's tables in years none: the same in every year; the adaptive reference none
+  NOT THE SAME OUTSIDE THE YEARS WITH A CHOICE
+SUMMARY: no year without a choice before one with a choice on 27 of 27 households; outside the years with a choice the layer tables, the reader's tables and the adaptive reference the same to the bit in both arms on 27 of 27; the control NOT THE SAME, as expected

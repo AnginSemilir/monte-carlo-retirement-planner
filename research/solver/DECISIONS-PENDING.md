@@ -120,8 +120,10 @@ its rule committed before it runs; none changes anything in the app on its own.
      - The split put the saving pension first on 12 households, and ISA first on five of the younger cohort (S308F among
        them).
      - **In retirement the two arms run one policy:** on anchors a copy reaches a year without a choice only where such a
-       year comes before one with a choice, and here the years with a choice run from each household's first year. So the
-       gains are the split's working-year choices, not the skip's. The write-up's first claim otherwise, from
+       year comes before one with a choice, and here the years with a choice run from each household's first year. Probed on
+       all 27 (`results-save-skip.txt`): outside the working years the tables, the bridge reader's and its reference are the
+       same to the bit in both arms, and the control (the windfall split on S026) differs. So the gains are the split's
+       working-year choices, not the skip's. The write-up's first claim otherwise, from
        `B7-FACTORIALS.md` item 2 (measured on the windfall's copies), is struck (the reviewer at the read, finding 1).
      - **The ISA defect's part is bounded by the read:** S310F is not among the households the verdict names, and without
        it the panel stays beyond noise (survival `+0.399`, spending `+0.4341%`; section 6).

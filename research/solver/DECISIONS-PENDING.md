@@ -22,13 +22,20 @@ its rule committed before it runs; none changes anything in the app on its own.
    - On the paths it recovers, the bands single spend no less and pay far less tax.
    - The reviewer at the read: PASS, four MINORs in the write-up, each answered
      (`reviews/2026-11-18-read-household-decomp.md`).
-   - **UNDER WAY: the remedy** its rule calls for (`HOUSEHOLD-REMEDY.md` and its amendment 1). Its two parts:
-     - the bands, then the bands and the cap, priced at `k = 1/s` of the pensions' split;
-     - the year's need funded at the pensions' share.
-   - The remedy is built off in code and tested. Its read (`HOUSEHOLD-REMEDY-READ.md`) runs after the windfall factorial,
-     on the lead test's 28 units.
+   - **READ: the remedy** its rule calls for (`HOUSEHOLD-REMEDY.md` and its amendment 1; the rule
+     `HOUSEHOLD-REMEDY-READ.md`; `results-household-remedy.txt`; `reports/2026-11-19-household-remedy-read.md`). Three
+     forms on the lead test's 28 units, each against today's couples' default (K2):
+     - HSPB, the bands above two personal allowances priced at `k = 1/s` of the pensions' split: DOES NOT MEND
+       (S191-90 `-7.000`);
+     - **HSP, the bands and the tax-free cash cap priced at `k`: MENDS.** S191-90 `-0.625` (`-0.873` to `-0.291`), S333F
+       `+0.125`, S335F `-0.150`; pooled `+1.163` (`+1.110` to `+1.213`) over the 28, no unit wholly below the bar;
+     - HSPS, HSP with the year's need funded at the pensions' share: DOES NOT MEND (S191-90 `-0.650`, `-0.898` to
+       `-0.314`).
+     - HSP's pass on S191-90 is by `0.38` of a path, and S191-90 still loses beyond noise under it
+       (`results-household-remedy-beside.txt`).
+     - By the rule, step 8's registration is drafted on HSP (item 3). The reviewer at the read is next.
 2. Design B, the axis (`AXIS.md`), is not built unless the decomposition points to it.
-3. Step 8, the registered test, is held until those losses are fixed and re-checked on the couples that lose. Then its
+3. **UNDER WAY, on HSP:** step 8, the registered test, is held until those losses are fixed and re-checked on the couples that lose. Then its
    registration is drafted, put to the design reviewer and brought to the maintainer before launch.
 4. **READ, FOR THE MAINTAINER: what keys D128's guard** (`results-guard.txt`; `reports/2026-11-18-guard-key-read.md`;
    its reviewer FAIL on the write-up, answered in one fix, then PASS).

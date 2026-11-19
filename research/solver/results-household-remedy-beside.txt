@@ -1,0 +1,25 @@
+BESIDE THE REMEDY'S READ (EXPLORATORY, after the read, deciding nothing): 28 units, seed 7002, 4000 paths; code 603eeb595679, audit e0b1524d8f6b
+
+1. The three couples, each arm against K2 in whole paths of 4000 (saved / lost / net), the share of HS's net loss recovered, and the interval's upper end less the bar (-0.3 points):
+  S191-90: HS 0 / 832 / -832
+    HSPB  3 / 283 / -280; recovers 66.3% of HS's net loss; upper end -6.716, below the bar by 6.416 points (256.64 paths)
+    HSP   10 / 35 / -25; recovers 97.0% of HS's net loss; upper end -0.291, above the bar by 0.009 points (0.38 paths)
+    HSPS  10 / 36 / -26; recovers 96.9% of HS's net loss; upper end -0.314, below the bar by 0.014 points (0.55 paths)
+  S333F: HS 11 / 52 / -41
+    HSPB  16 / 28 / -12; recovers 70.7% of HS's net loss; upper end +0.049, above the bar by 0.349 points (13.96 paths)
+    HSP   18 / 13 / 5; recovers 112.2% of HS's net loss; upper end +0.395, above the bar by 0.695 points (27.78 paths)
+    HSPS  18 / 13 / 5; recovers 112.2% of HS's net loss; upper end +0.395, above the bar by 0.695 points (27.78 paths)
+  S335F: HS 10 / 71 / -61
+    HSPB  14 / 29 / -15; recovers 75.4% of HS's net loss; upper end -0.031, above the bar by 0.269 points (10.75 paths)
+    HSP   14 / 20 / -6; recovers 90.2% of HS's net loss; upper end +0.158, above the bar by 0.458 points (18.33 paths)
+    HSPS  14 / 21 / -7; recovers 88.5% of HS's net loss; upper end +0.138, above the bar by 0.438 points (17.52 paths)
+
+2. The decomposition's arms beside the remedy's on the three, survival on the same paths (each unit's K2 and HS arrays the same in both runs):
+  S191-90 (K2 and HS the same in both: yes): K2 97.63%, HS 76.83%; the decomposition HSB 98.13%, HSC 88.65%, HSBC 97.80%; the remedy HSPB 90.63%, HSP 97.00%, HSPS 96.97% (k 1.111)
+  S333F (K2 and HS the same in both: yes): K2 92.73%, HS 91.70%; the decomposition HSB 92.75%, HSC 92.33%, HSBC 93.03%; the remedy HSPB 92.42%, HSP 92.85%, HSPS 92.85% (k 1.667)
+  S335F (K2 and HS the same in both: yes): K2 94.45%, HS 92.92%; the decomposition HSB 94.55%, HSC 94.20%, HSBC 94.42%; the remedy HSPB 94.08%, HSP 94.30%, HSPS 94.27% (k 1.667)
+
+3. Each remedy table's forecast at the start less its survival, over the 28 units (points):
+  HSPB  mean +0.356; the widest above S191-90 +7.676, below S377-dbpart -1.889
+  HSP   mean +0.070; the widest above S271-db +1.492, below S377-dbpart -1.864
+  HSPS  mean +0.061; the widest above S271-db +1.492, below S377-dbpart -1.889

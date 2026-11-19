@@ -28,7 +28,8 @@
  *      plan's band twice a person's in the couple's model ('cgtband'); (b) the engine's default basic band limit the same
  *      before and after solveHousehold and householdContext, a throwing solve among them ('nofinally': a twoBands without
  *      its finally, on a throwing fn); (c) a couple's M.prepare and E.buildContext, called after solveHousehold, carry a
- *      person's band (the same plant); (d) the solver's code id 603eeb595679 (nothing under src/ and not the engine edited);
+ *      person's band (the same plant); (d) the solver's code id, 603eeb595679 to 19 Nov (D115: nothing under src/ and not the
+ *      engine edited), 71fb4271c681 since D130 (1)'s ISA fix;
  *   8. THE TWIN (PRESCRIPTIVE-PLAN.md step 3): on check 3's six units, the couple made of the first person twice (built as the
  *      review's scripts/twin-trace.mjs builds it), under arm A's policy, 100 paths of seed 99001, the household plan
  *      (through householdContext) against the couple, year by year: (1) on S205, S061-dbpart, S327F, S227-90 and S023-db
@@ -287,7 +288,9 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   check('(7c) a couple\'s M.prepare and E.buildContext, called after solveHousehold, carry a person\'s band', after.every(x => x[2] === p0 && x[3] === p0), `a person's ${p0}`);
   check('(7c) the same plant fails it', !(planted[1] === p0 && planted[2] === p0), `${planted[1]} and ${planted[2]}`);
   const cid = codeId();
-  check('(7d) the solver\'s code id 603eeb595679', !!cid && cid.hash === '603eeb595679', cid ? cid.hash : 'none');
+  // D115 held the solver's code at 603eeb595679 for steps 1 to 8; D130 (1) lifted it for the ISA allowance's fix (19 Nov), the
+  // household line's later runs on the fixed code
+  check('(7d) the solver\'s code id 71fb4271c681 (D115\'s, then D130 (1)\'s fix)', !!cid && cid.hash === '71fb4271c681', cid ? cid.hash : 'none');
 }
 
 // 8. the twin (PRESCRIPTIVE-PLAN.md step 3)

@@ -23,7 +23,7 @@ import { createHash } from 'node:crypto';
 // the code under test: this repository, or another checkout named by ROOT (to show the sweep failing on older code)
 const ROOT = process.env.ROOT ? resolve(process.env.ROOT) : join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const imp = p => import(pathToFileURL(join(ROOT, p)).href);
-const E = await imp('research/engine.mjs'), M = await imp('src/solver/model.js');
+const E = await imp('research/engine.mjs'), M = await imp('src/solver/model.js'), F = await imp('src/solver/fast.js');
 const { runPolicy } = await imp('src/solver/solve.js');
 const { vecOf } = await imp('src/solver/grid.js');
 const { modelStateOf, withTable } = await imp('src/solver/bridge.js');
@@ -74,6 +74,10 @@ for (const b of Object.keys(BASES)) add(`control ${b}`, b, () => {}, 'years', 's
 BASES.S116 = () => lib('S116');
 // the review of 9 Nov, item 5: the sweep's cash ISA money to the stocks and shares ISA (a solve option, research, off)
 add('the sweep\'s cash ISA money to the ISA (sweepCashIsaTo \'isa\')', 'S116', () => {}, 'sweepIsa', 'sweepIsa', { sweepCashIsaTo: 'isa' });
+// D130 (1): a deposit into the ISA in a year the sweep sends the cash ISA's money there; the year's own flows read the room
+// the deposit left, in the engine and the forward run alike (isa-allowance.test.mjs); the plant: the forward run with the
+// deposit uncounted, as before 19 Nov (fast.js ISA.plant 'uncounted')
+add('a deposit into the ISA in a year the sweep sends the cash ISA\'s money there', 'S116', p => { p.oneOffContributions = [...(p.oneOffContributions || []), dep('dI', 2, 'S&S ISAs', 20000)]; }, 'isaDep', 'isaUncounted', { sweepCashIsaTo: 'isa' });
 for (const k of Object.keys(E.DECUMULATION_POLICIES)) add(`policy ${k}, an Auto deposit routed by it`, 'S370', p => { p.spending.decumulationPolicy = k; }, 'deposit', 'dep');
 add('policy Windfall to ISA, an Auto deposit while working', 'S224', p => { p.spending.decumulationPolicy = 'Windfall to ISA'; p.oneOffContributions = [dep('dW', 2, E.AUTO_DEPOSIT, 150000)]; }, 'deposit', 'dep');
 add('deposit into the ISA, the surplus staged into it', 'S380', p => { p.oneOffContributions = [dep('dI', 2, 'S&S ISAs', 100000)]; }, 'drip', 'drip');
@@ -141,6 +145,8 @@ const PLANTS = {
   con: c => fill(c.yr.con[0], v => v * 0.5),
   // the forward run sweeping the cash ISA money to the taxable account, as without the option
   sweepIsa: c => { const old = c.acts.map(a => a.sweepIsa); c.acts.forEach(a => { a.sweepIsa = 0; }); return () => c.acts.forEach((a, i) => { a.sweepIsa = old[i]; }); },
+  // the forward run not counting the year's deposits and staged transfers into the ISA in its allowance, as before 19 Nov
+  isaUncounted: () => { if (!F.ISA) throw new Error('sweep: this code has no ISA plant (fast.js ISA)'); F.ISA.plant = 'uncounted'; return () => { F.ISA.plant = ''; }; },
   // the generic plant (controls and settings with no data of their own): every spending year 5% dearer
   spend: c => { const u1 = fill(c.yr.spend, v => v * 1.05), u2 = fill(c.yr.scheduled, v => v * 1.05); return () => { u1(); u2(); }; }
 };
@@ -149,6 +155,7 @@ const PLANTS = {
 const LIVE = {
   years: () => true,
   deposit: (ctx, row) => ctx.oneOffContribs.has(row.year),
+  isaDep: (ctx, row) => (ctx.oneOffContribs.get(row.year) || []).some(x => String(x.id).startsWith('isa_')),
   drip: (ctx, row) => ctx.stagedTransfers.has(row.year),
   deduction: (ctx, row) => ctx.oneOffDeductions.has(row.year),
   cost: (ctx, row) => row.oneOffCost > 0,

@@ -12,6 +12,15 @@ A. THE RUN'S ARMS AGAINST THE EARLIER RUNS' ON THE SAME UNITS AND PATHS (4,000 p
   S227-sppart          HSP against the remedy read's HSP: 5 of 4000 paths differ in some stored figure, 0 in survival
   S271-90              HSP against the remedy read's HSP: 996 of 4000 paths differ in some stored figure, 2 in survival (paths 768, 2491)
   S271-db              HSP against the remedy read's HSP: 740 of 4000 paths differ in some stored figure, 0 in survival
+  HSP's household table here against the remedy read's (its digest whole; the remedy read keys it 'pensions', HSP's form), on the lead test's 28: the same on 20, differing on 8: S191-90, S191-dbpart, S205, S223, S227-90, S227-sppart, S271-90, S271-db
+    S191-90              here d2f394cffa0bbd752fa45268b9d1f1ec5791bbca096c414f7e6b4b33626db7a0; the remedy read d7f71dbd6e5fc3dfa1a6c9189cdf05d4bdb415f629df8b15940705d8d086abfe
+    S191-dbpart          here db8b61315aee89af8f181ff01f282bc0dba48117a44b76a20bd31adf3eef6c62; the remedy read e1e6584364b8c9f3be19788e552b28ecdea52f4e0030afa645b7559a6614814c
+    S205                 here 02d1f504cbce8f246f4afc679ce1a2160c65f5fb0a8979a4036a12672be7a762; the remedy read 41b82847c2495cbf806deed298c6a4309e1e56d51b7acb8cdaf1bcf9e333bae4
+    S223                 here 7d620c1123e3738902758348868d314b9e146c4632c8f799b89eb8c67949f964; the remedy read 52c98558637457648f49d0ad7d93f332ca0b91ee86375e145e6632b952a7e330
+    S227-90              here 1d6aac4266cbed8eb1bdbb3618e4d4cc41e291264aa16a1e9c998e8bc2a98e60; the remedy read dbb6c79a9fefb7fdf5789f6110f89a88ced7af5cdee6319992fbde7c484655ef
+    S227-sppart          here f9029e17dc697bea035d2b54b79b5d1f18e5afa117cdbbbd938fe1bf3c094ef0; the remedy read fa765d7031ff667c1f9a5bf15b48ca687194bfced7c1b9748fc4dbc18e6ecdda
+    S271-90              here dcee30dedf2ff2a98f9cf6655d27a017b473e4c06321fa71f6cdf087ee6e31f3; the remedy read 61737673d8c98e2e69508e21786279a42aad7d141792f23bd172a5ebd25ad81c
+    S271-db              here 04b654b89fc063755b124f62035c1793603000171c565a5039a841e2acd32c54; the remedy read 77ffe34cf9ca8197c7026ec890e4fa1973a9321e676ef62eb23a076b9d060662
   K2 against the lead test's K2: 27 of 28 units the same in every stored figure on every path; 7 paths differ in survival, 3848 in some stored figure
   K2 against the remedy read's K2: 27 of 28 units the same in every stored figure on every path; 7 paths differ in survival, 3848 in some stored figure
   HSP against the remedy read's HSP: 20 of 28 units the same in every stored figure on every path; 7 paths differ in survival, 9122 in some stored figure
@@ -19,30 +28,32 @@ A. THE RUN'S ARMS AGAINST THE EARLIER RUNS' ON THE SAME UNITS AND PATHS (4,000 p
   K2 against step 5's K2: 28 of 28 units the same in every stored figure on every path; 0 paths differ in survival, 0 in some stored figure
 
 A2. WHAT THE FIX CAN REACH ON EACH UNIT, FROM ITS PLANS, BESIDE WHERE THE RUN'S ARMS MOVED (the household arms HSP and HSPA share one household plan as built; K2 and APP the couple's)
-  S327F                the household plan's deposits into an ISA 3 (7975 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First, lump sum); arms moved: none
-  S329F                the household plan's deposits into an ISA 3 (7975 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First, lump sum); arms moved: none
-  S331F                the household plan's deposits into an ISA 3 (11702 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic); arms moved: none
-  S333F                the household plan's deposits into an ISA 3 (21496 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic); arms moved: none
-  S335F                the household plan's deposits into an ISA 3 (21496 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: none
-  S337F                the household plan's deposits into an ISA 3 (5114 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First); arms moved: none
-  S341F                the household plan's deposits into an ISA 3 (7975 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill, lump sum); arms moved: none
-  S343F                the household plan's deposits into an ISA 3 (11702 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic); arms moved: none
-  S205                 the household plan's deposits into an ISA 3 (4386 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic (harvest off), lump sum); arms moved: HSP
-  S223                 the household plan's deposits into an ISA 3 (9997 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
-  S191-90              the household plan's deposits into an ISA 3 (18382 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
-  S227-90              the household plan's deposits into an ISA 3 (18382 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 1 (Windfall to ISA, lump sum); arms moved: K2, HSP
-  S271-90              the household plan's deposits into an ISA 3 (14735 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
-  S191-dbpart          the household plan's deposits into an ISA 3 (18382 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic); arms moved: HSP
-  S227-sppart          the household plan's deposits into an ISA 3 (18382 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
-  S271-db              the household plan's deposits into an ISA 3 (14735 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
-  S337F@gap8           the household plan's deposits into an ISA 8 (14713 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill, lump sum); arms moved: none
-  S337F@gap12          the household plan's deposits into an ISA 12 (23482 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill (harvest off)); arms moved: none
-  S337F@elder2nd       the household plan's deposits into an ISA 3 (8523 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill, lump sum); arms moved: none
-  S337F@part60         the household plan's deposits into an ISA 3 (5114 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First); arms moved: none
-  S337F@penB90         the household plan's deposits into an ISA 3 (5114 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First, lump sum); arms moved: none
-  S337F@penA100        the household plan's deposits into an ISA 3 (5114 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First); arms moved: none
+  S327F                the household plan's deposits into an ISA 3 (7975 pounds in all, at the household's ages 52, 53, 54; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First, lump sum); arms moved: none
+  S329F                the household plan's deposits into an ISA 3 (7975 pounds in all, at the household's ages 52, 53, 54; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First, lump sum); arms moved: none
+  S331F                the household plan's deposits into an ISA 3 (11702 pounds in all, at the household's ages 52, 53, 54; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic); arms moved: none
+  S333F                the household plan's deposits into an ISA 3 (21496 pounds in all, at the household's ages 52, 53, 54; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic); arms moved: none
+  S335F                the household plan's deposits into an ISA 3 (21496 pounds in all, at the household's ages 52, 53, 54; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: none
+  S337F                the household plan's deposits into an ISA 3 (5114 pounds in all, at the household's ages 52, 53, 54; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First); arms moved: none
+  S341F                the household plan's deposits into an ISA 3 (7975 pounds in all, at the household's ages 52, 53, 54; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill, lump sum); arms moved: none
+  S343F                the household plan's deposits into an ISA 3 (11702 pounds in all, at the household's ages 52, 53, 54; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic); arms moved: none
+  S205                 the household plan's deposits into an ISA 3 (4386 pounds in all, at the household's ages 60, 61, 62; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic (harvest off), lump sum); arms moved: HSP
+  S223                 the household plan's deposits into an ISA 3 (9997 pounds in all, at the household's ages 60, 61, 62; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
+  S191-90              the household plan's deposits into an ISA 3 (18382 pounds in all, at the household's ages 60, 61, 62; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
+  S227-90              the household plan's deposits into an ISA 3 (18382 pounds in all, at the household's ages 60, 61, 62; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 1 (Windfall to ISA, lump sum); arms moved: K2, HSP
+  S271-90              the household plan's deposits into an ISA 3 (14735 pounds in all, at the household's ages 60, 61, 62; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
+  S191-dbpart          the household plan's deposits into an ISA 3 (18382 pounds in all, at the household's ages 60, 61, 62; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic); arms moved: HSP
+  S227-sppart          the household plan's deposits into an ISA 3 (18382 pounds in all, at the household's ages 60, 61, 62; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
+  S271-db              the household plan's deposits into an ISA 3 (14735 pounds in all, at the household's ages 60, 61, 62; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
+  S337F@gap8           the household plan's deposits into an ISA 8 (14713 pounds in all, at the household's ages 52, 53, 54, 55, 56, 57, 58, 59; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill, lump sum); arms moved: none
+  S337F@gap12          the household plan's deposits into an ISA 12 (23482 pounds in all, at the household's ages 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill (harvest off)); arms moved: none
+  S337F@elder2nd       the household plan's deposits into an ISA 3 (8523 pounds in all, at the household's ages 52, 53, 54; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill, lump sum); arms moved: none
+  S337F@part60         the household plan's deposits into an ISA 3 (5114 pounds in all, at the household's ages 52, 53, 54; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First); arms moved: none
+  S337F@penB90         the household plan's deposits into an ISA 3 (5114 pounds in all, at the household's ages 52, 53, 54; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First, lump sum); arms moved: none
+  S337F@penA100        the household plan's deposits into an ISA 3 (5114 pounds in all, at the household's ages 52, 53, 54; its pension access 58); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First); arms moved: none
   HSP (compared on the lead test's 28): moved on 8 units, the fix reaching 16; moved where it cannot reach: none; reached and not moved: S327F, S329F, S331F, S333F, S335F, S337F, S341F, S343F
-  K2 and APP (compared on all 56): moved on 1 units, the fix reaching 1; moved where it cannot reach: none; reached and not moved: none
+  K2 (compared on all 56: the lead test's and the remedy read's on its 28, step 5's on its 28): moved on 1 units, the fix reaching 1; moved where it cannot reach: none; reached and not moved: none
+  APP (compared on step 5's 28 alone: the lead test and the remedy read stored no APP arm): moved on 0 units, the fix reaching 0 of them; moved where it cannot reach: none; not compared where the fix can reach: S227-90
+  HSPA: no earlier run to compare with.
 
   S191-90, HSP here and in the remedy read, each differing path (survived, fail year, pot left, lifetime tax, spending delivered):
     path 0: here 1, -1, 4807684, 599563, 4301490; the remedy read 1, -1, 4999712, 585140, 4301490; K2 here 1
@@ -58,7 +69,7 @@ A2. WHAT THE FIX CAN REACH ON EACH UNIT, FROM ITS PLANS, BESIDE WHERE THE RUN'S 
     path 14: here 1, -1, 2045555, 886426, 4290200; the remedy read 1, -1, 2036938, 891121, 4290200; K2 here 1
     path 15: here 0, 31, 0, 263664, 2626858; the remedy read 0, 31, 0, 266164, 2617809; K2 here 0
     ... 2824 more
-  its stamps: here household table digests {"self":"3cab1bc6f1d1883afe84799316d4af7b713d6d63eb25806f101dfaa93b851297","part":"eca652b6b55fbe444719b5aeee830cbf633147f2144dd699d2d5b11d75ac8d8b","HSP":"d2f3; the remedy read's {"self":"3cab1bc6f1d1883afe84799316d4af7b713d6d63eb25806f101dfaa93b851297","part":"eca652b6b55fbe444719b5aeee830cbf633147f2144dd699d2d5b11d75ac8d8b","HS":"fe8c1
+  its household table: here HSP d2f394cffa0bbd752fa45268b9d1f1ec5791bbca096c414f7e6b4b33626db7a0; the remedy read's HSP ('pensions') d7f71dbd6e5fc3dfa1a6c9189cdf05d4bdb415f629df8b15940705d8d086abfe
 
 B. EACH UNIT'S MARGIN BY D34'S RULE IN WHOLE PATHS (the net paths lost, lost less saved, against the unit's threshold j in whole paths; flagged where the net exceeds j)
   S149@elder2nd        HSPA net lost    0 (threshold 21); HSP net lost    3 (threshold 21)
@@ -103,3 +114,11 @@ E. WHERE TODAY'S COUPLES' DEFAULT (K2) SURVIVES BELOW THE APP'S RULES (APP) ON T
   S061-dbpart@penB90   K2 less APP -10.175 points (K2 76.75%, APP 86.92%); the guard off (uneven): the app keeps its own rules; HSPA less APP 12.925
   S147-db@gap12        K2 less APP -10.950 points (K2 75.40%, APP 86.35%); the guard off (gapincome): the app keeps its own rules; HSPA less APP 12.750
   S147-db@gap8         K2 less APP -6.800 points (K2 78.83%, APP 85.63%); the guard off (gapincome): the app keeps its own rules; HSPA less APP 13.675
+
+F. D34'S THRESHOLD AND ITS RATES AT EACH UNIT'S REALISED DISCORDANCE, THESE 4,000 PATHS (reduce-share-rules.mjs harmExact: j the threshold in whole paths, t in points; tp the chance a true 1-point loss is flagged)
+  HSP: the threshold from 21 paths (0.525 points, S147-db@penA100) to 71 (1.775, S061-dbpart@gap12); outside 21 to 23 paths on 33 of 56
+  HSP: the 1-point rate below 0.90 on 19 of 56, from 0.197; their change against K2 from 1.500 to 29.500 points
+  HSP: on the units within 0.5 points of no change the threshold from 21 to 23 paths, the 1-point rate from 0.981
+  HSPA: the threshold from 21 paths (0.525 points, S147-db@penA100) to 70 (1.750, S061-dbpart@gap12); outside 21 to 23 paths on 32 of 56
+  HSPA: the 1-point rate below 0.90 on 21 of 56, from 0.203; their change against K2 from 1.800 to 31.625 points
+  HSPA: on the units within 0.5 points of no change the threshold from 21 to 23 paths, the 1-point rate from 0.981

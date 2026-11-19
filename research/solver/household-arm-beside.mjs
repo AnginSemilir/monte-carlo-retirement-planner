@@ -64,6 +64,9 @@ for (const id of shapeIds) {
   const u = A[id];
   for (const l of [line('APP against step 5\'s APP', u, u.arms.APP, shapes[id].arms.APP), line('K2 against step 5\'s K2', u, u.arms.K2, shapes[id].arms.K2)]) if (l) out.push(l);
 }
+const tabDiff = leadIds.filter(id => remedy[id] && A[id].digests.HSP !== remedy[id].digests.pensions);
+out.push(`  HSP's household table here against the remedy read's (its digest whole; the remedy read keys it 'pensions', HSP's form), on the lead test's 28: the same on ${leadIds.filter(id => remedy[id]).length - tabDiff.length}, differing on ${tabDiff.length}: ${tabDiff.join(', ') || 'none'}`);
+for (const id of tabDiff) out.push(`    ${id.padEnd(20)} here ${A[id].digests.HSP}; the remedy read ${remedy[id].digests.pensions}`);
 for (const [tag, t] of Object.entries(tally)) out.push(`  ${tag}: ${t.same} of ${t.units} units the same in every stored figure on every path; ${t.surv} paths differ in survival, ${t.any} in some stored figure`);
 
 /* A2. what the fix (D130 (1): a dated deposit or staged transfer into an ISA counted against the year's subscription) can
@@ -80,17 +83,22 @@ for (const u of unitsAll()) {
   const own = (hp.oneOffContributions || []), house = (householdPlanFor(E, hp).oneOffContributions || []);
   const houseIsa = house.filter(c => c.category === ISA && /^dep_house_/.test(c.id || '')), ownIsa = own.filter(c => c.category === ISA);
   const autoIsa = /^Windfall to ISA/.test(a.label) ? own.filter(c => c.category === AUTO) : [];
-  const r = reach[u.id] = { house: houseIsa.length, houseAmt: houseIsa.reduce((x, c) => x + c.amount, 0), own: ownIsa.length, auto: autoIsa.length, label: a.label };
+  const hplan = householdPlanFor(E, hp), hctx = E.buildContext(E.resolveMpaa(E.normalizePlan(hplan)));
+  const ages = houseIsa.map(c => hctx.ageSelf0 + Number(String(c.id).split('_').pop()));
+  const r = reach[u.id] = { house: houseIsa.length, houseAmt: houseIsa.reduce((x, c) => x + c.amount, 0), own: ownIsa.length, auto: autoIsa.length, label: a.label, ages, nmpa: hctx.nmpa };
   const m = moved[u.id] ? [...moved[u.id]].join(', ') : 'none';
-  if (r.house || r.own || r.auto || moved[u.id]) out.push(`  ${u.id.padEnd(20)} the household plan's deposits into an ISA ${r.house}${r.house ? ` (${Math.round(r.houseAmt)} pounds in all)` : ''}; the couple's own ${r.own}; an Auto deposit routed to the ISA by arm A's pick ${r.auto} (${a.label}); arms moved: ${m}`);
+  if (r.house || r.own || r.auto || moved[u.id]) out.push(`  ${u.id.padEnd(20)} the household plan's deposits into an ISA ${r.house}${r.house ? ` (${Math.round(r.houseAmt)} pounds in all, at the household's ages ${r.ages.join(', ')}; its pension access ${r.nmpa})` : ''}; the couple's own ${r.own}; an Auto deposit routed to the ISA by arm A's pick ${r.auto} (${a.label}); arms moved: ${m}`);
 }
 const reachH = id => reach[id] && (reach[id].house > 0 || reach[id].own > 0 || reach[id].auto > 0), reachC = id => reach[id] && (reach[id].own > 0 || reach[id].auto > 0);
-const movedH = Object.keys(moved).filter(id => moved[id].has('HSP')), movedC = Object.keys(moved).filter(id => moved[id].has('K2') || moved[id].has('APP'));
+const movedH = Object.keys(moved).filter(id => moved[id].has('HSP')), movedK = Object.keys(moved).filter(id => moved[id].has('K2')), movedP = Object.keys(moved).filter(id => moved[id].has('APP'));
 const leadSet = new Set(leadIds), shapeSet = new Set(shapeIds);
 const notMovedH = Object.keys(reach).filter(id => leadSet.has(id) && reachH(id) && !moved[id]?.has('HSP')), notReachH = movedH.filter(id => !reachH(id));
-const notMovedC = Object.keys(reach).filter(id => (leadSet.has(id) || shapeSet.has(id)) && reachC(id) && !(moved[id]?.has('K2') || moved[id]?.has('APP'))), notReachC = movedC.filter(id => !reachC(id));
+const notMovedK = Object.keys(reach).filter(id => (leadSet.has(id) || shapeSet.has(id)) && reachC(id) && !moved[id]?.has('K2')), notReachK = movedK.filter(id => !reachC(id));
+const notMovedP = Object.keys(reach).filter(id => shapeSet.has(id) && reachC(id) && !moved[id]?.has('APP')), notReachP = movedP.filter(id => !reachC(id));
 out.push(`  HSP (compared on the lead test's 28): moved on ${movedH.length} units, the fix reaching ${Object.keys(reach).filter(id => leadSet.has(id) && reachH(id)).length}; moved where it cannot reach: ${notReachH.join(', ') || 'none'}; reached and not moved: ${notMovedH.join(', ') || 'none'}`);
-out.push(`  K2 and APP (compared on all 56): moved on ${movedC.length} units, the fix reaching ${Object.keys(reach).filter(id => reachC(id)).length}; moved where it cannot reach: ${notReachC.join(', ') || 'none'}; reached and not moved: ${notMovedC.join(', ') || 'none'}`);
+out.push(`  K2 (compared on all 56: the lead test's and the remedy read's on its 28, step 5's on its 28): moved on ${movedK.length} units, the fix reaching ${Object.keys(reach).filter(id => reachC(id)).length}; moved where it cannot reach: ${notReachK.join(', ') || 'none'}; reached and not moved: ${notMovedK.join(', ') || 'none'}`);
+out.push(`  APP (compared on step 5's 28 alone: the lead test and the remedy read stored no APP arm): moved on ${movedP.length} units, the fix reaching ${Object.keys(reach).filter(id => shapeSet.has(id) && reachC(id)).length} of them; moved where it cannot reach: ${notReachP.join(', ') || 'none'}; not compared where the fix can reach: ${Object.keys(reach).filter(id => leadSet.has(id) && reachC(id)).join(', ') || 'none'}`);
+out.push('  HSPA: no earlier run to compare with.');
 
 /* S191-90's HSP path by path against the remedy read's, where they differ */
 const s = A['S191-90'], sr = remedy['S191-90'];
@@ -99,7 +107,7 @@ if (s && sr) {
   out.push(`\n  S191-90, HSP here and in the remedy read, each differing path (survived, fail year, pot left, lifetime tax, spending delivered):`);
   for (const i of d.any.slice(0, 12)) out.push(`    path ${i}: here ${s.arms.HSP.survived[i]}, ${s.arms.HSP.failYear[i]}, ${Math.round(s.arms.HSP.pot[i])}, ${Math.round(s.arms.HSP.tax[i])}, ${Math.round(s.arms.HSP.delivered[i])}; the remedy read ${sr.arms.HSP.survived[i]}, ${sr.arms.HSP.failYear[i]}, ${Math.round(sr.arms.HSP.pot[i])}, ${Math.round(sr.arms.HSP.tax[i])}, ${Math.round(sr.arms.HSP.delivered[i])}; K2 here ${s.arms.K2.survived[i]}`);
   if (d.any.length > 12) out.push(`    ... ${d.any.length - 12} more`);
-  out.push(`  its stamps: here household table digests ${JSON.stringify(s.digests || null).slice(0, 160)}; the remedy read's ${JSON.stringify(sr.digests || null).slice(0, 160)}`);
+  out.push(`  its household table: here HSP ${s.digests.HSP}; the remedy read's HSP ('pensions') ${sr.digests.pensions}`);
 }
 
 out.push('\nB. EACH UNIT\'S MARGIN BY D34\'S RULE IN WHOLE PATHS (the net paths lost, lost less saved, against the unit\'s threshold j in whole paths; flagged where the net exceeds j)');
@@ -134,5 +142,13 @@ for (const u of arm) {
   if (sk >= sa) continue;
   const g = guardOf(entered[u.id]);
   out.push(`  ${u.id.padEnd(20)} K2 less APP ${(100 * (sk - sa) / n).toFixed(3)} points (K2 ${(100 * sk / n).toFixed(2)}%, APP ${(100 * sa / n).toFixed(2)}%); the guard ${g.on ? 'ON: the app runs the solver for it' : `off (${g.why}): the app keeps its own rules`}; HSPA less APP ${(100 * (u.arms.HSPA.survived.reduce((p, q) => p + q, 0) - sa) / n).toFixed(3)}`);
+}
+out.push('\nF. D34\'S THRESHOLD AND ITS RATES AT EACH UNIT\'S REALISED DISCORDANCE, THESE 4,000 PATHS (reduce-share-rules.mjs harmExact: j the threshold in whole paths, t in points; tp the chance a true 1-point loss is flagged)');
+for (const a of ['HSP', 'HSPA']) {
+  const rows = C[a].rows, js_ = rows.map(r => r.j), ts = rows.map(r => r.t), lo = rows.reduce((p, q) => (q.j < p.j ? q : p)), hi = rows.reduce((p, q) => (q.j > p.j ? q : p));
+  const out23 = rows.filter(r => r.j < 21 || r.j > 23), low = rows.filter(r => r.tp < 0.90), net = r => 100 * (r.cells.saved - r.cells.lost) / r.cells.N;
+  out.push(`  ${a}: the threshold from ${lo.j} paths (${lo.t.toFixed(3)} points, ${lo.id}) to ${hi.j} (${hi.t.toFixed(3)}, ${hi.id}); outside 21 to 23 paths on ${out23.length} of ${rows.length}`);
+  out.push(`  ${a}: the 1-point rate below 0.90 on ${low.length} of ${rows.length}${low.length ? `, from ${Math.min(...low.map(r => r.tp)).toFixed(3)}; their change against K2 from ${Math.min(...low.map(net)).toFixed(3)} to ${Math.max(...low.map(net)).toFixed(3)} points` : ''}`);
+  out.push(`  ${a}: on the units within 0.5 points of no change the threshold from ${Math.min(...rows.filter(r => Math.abs(net(r)) <= 0.5).map(r => r.j))} to ${Math.max(...rows.filter(r => Math.abs(net(r)) <= 0.5).map(r => r.j))} paths, the 1-point rate from ${Math.min(...rows.filter(r => Math.abs(net(r)) <= 0.5).map(r => r.tp)).toFixed(3)}`);
 }
 console.log(out.join('\n'));

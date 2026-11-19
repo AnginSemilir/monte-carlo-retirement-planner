@@ -29,7 +29,16 @@ below this section says "the beta", read it as history. The order from here:
      `pakdouble`). The rule is `HOUSEHOLD-ARM.md`, committed before any unit runs, with `audit-household-arm.mjs`,
      `reduce-household-arm.mjs` (its planted checks) and `batch-household-arm.sh`. Every unit was run through the gate at
      smoke settings first. **Launched** 19 Nov 08:37 UK through the launcher (task bm4u4jfjz, its log
-     `results/household-arm-launch-1.log`; code 71fb4271c681, audit b5a75b884258): about five hours on four cores.
+     `results/household-arm-launch-1.log`; code 71fb4271c681, audit b5a75b884258), its runs done 13:55 UK, no restart.
+   - **READ once: HSPA** (`results-household-arm.txt`; `reports/2026-11-19-household-arm-read.md`). HSP FAILS part 1,
+     S191-90 flagged by D34 in whole paths (`26` net against `23`). HSPA PASSES all three: no unit flagged, pooled survival
+     `+3.746` (`+3.542` to `+3.949`), spending on the paths both keep `+1.7544%`. Beside it
+     (`results-household-arm-beside.txt`): a pass at 4,000 paths is weaker than at step 8's 16,000, and S191-90's is in
+     sample; every arm that moved since the earlier runs is on a unit the ISA fix reaches. The reviewer at the read: PASS,
+     four MINORs, each answered (`reviews/2026-11-19-read-household-arm.md`).
+   - **Next, by the rule:** step 8 registered on HSPA. Its arm, the audit's plan checks and the panel's refusals become
+     HSPA's; the panel landed again on the fixed code, the pilot and the sizing taken again; then the design reviewer's
+     second round, seed 7024's unlock with it (item 4), and the registration to you before launch.
 3. **D80 lifted for the household table alone** (its tie-break kept).
 4. **Seed 7024** reserved when the registration goes to its second design review.
 5. **The guard kept as built**, so D129 (5)'s words on the couples card go with the next batch.

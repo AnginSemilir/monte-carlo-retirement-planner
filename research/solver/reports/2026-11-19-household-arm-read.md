@@ -29,9 +29,16 @@ Each against today's couples' default (K2) on the same 4,000 paths.
   3. Spending on the paths both keep `+1.7544%` (`+1.7346` to `+1.7741`), not below `-0.05%`.
 - **The arm taken is HSPA.**
 
-**Said beside the outcome, as the rule requires:** at these 4,000 paths a unit's threshold is `21` to `23` paths (about
-half a point of survival). D34 sets it lower at step 8's 16,000, so it flags smaller losses there. A pass here is weaker
-evidence than a pass there.
+**Said beside the outcome, as the rule requires** (`results-household-arm-beside.txt`, section F):
+- **Weaker than step 8's test.** D34 sets a unit's threshold from its realised discordance. At these 4,000 paths the
+  thresholds run from `21` paths (`0.525` points) to `70` under HSPA (`1.750`, S061-dbpart@gap12), and to `71` under HSP.
+  They are `21` to `23` only on the units near no change (within half a point). At step 8's 16,000 paths D34 sets them
+  lower in points, so it flags smaller losses there. A pass here is weaker evidence than a pass there.
+- **The chance of flagging a true 1-point loss is below `0.90` on 21 of HSPA's 56 comparisons**, as low as `0.203`. All 21
+  are units where HSPA gains `1.800` to `31.625` points, so no outcome turns on it. Near no change the rate is at least
+  `0.981`.
+- **S191-90's pass is in sample.** HSPA was proposed after the remedy read and its review, which saw S191-90's loss on these
+  same paths of seed 7002 (D130 (2)). So HSPA's `+0.050` there is not a fresh test. Step 8's held-out seed is.
 
 **Beside the rule, deciding nothing** (`results-household-arm.txt`; `results-household-arm-beside.txt`):
 - **Against the app's rules (APP):** HSPA `+11.816` points (`+11.241` to `+12.390`), HSP `+11.587`, K2 `+8.070`.
@@ -44,7 +51,9 @@ evidence than a pass there.
   - S167 `+18` paths, spending `-0.783%`; S023-90 `+61`, `-0.129%`; S227-90 `+23`, `-0.324%`;
   - S023-db `+122`, `-0.291%`; S191-dbpart `+64`, `-0.169%`; S149@gap12 `+83`, `-0.097%`.
   - HSP on three: S167, S023-db and S149@gap12.
-  - Step 8's rule reads M1 unit by unit (`STEP8.md`). This read's rule does not, so these are recorded.
+  - Neither this read's rule nor step 8's blocks on M1: each prints it beside the outcome and names the units
+    (`HOUSEHOLD-ARM.md`; `STEP8.md`). With HSPA the units named rise from three to six. Whether a named unit should block the
+    default is the question `STEP8.md` puts to the design reviewer (its item 4).
 - **The tables' forecasts** (section D): the forecast at the start less what the engine delivers on the 4,000 paths.
   - HSP: the mean over the 56 `+0.129` points, above on 28 units and below on 28, from `-2.861` (S337F@even) to
     `+4.055` (S061-dbpart@gap12).
@@ -70,10 +79,18 @@ path by path, with the same arm of the earlier runs on the same units and paths.
 - **HSP against the remedy read's,** on the lead test's 28: the same on 20; 8 differ, `7` paths in survival in all
   (S191-90 one, S227-90 four, S271-90 two). Each of the 8 is a unit whose household plan carries the later retiree's ISA
   contributions as dated deposits (`household.mjs` turns them into yearly deposits until that person retires).
-  - 16 of the 28 household plans carry such deposits (section A2).
-  - On the other 8 of those 16, S327F to S343F, nothing moved on these paths: the fix bites only in a year where the
-    year's own flows into the ISA reach the room the deposits leave.
-  - No arm moved on a unit the fix cannot reach.
+  - HSP's household table differs from the remedy read's on exactly these 8 and is the same on the other 20 (the digests
+    whole). So on the 8 the fix changed the table's solve, since the exact model counts the deposits too, and not only the
+    engine's year.
+  - 16 of the 28 household plans carry such deposits (section A2). On the other 8 of those 16, S327F to S343F, the table
+    and every path are the same as before.
+  - Their deposits fall at the household's ages 52 to 54, before its pension access at 58; the 8 that moved have theirs at
+    60 to 62. Reading the code, the fix acts only in a year whose own flows into the ISA reach the room the deposits leave.
+    No flow was traced, so this places the 8 by what is the same and when their deposits fall. It does not measure why
+    the fix leaves them alone.
+- **What was compared, and where nothing moved without the fix reaching it:** K2 on all 56; APP on step 5's 28 alone (the
+  lead test and the remedy read stored no APP arm); HSP on the lead test's 28. HSPA has no earlier run. In what was
+  compared, no arm moved on a unit the fix cannot reach. APP on S227-90, which the fix reaches, was not compared.
 - **On S191-90,** HSP loses one more path here than in the remedy read (path 825): `26` net against `25` there. It is
   flagged by step 8's rule either way, as the design review found.
 
@@ -87,4 +104,21 @@ the app changes.
 
 ## The reviewer at the read
 
-Called on this write-up (`reviews/2026-11-19-read-household-arm.md`); its verdict follows here.
+PASS, four MINORs (`reviews/2026-11-19-read-household-arm.md`), each answered above, its figures printed by the beside
+script (sections A, A2 and F):
+- **The read reproduces.** The reader gives `results-household-arm.txt` byte for byte, and `--planted` passes all 8. The
+  audit's `--planted` passes 6, and the beside script reproduces its file.
+- **The stamps hold.** No stamped file has moved since the launch: `stampFilesHash()` prints b5a75b884258 and the code id
+  71fb4271c681.
+- **The rule was in place first.** Its files were committed at 32318730 before the launch.
+- **The figures recompute.** Every figure was recomputed independently from the stored arrays.
+1. **The threshold figure.** "21 to 23 paths" held only near no change. The thresholds run to 70 paths under HSPA, and
+   the 1-point rate falls below 0.90 on 21 comparisons, all where HSPA gains at least 1.8 points. S191-90's pass is in
+   sample. All three are now said beside the outcome.
+2. **M1.** Neither rule blocks on M1; the first draft said step 8's read it differently. Corrected, and the rise from
+   three units to six is left with the design reviewer (`STEP8.md` item 4).
+3. **Section A's evidence.** The beside cut the digests short, so it never showed the tables compared. They are now
+   printed whole: HSP's table differs on exactly the 8 units that moved. The account of the 8 that did not move rests on
+   what is the same and when their deposits fall, not on a traced flow.
+4. **APP's coverage.** APP was compared on the 28 shapes only, so APP on S227-90 is unchecked. Each arm's coverage is now
+   stated.

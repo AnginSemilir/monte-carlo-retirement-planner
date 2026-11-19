@@ -1,0 +1,105 @@
+BESIDE STEP 8'S ARM READ (EXPLORATORY; written after the read, deciding nothing): results-household-arm.txt
+the run: code 71fb4271c681, audit b5a75b884258; the lead test's code 603eeb595679, the remedy read's 603eeb595679, step 5's 603eeb595679
+
+A. THE RUN'S ARMS AGAINST THE EARLIER RUNS' ON THE SAME UNITS AND PATHS (4,000 paths of seed 7002 each)
+  S191-90              HSP against the remedy read's HSP: 2836 of 4000 paths differ in some stored figure, 1 in survival (paths 825)
+  S191-dbpart          HSP against the remedy read's HSP: 445 of 4000 paths differ in some stored figure, 0 in survival
+  S205                 HSP against the remedy read's HSP: 69 of 4000 paths differ in some stored figure, 0 in survival
+  S223                 HSP against the remedy read's HSP: 40 of 4000 paths differ in some stored figure, 0 in survival
+  S227-90              K2 against the lead test's K2: 3848 of 4000 paths differ in some stored figure, 7 in survival (paths 412, 1773, 2598, 2793, 3317, 3445, 3737)
+  S227-90              K2 against the remedy read's K2: 3848 of 4000 paths differ in some stored figure, 7 in survival (paths 412, 1773, 2598, 2793, 3317, 3445, 3737)
+  S227-90              HSP against the remedy read's HSP: 3991 of 4000 paths differ in some stored figure, 4 in survival (paths 619, 2331, 2568, 2684)
+  S227-sppart          HSP against the remedy read's HSP: 5 of 4000 paths differ in some stored figure, 0 in survival
+  S271-90              HSP against the remedy read's HSP: 996 of 4000 paths differ in some stored figure, 2 in survival (paths 768, 2491)
+  S271-db              HSP against the remedy read's HSP: 740 of 4000 paths differ in some stored figure, 0 in survival
+  K2 against the lead test's K2: 27 of 28 units the same in every stored figure on every path; 7 paths differ in survival, 3848 in some stored figure
+  K2 against the remedy read's K2: 27 of 28 units the same in every stored figure on every path; 7 paths differ in survival, 3848 in some stored figure
+  HSP against the remedy read's HSP: 20 of 28 units the same in every stored figure on every path; 7 paths differ in survival, 9122 in some stored figure
+  APP against step 5's APP: 28 of 28 units the same in every stored figure on every path; 0 paths differ in survival, 0 in some stored figure
+  K2 against step 5's K2: 28 of 28 units the same in every stored figure on every path; 0 paths differ in survival, 0 in some stored figure
+
+A2. WHAT THE FIX CAN REACH ON EACH UNIT, FROM ITS PLANS, BESIDE WHERE THE RUN'S ARMS MOVED (the household arms HSP and HSPA share one household plan as built; K2 and APP the couple's)
+  S327F                the household plan's deposits into an ISA 3 (7975 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First, lump sum); arms moved: none
+  S329F                the household plan's deposits into an ISA 3 (7975 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First, lump sum); arms moved: none
+  S331F                the household plan's deposits into an ISA 3 (11702 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic); arms moved: none
+  S333F                the household plan's deposits into an ISA 3 (21496 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic); arms moved: none
+  S335F                the household plan's deposits into an ISA 3 (21496 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: none
+  S337F                the household plan's deposits into an ISA 3 (5114 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First); arms moved: none
+  S341F                the household plan's deposits into an ISA 3 (7975 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill, lump sum); arms moved: none
+  S343F                the household plan's deposits into an ISA 3 (11702 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic); arms moved: none
+  S205                 the household plan's deposits into an ISA 3 (4386 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic (harvest off), lump sum); arms moved: HSP
+  S223                 the household plan's deposits into an ISA 3 (9997 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
+  S191-90              the household plan's deposits into an ISA 3 (18382 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
+  S227-90              the household plan's deposits into an ISA 3 (18382 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 1 (Windfall to ISA, lump sum); arms moved: K2, HSP
+  S271-90              the household plan's deposits into an ISA 3 (14735 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
+  S191-dbpart          the household plan's deposits into an ISA 3 (18382 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic); arms moved: HSP
+  S227-sppart          the household plan's deposits into an ISA 3 (18382 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
+  S271-db              the household plan's deposits into an ISA 3 (14735 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill Basic, lump sum); arms moved: HSP
+  S337F@gap8           the household plan's deposits into an ISA 8 (14713 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill, lump sum); arms moved: none
+  S337F@gap12          the household plan's deposits into an ISA 12 (23482 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill (harvest off)); arms moved: none
+  S337F@elder2nd       the household plan's deposits into an ISA 3 (8523 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (Bracket Fill, lump sum); arms moved: none
+  S337F@part60         the household plan's deposits into an ISA 3 (5114 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First); arms moved: none
+  S337F@penB90         the household plan's deposits into an ISA 3 (5114 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First, lump sum); arms moved: none
+  S337F@penA100        the household plan's deposits into an ISA 3 (5114 pounds in all); the couple's own 0; an Auto deposit routed to the ISA by arm A's pick 0 (ISA First); arms moved: none
+  HSP (compared on the lead test's 28): moved on 8 units, the fix reaching 16; moved where it cannot reach: none; reached and not moved: S327F, S329F, S331F, S333F, S335F, S337F, S341F, S343F
+  K2 and APP (compared on all 56): moved on 1 units, the fix reaching 1; moved where it cannot reach: none; reached and not moved: none
+
+  S191-90, HSP here and in the remedy read, each differing path (survived, fail year, pot left, lifetime tax, spending delivered):
+    path 0: here 1, -1, 4807684, 599563, 4301490; the remedy read 1, -1, 4999712, 585140, 4301490; K2 here 1
+    path 2: here 1, -1, 13412789, 311918, 4166010; the remedy read 1, -1, 11968435, 310981, 4166010; K2 here 1
+    path 3: here 1, -1, 1262484, 948729, 4312780; the remedy read 1, -1, 1231306, 957978, 4312780; K2 here 1
+    path 4: here 1, -1, 5410790, 670877, 4436970; the remedy read 1, -1, 5376983, 631473, 4436970; K2 here 1
+    path 5: here 1, -1, 18061629, 322085, 4301490; the remedy read 1, -1, 18047405, 322180, 4301490; K2 here 1
+    path 6: here 1, -1, 1622140, 796794, 4233750; the remedy read 1, -1, 1632290, 763826, 4233750; K2 here 1
+    path 7: here 1, -1, 16234429, 328957, 4436970; the remedy read 1, -1, 16167669, 372257, 4436970; K2 here 1
+    path 8: here 1, -1, 4388355, 901227, 4380520; the remedy read 1, -1, 4358823, 901060, 4380520; K2 here 1
+    path 10: here 1, -1, 161810, 514030, 3494255; the remedy read 1, -1, 162943, 506549, 3494255; K2 here 1
+    path 12: here 1, -1, 2313554, 421529, 4211170; the remedy read 1, -1, 2308539, 428340, 4211170; K2 here 1
+    path 14: here 1, -1, 2045555, 886426, 4290200; the remedy read 1, -1, 2036938, 891121, 4290200; K2 here 1
+    path 15: here 0, 31, 0, 263664, 2626858; the remedy read 0, 31, 0, 266164, 2617809; K2 here 0
+    ... 2824 more
+  its stamps: here household table digests {"self":"3cab1bc6f1d1883afe84799316d4af7b713d6d63eb25806f101dfaa93b851297","part":"eca652b6b55fbe444719b5aeee830cbf633147f2144dd699d2d5b11d75ac8d8b","HSP":"d2f3; the remedy read's {"self":"3cab1bc6f1d1883afe84799316d4af7b713d6d63eb25806f101dfaa93b851297","part":"eca652b6b55fbe444719b5aeee830cbf633147f2144dd699d2d5b11d75ac8d8b","HS":"fe8c1
+
+B. EACH UNIT'S MARGIN BY D34'S RULE IN WHOLE PATHS (the net paths lost, lost less saved, against the unit's threshold j in whole paths; flagged where the net exceeds j)
+  S149@elder2nd        HSPA net lost    0 (threshold 21); HSP net lost    3 (threshold 21)
+  S149@part60          HSPA net lost   -1 (threshold 21); HSP net lost    0 (threshold 21)
+  S191-90              HSPA net lost   -2 (threshold 21); HSP net lost   26 (threshold 23) FLAGGED
+  S149@even            HSPA net lost   -3 (threshold 21); HSP net lost    3 (threshold 21)
+  S335F                HSPA net lost   -2 (threshold 22); HSP net lost    6 (threshold 21)
+  S329F                HSPA net lost   -5 (threshold 21); HSP net lost    0 (threshold 21)
+  S327F                HSPA net lost   -5 (threshold 22); HSP net lost   -5 (threshold 22)
+  S333F                HSPA net lost   -5 (threshold 22); HSP net lost   -5 (threshold 21)
+  S337F@part60         HSPA net lost   -7 (threshold 21); HSP net lost   -1 (threshold 21)
+  S227-sppart          HSPA net lost   -8 (threshold 21); HSP net lost   -4 (threshold 21)
+  S337F@gap8           HSPA net lost  -10 (threshold 23); HSP net lost  -13 (threshold 23)
+  S341F                HSPA net lost  -12 (threshold 21); HSP net lost   -4 (threshold 21)
+  units with any net loss: HSPA 0 of 56, HSP 5 of 56
+
+C. WHERE HSPA AND HSP PART MOST (HSPA less HSP, survival points on the unit; the paths each saves and loses against K2)
+  S061-dbpart@gap12    k 1.667: HSPA less HSP +2.125
+  S147-db@gap12        k 1.667: HSPA less HSP +1.850
+  S147-db@gap8         k 1.667: HSPA less HSP +1.100
+  S147-db@penA100      k 1.000: HSPA less HSP +0.875
+  S147-db              k 1.667: HSPA less HSP +0.725
+  S147-db@penB90       k 1.111: HSPA less HSP +0.725
+  S191-90              k 1.111: HSPA less HSP +0.700
+  S147-db@part60       k 1.667: HSPA less HSP +0.600
+  S377-90              k 1.111: HSPA less HSP +0.525
+  S147-db@even         k 1.667: HSPA less HSP +0.425
+  S337F@penA100        k 1.000: HSPA less HSP +0.375
+  S147-90              k 1.111: HSPA less HSP +0.350
+  over the 56: HSPA higher on 40, lower on 10, the same on 6
+  k 1.667: 40 units, HSPA less HSP on average 0.202 points, higher on 27, lower on 9
+  k 1.000: 4 units, HSPA less HSP on average 0.406 points, higher on 4, lower on 0
+  k 1.111: 12 units, HSPA less HSP on average 0.260 points, higher on 9, lower on 1
+
+D. EACH TABLE'S FORECAST AGAINST WHAT THE ENGINE DELIVERS (the forecast at the start less the survival on the 4,000 paths, points)
+  HSP: the mean over the 56 0.129; from -2.861 (S337F@even) to 4.055 (S061-dbpart@gap12); above the survival on 28, below on 28; more than a point away on 9
+  HSPA: the mean over the 56 -0.343; from -2.790 (S337F@even) to 1.928 (S061-dbpart@gap12); above the survival on 19, below on 37; more than a point away on 10
+
+E. WHERE TODAY'S COUPLES' DEFAULT (K2) SURVIVES BELOW THE APP'S RULES (APP) ON THESE PATHS, AND WHAT THE APP'S GUARD DOES WITH THE COUPLE (src/couplesSwitch.js, on the plan as entered: on, the app runs the solver for it; off, the app's rules)
+  S061-dbpart@gap12    K2 less APP -20.250 points (K2 66.40%, APP 86.65%); the guard off (gapincome): the app keeps its own rules; HSPA less APP 11.375
+  S061-dbpart@penA100  K2 less APP -2.850 points (K2 85.03%, APP 87.88%); the guard off (uneven): the app keeps its own rules; HSPA less APP 11.975
+  S061-dbpart@penB90   K2 less APP -10.175 points (K2 76.75%, APP 86.92%); the guard off (uneven): the app keeps its own rules; HSPA less APP 12.925
+  S147-db@gap12        K2 less APP -10.950 points (K2 75.40%, APP 86.35%); the guard off (gapincome): the app keeps its own rules; HSPA less APP 12.750
+  S147-db@gap8         K2 less APP -6.800 points (K2 78.83%, APP 85.63%); the guard off (gapincome): the app keeps its own rules; HSPA less APP 13.675

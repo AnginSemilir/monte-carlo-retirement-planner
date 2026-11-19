@@ -4067,6 +4067,7 @@
    "research/solver/results-household-decomp-planted.txt",
    "research/solver/results-household-decomp.txt",
    "research/solver/results-household-hsp-panel.txt",
+   "research/solver/results-household-hsp-preflight.txt",
    "research/solver/results-household-hsp-sizing.txt",
    "research/solver/results-household-line-check.txt",
    "research/solver/results-household-planted.txt",

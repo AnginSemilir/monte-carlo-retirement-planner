@@ -1,0 +1,29 @@
+STEP 8, THE PREFLIGHT (the second design review's MINOR 1; EXPLORATORY, seed 7002, two paths a unit, no outcome): the 25 units the pilot did not run, each through every check before any path at 45 points (audit-household-hsp.mjs solveProblems: arm A's pick the landing's, the guard on, each table's settings line, the household line against the first person's, the minimum pot, the couples' path and D80, HSPA's plan as its form says, its band for gains k times one person's), then each arm's two paths held to E.runTrial
+STEP 8 (preflight, the pilot's seed, EXPLORATORY; the registered run's is 7024): 25 units (code 71fb4271c681, audit 7fa755346a65), 25 to run, 4 at a time, from 19 Nov 18:44 UK
+  unit 0/25: S193-own: solved: K2 120 s, HSPA 57 s; done unit 0 secs 194
+  unit 1/25: S193-45: solved: K2 118 s, HSPA 55 s; done unit 1 secs 189
+  unit 2/25: S193-90: solved: K2 115 s, HSPA 50 s; done unit 2 secs 180
+  unit 3/25: S193-dbpart: solved: K2 112 s, HSPA 49 s; done unit 3 secs 176
+  unit 4/25: S193-gap8: solved: K2 117 s, HSPA 64 s; done unit 4 secs 198
+  unit 5/25: S027-own: solved: K2 93 s, HSPA 46 s; done unit 5 secs 151
+  unit 6/25: S027-45: solved: K2 86 s, HSPA 43 s; done unit 6 secs 142
+  unit 7/25: S027-90: solved: K2 82 s, HSPA 38 s; done unit 7 secs 131
+  unit 8/25: S027-db: solved: K2 89 s, HSPA 37 s; done unit 8 secs 135
+  unit 9/25: S027-gap8: solved: K2 90 s, HSPA 42 s; done unit 9 secs 143
+  unit 10/25: S349F-own: solved: K2 188 s, HSPA 102 s; done unit 10 secs 313
+  unit 11/25: S349F-45: solved: K2 194 s, HSPA 93 s; done unit 11 secs 309
+  unit 12/25: S349F-90: solved: K2 175 s, HSPA 79 s; done unit 12 secs 275
+  unit 13/25: S349F-db: solved: K2 181 s, HSPA 77 s; done unit 13 secs 279
+  unit 14/25: S349F-gap8: solved: K2 161 s, HSPA 85 s; done unit 14 secs 264
+  unit 15/25: S355F-own: solved: K2 166 s, HSPA 82 s; done unit 15 secs 268
+  unit 16/25: S355F-45: solved: K2 162 s, HSPA 87 s; done unit 16 secs 271
+  unit 17/25: S355F-90: solved: K2 161 s, HSPA 83 s; done unit 17 secs 267
+  unit 18/25: S355F-sppart: solved: K2 168 s, HSPA 84 s; done unit 18 secs 273
+  unit 19/25: S355F-gap8: solved: K2 161 s, HSPA 84 s; done unit 19 secs 270
+  unit 20/25: S357F-own: solved: K2 163 s, HSPA 84 s; done unit 20 secs 267
+  unit 21/25: S357F-45: solved: K2 165 s, HSPA 86 s; done unit 21 secs 274
+  unit 22/25: S357F-90: solved: K2 169 s, HSPA 79 s; done unit 22 secs 269
+  unit 23/25: S357F-db: solved: K2 160 s, HSPA 79 s; done unit 23 secs 256
+  unit 24/25: S357F-gap8: solved: K2 154 s, HSPA 79 s; done unit 24 secs 251
+refused: 0 of 25; exited: 0
+STEP 8 (preflight): runs done 19 Nov 19:10 UK

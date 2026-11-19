@@ -49,7 +49,7 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
   - Reserves landed beside, unused: S033, S353F and S359F.
   - Landed again on the fixed code 71fb4271c681 (D130 (1); `results/household-hsp-land.log`): the same couples and units,
     every target, arm A's survival and pick the same as on 603eeb595679.
-- **Seed:** 7024 `<reserved in check-prediction.mjs for household-hsp*.md by the maintainer's unlock, named in its commit>`. As a whole number it appears nowhere before in the repository; the batch names it on a line the launcher's seed check reads; the pilot runs on 7002.
+- **Seed:** 7024, reserved in `check-prediction.mjs` for `household-hsp*.md` by the maintainer's unlock of 19 Nov (D130 (4), D131; the file named in its commit). As a whole number it appears nowhere before in the repository; the batch names it on a line the launcher's seed check reads; the pilot runs on 7002.
 - **Paths:** 16,000 for every unit (`household-hsp-paths.json`; `results-household-hsp-sizing.txt`). D34's size for each unit's HSPA-against-K2 comparison at the pilot's discordance, its upper 95% bound, is the floor of 16,000 on all 15 pilot units (that bound at most 3.43%), and at 16,000 a true 1-point loss reads as harm at least 90% of the time up to a discordance of 10.50%. The cap is D61's 19,000. A comparison whose 1-point rate at its realised discordance falls below 0.90 is read there and named with its rate (D34 (4), as D61 and D96 (2) ruled).
 - **Primary metric:** survival scored by the engine (`audit-phase4.mjs runPath`, held to `E.runTrial` on the first 200 paths of every arm), paired on the same paths of the held-out seed across the arms.
   - Beside it: spending delivered, the pot left and lifetime tax.

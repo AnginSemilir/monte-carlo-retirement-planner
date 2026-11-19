@@ -216,6 +216,10 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     unmetDeduction += Math.max(0, x.amount - take);
   });
 
+  // each owner's ISA subscriptions this tax year, counted from the first money into an ISA, as the engine's stepYear counts
+  // them: a dated deposit (1), a staged transfer (1.5), the regular contributions (2); every flow the year sends into the ISA
+  // reads its room here (D130 (1); isa-allowance.test.mjs; MODEL.plant 'isauncounted' leaves 1 and 1.5 out, as before)
+  const isaContribThisYear = { self: 0, part: 0 };
   // 1. dated one-off deposits, not pro-rated
   const deposits = ctx.oneOffContribs.get(year);
   // the windfall split (research, D37; the engine's stepYear step 1): a move's split puts the year's Auto money elsewhere
@@ -224,6 +228,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     if (pots[x.id] === undefined) return;
     pots[x.id] += x.amount;
     if (x.id.startsWith('other_')) addBasis(ownerOfId(x.id), x.amount);
+    if (x.id.startsWith('isa_') && MODEL.plant !== 'isauncounted') isaContribThisYear[ownerOfId(x.id)] += x.amount;
   };
   if (deposits) deposits.forEach(x => { if (!(split && x.auto)) deposit(x); });
   if (split) split.variants[action.windfall].forEach(deposit);
@@ -237,6 +242,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     pots[x.toId] = (pots[x.toId] || 0) + (x.uplift ? move * x.uplift : move);
     if (x.refundPer > 0 && pots[x.refundId] !== undefined) pots[x.refundId] += move * x.refundPer;
     if (x.toId.startsWith('other_')) addBasis(ownerOfId(x.toId), move);
+    if (x.toId.startsWith('isa_') && MODEL.plant !== 'isauncounted') isaContribThisYear[ownerOfId(x.toId)] += move;
   });
 
   /*
@@ -247,7 +253,6 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
    * test compares against.
    */
   const contribThisYear = { self: 0, part: 0 };
-  const isaContribThisYear = { self: 0, part: 0 };
   // the savings split (research, D38 (4); the engine's saveSplitRoutes): a move's save is the year's contributions by account
   const saved = !action.contrib && action.save > 0 && ctx.saveSplitAt ? ctx.saveSplitAt(t) : null;
   const contrib = action.contrib || (saved ? saved.variants[action.save] : null);

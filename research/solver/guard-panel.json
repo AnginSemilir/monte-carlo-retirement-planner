@@ -1,0 +1,89 @@
+{
+ "built": "2026-11-18T19:15:13.114Z",
+ "code": "603eeb595679",
+ "seed": 7005,
+ "paths": 1000,
+ "units": [
+  {
+   "id": "S149@gap8+db",
+   "k": 0,
+   "shapeId": "S149@gap8",
+   "kind": "db",
+   "target": 30000,
+   "step5": 23300,
+   "survival": 85.1,
+   "label": "Bracket Fill (harvest off), lump sum"
+  },
+  {
+   "id": "S149@gap8+rent",
+   "k": 1,
+   "shapeId": "S149@gap8",
+   "kind": "rent",
+   "target": 37200,
+   "step5": 23300,
+   "survival": 85.39999999999999,
+   "label": "ISA First, lump sum"
+  },
+  {
+   "id": "S149@gap12+db",
+   "k": 2,
+   "shapeId": "S149@gap12",
+   "kind": "db",
+   "target": 29600,
+   "step5": 22500,
+   "survival": 84.6,
+   "label": "ISA First"
+  },
+  {
+   "id": "S149@gap12+rent",
+   "k": 3,
+   "shapeId": "S149@gap12",
+   "kind": "rent",
+   "target": 36300,
+   "step5": 22500,
+   "survival": 85.39999999999999,
+   "label": "ISA First, lump sum"
+  },
+  {
+   "id": "S337F@gap8+db",
+   "k": 4,
+   "shapeId": "S337F@gap8",
+   "kind": "db",
+   "target": 31800,
+   "step5": 25400,
+   "survival": 84.1,
+   "label": "ISA First"
+  },
+  {
+   "id": "S337F@gap8+rent",
+   "k": 5,
+   "shapeId": "S337F@gap8",
+   "kind": "rent",
+   "target": 39700,
+   "step5": 25400,
+   "survival": 84.5,
+   "label": "ISA First, lump sum"
+  },
+  {
+   "id": "S337F@gap12+db",
+   "k": 6,
+   "shapeId": "S337F@gap12",
+   "kind": "db",
+   "target": 32000,
+   "step5": 26900,
+   "survival": 84.6,
+   "label": "Bracket Fill"
+  },
+  {
+   "id": "S337F@gap12+rent",
+   "k": 7,
+   "shapeId": "S337F@gap12",
+   "kind": "rent",
+   "target": 40400,
+   "step5": 26900,
+   "survival": 85,
+   "label": "ISA First (harvest off), lump sum"
+  }
+ ],
+ "out": []
+}

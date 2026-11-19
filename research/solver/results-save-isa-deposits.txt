@@ -1,0 +1,31 @@
+node research/solver/save-isa-deposits.mjs save (19 Nov, code 603eeb595679); EXPLORATORY, plan inputs only
+save panel: 27 households; policies: Bracket Fill Basic | Bracket Fill | Sequential | ISA First | Windfall to ISA
+S188    no deposit or drip into an ISA
+S204    no deposit or drip into an ISA
+S228    no deposit or drip into an ISA
+S244    no deposit or drip into an ISA
+S260    no deposit or drip into an ISA
+S272    no deposit or drip into an ISA
+S290    deposit isa_self t12 (a choice year) [Windfall to ISA]; arm A picks Bracket Fill on this code
+S304F   no deposit or drip into an ISA
+S306F   deposit isa_self t18 [Windfall to ISA]; arm A picks ISA First on this code
+S308F   no deposit or drip into an ISA
+S310F   deposit isa_self t18 [Windfall to ISA]; arm A picks Windfall to ISA on this code, so it lands under arm A's own pick
+S314F   deposit isa_self t18 [Windfall to ISA]; arm A picks Bracket Fill on this code
+S316F   no deposit or drip into an ISA
+S320F   no deposit or drip into an ISA
+S322F   deposit isa_self t18 [Windfall to ISA]; arm A picks Bracket Fill Basic on this code
+S326F   deposit isa_self t18 [Windfall to ISA]; arm A picks ISA First on this code
+S328F   no deposit or drip into an ISA
+S332F   no deposit or drip into an ISA
+S334F   deposit isa_self t18 [Windfall to ISA]; arm A picks Bracket Fill Basic on this code
+S338F   deposit isa_self t18 [Windfall to ISA]; arm A picks ISA First on this code
+S340F   no deposit or drip into an ISA
+S344F   no deposit or drip into an ISA
+S346F   deposit isa_self t18 [Windfall to ISA]; arm A picks Bracket Fill Basic on this code
+S350F   deposit isa_self t18 [Windfall to ISA]; arm A picks Bracket Fill on this code
+S352F   no deposit or drip into an ISA
+S356F   no deposit or drip into an ISA
+S358F   deposit isa_self t18 [Windfall to ISA]; arm A picks Bracket Fill Basic on this code
+households with an ISA deposit or drip in a save-choice year under arm A's own pick: 0 of 27
+households with an ISA deposit or drip in any year under arm A's own pick: 1 of 27: S310F (deposit isa_self t18)

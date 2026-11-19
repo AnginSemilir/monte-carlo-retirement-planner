@@ -1,0 +1,73 @@
+STEP 8'S ARM (EXPLORATORY; HOUSEHOLD-ARM.md; D130 (2)): 56 units from results/household-arm-7002, seed 7002
+THE GATE: fair; one code 71fb4271c681, audit b5a75b884258, seed 7002, 4000 paths, 45 points; every unit's four arms at their configurations; each unit's own log with its done line
+HSP against K2 (step 8's rule, 56 units, 4000 paths each):
+  1. no harm by D34 in whole paths: flagged S191-90 (net 26 paths lost against a threshold of 23): FAILS
+  2. pooled survival by path +3.517 points (+3.323 to +3.710), its lower end above 0: HOLDS
+  3. spending on the paths both keep +2.1349% (+2.1110 to +2.1587), not below -0.05%: HOLDS
+  HSP: FAIL
+HSPA against K2 (step 8's rule, 56 units, 4000 paths each):
+  1. no harm by D34 in whole paths: no unit flagged: HOLDS
+  2. pooled survival by path +3.746 points (+3.542 to +3.949), its lower end above 0: HOLDS
+  3. spending on the paths both keep +1.7544% (+1.7346 to +1.7741), not below -0.05%: HOLDS
+  HSPA: PASS
+THE ARM TAKEN: HSPA
+Beside, deciding nothing:
+  HSP: against APP +11.587 (+11.023 to +12.151), K2 against APP +8.070; without its largest unit (S061-dbpart@gap12) against K2 +3.044 (+2.861 to +3.227); M1 not met on S167 (+20 paths, spending -0.621%), S023-db (+122 paths, spending -0.174%), S149@gap12 (+84 paths, spending -0.209%)
+  HSPA: against APP +11.816 (+11.241 to +12.390), K2 against APP +8.070; without its largest unit (S061-dbpart@gap12) against K2 +3.239 (+3.045 to +3.433); M1 not met on S167 (+18 paths, spending -0.783%), S023-90 (+61 paths, spending -0.129%), S227-90 (+23 paths, spending -0.324%), S023-db (+122 paths, spending -0.291%), S191-dbpart (+64 paths, spending -0.169%), S149@gap12 (+83 paths, spending -0.097%)
+  by unit (k; survival against K2 in points, saved and lost paths, a flag; the forecast less the survival):
+    S327F                k 1.667: APP 86.70%, K2 95.00%; HSP +0.125 (21/16; forecast -0.15); HSPA +0.125 (20/15; forecast -0.36)
+    S329F                k 1.667: APP 85.40%, K2 94.35%; HSP +0.000 (15/15; forecast -0.15); HSPA +0.125 (16/11; forecast -0.46)
+    S331F                k 1.667: APP 85.88%, K2 93.30%; HSP +0.625 (36/11; forecast -0.10); HSPA +0.425 (32/15; forecast -0.15)
+    S333F                k 1.667: APP 84.65%, K2 92.72%; HSP +0.125 (18/13; forecast -0.24); HSPA +0.125 (22/17; forecast -0.44)
+    S335F                k 1.667: APP 87.33%, K2 94.45%; HSP -0.150 (14/20; forecast -0.45); HSPA +0.050 (19/17; forecast -0.84)
+    S337F                k 1.667: APP 84.35%, K2 95.53%; HSP +0.400 (33/17; forecast -0.53); HSPA +0.525 (33/12; forecast -0.68)
+    S341F                k 1.667: APP 86.47%, K2 96.10%; HSP +0.100 (14/10; forecast -0.13); HSPA +0.300 (23/11; forecast -0.61)
+    S343F                k 1.667: APP 84.60%, K2 93.53%; HSP +0.950 (49/11; forecast -0.06); HSPA +0.875 (48/13; forecast -0.26)
+    S149                 k 1.667: APP 87.13%, K2 97.63%; HSP +0.325 (19/6; forecast -0.14); HSPA +0.350 (19/5; forecast -0.17)
+    S167                 k 1.667: APP 85.35%, K2 95.38%; HSP +0.500 (25/5; forecast -0.05); HSPA +0.450 (23/5; forecast -0.21)
+    S205                 k 1.667: APP 85.17%, K2 97.53%; HSP +1.150 (50/4; forecast +0.10); HSPA +1.175 (50/3; forecast +0.07)
+    S223                 k 1.667: APP 85.70%, K2 95.97%; HSP +0.575 (32/9; forecast +0.78); HSPA +0.700 (36/8; forecast +0.41)
+    S023-90              k 1.111: APP 87.25%, K2 96.67%; HSP +1.375 (58/3; forecast +0.59); HSPA +1.525 (62/1; forecast +0.11)
+    S061-90              k 1.111: APP 85.35%, K2 97.67%; HSP +2.175 (89/2; forecast +0.06); HSPA +2.175 (89/2; forecast +0.09)
+    S109-90              k 1.111: APP 85.25%, K2 98.83%; HSP +0.700 (34/6; forecast +0.08); HSPA +0.900 (38/2; forecast -0.21)
+    S147-90              k 1.111: APP 85.58%, K2 96.33%; HSP +1.500 (72/12; forecast -0.51); HSPA +1.850 (78/4; forecast -2.36)
+    S191-90              k 1.111: APP 85.97%, K2 97.63%; HSP -0.650 (10/36, FLAGGED; forecast +1.11); HSPA +0.050 (16/14; forecast -0.47)
+    S227-90              k 1.111: APP 86.17%, K2 95.95%; HSP +0.475 (20/1; forecast +0.19); HSPA +0.575 (27/4; forecast -0.50)
+    S271-90              k 1.111: APP 85.47%, K2 91.97%; HSP +1.600 (71/7; forecast +1.24); HSPA +1.600 (68/4; forecast +0.34)
+    S377-90              k 1.111: APP 84.28%, K2 97.17%; HSP +1.575 (69/6; forecast -1.08); HSPA +2.100 (84/0; forecast -2.64)
+    S023-db              k 1.667: APP 86.95%, K2 95.33%; HSP +3.050 (122/0; forecast +0.46); HSPA +3.050 (123/1; forecast +0.37)
+    S061-dbpart          k 1.667: APP 86.50%, K2 98.15%; HSP +1.600 (64/0; forecast +0.06); HSPA +1.625 (65/0; forecast +0.02)
+    S109-sppart          k 1.667: APP 86.55%, K2 98.25%; HSP +1.075 (44/1; forecast +0.12); HSPA +1.150 (46/0; forecast +0.04)
+    S147-db              k 1.667: APP 85.25%, K2 89.63%; HSP +9.350 (375/1; forecast +0.80); HSPA +10.075 (403/0; forecast -0.09)
+    S191-dbpart          k 1.667: APP 84.58%, K2 96.33%; HSP +1.400 (60/4; forecast -0.10); HSPA +1.600 (66/2; forecast -0.55)
+    S227-sppart          k 1.667: APP 86.03%, K2 96.08%; HSP +0.100 (12/8; forecast +0.37); HSPA +0.200 (13/5; forecast +0.14)
+    S271-db              k 1.667: APP 85.53%, K2 92.05%; HSP +1.750 (78/8; forecast +1.49); HSPA +1.800 (80/8; forecast +1.20)
+    S377-dbpart          k 1.667: APP 86.15%, K2 97.22%; HSP +0.875 (41/6; forecast -1.86); HSPA +0.925 (43/6; forecast -1.94)
+    S149@even            k 1.667: APP 86.42%, K2 98.25%; HSP -0.075 (4/7; forecast -0.15); HSPA +0.075 (8/5; forecast -0.29)
+    S149@gap8            k 1.667: APP 84.80%, K2 95.75%; HSP +1.075 (48/5; forecast -0.03); HSPA +1.050 (47/5; forecast -0.00)
+    S149@gap12           k 1.667: APP 84.55%, K2 94.30%; HSP +2.100 (91/7; forecast -0.22); HSPA +2.075 (88/5; forecast -0.23)
+    S149@elder2nd        k 1.667: APP 85.63%, K2 97.55%; HSP -0.075 (8/11; forecast +0.12); HSPA +0.000 (11/11; forecast +0.03)
+    S149@part60          k 1.667: APP 86.72%, K2 97.92%; HSP +0.000 (11/11; forecast -0.12); HSPA +0.025 (13/12; forecast -0.14)
+    S149@penB90          k 1.111: APP 86.03%, K2 96.08%; HSP +1.775 (71/0; forecast -0.04); HSPA +1.950 (78/0; forecast -1.14)
+    S149@penA100         k 1.000: APP 86.55%, K2 96.20%; HSP +1.675 (69/2; forecast -0.07); HSPA +1.950 (78/0; forecast -1.55)
+    S337F@even           k 1.667: APP 84.97%, K2 96.45%; HSP +0.900 (44/8; forecast -2.86); HSPA +0.825 (42/9; forecast -2.79)
+    S337F@gap8           k 1.667: APP 85.58%, K2 96.33%; HSP +0.325 (30/17; forecast -0.07); HSPA +0.250 (30/20; forecast -0.03)
+    S337F@gap12          k 1.667: APP 84.78%, K2 96.30%; HSP +0.500 (33/13; forecast -0.03); HSPA +0.575 (34/11; forecast -0.13)
+    S337F@elder2nd       k 1.667: APP 85.15%, K2 95.38%; HSP +1.450 (64/6; forecast -0.52); HSPA +1.325 (61/8; forecast -0.41)
+    S337F@part60         k 1.667: APP 84.33%, K2 95.85%; HSP +0.025 (16/15; forecast -0.48); HSPA +0.175 (16/9; forecast -0.65)
+    S337F@penB90         k 1.111: APP 85.10%, K2 94.47%; HSP +3.325 (137/4; forecast -0.85); HSPA +3.550 (143/1; forecast -1.46)
+    S337F@penA100        k 1.000: APP 86.65%, K2 96.53%; HSP +1.125 (57/12; forecast -0.39); HSPA +1.500 (66/6; forecast -1.44)
+    S147-db@even         k 1.667: APP 86.58%, K2 94.83%; HSP +4.500 (180/0; forecast +0.41); HSPA +4.925 (197/0; forecast -0.10)
+    S147-db@gap8         k 1.667: APP 85.63%, K2 78.83%; HSP +19.375 (775/0; forecast +1.54); HSPA +20.475 (819/0; forecast +0.23)
+    S147-db@gap12        k 1.667: APP 86.35%, K2 75.40%; HSP +21.850 (874/0; forecast +2.47); HSPA +23.700 (948/0; forecast +0.37)
+    S147-db@elder2nd     k 1.667: APP 85.83%, K2 96.05%; HSP +3.600 (148/4; forecast -0.00); HSPA +3.650 (148/2; forecast -0.11)
+    S147-db@part60       k 1.667: APP 85.42%, K2 97.53%; HSP +1.525 (67/6; forecast +0.72); HSPA +2.125 (87/2; forecast -0.04)
+    S147-db@penB90       k 1.111: APP 86.38%, K2 97.15%; HSP +2.000 (85/5; forecast +0.63); HSPA +2.725 (109/0; forecast -0.57)
+    S147-db@penA100      k 1.000: APP 86.47%, K2 99.13%; HSP -0.100 (6/10; forecast +0.75); HSPA +0.775 (31/0; forecast -0.72)
+    S061-dbpart@even     k 1.667: APP 86.42%, K2 90.03%; HSP +9.600 (384/0; forecast +0.16); HSPA +9.600 (384/0; forecast +0.16)
+    S061-dbpart@gap8     k 1.667: APP 86.92%, K2 93.13%; HSP +6.650 (266/0; forecast +0.01); HSPA +6.625 (266/1; forecast +0.03)
+    S061-dbpart@gap12    k 1.667: APP 86.65%, K2 66.40%; HSP +29.500 (1241/61; forecast +4.05); HSPA +31.625 (1276/11; forecast +1.93)
+    S061-dbpart@elder2nd k 1.667: APP 86.05%, K2 89.20%; HSP +10.725 (429/0; forecast +0.04); HSPA +10.750 (430/0; forecast +0.02)
+    S061-dbpart@part60   k 1.667: APP 85.92%, K2 96.67%; HSP +3.050 (122/0; forecast +0.08); HSPA +3.100 (124/0; forecast +0.02)
+    S061-dbpart@penB90   k 1.111: APP 86.92%, K2 76.75%; HSP +23.125 (925/0; forecast +0.03); HSPA +23.100 (924/0; forecast +0.01)
+    S061-dbpart@penA100  k 1.000: APP 87.88%, K2 85.03%; HSP +14.725 (591/2; forecast +0.15); HSPA +14.825 (593/0; forecast -0.02)

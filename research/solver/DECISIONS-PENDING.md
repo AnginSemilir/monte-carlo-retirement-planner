@@ -11,12 +11,199 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**RULED (D130, 19 Nov, morning: "Proceed"): the agent's seven recommendations after D129's queue, in this order.**
+1. **The engine's ISA defect, fixed first:** a dated deposit or staged drip into an ISA counted against that year's
+   subscription, in the engine, the exact model and the forward run, with a test of its class shown failing; sized on the
+   library; to `main` with the next batch on B1's gate. Step 8's panel is then landed again on the fixed code.
+   - **DONE (19 Nov), on the working branch:** `isa-allowance.test.mjs` (the full tier) passes on the fix and fails on the
+     code before and on each of its two plants (`results-isa-allowance.txt`); gaps-sweep's case on such a year, its plant
+     parting the forward run from the engine; the fast tier green, no figure pinned in it moving, so no unlock was needed.
+   - **Sized** (`results-isa-allowance-sizing.txt`, EXPLORATORY): no library plan as entered holds such a deposit; under
+     Windfall to ISA, 68 of 210 plans run differently on some path, each within one path of `1,000` on survival.
+   - The code id moves from `603eeb595679` to `71fb4271c681`. Next: `main` with the next batch. Step 8's panel is landed
+     again after the arm read (item 2), whose outcome names the arm the panel's refusals follow.
+2. **Step 8 held; HSP and HSP with the personal allowance at `k`** read by step 8's own rule on the lead test's 28 units and
+   step 5's 28 shapes (EXPLORATORY, seed 7002, the fixed code), its rule committed first. Step 8 is registered on the arm
+   that passes on every unit, or comes back with the units that flag.
+   - **UNDER WAY:** HSPA built off in code (`household.mjs` `scale: 'pensionsPA'`; `household.test.mjs` (10d), its plant
+     `pakdouble`). The rule is `HOUSEHOLD-ARM.md`, committed before any unit runs, with `audit-household-arm.mjs`,
+     `reduce-household-arm.mjs` (its planted checks) and `batch-household-arm.sh`. Every unit was run through the gate at
+     smoke settings first. **Launched** 19 Nov 08:37 UK through the launcher (task bm4u4jfjz, its log
+     `results/household-arm-launch-1.log`; code 71fb4271c681, audit b5a75b884258), its runs done 13:55 UK, no restart.
+   - **READ once: HSPA** (`results-household-arm.txt`; `reports/2026-11-19-household-arm-read.md`). HSP FAILS part 1,
+     S191-90 flagged by D34 in whole paths (`26` net against `23`). HSPA PASSES all three: no unit flagged, pooled survival
+     `+3.746` (`+3.542` to `+3.949`), spending on the paths both keep `+1.7544%`. Beside it
+     (`results-household-arm-beside.txt`): a pass at 4,000 paths is weaker than at step 8's 16,000, and S191-90's is in
+     sample; every arm that moved since the earlier runs is on a unit the ISA fix reaches. The reviewer at the read: PASS,
+     four MINORs, each answered (`reviews/2026-11-19-read-household-arm.md`).
+   - **Next, by the rule:** step 8 registered on HSPA. Its arm, the audit's plan checks and the panel's refusals become
+     HSPA's; the panel landed again on the fixed code, the pilot and the sizing taken again; then the design reviewer's
+     second round, seed 7024's unlock with it (item 4), and the registration to you before launch.
+   - **Done (9c1dc08d):** the machinery switched to HSPA (its planted checks pass); the panel landed again on code
+     71fb4271c681, the same eight couples and 40 units with every target and arm A's survival unchanged. The pilot on the
+     fixed code runs (19 Nov from 15:05 UK), then the sizing fills Paths, Budget and the pilot's figures.
+3. **D80 lifted for the household table alone** (its tie-break kept).
+4. **Seed 7024** reserved when the registration goes to its second design review.
+5. **The guard kept as built**, so D129 (5)'s words on the couples card go with the next batch.
+   - **IN** (`src/PlannerCards.jsx`): the words, and the planner harness's check 19 reading them, with its plant `gapwords`
+     (the words before), to fail at the next gate.
+6. **The windfall split closed**, no v2.
+7. **The savings split's v2**, a registered test, after step 8; its registration drafted while step 8 runs.
+   - **Its design drafted** (`SAVE-V2.md`, DRAFT, not run). Three choices are yours, each with the agent's
+     recommendation: the pair on anchors (the menu that would ship) beside the whole menu, a harm there coming back before
+     any change of default; how many households (Phase 4 took 40); and the spending bar in the rule (no household's
+     lifetime spending lower beyond noise by more than `0.1%`, which S308F's `-0.250%` would fail). Its seed, 7025 by the
+     next free number, needs your unlock of `check-prediction.mjs` by name when the registration goes to its design
+     review.
+- **Unlocks:** "Proceed" does not open the hook; each protected edit or moved pin in a fast-tier test is asked for by name.
+
+**RULED (D129, 18 Nov, evening: "Go ahead. Add the windfall and savings tests to the end"): the agent's seven
+recommendations after D128, in this order, then B7's two factorials at the end.** Each run is EXPLORATORY on seed 7002,
+its rule committed before it runs; none changes anything in the app on its own.
+1. **DONE: the decomposition of the household plan's three losses** (S191-90, S333F and S335F, wholly below the lead
+   test's bar), read once (`results-household-decomp.txt`; `reports/2026-11-18-household-decomp-read.md`).
+   - S333F RESTS ON THE BANDS; S191-90 and S335F EITHER.
+   - Leaving the bands single recovers `99.0%`, `67.3%` and `74.6%` of the paths lost. Once the bands are single,
+     leaving the cap single as well adds nothing.
+   - On the paths it recovers, the bands single spend no less and pay far less tax.
+   - The reviewer at the read: PASS, four MINORs in the write-up, each answered
+     (`reviews/2026-11-18-read-household-decomp.md`).
+   - **READ: the remedy** its rule calls for (`HOUSEHOLD-REMEDY.md` and its amendment 1; the rule
+     `HOUSEHOLD-REMEDY-READ.md`; `results-household-remedy.txt`; `reports/2026-11-19-household-remedy-read.md`). Three
+     forms on the lead test's 28 units, each against today's couples' default (K2):
+     - HSPB, the bands above two personal allowances priced at `k = 1/s` of the pensions' split: DOES NOT MEND
+       (S191-90 `-7.000`);
+     - **HSP, the bands and the tax-free cash cap priced at `k`: MENDS.** S191-90 `-0.625` (`-0.873` to `-0.291`), S333F
+       `+0.125`, S335F `-0.150`; pooled `+1.163` (`+1.110` to `+1.213`) over the 28, no unit wholly below the bar;
+     - HSPS, HSP with the year's need funded at the pensions' share: DOES NOT MEND (S191-90 `-0.650`, `-0.898` to
+       `-0.314`).
+     - HSP's pass on S191-90 is by `0.38` of a path, and S191-90 still loses beyond noise under it
+       (`results-household-remedy-beside.txt`).
+     - By the rule, step 8's registration is drafted on HSP (item 3). The reviewer at the read: PASS, three MINORs, each
+       answered (`reviews/2026-11-19-read-household-remedy.md`). Among them, **M1 by unit:** on S023-db and S167 HSP
+       keeps more paths but spends less on the paths both keep beyond noise, S023-db with the largest fall in the capped
+       pot (`-13.055%`); the rule reads spending pooled, so the outcome stands, and step 8 names such units.
+2. Design B, the axis (`AXIS.md`), is not built unless the decomposition points to it.
+3. **DRAFTED ON HSP, ITS DESIGN REVIEW FAILED: TWO RULINGS ARE YOURS** (`STEP8.md`, `registrations/household-hsp.md`;
+   `reviews/2026-11-19-household-hsp-design.md`: FAIL, three BLOCKING and seven MINOR).
+   - The panel is landed: eight held-out couples, 40 units (`results-household-hsp-panel.txt`). The audit, read, sizing
+     and batch are built with their planted checks.
+   - **The pilot and the sizing are done** (`results-household-hsp-sizing.txt`; EXPLORATORY, seed 7002). Every unit runs at
+     `16,000` paths: `44.3` core-hours, about `11.3` hours on four cores. The pilot's first run was refused by its gate on
+     the gate's own fault (design A raises the no-earnings pension limit to a later retiree's pension saving), fixed, and run
+     again (`STEP8.md`).
+   - **The pilot points the same way as BLOCKING 1:** were its changes the truth, S273-sppart (`-0.50` points on 1,000
+     paths) would be flagged at `16,000` with chance `0.901`.
+   - **Answered:** the pooled interval by path (BLOCKING 2) and every MINOR. The pattern search
+     (`results-pooled-bypath.txt`) re-read 28 pooled parts of 14 earlier reads by path: no verdict changes.
+   - **BLOCKING 1, yours: HSP fails step 8's own rule on the read that took it.** By D34's whole-path harm rule, S191-90
+     is flagged (25 paths against a threshold of 23). The choices:
+     - (a) step 8 stays held, and an EXPLORATORY variant that also prices the personal allowance at `k` is read on the 28
+       units by step 8's rule first;
+     - (b) S191-90 runs on 7024 as a named replication unit whose flag fails the run;
+     - (c) a PASS is read as advice, not a change of default.
+     - **The agent recommends (a).**
+   - **BLOCKING 3, yours: the tie-break and D80.** HSP's table carries the candidate's tie-break above the cap, which D80
+     keeps out of a registered couples' arm. The choices: lift D80 for the household table, or run HSP without it.
+     - **The agent recommends lifting it:** the household's move is the single chooser, where the tie-break has been the
+       default since D95, and every read of the household plan ran with it.
+   - **Also yours before launch:** the held-out seed (7024 proposed) reserved in `check-prediction.mjs`, a protected file,
+     so your unlock. If the ISA defect is fixed first, the panel is landed again (about an hour). Step 8, the registered test, is held until those losses are fixed and re-checked on the couples that lose. Then its
+   registration is drafted, put to the design reviewer and brought to the maintainer before launch.
+4. **READ, FOR THE MAINTAINER: what keys D128's guard** (`results-guard.txt`; `reports/2026-11-18-guard-key-read.md`;
+   its reviewer FAIL on the write-up, answered in one fix, then PASS).
+   - With S147-db's DB pension, today's default still beats the app's rules on all four gap couples that did well
+     without one: pooled `+7.150` (`+6.867` to `+7.402`). By the rule, NO HARM, so **the guard is keyed on the wrong
+     thing**, and re-keying it is yours (a change of default). Nothing in the app changes until you rule.
+   - With rent instead it is HARM, pooled `-0.500`, resting on S149@gap12 (`-6.850`).
+     - The rent ran from now only on S149's two couples (pooled `-3.200`): the engine counts an income from its owner's
+       retirement at the earliest.
+     - On S337F's two it ran from the first person's retirement at 52 (pooled `+2.200`; `results-guard-beside.txt`).
+   - **No key fits what has been seen.** Among the gap couples, the default has lost to the app's rules on four: S147-db
+     at gap8 and gap12 and S061-dbpart at gap12 (each with a DB pension) and S149@gap12 with rent. It gained or held
+     level on the other eight with an income.
+   - **The choice:**
+     - keep the guard as built: it errs towards the app's rules, and also keeps couples off where the default gains;
+     - re-key it now: on what is not shown;
+     - find the cause first: a decomposition of the default's loss on the harmed couples, holding arm A's own pick fixed
+       or naming it.
+   - **The agent recommends** keeping the guard as built and finding the cause before re-keying.
+   - Item 5 (the card's words) waits on this ruling.
+   - **The test, as ruled:** the four couples 8 or 12 years apart without a DB pension (S149 and S337F at gap8 and
+     gap12), which step 5 read above the app's rules, given first S147-db's `£15,000` a year DB pension from the state
+     pension age, then `£15,000` a year of rent instead; today's couples' default (K2) against the app's rules (APP).
+     - If the DB pension brings the harm back, the guard stays. If it does not, the guard is keyed on the wrong thing,
+       and re-keying it comes back to the maintainer as a change of default.
+     - The rent case sizes the guard's reach past a DB pension (the reviewer's MINOR 1, below). Box: half a day.
+5. Once item 4 has read, if the guard stays, the couples card says what was found: "In our tests the solver did worse
+   than the app's own rules for some couples like this, so for now your plan follows the app's own rules in the classic
+   planner." It goes to `main` with the next batch on B1's gate.
+6. The first load's ceiling is left as it is. A later batch past it comes to the maintainer as before (D94 (2)).
+7. The speed work on LOOKHOLD stays held.
+8. **At the end: B7's two factorials**, the windfall split's and the savings split's (`WINDFALL-SPLIT.md`,
+   `SAVINGS-SPLIT.md`), each arm saying which menu it takes (D73's reviewer, MINOR 3). A gain goes to the maintainer as a
+   proposal; a harm goes to them at once.
+   - **READ, FOR THE MAINTAINER: the windfall factorial** (`results-windfall.txt`; `reports/2026-11-18-windfall-read.md`):
+     A GAIN AND A HARM, both small and in spending alone.
+     - Survival: no effect beyond noise, on the panel (`+0.012` points) or on any household after Holm.
+     - The harm: S026 spends `0.306%` less over its lifetime. The gains: five households spend more, by under a twentieth
+       of a percent each.
+     - The reviewer at the read: FAIL, four BLOCKING and three MINORs, answered in one fix (d32f4ed1); then PASS, two
+       MINORs, each answered (`reviews/2026-11-18-read-windfall-2.md`).
+   - **AN ENGINE DEFECT, FOR THE MAINTAINER (found by that reviewer):** in a year with a dated deposit or a staged drip
+     into an ISA, the deposit is not counted against the year's ISA subscription. The same year's cash ISA shelter,
+     surplus sweep and re-wraps read that subscription, so they can put more than the allowance into the ISA. It is in
+     the engine (on `main`), the exact model and the forward run.
+     - It can favour the windfall split's ISA routes, so the five gains are not shown to be the split's own.
+     - **The agent proposes:** fix it with a test of its class across the three, sized on the library, to `main` with the
+       next batch on B1's gate; then the windfall factorial run again on the fixed engine and on the whole menu, where
+       the split's copies are skipped exactly outside the deposit year (or on anchors with the skip's part measured
+       beside it: the reviewer's second round, MINOR 2). The fix moves the solver's code id and may move pinned figures
+       in protected tests, so it needs the maintainer's "unlock enforcement".
+   - **READ, FOR THE MAINTAINER: the savings factorial** (`results-save.txt`; `reports/2026-11-19-save-read.md`): A GAIN
+     AND A HARM.
+     - Survival up on the panel (`+0.398` points) and on 14 of 27 households beyond noise, down on none.
+     - Spending up on the panel (`+0.4233%`) and on 23; down on S308F (`-0.250%`), the harm, at once by B7.
+     - **The harm, with what is beside it** (`results-save-beside.txt`, section 7): S308F loses `£4,904` of `£1,963,500` a
+       path. Its survival is level (`-0.050`), but its failures move from the bridge to late life (CANDD 50 in the bridge
+       and 38 after it, CANDS 3 and 87). Three-fifths of the loss (`-£2,923`) is in the years both arms pay, where its
+       policy sets higher levels in the bridge and lower after. Two-fifths (`-£1,981`) is deeper ruin from the first
+       failure year on (unmet spending `+£2,567` a path). Its estate's mean is `+£424,840` a path, the upper tail's: on the
+       median path it is `-£25,840`. It retires with `£115,652` more in its ISA and `£116,968` less in its pension on
+       average. Why that policy, from that state, sets lower levels after the bridge and fails later but deeper is not
+       shown.
+     - The split put the saving pension first on 12 households, and ISA first on five of the younger cohort (S308F among
+       them).
+     - **In retirement the two arms run one policy:** on anchors a copy reaches a year without a choice only where such a
+       year comes before one with a choice, and here the years with a choice run from each household's first year. Probed on
+       all 27 (`results-save-skip.txt`): outside the working years the tables, the bridge reader's and its reference are the
+       same to the bit in both arms, and the control (the windfall split on S026) differs. So the gains are the split's
+       working-year choices, not the skip's. The write-up's first claim otherwise, from
+       `B7-FACTORIALS.md` item 2 (measured on the windfall's copies), is struck (the reviewer at the read, finding 1).
+     - **The ISA defect's part is bounded by the read:** S310F is not among the households the verdict names, and without
+       it the panel stays beyond noise (survival `+0.399`, spending `+0.4341%`; section 6).
+     - **The agent recommends** a v2 registered test of the savings split on the whole menu (within the working years, on
+       anchors, CANDS's shortlists are drawn from a menu three times as long as CANDD's, unmeasured), after the ISA
+       defect is fixed.
+     - The reviewer at the read: FAIL, one BLOCKING and two MINORs (`reviews/2026-11-19-read-save.md`), answered in one fix;
+       the reviewer again: PASS, one MINOR (S308F's bands were the levels set, years after ruin included, and the
+       failures' move was not said), answered (`reviews/2026-11-19-read-save-2.md`).
+   - **The savings factorial ran as D129 ordered, the defect said beside its read: it reaches one household, in both arms
+     alike.** Checked on plan inputs alone (`save-isa-deposits.mjs`, `results-save-isa-deposits.txt`):
+     - under arm A's own pick, none of its 27 households has a dated deposit or drip into an ISA in a working year with
+       a save choice (S290 would only under a policy it does not take on this code);
+     - one, S310F, puts its windfall into its ISA in a retired year (plan year 18) under its own pick, in both arms. The
+       defect then lets that year's cash ISA shelter add more, which parts the arms only where their moves that year
+       leave different cash, by at most a year's shelter. Unmeasured;
+     - the check's first form missed S310F and said "not reached" (the windfall reviewer's second round, MINOR 1).
+
 **RULED (D128, 18 Nov, morning: "Go with your recommendations. Unlock enforcement"): the four recommendations of the
 report on steps 4 to 7, as below.**
 1. Step 4's write-up is accepted as corrected, with no third round of its reviewer (D81 (F)).
 2. **The guard: a couple more than three years apart with a DB pension keeps the app's rules** until a test of such couples
    reads. It is built and committed (cf9f8790), with the reviewer on the change of default before it: PASS, four MINORs,
-   each answered (`reviews/2026-11-18-default-gap-guard.md`). It goes to `main` with the eighth batch, on B1's gate.
+   each answered (`reviews/2026-11-18-default-gap-guard.md`). It is on `main` with the eighth batch (pull request 19,
+   91e8d009, 18 Nov 13:52 UTC), merged on B1's gate.
    - On step 5's 28 couples it keeps exactly the four 8 or 12 years apart with a DB pension on the app's rules. The four
      as far apart without one stay with the solver, and every other unit is as before.
    - The couples card says why ("more than three years apart in age, and your plan has other taxable income, such as a
@@ -26,7 +213,8 @@ report on steps 4 to 7, as below.**
    - The pattern search ran each stored read's own rule before and after the fix: 560 decisions over seven reads,
      none differing (`results-stats-newcombe-rules.txt`). The reads stand as printed.
    - Steps 4 and 5, and every registered read but 7u-F's, use the exact interval, which the fix does not touch.
-4. The speed work on LOOKHOLD stays held. Step 8 waits for the maintainer's word. The decomposition on S191-90 is not run.
+4. The speed work on LOOKHOLD stays held. Step 8 waits for the maintainer's word. The decomposition on S191-90 is not run
+   (D129 (1) now runs it).
 
 **FOR THE MAINTAINER (from the guard's review, 18 Nov):**
 - **Its reach (the reviewer's MINOR 1).** The app has no kind of income for a DB pension: one is entered as "Other

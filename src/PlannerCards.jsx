@@ -33,7 +33,8 @@ export function Couples({ isPhone, onClassic, onOnePerson, why = 'off', share = 
   <section data-planner-couple={why} className="p-5 bg-surface border border-slate-200/90 rounded-xl space-y-3 max-w-3xl">
     {gapIncome ? <>
       <h2 className="text-[15px] font-semibold text-slate-900">The new planner does not work out a plan like yours yet</h2>
-      <p className="text-sm text-slate-600">You two are more than three years apart in age, and your plan has other taxable income, such as a DB (final salary) pension or an annuity. For couples like that, the solver&apos;s plans have not yet been shown to do better than the app&apos;s own rules, so for now your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+      {/* D129 (5), D130 (5): what the tests found (plant 'gapwords': the words before it, research/ui-harnesses/solver-planner-ui.cjs check 19) */}
+      <p className="text-sm text-slate-600">You two are more than three years apart in age, and your plan has other taxable income, such as a DB (final salary) pension or an annuity. {PLANNER_PLANT.has('gapwords') ? <>For couples like that, the solver&apos;s plans have not yet been shown to do better than the app&apos;s own rules</> : <>In our tests the solver did worse than the app&apos;s own rules for some couples like this</>}, so for now your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
     </> : ages ? <>
       <h2 className="text-[15px] font-semibold text-slate-900">The new planner cannot work out a plan this long for the two of you yet</h2>
       <p className="text-sm text-slate-600">Your plan runs until your partner would be past 120, which the new planner cannot plan for yet. Ending the plan at an earlier age brings it within reach; until then your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>

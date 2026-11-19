@@ -1,0 +1,27 @@
+node research/solver/windfall-beside.mjs (18 Nov, after the read; EXPLORATORY)
+BESIDE THE WINDFALL FACTORIAL'S READ (EXPLORATORY, after the read, deciding nothing; the reviewer's findings 2, 3, 5 and 6): 34 units from /home/user/monte-carlo-retirement-planner/research/solver/results/windfall-7002, seed 7002, 4000 paths; code 603eeb595679, audit 12d96f140e9a; the verdict A GAIN AND A HARM
+
+1. Each household, CANDW against CANDD (one-sided p, then Holm over the households):
+  S026   survival: harm p 9.94e-1 (Holm 1.00e+0), gain p 2.87e-2 (Holm 4.88e-1); spending: loss p 5.00e-5 (Holm 8.50e-4), gain p 1.00e+0 (Holm 1.00e+0)
+  S030   survival: harm p 5.00e-1 (Holm 1.00e+0), gain p 7.73e-1 (Holm 1.00e+0); spending: loss p 8.29e-2 (Holm 1.00e+0), gain p 9.17e-1 (Holm 1.00e+0)
+  S050   survival: harm p 7.50e-1 (Holm 1.00e+0), gain p 7.50e-1 (Holm 1.00e+0); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 8.50e-4)
+  S062   survival: harm p 8.75e-1 (Holm 1.00e+0), gain p 5.00e-1 (Holm 1.00e+0); spending: loss p 1.31e-1 (Holm 1.00e+0), gain p 8.69e-1 (Holm 1.00e+0)
+  S074   survival: harm p 7.46e-1 (Holm 1.00e+0), gain p 5.00e-1 (Holm 1.00e+0); spending: loss p 7.97e-2 (Holm 1.00e+0), gain p 9.20e-1 (Holm 1.00e+0)
+  S090   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-1 (Holm 1.00e+0); spending: loss p 9.68e-1 (Holm 1.00e+0), gain p 3.24e-2 (Holm 3.57e-1)
+  S290   survival: harm p 8.12e-1 (Holm 1.00e+0), gain p 5.00e-1 (Holm 1.00e+0); spending: loss p 8.94e-1 (Holm 1.00e+0), gain p 1.06e-1 (Holm 8.50e-1)
+  S306F  survival: harm p 7.73e-1 (Holm 1.00e+0), gain p 5.00e-1 (Holm 1.00e+0); spending: loss p 7.88e-1 (Holm 1.00e+0), gain p 2.12e-1 (Holm 1.00e+0)
+  S310F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 1.00e+0 (Holm 1.00e+0); spending: loss p 7.58e-1 (Holm 1.00e+0), gain p 2.43e-1 (Holm 1.00e+0)
+  S314F  survival: harm p 8.75e-1 (Holm 1.00e+0), gain p 5.00e-1 (Holm 1.00e+0); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 1.50e-4 (Holm 2.25e-3)
+  S322F  survival: harm p 6.88e-1 (Holm 1.00e+0), gain p 6.88e-1 (Holm 1.00e+0); spending: loss p 8.66e-1 (Holm 1.00e+0), gain p 1.34e-1 (Holm 9.41e-1)
+  S326F  survival: harm p 6.23e-1 (Holm 1.00e+0), gain p 6.23e-1 (Holm 1.00e+0); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 8.50e-4)
+  S334F  survival: harm p 1.87e-1 (Holm 1.00e+0), gain p 9.69e-1 (Holm 1.00e+0); spending: loss p 9.06e-1 (Holm 1.00e+0), gain p 9.45e-2 (Holm 8.50e-1)
+  S338F  survival: harm p 8.91e-1 (Holm 1.00e+0), gain p 3.44e-1 (Holm 1.00e+0); spending: loss p 9.76e-1 (Holm 1.00e+0), gain p 2.43e-2 (Holm 2.92e-1)
+  S346F  survival: harm p 5.00e-1 (Holm 1.00e+0), gain p 8.75e-1 (Holm 1.00e+0); spending: loss p 9.99e-1 (Holm 1.00e+0), gain p 8.00e-4 (Holm 1.12e-2)
+  S350F  survival: harm p 1.25e-1 (Holm 1.00e+0), gain p 1.00e+0 (Holm 1.00e+0); spending: loss p 9.28e-1 (Holm 1.00e+0), gain p 7.23e-2 (Holm 7.23e-1)
+  S358F  survival: harm p 6.88e-1 (Holm 1.00e+0), gain p 6.88e-1 (Holm 1.00e+0); spending: loss p 9.97e-1 (Holm 1.00e+0), gain p 2.85e-3 (Holm 3.70e-2)
+
+2. The panel's spending delivered, CANDW against CANDD:
+  each household counted once: -0.0103% (-0.0129 to -0.0076); without S026: +0.0083% (+0.0060 to +0.0105)
+  pooled in pounds: +0.0020% (-0.0000 to +0.0039)
+
+3. The run's cost: the solves CANDD 0.36 and CANDW 0.33 core-hours, the engine 3.88; the units whole (the checks and runPolicy beside included) 5.48 core-hours at 4000 paths; at 8000 paths the engine twice, about 9.36 (the units ran arm by arm, CANDD's first, so the two arms' solve times were taken under different loads)

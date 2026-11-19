@@ -1,0 +1,51 @@
+STEP 8, THE SIZING from its pilot (results/household-hsp-pilot; 15 units of 3 couples, seed 7002, 1000 paths a unit, code 71fb4271c681; EXPLORATORY)
+  S025-own      HSPA against K2: +0.20 points (APP 86.8%); discordant 2 of 1000 (0.20%, its upper bound 0.72%): D34's size 16000
+  S025-45       HSPA against K2: +0.10 points (APP 87.8%); discordant 1 of 1000 (0.10%, its upper bound 0.56%): D34's size 16000
+  S025-90       HSPA against K2: +1.70 points (APP 86.9%); discordant 17 of 1000 (1.70%, its upper bound 2.71%): D34's size 16000
+  S025-db       HSPA against K2: +1.20 points (APP 86.5%); discordant 12 of 1000 (1.20%, its upper bound 2.09%): D34's size 16000
+  S025-gap8     HSPA against K2: +2.30 points (APP 86.3%); discordant 23 of 1000 (2.30%, its upper bound 3.43%): D34's size 16000
+  S273-own      HSPA against K2: +0.00 points (APP 86.2%); discordant 4 of 1000 (0.40%, its upper bound 1.02%): D34's size 16000
+  S273-45       HSPA against K2: -0.30 points (APP 86.1%); discordant 3 of 1000 (0.30%, its upper bound 0.87%): D34's size 16000
+  S273-90       HSPA against K2: +0.30 points (APP 85.7%); discordant 7 of 1000 (0.70%, its upper bound 1.44%): D34's size 16000
+  S273-sppart   HSPA against K2: -0.10 points (APP 85.9%); discordant 5 of 1000 (0.50%, its upper bound 1.16%): D34's size 16000
+  S273-gap8     HSPA against K2: -0.10 points (APP 86.3%); discordant 3 of 1000 (0.30%, its upper bound 0.87%): D34's size 16000
+  S351F-own     HSPA against K2: -0.20 points (APP 86.2%); discordant 12 of 1000 (1.20%, its upper bound 2.09%): D34's size 16000
+  S351F-45      HSPA against K2: -0.10 points (APP 85.6%); discordant 11 of 1000 (1.10%, its upper bound 1.96%): D34's size 16000
+  S351F-90      HSPA against K2: +0.70 points (APP 86.9%); discordant 15 of 1000 (1.50%, its upper bound 2.46%): D34's size 16000
+  S351F-dbpart  HSPA against K2: +0.60 points (APP 87.0%); discordant 12 of 1000 (1.20%, its upper bound 2.09%): D34's size 16000
+  S351F-gap8    HSPA against K2: +0.20 points (APP 85.7%); discordant 6 of 1000 (0.60%, its upper bound 1.30%): D34's size 16000
+what the pilot shows, at the registered 16000 paths (each unit's pilot change were it the truth; EXPLORATORY, deciding nothing):
+  S025-own      +0.20 points; D34's threshold at 16000 0.362; the chance it is flagged 0.000
+  S025-45       +0.10 points; D34's threshold at 16000 0.350; the chance it is flagged 0.000
+  S025-90       +1.70 points; D34's threshold at 16000 0.463; the chance it is flagged 0.000
+  S025-db       +1.20 points; D34's threshold at 16000 0.438; the chance it is flagged 0.000
+  S025-gap8     +2.30 points; D34's threshold at 16000 0.494; the chance it is flagged 0.000
+  S273-own      +0.00 points; D34's threshold at 16000 0.381; the chance it is flagged 0.000
+  S273-45       -0.30 points; D34's threshold at 16000 0.375; the chance it is flagged 0.145
+  S273-90       +0.30 points; D34's threshold at 16000 0.406; the chance it is flagged 0.000
+  S273-sppart   -0.10 points; D34's threshold at 16000 0.388; the chance it is flagged 0.000
+  S273-gap8     -0.10 points; D34's threshold at 16000 0.375; the chance it is flagged 0.000
+  S351F-own     -0.20 points; D34's threshold at 16000 0.438; the chance it is flagged 0.018
+  S351F-45      -0.10 points; D34's threshold at 16000 0.431; the chance it is flagged 0.001
+  S351F-90      +0.70 points; D34's threshold at 16000 0.456; the chance it is flagged 0.000
+  S351F-dbpart  +0.60 points; D34's threshold at 16000 0.438; the chance it is flagged 0.000
+  S351F-gap8    +0.20 points; D34's threshold at 16000 0.400; the chance it is flagged 0.000
+  by shape, the mean change over the pilot's couples: 45 -0.10, 90 +0.90, own +0.00, db +1.20, gap8 +0.80, sppart -0.10, dbpart +0.60; the panel's 45 and gap8 units are shapes HSPA has not run before (the pilot holds 6 of the panel's 16)
+the run: every unit at 16000 paths (the largest of the pilot's sizes, at most D61's 19000); at 16000 a true 1-point loss reads as harm at least 90% of the time up to a discordance (its upper bound) of 10.50%
+the budget (D21: measured from the pilot's units on this machine), over 40 units and the longest once more for a relaunch: 58.2 core-hours; on 4 cores longest first 14.7 hours; the longest unit 3.81 hours
+  pilot S025-own      the solves K2 93 s and HSPA 40 s; a path APP 0.6 ms, K2 91.4 ms, HSPA 38.4 ms; beside 48 s; the load at its chunks 4.1
+  pilot S025-45       the solves K2 93 s and HSPA 43 s; a path APP 0.3 ms, K2 91.9 ms, HSPA 35.9 ms; beside 47 s; the load at its chunks 4.1
+  pilot S025-90       the solves K2 89 s and HSPA 36 s; a path APP 0.3 ms, K2 77.9 ms, HSPA 34.5 ms; beside 38 s; the load at its chunks 4.1
+  pilot S025-db       the solves K2 83 s and HSPA 35 s; a path APP 0.6 ms, K2 79.9 ms, HSPA 30.3 ms; beside 39 s; the load at its chunks 4.0
+  pilot S025-gap8     the solves K2 80 s and HSPA 41 s; a path APP 0.4 ms, K2 82.7 ms, HSPA 37.1 ms; beside 43 s; the load at its chunks 4.5
+  pilot S273-own      the solves K2 119 s and HSPA 57 s; a path APP 0.8 ms, K2 180.7 ms, HSPA 60.7 ms; beside 94 s; the load at its chunks 4.2
+  pilot S273-45       the solves K2 117 s and HSPA 60 s; a path APP 1.0 ms, K2 182.8 ms, HSPA 63.5 ms; beside 98 s; the load at its chunks 4.2
+  pilot S273-90       the solves K2 120 s and HSPA 58 s; a path APP 0.6 ms, K2 166.6 ms, HSPA 57.6 ms; beside 87 s; the load at its chunks 4.2
+  pilot S273-sppart   the solves K2 113 s and HSPA 60 s; a path APP 0.7 ms, K2 193.7 ms, HSPA 63.2 ms; beside 91 s; the load at its chunks 4.1
+  pilot S273-gap8     the solves K2 124 s and HSPA 66 s; a path APP 0.9 ms, K2 178.1 ms, HSPA 62.0 ms; beside 87 s; the load at its chunks 4.4
+  pilot S351F-own     the solves K2 192 s and HSPA 96 s; a path APP 0.7 ms, K2 243.3 ms, HSPA 65.7 ms; beside 123 s; the load at its chunks 4.3
+  pilot S351F-45      the solves K2 187 s and HSPA 95 s; a path APP 0.7 ms, K2 246.0 ms, HSPA 66.6 ms; beside 128 s; the load at its chunks 4.4
+  pilot S351F-90      the solves K2 161 s and HSPA 84 s; a path APP 1.3 ms, K2 210.5 ms, HSPA 63.9 ms; beside 111 s; the load at its chunks 4.3
+  pilot S351F-dbpart  the solves K2 155 s and HSPA 84 s; a path APP 0.7 ms, K2 237.0 ms, HSPA 72.6 ms; beside 131 s; the load at its chunks 3.1
+  pilot S351F-gap8    the solves K2 163 s and HSPA 86 s; a path APP 0.8 ms, K2 629.1 ms, HSPA 189.9 ms; beside 177 s; the load at its chunks 4.2
+written: household-hsp-paths.json (40 units at 16000)

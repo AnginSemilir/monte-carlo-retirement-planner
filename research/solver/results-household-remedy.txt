@@ -1,0 +1,57 @@
+THE REMEDY'S READ (EXPLORATORY; HOUSEHOLD-REMEDY-READ.md, D129 (3)): 28 units, seed 7002, 4000 paths, 45 points; code 603eeb595679, audit e0b1524d8f6b
+THE GATE: fair; K2 and HS the lead test's K2 and HS1 arrays (each checked on its first 200 paths run again); each remedy plan part 1's in its form
+
+THE RULE, each arm against K2, paired by path (stats.mjs survivalChange):
+  HSPB:
+    1. the three: S333F -0.300 (-0.607 to +0.049) (16 saved, 28 lost); S335F -0.375 (-0.665 to -0.031) (14 saved, 29 lost); S191-90 -7.000 (-7.119 to -6.716) (3 saved, 283 lost); none wholly below -0.3: FAILS
+    2. pooled survival +0.904 (+0.832 to +0.972) over 28 units, its lower end above 0: HOLDS; units wholly below -0.3: S191-90 -7.000 (-7.119 to -6.716): FAILS; pooled spending on the paths both keep +0.7305 (+0.7183 to +0.7426)% of K2's, not lower by more than 0.05%: HOLDS
+    OUTCOME: DOES NOT MEND
+  HSP:
+    1. the three: S333F +0.125 (-0.169 to +0.395) (18 saved, 13 lost); S335F -0.150 (-0.431 to +0.158) (14 saved, 20 lost); S191-90 -0.625 (-0.873 to -0.291) (10 saved, 35 lost); none wholly below -0.3: HOLDS
+    2. pooled survival +1.163 (+1.110 to +1.213) over 28 units, its lower end above 0: HOLDS; units wholly below -0.3: none: HOLDS; pooled spending on the paths both keep +0.6723 (+0.6602 to +0.6844)% of K2's, not lower by more than 0.05%: HOLDS
+    OUTCOME: MENDS
+  HSPS:
+    1. the three: S333F +0.125 (-0.169 to +0.395) (18 saved, 13 lost); S335F -0.175 (-0.457 to +0.138) (14 saved, 21 lost); S191-90 -0.650 (-0.898 to -0.314) (10 saved, 36 lost); none wholly below -0.3: FAILS
+    2. pooled survival +1.172 (+1.119 to +1.222) over 28 units, its lower end above 0: HOLDS; units wholly below -0.3: S191-90 -0.650 (-0.898 to -0.314): FAILS; pooled spending on the paths both keep +0.6731 (+0.6610 to +0.6852)% of K2's, not lower by more than 0.05%: HOLDS
+    OUTCOME: DOES NOT MEND
+THE ARM TAKEN: HSP: step 8's registration is drafted on it, put to the design reviewer and brought to the maintainer before launch (D129 (3))
+
+BESIDE THE RULE, deciding nothing:
+  HSPB less HS: pooled survival +0.612 (+0.582 to +0.637); units wholly below -0.3: none; spending on the paths both keep -0.0636 (-0.0670 to -0.0602)%
+  HSPB: the capped pot against K2 -1.769% (-£44,697 a path), against HS +0.668% (£16,467 a path); lifetime tax, mean a unit, K2 £272,343, HS £252,041, HSPB £238,834; pooled survival against K2 without its largest unit (S147-db) +0.591 (+0.520 to +0.660)
+  HSP less HS: pooled survival +0.871 (+0.843 to +0.895); units wholly below -0.3: none; spending on the paths both keep -0.1136 (-0.1175 to -0.1097)%
+  HSP: the capped pot against K2 -1.740% (-£43,975 a path), against HS +0.697% (£17,190 a path); lifetime tax, mean a unit, K2 £272,343, HS £252,041, HSP £237,335; pooled survival against K2 without its largest unit (S147-db) +0.860 (+0.806 to +0.910)
+  HSPS less HS: pooled survival +0.880 (+0.849 to +0.907); units wholly below -0.3: none; spending on the paths both keep -0.1127 (-0.1166 to -0.1088)%
+  HSPS: the capped pot against K2 -1.740% (-£43,967 a path), against HS +0.698% (£17,198 a path); lifetime tax, mean a unit, K2 £272,343, HS £252,041, HSPS £233,978; pooled survival against K2 without its largest unit (S147-db) +0.871 (+0.818 to +0.921)
+  by unit (k; survival K2 / HS / HSPB / HSP / HSPS; HSPB, HSP and HSPS less K2; each remedy table's forecast against its even split's survival):
+    S327F        k 1.667; 95.00% / 95.13% / 95.13% / 95.13% / 95.08%; +0.125 (-0.194 to +0.424); +0.125 (-0.194 to +0.424); +0.075 (-0.234 to +0.371); 94.98% against 95.13%, 94.97% against 95.13%
+    S329F        k 1.667; 94.35% / 94.35% / 94.35% / 94.35% / 94.38%; +0.000 (-0.281 to +0.281); +0.000 (-0.281 to +0.281); +0.025 (-0.253 to +0.298); 94.20% against 94.35%, 94.20% against 94.35%
+    S331F        k 1.667; 93.30% / 93.85% / 93.85% / 93.92% / 93.90%; +0.550 (+0.204 to +0.822); +0.625 (+0.281 to +0.886); +0.600 (+0.250 to +0.873); 93.84% against 93.85%, 93.83% against 93.92%
+    S333F        k 1.667; 92.73% / 91.70% / 92.42% / 92.85% / 92.85%; -0.300 (-0.607 to +0.049); +0.125 (-0.169 to +0.395); +0.125 (-0.169 to +0.395); 92.65% against 92.42%, 92.61% against 92.85%
+    S335F        k 1.667; 94.45% / 92.92% / 94.08% / 94.30% / 94.27%; -0.375 (-0.665 to -0.031); -0.150 (-0.431 to +0.158); -0.175 (-0.457 to +0.138); 93.90% against 94.08%, 93.85% against 94.30%
+    S337F        k 1.667; 95.53% / 95.93% / 95.93% / 95.93% / 95.85%; +0.400 (+0.031 to +0.720); +0.400 (+0.031 to +0.720); +0.325 (-0.049 to +0.660); 95.40% against 95.93%, 95.40% against 95.93%
+    S341F        k 1.667; 96.10% / 96.20% / 96.20% / 96.20% / 96.25%; +0.100 (-0.160 to +0.335); +0.100 (-0.160 to +0.335); +0.150 (-0.113 to +0.374); 96.07% against 96.20%, 96.07% against 96.20%
+    S343F        k 1.667; 93.53% / 94.25% / 94.38% / 94.47% / 94.45%; +0.850 (+0.474 to +1.138); +0.950 (+0.587 to +1.214); +0.925 (+0.554 to +1.202); 94.43% against 94.38%, 94.41% against 94.47%
+    S149         k 1.667; 97.63% / 97.95% / 97.95% / 97.95% / 97.95%; +0.325 (+0.061 to +0.508); +0.325 (+0.061 to +0.508); +0.325 (+0.061 to +0.508); 97.81% against 97.95%, 97.81% against 97.95%
+    S167         k 1.667; 95.38% / 95.85% / 95.88% / 95.88% / 95.97%; +0.500 (+0.217 to +0.685); +0.500 (+0.229 to +0.665); +0.600 (+0.322 to +0.766); 95.85% against 95.88%, 95.82% against 95.88%
+    S205         k 1.667; 97.52% / 98.67% / 98.67% / 98.67% / 98.72%; +1.150 (+0.867 to +1.295); +1.150 (+0.867 to +1.295); +1.200 (+0.935 to +1.319); 98.77% against 98.67%, 98.77% against 98.67%
+    S223         k 1.667; 95.97% / 96.58% / 96.50% / 96.55% / 96.60%; +0.525 (+0.190 to +0.784); +0.575 (+0.254 to +0.809); +0.625 (+0.300 to +0.859); 97.33% against 96.50%, 97.33% against 96.55%
+    S023-90      k 1.111; 96.67% / 97.35% / 98.00% / 98.05% / 98.02%; +1.325 (+1.039 to +1.470); +1.375 (+1.107 to +1.494); +1.350 (+1.082 to +1.469); 98.65% against 98.00%, 98.64% against 98.05%
+    S061-90      k 1.111; 97.67% / 99.85% / 99.85% / 99.85% / 99.85%; +2.175 (+1.924 to +2.263); +2.175 (+1.924 to +2.263); +2.175 (+1.924 to +2.263); 99.91% against 99.85%, 99.91% against 99.85%
+    S109-90      k 1.111; 98.83% / 99.52% / 99.52% / 99.52% / 99.52%; +0.700 (+0.403 to +0.886); +0.700 (+0.403 to +0.886); +0.700 (+0.403 to +0.886); 99.61% against 99.52%, 99.61% against 99.52%
+    S147-90      k 1.111; 96.33% / 97.82% / 97.82% / 97.82% / 97.88%; +1.500 (+1.108 to +1.781); +1.500 (+1.108 to +1.781); +1.550 (+1.156 to +1.831); 97.31% against 97.82%, 97.31% against 97.82%
+    S191-90      k 1.111; 97.63% / 76.83% / 90.63% / 97.00% / 96.97%; -7.000 (-7.119 to -6.716); -0.625 (-0.873 to -0.291); -0.650 (-0.898 to -0.314); 98.30% against 90.63%, 98.08% against 97.00%
+    S227-90      k 1.111; 95.97% / 95.90% / 96.33% / 96.33% / 96.35%; +0.350 (+0.138 to +0.438); +0.350 (+0.138 to +0.438); +0.375 (+0.160 to +0.463); 96.74% against 96.33%, 96.63% against 96.33%
+    S271-90      k 1.111; 91.97% / 93.77% / 93.70% / 93.58% / 93.67%; +1.725 (+1.349 to +1.979); +1.600 (+1.250 to +1.823); +1.700 (+1.348 to +1.924); 94.90% against 93.70%, 94.82% against 93.58%
+    S377-90      k 1.111; 97.17% / 98.75% / 98.75% / 98.75% / 98.80%; +1.575 (+1.252 to +1.763); +1.575 (+1.252 to +1.763); +1.625 (+1.317 to +1.793); 97.67% against 98.75%, 97.67% against 98.75%
+    S023-db      k 1.667; 95.33% / 98.02% / 98.25% / 98.38% / 98.38%; +2.925 (+2.702 to +2.974); +3.050 (+2.868 to +3.050); +3.050 (+2.868 to +3.050); 98.84% against 98.25%, 98.83% against 98.38%
+    S061-dbpart  k 1.667; 98.15% / 99.75% / 99.75% / 99.75% / 99.72%; +1.600 (+1.421 to +1.600); +1.600 (+1.421 to +1.600); +1.575 (+1.396 to +1.575); 99.81% against 99.75%, 99.81% against 99.75%
+    S109-sppart  k 1.667; 98.25% / 99.33% / 99.33% / 99.33% / 99.33%; +1.075 (+0.860 to +1.124); +1.075 (+0.860 to +1.124); +1.075 (+0.860 to +1.124); 99.44% against 99.33%, 99.44% against 99.33%
+    S147-db      k 1.667; 89.63% / 98.98% / 98.98% / 98.98% / 98.92%; +9.350 (+9.123 to +9.399); +9.350 (+9.123 to +9.399); +9.300 (+9.041 to +9.388); 99.77% against 98.98%, 99.77% against 98.98%
+    S191-dbpart  k 1.667; 96.33% / 97.67% / 97.72% / 97.72% / 97.78%; +1.400 (+1.112 to +1.545); +1.400 (+1.112 to +1.545); +1.450 (+1.181 to +1.569); 97.71% against 97.72%, 97.63% against 97.72%
+    S227-sppart  k 1.667; 96.08% / 96.23% / 96.23% / 96.17% / 96.17%; +0.150 (-0.113 to +0.374); +0.100 (-0.139 to +0.309); +0.100 (-0.139 to +0.309); 96.58% against 96.23%, 96.55% against 96.17%
+    S271-db      k 1.667; 92.05% / 93.65% / 93.75% / 93.80% / 93.80%; +1.700 (+1.313 to +1.968); +1.750 (+1.397 to +1.974); +1.750 (+1.410 to +1.957); 95.31% against 93.75%, 95.29% against 93.80%
+    S377-dbpart  k 1.667; 97.22% / 98.13% / 98.13% / 98.10% / 98.13%; +0.900 (+0.608 to +1.067); +0.875 (+0.570 to +1.061); +0.900 (+0.623 to +1.044); 96.24% against 98.13%, 96.24% against 98.10%
+  S333F: the lost paths by kind (at the minimum pot at the end / a year unfunded): K2 20/271, HS 56/276, HSPB 27/276, HSP 14/272, HSPS 11/275
+  S335F: the lost paths by kind (at the minimum pot at the end / a year unfunded): K2 14/208, HS 66/217, HSPB 24/213, HSP 16/212, HSPS 19/210
+  S191-90: the lost paths by kind (at the minimum pot at the end / a year unfunded): K2 18/77, HS 673/254, HSPB 261/114, HSP 25/95, HSPS 26/95

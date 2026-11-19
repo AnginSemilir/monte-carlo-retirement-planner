@@ -90,8 +90,12 @@ const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light set
   // all four again on 13 Nov (before: S090 e5 9e5c0edb5552470b..., S090 loop e1304c6b49700cce..., S328F e5 c1681777bb8fa67a..., S328F loop 4d651a23e55e6930...): the tie-break above the estate cap joined the candidate (D95; D90 (1)), which moves a
   // single's forward runs above the cap and no table (the same pins and no others moved in the measurement of 12 Nov, results-stage-b-figures.txt;
   // with the candidate's margin set to nought this test passes on the figures before: results-tie-port.txt)
-  'S090 e5': 'b3cba73d08fe2c0b7f6f7769be977ab80bb079cc774d161cce204758d6d601a0',
-  'S090 loop': '4d6ccf1b85056e5f31316a027d212ed686043572646c472e0f868c2e0fde68b3',
+  // S090's two again on 19 Nov (before: S090 e5 b3cba73d08fe2c0b..., S090 loop 4d6ccf1b85056e5f...): the ISA allowance in a deposit year (D130 (1),
+  // 675090f5). S090's own pick, Windfall to ISA, puts £20,000 of its Auto deposit into its ISA in plan year 4, which now counts against that year's
+  // allowance, so the year's own flows into the ISA read only the room it leaves; S328F's pins hold. On the code before the fix (9d2b0a75) this test
+  // passes on the figures before, and on the fix S090's two alone move: results-isa-allowance-pins.txt
+  'S090 e5': 'bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac',
+  'S090 loop': 'e82ad3e7329ba50b78e0a7d9445e5a7203885c163558f4f03d825a662abab144',
   'S328F e5': '79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb',
   'S328F loop': '9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa'
 };

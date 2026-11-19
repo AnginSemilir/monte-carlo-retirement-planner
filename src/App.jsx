@@ -2209,6 +2209,11 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     oneOffDeductionShortfall += Math.max(0, x.amount - take);
   });
 
+  // each owner's ISA subscriptions this tax year, counted from the first money into an ISA: a dated deposit (1), a staged
+  // transfer (1.5) and the regular contributions (2). Every flow the year itself sends into the ISA reads its room here
+  // (2a, the sweep, the re-wraps, N4's CGT move, 7e). Before 19 Nov steps 1 and 1.5 were not counted, so those flows could
+  // put a whole allowance on top of a deposit (the windfall read's reviewer, finding 1; D130 (1); isa-allowance.test.mjs).
+  const isaContribThisYear = { self: 0, part: 0 };
   // 1. one-off deposits (dated: not pro-rated) — includes staged deposits' year-0 immediate tranche + parked surplus
   const deposits = ctx.oneOffContribs.get(year);
   // the windfall split (research, D37): a table's move may put this year's Auto money elsewhere than the plan's routing
@@ -2217,6 +2222,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     if (pots[x.id] === undefined) return;
     pots[x.id] += x.amount;
     if (cgtOn && x.id.startsWith('other_')) giaAddBasis(state, ownerOfId(x.id), x.amount);
+    if (x.id.startsWith('isa_')) isaContribThisYear[ownerOfId(x.id)] += x.amount;   // a subscription (above)
   };
   if (deposits) deposits.forEach(x => { if (!(split && x.auto)) deposit(x); });
   if (split) split.variants[chosen.windfall].forEach(deposit);
@@ -2232,12 +2238,12 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     pots[x.toId] = (pots[x.toId] || 0) + (x.uplift ? move * x.uplift : move);
     if (x.refundPer > 0 && pots[x.refundId] !== undefined) pots[x.refundId] += move * x.refundPer;
     if (cgtOn && x.toId.startsWith('other_')) giaAddBasis(state, ownerOfId(x.toId), move);
+    if (x.toId.startsWith('isa_')) isaContribThisYear[ownerOfId(x.toId)] += move;   // Bed & ISA: a subscription (above)
   });
 
   // 2. regular contributions while the owner works (year 0 pro-rated); a table's move may put the pension and ISA saving
   // elsewhere at the same net cost (the savings split, research, D38 (4); saveSplitRoutes)
   const contribThisYear = { self: 0, part: 0 };
-  const isaContribThisYear = { self: 0, part: 0 };
   const saved = chosen && chosen.save > 0 && ctx.saveSplitAt ? ctx.saveSplitAt(t) : null, sv = saved ? saved.variants[chosen.save] : null;
   ctx.accounts.forEach(a => {
     if (!working[a.owner]) return;

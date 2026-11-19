@@ -1,0 +1,99 @@
+BESIDE THE SAVINGS FACTORIAL'S READ (EXPLORATORY, after the read, deciding nothing; as the windfall read's reviewer asked of that read): 54 units from /home/user/monte-carlo-retirement-planner/research/solver/results/save-7002, seed 7002, 4000 paths; code 603eeb595679, audit c7952db773b5; the verdict A GAIN AND A HARM
+
+1. Each household, CANDS against CANDD (one-sided p, then Holm over the households):
+  S188   survival: harm p 9.81e-1 (Holm 1.00e+0), gain p 7.30e-2 (Holm 5.84e-1); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S204   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 9.00e-5 (Holm 1.71e-3); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S228   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 4.28e-4 (Holm 7.27e-3); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S244   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 5.86e-3 (Holm 7.62e-2); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S260   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 1.25e-7 (Holm 3.00e-6); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S272   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 1.08e-10 (Holm 2.80e-9); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S290   survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 1.55e-4 (Holm 2.80e-3); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S304F  survival: harm p 8.68e-1 (Holm 1.00e+0), gain p 2.29e-1 (Holm 1.00e+0); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S306F  survival: harm p 9.76e-1 (Holm 1.00e+0), gain p 3.92e-2 (Holm 3.92e-1); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S308F  survival: harm p 4.50e-1 (Holm 1.00e+0), gain p 6.48e-1 (Holm 1.00e+0); spending: loss p 5.00e-5 (Holm 1.35e-3), gain p 1.00e+0 (Holm 1.00e+0)
+  S310F  survival: harm p 9.59e-1 (Holm 1.00e+0), gain p 6.42e-2 (Holm 5.78e-1); spending: loss p 9.85e-1 (Holm 1.00e+0), gain p 1.55e-2 (Holm 6.20e-2)
+  S314F  survival: harm p 9.96e-1 (Holm 1.00e+0), gain p 1.33e-2 (Holm 1.46e-1); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S316F  survival: harm p 5.00e-1 (Holm 1.00e+0), gain p 7.09e-1 (Holm 1.00e+0); spending: loss p 9.98e-1 (Holm 1.00e+0), gain p 2.55e-3 (Holm 1.27e-2)
+  S320F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 2.09e-7 (Holm 4.80e-6); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S322F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 5.25e-6 (Holm 1.10e-4); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S326F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 2.31e-14 (Holm 6.24e-13); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S328F  survival: harm p 9.98e-1 (Holm 1.00e+0), gain p 6.77e-3 (Holm 8.12e-2); spending: loss p 7.16e-2 (Holm 1.00e+0), gain p 9.28e-1 (Holm 1.00e+0)
+  S332F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 5.46e-6 (Holm 1.10e-4); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S334F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 3.83e-7 (Holm 8.43e-6); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S338F  survival: harm p 9.41e-1 (Holm 1.00e+0), gain p 1.51e-1 (Holm 1.00e+0); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S340F  survival: harm p 1.05e-1 (Holm 1.00e+0), gain p 9.62e-1 (Holm 1.00e+0); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S344F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 5.59e-8 (Holm 1.40e-6); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S346F  survival: harm p 7.29e-1 (Holm 1.00e+0), gain p 4.19e-1 (Holm 1.00e+0); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S350F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 1.16e-3 (Holm 1.74e-2); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S352F  survival: harm p 8.91e-1 (Holm 1.00e+0), gain p 3.44e-1 (Holm 1.00e+0); spending: loss p 6.12e-1 (Holm 1.00e+0), gain p 3.88e-1 (Holm 1.00e+0)
+  S356F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 1.30e-3 (Holm 1.82e-2); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+  S358F  survival: harm p 1.00e+0 (Holm 1.00e+0), gain p 7.57e-4 (Holm 1.21e-2); spending: loss p 1.00e+0 (Holm 1.00e+0), gain p 5.00e-5 (Holm 1.35e-3)
+
+2. The panel's spending delivered, CANDS against CANDD:
+  each household counted once: +0.4233% (+0.4129 to +0.4336); without S308F (its spending down beyond noise): +0.4491% (+0.4392 to +0.4590)
+  pooled in pounds: +0.3942% (+0.3802 to +0.4082)
+
+3. The run's cost: the solves CANDD 0.58 and CANDS 0.50 core-hours, the engine 5.19; the units whole (the checks and runPolicy beside included) 7.45 core-hours at 4000 paths; at 8000 paths the engine twice, about 12.63 (the units ran arm by arm, CANDD's first, so the two arms' solve times were taken under different loads)
+
+4. Where CANDS put the year's saving over the working years (runPolicy beside the engine; the plan / pension first / ISA first):
+  pension first on 90% or more of the decisions: 12 of 27 households (S188, S204, S228, S244, S260, S272, S290, S320F, S322F, S332F, S334F, S346F)
+  S304F  the plan 0%, pension first 0%, ISA first 100% of 15000
+  S306F  the plan 4%, pension first 3%, ISA first 93% of 15000
+  S308F  the plan 0%, pension first 1%, ISA first 99% of 15000
+  S310F  the plan 9%, pension first 1%, ISA first 90% of 15000
+  S314F  the plan 5%, pension first 74%, ISA first 21% of 15000
+  S316F  the plan 7%, pension first 76%, ISA first 17% of 15000
+  S326F  the plan 1%, pension first 89%, ISA first 10% of 15000
+  S328F  the plan 29%, pension first 66%, ISA first 5% of 15000
+  S338F  the plan 16%, pension first 46%, ISA first 38% of 15000
+  S340F  the plan 1%, pension first 4%, ISA first 95% of 15000
+  S344F  the plan 4%, pension first 82%, ISA first 14% of 15000
+  S350F  the plan 12%, pension first 48%, ISA first 39% of 15000
+  S352F  the plan 24%, pension first 31%, ISA first 46% of 15000
+  S356F  the plan 2%, pension first 71%, ISA first 27% of 15000
+  S358F  the plan 0%, pension first 90%, ISA first 10% of 15000
+
+5. The panel's survival, CANDS against CANDD, by path (each path's change averaged over the households):
+  by path +0.398 (0.331 to 0.466), se 0.0345, on 4000 paths of 27 households
+  the spending delivered by path (each path's change in percent of the household's CANDD mean, averaged over the households): +0.4233% (+0.4082 to +0.4383), se 0.0077; the read's, each household counted once: +0.4233% (se 0.0053)
+
+6. The panel without S310F, the one household the engine's ISA defect reaches (results-save-isa-deposits.txt), by the read's own read():
+  26 households: survival +0.399 points (se 0.0266); spending delivered +0.4341% (se 0.0049); the read's on all 27: +0.398 (se 0.0270) and +0.4233% (se 0.0053)
+  S310F's own: survival gain Holm 5.78e-1, spending gain Holm 6.20e-2 (section 1): not among the households the verdict names
+
+7. S308F, the harm, and beside it the other four households whose saves went ISA first (CANDS less CANDD on each, from the unit files):
+  S308F (retired from year 15; 4000 paths): lifetime spending delivered CANDD £1,963,500 a path, CANDS -£4,904 a path (-0.2498%)
+    the estate: the mean +£424,840 a path (se 95,938), the median -£25,840; higher by more than £1 on 1820 paths, lower on 2137; CANDD's own median estate £5,475,245
+    the levels the policy set, CANDS less CANDD, in points of the year's target a path-year: in every retired year, the years after a path runs out included: years 15-20 +1.948 (24000 path-years); years 21-30 -0.795 (40000 path-years); years 31-60 -0.316 (120000 path-years); before each path's first failure year in either arm: years 15-20 +2.008 (23931 path-years); years 21-30 -0.817 (39500 path-years); years 31-60 -0.377 (117811 path-years)
+    the lifetime spending change split at each path's first failure year in either arm (one fails on 120 paths): -£4,904 a path (se 1,103) = before it -£2,923 (se 871) + from it on -£1,981 (se 661); the largest residual on a path £0.11; the unmet spending +£2,567 a path (se 801)
+    the failures, in the bridge (years 15-20, the reader's) and after it: CANDD 88 (50 and 38), CANDS 90 (3 and 87); of CANDD's in the bridge CANDS keeps 21, fails after it on 26 and in it on 3; the paths CANDS loses that CANDD keeps 32 (after the bridge 32, unmet £269,737 each, +£2,158 a path over the 4000); the paths both lose after the bridge 29, unmet CANDD £138,907 and CANDS £325,826 each, +£1,355 a path over the 4000
+    the first year the two arms' levels part: never on 1492 paths; else most often year 15 on 1141, year 20 on 396, year 16 on 202, year 17 on 110
+    the pots at the top of the first retired year (runPolicy's first 1000 paths), CANDS less CANDD: pension -£116,968, ISA +£115,652, taxable +£0
+  S304F (retired from year 15; 4000 paths): lifetime spending delivered CANDD £1,038,350 a path, CANDS +£18,993 a path (+1.8291%)
+    the estate: the mean -£497,633 a path (se 13,094), the median -£310,174; higher by more than £1 on 512 paths, lower on 3476; CANDD's own median estate £2,646,846
+    the levels the policy set, CANDS less CANDD, in points of the year's target a path-year: in every retired year, the years after a path runs out included: years 15-20 +15.835 (24000 path-years); years 21-30 -0.229 (40000 path-years); years 31-60 -0.200 (120000 path-years); before each path's first failure year in either arm: years 15-20 +15.891 (23963 path-years); years 21-30 -0.229 (39730 path-years); years 31-60 -0.190 (119085 path-years)
+    the lifetime spending change split at each path's first failure year in either arm (one fails on 82 paths): +£18,993 a path (se 284) = before it +£18,763 (se 273) + from it on +£230 (se 92); the largest residual on a path £0.05; the unmet spending -£348 a path (se 115)
+    the failures, in the bridge (years 15-20, the reader's) and after it: CANDD 70 (27 and 43), CANDS 65 (0 and 65); of CANDD's in the bridge CANDS keeps 13, fails after it on 14 and in it on 0; the paths CANDS loses that CANDD keeps 12 (after the bridge 12, unmet £0 each, +£0 a path over the 4000); the paths both lose after the bridge 39, unmet CANDD £8,568 and CANDS £10,310 each, +£17 a path over the 4000
+    the first year the two arms' levels part: never on 47 paths; else most often year 15 on 2426, year 16 on 423, year 17 on 332, year 18 on 268
+    the pots at the top of the first retired year (runPolicy's first 1000 paths), CANDS less CANDD: pension -£150,769, ISA +£100,935, taxable +£0
+  S306F (retired from year 15; 4000 paths): lifetime spending delivered CANDD £2,425,213 a path, CANDS +£10,114 a path (+0.4170%)
+    the estate: the mean +£463,185 a path (se 113,240), the median +£0; higher by more than £1 on 1947 paths, lower on 1943; CANDD's own median estate £5,050,944
+    the levels the policy set, CANDS less CANDD, in points of the year's target a path-year: in every retired year, the years after a path runs out included: years 15-20 +3.740 (24000 path-years); years 21-30 -0.842 (40000 path-years); years 31-60 -0.181 (120000 path-years); before each path's first failure year in either arm: years 15-20 +3.744 (23992 path-years); years 21-30 -0.837 (39961 path-years); years 31-60 -0.116 (117218 path-years)
+    the lifetime spending change split at each path's first failure year in either arm (one fails on 209 paths): +£10,114 a path (se 1,763) = before it +£5,511 (se 1,402) + from it on +£4,603 (se 1,048); the largest residual on a path £0.13; the unmet spending -£5,686 a path (se 1,251)
+    the failures, in the bridge (years 15-20, the reader's) and after it: CANDD 176 (2 and 174), CANDS 159 (0 and 159); of CANDD's in the bridge CANDS keeps 1, fails after it on 1 and in it on 0; the paths CANDS loses that CANDD keeps 33 (after the bridge 33, unmet £259,735 each, +£2,143 a path over the 4000); the paths both lose after the bridge 125, unmet CANDD £591,456 and CANDS £497,631 each, -£2,932 a path over the 4000
+    the first year the two arms' levels part: never on 955 paths; else most often year 18 on 746, year 15 on 593, year 20 on 346, year 19 on 307
+    the pots at the top of the first retired year (runPolicy's first 1000 paths), CANDS less CANDD: pension -£138,887, ISA +£106,737, taxable -£436
+  S310F (retired from year 15; 4000 paths): lifetime spending delivered CANDD £4,762,261 a path, CANDS +£6,667 a path (+0.1400%)
+    the estate: the mean +£3,094,369 a path (se 234,082), the median +£224,880; higher by more than £1 on 2266 paths, lower on 1634; CANDD's own median estate £12,479,693
+    the levels the policy set, CANDS less CANDD, in points of the year's target a path-year: in every retired year, the years after a path runs out included: years 15-20 +2.250 (24000 path-years); years 21-30 -1.053 (40000 path-years); years 31-60 -0.301 (120000 path-years); before each path's first failure year in either arm: years 15-20 +2.252 (23996 path-years); years 21-30 -1.051 (39980 path-years); years 31-60 -0.239 (117642 path-years)
+    the lifetime spending change split at each path's first failure year in either arm (one fails on 195 paths): +£6,667 a path (se 3,067) = before it -£4,073 (se 2,194) + from it on +£10,740 (se 2,188); the largest residual on a path £0.25; the unmet spending -£12,784 a path (se 2,604)
+    the failures, in the bridge (years 15-20, the reader's) and after it: CANDD 160 (1 and 159), CANDS 145 (0 and 145); of CANDD's in the bridge CANDS keeps 1, fails after it on 0 and in it on 0; the paths CANDS loses that CANDD keeps 35 (after the bridge 35, unmet £340,598 each, +£2,980 a path over the 4000); the paths both lose after the bridge 110, unmet CANDD £1,244,514 and CANDS £1,039,702 each, -£5,632 a path over the 4000
+    the first year the two arms' levels part: never on 1142 paths; else most often year 18 on 1103, year 17 on 315, year 20 on 274, year 19 on 211
+    the pots at the top of the first retired year (runPolicy's first 1000 paths), CANDS less CANDD: pension -£2,158, ISA +£167,908, taxable +£4,148
+  S340F (retired from year 15; 4000 paths): lifetime spending delivered CANDD £1,437,851 a path, CANDS +£2,514 a path (+0.1749%)
+    the estate: the mean -£546,509 a path (se 45,484), the median -£254,413; higher by more than £1 on 645 paths, lower on 3181; CANDD's own median estate £2,405,958
+    the levels the policy set, CANDS less CANDD, in points of the year's target a path-year: in every retired year, the years after a path runs out included: years 15-20 +0.749 (24000 path-years); years 21-30 -0.086 (40000 path-years); years 31-60 +0.174 (120000 path-years); before each path's first failure year in either arm: years 15-20 +0.750 (23997 path-years); years 21-30 -0.084 (39929 path-years); years 31-60 +0.175 (116995 path-years)
+    the lifetime spending change split at each path's first failure year in either arm (one fails on 207 paths): +£2,514 a path (se 222) = before it +£2,653 (se 185) + from it on -£139 (se 136); the largest residual on a path £0.08; the unmet spending +£160 a path (se 171)
+    the failures, in the bridge (years 15-20, the reader's) and after it: CANDD 196 (2 and 194), CANDS 202 (1 and 201); of CANDD's in the bridge CANDS keeps 0, fails after it on 1 and in it on 1; the paths CANDS loses that CANDD keeps 11 (after the bridge 11, unmet £86,269 each, +£237 a path over the 4000); the paths both lose after the bridge 189, unmet CANDD £291,718 and CANDS £291,473 each, -£12 a path over the 4000
+    the first year the two arms' levels part: never on 2118 paths; else most often year 17 on 389, year 16 on 215, year 18 on 146, year 15 on 140
+    the pots at the top of the first retired year (runPolicy's first 1000 paths), CANDS less CANDD: pension -£137,842, ISA +£103,073, taxable -£847

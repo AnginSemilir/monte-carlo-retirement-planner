@@ -1,0 +1,48 @@
+THE FULL TIER'S PINS THE ISA FIX MOVED (D130 (1), 675090f5): the working, each line printed by the test itself
+Full 442 on e508a656 (shard 2) failed lock-tiers.test.mjs (2 of 36) and windfall-split.test.mjs (1 of 21); Full 439 on 9d2b0a75, the code before the fix, green.
+Neither test is protected (.claude/hooks/pre-tool.mjs: not in PROTECTED nor run-all.mjs's FAST list).
+
+1. On the code before the fix (a worktree at 9d2b0a75, its engine built from its own src/App.jsx), RECORD1B=1: every 1b digest is its pin
+windfall-split.test.mjs:
+RECORD1B S026 6358b69104c2fa0cacadfc35405925b210a3b851b012686c7e818b69a3fee513
+RECORD1B S090 b3cba73d08fe2c0b7f6f7769be977ab80bb079cc774d161cce204758d6d601a0
+RECORD1B S040 1e2e0187a8f3ceaccb503e2d73febb4ae96bb158314d233085bb8c3efcdd393c
+check 1 and 1b only (RECORD1B): 6 passed, 0 failed
+lock-tiers.test.mjs:
+RECORD1B S090 e5 b3cba73d08fe2c0b7f6f7769be977ab80bb079cc774d161cce204758d6d601a0
+RECORD1B S090 loop 4d6ccf1b85056e5f31316a027d212ed686043572646c472e0f868c2e0fde68b3
+RECORD1B S328F e5 79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb
+RECORD1B S328F loop 9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa
+check 1 and 1b only (RECORD1B): 8 passed, 0 failed
+
+2. On the fix (71fb4271c681), the pins as they were, RECORD1B=1: S090's digests alone move
+windfall-split.test.mjs:
+RECORD1B S026 6358b69104c2fa0cacadfc35405925b210a3b851b012686c7e818b69a3fee513
+RECORD1B S090 bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac
+FAIL  1b. S090, the option unset, as the test takes it (interest, dividends and its Auto deposit): its tables and 40 forward runs bf4b261da569350e against the pin b3cba73d08fe2c0b
+RECORD1B S040 1e2e0187a8f3ceaccb503e2d73febb4ae96bb158314d233085bb8c3efcdd393c
+check 1 and 1b only (RECORD1B): 5 passed, 1 failed
+lock-tiers.test.mjs:
+RECORD1B S090 e5 bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac
+FAIL  1b. S090, the candidate's settings, both options off, as the test takes it (interest, dividends and any Auto deposit; on anchors and shortlists): its tables and 40 forward runs bf4b261da569350e against the pin b3cba73d08fe2c0b
+RECORD1B S090 loop e82ad3e7329ba50b78e0a7d9445e5a7203885c163558f4f03d825a662abab144
+FAIL  1b. S090, the layer loop (tsOnce: false), both options off, as the test takes it (interest, dividends and any Auto deposit; the whole menu): its tables and 40 forward runs e82ad3e7329ba50b against the pin 4d6ccf1b85056e5f
+RECORD1B S328F e5 79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb
+RECORD1B S328F loop 9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa
+check 1 and 1b only (RECORD1B): 6 passed, 2 failed
+
+3. Why S090: under its own pick (Windfall to ISA) it puts £20,000 of its Auto deposit into its ISA in plan year 4, which the fix counts against that year's allowance (results-isa-allowance.txt, check 1, on the code before, its line below):
+FAIL  1  the year's own flows into an ISA never take it past the allowance its fixed flows leave (engine)  -- a. S090 under its own pick (Windfall to ISA), 200 paths: the worst overshoot £20,000 at path 3 year 4 self: fixed £20,000, the year's own £20,000; 
+
+4. On the fix with S090's pins re-taken, each test whole:
+windfall-split.test.mjs:
+PASS  1b. S026, the option unset, as the test takes it (interest, dividends and its Auto deposit): its tables and 40 forward runs 6358b69104c2fa0c against the pin 6358b69104c2fa0c
+PASS  1b. S090, the option unset, as the test takes it (interest, dividends and its Auto deposit): its tables and 40 forward runs bf4b261da569350e against the pin bf4b261da569350e
+PASS  1b. S040, the option unset, as the test takes it (interest, dividends and its Auto deposit): its tables and 40 forward runs 1e2e0187a8f3ceac against the pin 1e2e0187a8f3ceac
+ALL PASS: 21 checks
+lock-tiers.test.mjs:
+PASS  1b. S090, the candidate's settings, both options off, as the test takes it (interest, dividends and any Auto deposit; on anchors and shortlists): its tables and 40 forward runs bf4b261da569350e against the pin bf4b261da569350e
+PASS  1b. S090, the layer loop (tsOnce: false), both options off, as the test takes it (interest, dividends and any Auto deposit; the whole menu): its tables and 40 forward runs e82ad3e7329ba50b against the pin e82ad3e7329ba50b
+PASS  1b. S328F, the candidate's settings, both options off, as the test takes it (interest, dividends and any Auto deposit; on anchors and shortlists): its tables and 40 forward runs 79d3eb8d19e0c7b5 against the pin 79d3eb8d19e0c7b5
+PASS  1b. S328F, the layer loop (tsOnce: false), both options off, as the test takes it (interest, dividends and any Auto deposit; the whole menu): its tables and 40 forward runs 9a7e04cf0a63e599 against the pin 9a7e04cf0a63e599
+ALL PASS: 36 checks

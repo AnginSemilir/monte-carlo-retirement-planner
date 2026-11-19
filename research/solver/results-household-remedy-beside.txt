@@ -1,0 +1,61 @@
+BESIDE THE REMEDY'S READ (EXPLORATORY, after the read, deciding nothing): 28 units, seed 7002, 4000 paths; code 603eeb595679, audit e0b1524d8f6b
+
+1. The three couples, each arm against K2 in whole paths of 4000 (saved / lost / net), the share of HS's net loss recovered, and the interval's upper end less the bar (-0.3 points):
+  S191-90: HS 0 / 832 / -832
+    HSPB  3 / 283 / -280; recovers 66.3% of HS's net loss; upper end -6.716, below the bar by 6.416 points (256.64 paths)
+    HSP   10 / 35 / -25; recovers 97.0% of HS's net loss; upper end -0.291, above the bar by 0.009 points (0.38 paths)
+    HSPS  10 / 36 / -26; recovers 96.9% of HS's net loss; upper end -0.314, below the bar by 0.014 points (0.55 paths)
+  S333F: HS 11 / 52 / -41
+    HSPB  16 / 28 / -12; recovers 70.7% of HS's net loss; upper end +0.049, above the bar by 0.349 points (13.96 paths)
+    HSP   18 / 13 / 5; recovers 112.2% of HS's net loss; upper end +0.395, above the bar by 0.695 points (27.78 paths)
+    HSPS  18 / 13 / 5; recovers 112.2% of HS's net loss; upper end +0.395, above the bar by 0.695 points (27.78 paths)
+  S335F: HS 10 / 71 / -61
+    HSPB  14 / 29 / -15; recovers 75.4% of HS's net loss; upper end -0.031, above the bar by 0.269 points (10.75 paths)
+    HSP   14 / 20 / -6; recovers 90.2% of HS's net loss; upper end +0.158, above the bar by 0.458 points (18.33 paths)
+    HSPS  14 / 21 / -7; recovers 88.5% of HS's net loss; upper end +0.138, above the bar by 0.438 points (17.52 paths)
+
+2. The decomposition's arms beside the remedy's on the three, survival on the same paths (each unit's K2 and HS arrays the same in both runs):
+  S191-90 (K2 and HS the same in both: yes): K2 97.63%, HS 76.83%; the decomposition HSB 98.13%, HSC 88.65%, HSBC 97.80%; the remedy HSPB 90.63%, HSP 97.00%, HSPS 96.97% (k 1.111)
+  S333F (K2 and HS the same in both: yes): K2 92.73%, HS 91.70%; the decomposition HSB 92.75%, HSC 92.33%, HSBC 93.03%; the remedy HSPB 92.42%, HSP 92.85%, HSPS 92.85% (k 1.667)
+  S335F (K2 and HS the same in both: yes): K2 94.45%, HS 92.92%; the decomposition HSB 94.55%, HSC 94.20%, HSBC 94.42%; the remedy HSPB 94.08%, HSP 94.30%, HSPS 94.27% (k 1.667)
+
+3. Each remedy table's forecast at the start less its survival, over the 28 units (points):
+  HSPB  mean +0.356; the widest above S191-90 +7.676, below S377-dbpart -1.889
+  HSP   mean +0.070; the widest above S271-db +1.492, below S377-dbpart -1.864
+  HSPS  mean +0.061; the widest above S271-db +1.492, below S377-dbpart -1.889
+
+4. By unit, HSP against K2: survival net in whole paths; spending on the paths both keep (se); the pot capped at the unit's cap; M1's condition (D116):
+  S023-90      net +55 paths; spending +0.245% (se 0.024); the capped pot -1.122% (-£35,658 a path)
+  S023-db      net +122 paths; spending -0.174% (se 0.042), lower beyond noise; the capped pot -13.055% (-£476,417 a path)
+  S061-90      net +87 paths; spending +4.583% (se 0.069); the capped pot +9.238% (£26,451 a path)
+  S061-dbpart  net +64 paths; spending +3.546% (se 0.025); the capped pot -11.317% (-£56,832 a path)
+  S109-90      net +28 paths; spending +4.022% (se 0.056); the capped pot +8.901% (£31,994 a path)
+  S109-sppart  net +43 paths; spending +3.711% (se 0.050); the capped pot -3.630% (-£14,690 a path)
+  S147-90      net +60 paths; spending +2.623% (se 0.046); the capped pot +0.069% (£553 a path)
+  S147-db      net +374 paths; spending +4.028% (se 0.045); the capped pot -4.244% (-£38,165 a path)
+  S149         net +13 paths; spending +1.069% (se 0.019); the capped pot -1.566% (-£14,287 a path)
+  S167         net +20 paths; spending -0.621% (se 0.019), lower beyond noise; the capped pot +0.901% (£44,741 a path)
+  S191-90      net -25 paths; spending +1.451% (se 0.039); the capped pot +4.731% (£250,433 a path)
+  S191-dbpart  net +56 paths; spending +0.173% (se 0.041); the capped pot -6.189% (-£331,489 a path)
+  S205         net +46 paths; spending +1.567% (se 0.032); the capped pot -7.978% (-£33,781 a path)
+  S223         net +23 paths; spending +0.574% (se 0.034); the capped pot -0.619% (-£12,558 a path)
+  S227-90      net +14 paths; spending +0.071% (se 0.012); the capped pot -0.719% (-£39,847 a path)
+  S227-sppart  net +4 paths; spending +0.089% (se 0.024); the capped pot -0.896% (-£50,232 a path)
+  S271-90      net +64 paths; spending +0.584% (se 0.034); the capped pot +1.106% (£27,547 a path)
+  S271-db      net +70 paths; spending +0.393% (se 0.031); the capped pot -2.931% (-£75,734 a path)
+  S327F        net +5 paths; spending +0.843% (se 0.025); the capped pot +0.079% (£1,023 a path)
+  S329F        net +0 paths; spending +0.391% (se 0.014); the capped pot -1.328% (-£17,941 a path)
+  S331F        net +25 paths; spending +0.180% (se 0.025); the capped pot -1.025% (-£27,681 a path)
+  S333F        net +5 paths; spending +0.454% (se 0.015); the capped pot -1.186% (-£78,608 a path)
+  S335F        net -6 paths; spending +0.111% (se 0.014); the capped pot -1.268% (-£87,349 a path)
+  S337F        net +16 paths; spending +1.241% (se 0.026); the capped pot -4.752% (-£25,789 a path)
+  S341F        net +4 paths; spending +0.875% (se 0.022); the capped pot -2.161% (-£28,772 a path)
+  S343F        net +38 paths; spending +0.791% (se 0.035); the capped pot -2.421% (-£66,643 a path)
+  S377-90      net +63 paths; spending +3.778% (se 0.046); the capped pot -0.086% (-£778 a path)
+  S377-dbpart  net +35 paths; spending +2.812% (se 0.030); the capped pot -9.535% (-£100,782 a path)
+  the units where HSP keeps more paths but spends less on the paths both keep beyond noise (M1's condition not met): S023-db, S167
+
+5. On the three, the plan entries in which the decomposition's HSB and the remedy's HSPB differ (each unit's recorded plans), and the band for gains and the cap:
+  S191-90 (k 1.111): personalAllowance 12,570 against 25,140; paTaperThreshold 100,000 against 122,284; basicBandLimit 50,270 against 67,029; higherBandLimit 125,140 against 150,218; scotStarterLimit 16,537 against 29,548; scotBasicLimit 29,526 against 43,980; scotIntermediateLimit 43,662 against 59,687; scotHigherLimit 75,000 against 94,507; scotAdvancedLimit 125,140 against 150,218; the band for gains 37,700 against 41,889; the cap 536,550 against 536,550
+  S333F (k 1.667): personalAllowance 12,570 against 25,140; paTaperThreshold 100,000 against 170,857; basicBandLimit 50,270 against 87,973; higherBandLimit 125,140 against 212,757; scotStarterLimit 16,537 against 31,752; scotBasicLimit 29,526 against 53,400; scotIntermediateLimit 43,662 against 76,960; scotHigherLimit 75,000 against 129,190; scotAdvancedLimit 125,140 against 212,757; the band for gains 37,700 against 62,833; the cap 536,550 against 536,550
+  S335F (k 1.667): personalAllowance 12,570 against 25,140; paTaperThreshold 100,000 against 170,857; basicBandLimit 50,270 against 87,973; higherBandLimit 125,140 against 212,757; scotStarterLimit 16,537 against 31,752; scotBasicLimit 29,526 against 53,400; scotIntermediateLimit 43,662 against 76,960; scotHigherLimit 75,000 against 129,190; scotAdvancedLimit 125,140 against 212,757; the band for gains 37,700 against 62,833; the cap 536,550 against 536,550

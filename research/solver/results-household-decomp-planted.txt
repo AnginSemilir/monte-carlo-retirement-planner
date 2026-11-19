@@ -1,0 +1,21 @@
+  ok   the bands recover all of 800 lost paths, the cap none: RESTS ON THE BANDS
+  ok   the cap recovers 60 of 100, the bands 10: RESTS ON THE CAP
+  ok   each recovers 80 of 100: EITHER
+  ok   each alone 40 of 100, both 80: TOGETHER
+  ok   both together 30 of 100: NOT THESE TWO
+  ok   the bands keep 80 of 100 lost but lose 40 HS keeps (a recovery of 40): not half, so NOT THESE TWO with the rest nought
+  ok   exactly half of 100 lost paths, beyond noise, recovers
+  ok   49 of 100 does not
+  ok   all of two lost paths is within noise, so does not recover
+  ok   no loss, no recovery
+  ok   the gate passes three clean units
+  ok   HS not the lead test's: refused
+  ok   a variant with an entry outside its groups single: refused
+  ok   a variant leaving one of its group doubled: refused
+  ok   the bands single with two people's band for gains: refused
+  ok   a variant on HS's table: refused
+  ok   a unit missing: refused
+  ok   two audit stamps: refused
+  ok   a CEIL arm not its household arm's table: refused
+PLANTED: ALL PASS (19)
+exit 0

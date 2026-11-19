@@ -35,6 +35,9 @@ const N4_TOKENS = ['penHR', 'penPAm', 'penBm'];
 /* The year's interest and dividends tax memo (the review of 9 Nov's item 3, step 2): `memo` on (tests compare it off); `plant` 'noceiling'
    (engine-hmrc.test.mjs) leaves the draw's ceiling out of its key. */
 export const KNOCK = { memo: true, plant: '' };
+/* the year's deposits and staged transfers into the ISA counted in its allowance (D130 (1)); `plant` 'uncounted' for
+   isa-allowance.test.mjs and gaps-sweep's ISA case only: the year's own flows read the room without them, as before */
+export const ISA = { plant: '' };
 export const N4 = { plant: '' };
 const CATS = ['pen', 'isa', 'other', 'cash'];
 
@@ -441,6 +444,10 @@ export function flow(c, t, ai, s) {
   };
   const addGia = (amt) => { if (amt > 0) { gia += amt; if (cgtOn) basis += amt; } };
 
+  // the year's ISA subscriptions, counted from the first money into the ISA, as the engine's stepYear counts them: a dated
+  // deposit (1), a staged transfer (1.5), the regular contributions (2); every flow the year sends into the ISA reads its room
+  // here (D130 (1); isa-allowance.test.mjs; ISA.plant 'uncounted' leaves 1 and 1.5 out, as before)
+  let isaContrib = 0, cashIsaSubscribed = 0;
   // 0. deductions, 1. deposits, 1.5 drips
   for (let i = 0; i < 4; i++) {
     const d = yr.ded[i][t]; if (d > 0) {
@@ -451,15 +458,14 @@ export function flow(c, t, ai, s) {
     }
     // the windfall split (research, D37): in a year with Auto money, a move's split replaces the plan's Auto entries
     const p = a.windfall && yr.splitYear[t] ? yr.depNoAuto[i][t] + yr.splitDep[a.windfall][i][t] : yr.dep[i][t];
-    if (p > 0) { if (i === 0) pen += p; else if (i === 1) isa += p; else if (i === 2) addGia(p); else cash += p; }
+    if (p > 0) { if (i === 0) pen += p; else if (i === 1) { isa += p; if (ISA.plant !== 'uncounted') isaContrib += p; } else if (i === 2) addGia(p); else cash += p; }
     const dr = yr.drip[i][t]; if (dr > 0) {
       const mv0 = sellGia(dr), mv = yr.dripLand[i][t] > 0 ? mv0 * (yr.dripLand[i][t] / dr) : mv0;
-      if (i === 0) pen += mv; else if (i === 1) isa += mv; else if (i === 2) addGia(mv); else cash += mv;
+      if (i === 0) pen += mv; else if (i === 1) { isa += mv; if (ISA.plant !== 'uncounted') isaContrib += mv; } else if (i === 2) addGia(mv); else cash += mv;
       if (yr.dripRefund[i][t] > 0) cash += mv0 * (yr.dripRefund[i][t] / dr);
     }
   }
   // 2. contributions while working
-  let isaContrib = 0, cashIsaSubscribed = 0;
   if (working) {
     // the savings split (research, D38 (4)): in a year with a choice, a move's save takes that variant's contributions
     const con = a.save && yr.saveYear[t] ? yr.saveCon[a.save] : yr.con;

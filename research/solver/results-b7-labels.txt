@@ -1,0 +1,22 @@
+node research/solver/b7-labels.mjs (18 Nov, code 603eeb595679); EXPLORATORY
+windfall S026: today ISA First, lump sum; landing ISA First
+windfall S030: today Bracket Fill Basic; landing Bracket Fill Basic, lump sum
+windfall S050: today ISA First, lump sum; landing ISA First
+windfall S074: today ISA First; landing Bracket Fill Basic, lump sum
+windfall S090: today Windfall to ISA; landing Bracket Fill Basic
+windfall S290: today Bracket Fill, lump sum; landing Windfall to ISA
+windfall S306F: today ISA First; landing Bracket Fill Basic
+windfall S310F: today Windfall to ISA, lump sum; landing Bracket Fill Basic, lump sum
+windfall S314F: today Bracket Fill; landing Windfall to ISA
+windfall S358F: today Bracket Fill Basic; landing Windfall to ISA
+windfall: 17 households, 10 whose arm A pick differs today
+save S204: today Bracket Fill Basic, lump sum; landing Bracket Fill, lump sum
+save S272: today Bracket Fill Basic, lump sum; landing Bracket Fill Basic
+save S290: today Bracket Fill, lump sum; landing Windfall to ISA
+save S306F: today ISA First; landing Bracket Fill Basic
+save S310F: today Windfall to ISA, lump sum; landing Bracket Fill Basic, lump sum
+save S314F: today Bracket Fill; landing Windfall to ISA
+save S320F: today Bracket Fill Basic; landing Bracket Fill Basic, lump sum
+save S332F: today Bracket Fill Basic; landing ISA First, lump sum
+save S358F: today Bracket Fill Basic; landing Windfall to ISA
+save: 27 households, 9 whose arm A pick differs today

@@ -28,7 +28,8 @@
  *      plan's band twice a person's in the couple's model ('cgtband'); (b) the engine's default basic band limit the same
  *      before and after solveHousehold and householdContext, a throwing solve among them ('nofinally': a twoBands without
  *      its finally, on a throwing fn); (c) a couple's M.prepare and E.buildContext, called after solveHousehold, carry a
- *      person's band (the same plant); (d) the solver's code id 603eeb595679 (nothing under src/ and not the engine edited);
+ *      person's band (the same plant); (d) the solver's code id, 603eeb595679 to 19 Nov (D115: nothing under src/ and not the
+ *      engine edited), 71fb4271c681 since D130 (1)'s ISA fix;
  *   8. THE TWIN (PRESCRIPTIVE-PLAN.md step 3): on check 3's six units, the couple made of the first person twice (built as the
  *      review's scripts/twin-trace.mjs builds it), under arm A's policy, 100 paths of seed 99001, the household plan
  *      (through householdContext) against the couple, year by year: (1) on S205, S061-dbpart, S327F, S227-90 and S023-db
@@ -53,13 +54,30 @@
  *      cost from the first twin's taxable account, so the gain falls on one person's exempt amount where the household plan
  *      has two. The cause is the engine's cost order against design A's doubled exempt amount: neither householdPlanFor's
  *      construction nor arm A's rule, the plan's two branches; with the maintainer, S149 held to no bar meanwhile.
+ *   9. the decomposition's option (D129 (1); HOUSEHOLD-DECOMP.md; householdPlanFor's opts.single), on S061-dbpart, each
+ *      check shown failing on its plant: (a) each group leaves exactly its allowances at one person's (the bands: the
+ *      personal allowance, the taper's threshold, the UK and Scottish band limits; the cap: the tax-free cash cap), every
+ *      other entry design A's; empty or unset, the plan design A's byte for byte; an unknown group, or a list that is not
+ *      one, refused ('singlenone': the option read as empty); (b) solved at check 4's settings, the household table with the
+ *      bands single carries one person's capital gains band, with the cap single two people's, the engine's default basic
+ *      band the same after each ('singlecgt': the bands single, the solve inside twoBands, which solveHousehold's own check
+ *      then refuses).
+ *  10. the remedy (HOUSEHOLD-REMEDY.md; D129), each check shown failing on its plant: (a) part 1's plan on S191-90 (k from its
+ *      pensions' split): the allowance doubled, each SCALED limit 2 x PA + k x (L - PA), the cap k times one person's, every
+ *      other doubled entry design A's; on a couple made even in its pensions (k = 2) and unset, the plan design A's byte for
+ *      byte ('scaleall': the allowance scaled too); (b) part 1's solve at check 4's settings: the table's band for gains k
+ *      times one person's, the engine's default the same after ('scalecgt': the solve inside twoBands, which
+ *      solveHousehold's own check refuses); (c) part 2 along 20 paths of S191-90 under householdSinglePolicy with
+ *      cp.split 'pensions': at every decision the move's split is the first person's share of the two pensions as they
+ *      stand (their share of all pots where both are empty), the engine and runHouseholdSinglePolicy agreeing on every
+ *      path ('splitstart': the share from the plan's start).
  * Measured first by the probe behind check 3 (17 Nov, EXPLORATORY): the largest gaps unplanted 1.3 points of survival
  * (S061-dbpart) and 13.6% of median end wealth (S227-90), every plant past one bar or the other on some couple.
  *   node research/tests/household.test.mjs
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { householdPlanFor, mergedState, solveHousehold, chooseHousehold, runHouseholdPolicy, withHousehold, chooseHouseholdSingle, runHouseholdSinglePolicy, withHouseholdSingle, householdValue, twoBands, householdContext, HOUSE, DOUBLED } from '../solver/household.mjs';
+import { householdPlanFor, mergedState, solveHousehold, chooseHousehold, runHouseholdPolicy, withHousehold, chooseHouseholdSingle, runHouseholdSinglePolicy, withHouseholdSingle, householdValue, twoBands, householdContext, HOUSE, DOUBLED, SINGLE_GROUPS, SCALED, pensionsSplit, pensionsShare, householdBands } from '../solver/household.mjs';
 import { codeId } from '../solver/code-id.mjs';
 import { chooseAction } from '../../src/solver/solve.js';
 import { vecOf } from '../../src/solver/grid.js';
@@ -270,7 +288,9 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   check('(7c) a couple\'s M.prepare and E.buildContext, called after solveHousehold, carry a person\'s band', after.every(x => x[2] === p0 && x[3] === p0), `a person's ${p0}`);
   check('(7c) the same plant fails it', !(planted[1] === p0 && planted[2] === p0), `${planted[1]} and ${planted[2]}`);
   const cid = codeId();
-  check('(7d) the solver\'s code id 603eeb595679', !!cid && cid.hash === '603eeb595679', cid ? cid.hash : 'none');
+  // D115 held the solver's code at 603eeb595679 for steps 1 to 8; D130 (1) lifted it for the ISA allowance's fix (19 Nov), the
+  // household line's later runs on the fixed code
+  check('(7d) the solver\'s code id 71fb4271c681 (D115\'s, then D130 (1)\'s fix)', !!cid && cid.hash === '71fb4271c681', cid ? cid.hash : 'none');
 }
 
 // 8. the twin (PRESCRIPTIVE-PLAN.md step 3)
@@ -327,6 +347,107 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
     const failing = tp.filter(x => !bar1(x)).map(x => x.id);
     check(`(8) the plant '${plant}' fails bar 1${must ? ` on ${must.join(', ')}` : ''}`, must ? must.every(id => failing.includes(id)) : failing.length > 0, tp.filter(x => !bar1(x)).map(show).join('; ') || 'none');
   }
+}
+
+// 9. the decomposition's option (D129 (1); householdPlanFor's opts.single)
+{
+  const plan = couplePlan('S061-dbpart'), cfg = { ...E.DEFAULT_CONFIG, ...(plan.config || {}) }, one = k => E.num(cfg[k], E.DEFAULT_CONFIG[k]);
+  // the groups as HOUSEHOLD-DECOMP.md names them, typed here, not read from the code under test
+  const WANT = { bands: ['personalAllowance', 'paTaperThreshold', 'basicBandLimit', 'higherBandLimit', 'scotStarterLimit', 'scotBasicLimit', 'scotIntermediateLimit', 'scotHigherLimit', 'scotAdvancedLimit'], cap: ['pclsMaxCap'] };
+  const asBuilt = householdPlanFor(E, plan);
+  const off = (single, singles) => { const hp = householdPlanFor(E, plan, { single }); return DOUBLED.filter(k => hp.config[k] !== (singles.includes(k) ? one(k) : asBuilt.config[k])).concat(Object.keys(hp.config).filter(k => !DOUBLED.includes(k) && hp.config[k] !== asBuilt.config[k])); };
+  const cases = () => ({ bands: off(['bands'], WANT.bands), cap: off(['cap'], WANT.cap), both: off(['bands', 'cap'], [...WANT.bands, ...WANT.cap]) });
+  const refusals = () => [['band'], 'bands', [null]].filter(x => { try { householdPlanFor(E, plan, { single: x }); return false; } catch { return true; } }).length;
+  const c0 = cases(), r0 = refusals();
+  const same = JSON.stringify(householdPlanFor(E, plan, { single: [] })) === JSON.stringify(asBuilt) && JSON.stringify(householdPlanFor(E, plan, {})) === JSON.stringify(asBuilt);
+  const groupsOk = JSON.stringify(SINGLE_GROUPS) === JSON.stringify(WANT);
+  const showC = c => Object.entries(c).map(([g, ks]) => `${g}: ${ks.length ? ks.join(', ') : 'as wanted'}`).join('; ');
+  const fine = c => Object.values(c).every(ks => ks.length === 0);
+  check('(9a) opts.single leaves exactly its groups\' allowances at one person\'s, every other entry design A\'s; empty or unset, the plan design A\'s byte for byte; three bad lists refused', groupsOk && fine(c0) && same && r0 === 3 && one('basicBandLimit') !== 2 * one('basicBandLimit'), `${showC(c0)}; empty the same ${same}; refused ${r0} of 3`);
+  HOUSE.plant = 'singlenone'; const cz = cases(); HOUSE.plant = '';
+  check('(9a) the plant \'singlenone\' fails it', !fine(cz), showC(cz));
+  const light = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } };
+  const solveOne = (p, o) => solveForApp(E, M, p, { points: 6, ageWith: o.partnerAge0, research: { ...light } });
+  const d0 = E.DEFAULT_CONFIG.basicBandLimit, p0 = M.prepare(E, plan).ctx.P.cgtBandWidth;
+  const band = single => { const h = solveHousehold(E, M, plan, { solveOne, single }); return { band: h.H.m.ctx.P.cgtBandWidth, ctx: householdContext(E, h.hplan, single).P.cgtBandWidth, after: E.DEFAULT_CONFIG.basicBandLimit, meta: JSON.stringify(h.meta.single || null) }; };
+  const bB = band(['bands']), bC = band(['cap']);
+  const ok9b = bB.band === p0 && bB.ctx === p0 && Math.abs(bC.band - 2 * p0) < 1e-6 && Math.abs(bC.ctx - 2 * p0) < 1e-6 && bB.after === d0 && bC.after === d0 && bB.meta === '["bands"]' && bC.meta === '["cap"]';
+  check('(9b) solved, the household table with the bands single carries one person\'s capital gains band, with the cap single two people\'s; the engine\'s default the same after each', ok9b, `bands ${bB.band} (its context ${bB.ctx}), cap ${bC.band} (${bC.ctx}), a person's ${p0}; the default after ${bB.after} and ${bC.after}, before ${d0}; meta ${bB.meta} ${bC.meta}`);
+  HOUSE.plant = 'singlecgt'; let threw = '';
+  try { band(['bands']); } catch (e) { threw = e.message; }
+  HOUSE.plant = ''; E.DEFAULT_CONFIG.basicBandLimit = d0;
+  check('(9b) the plant \'singlecgt\' (the bands single, the solve inside twoBands) is refused by solveHousehold\'s own check', /not one person's/.test(threw), threw || 'not refused');
+}
+
+// 10. the remedy (HOUSEHOLD-REMEDY.md; D129): part 1, the allowances priced at the pensions' split; part 2, the split at it
+{
+  const plan = couplePlan('S191-90'), cfg = { ...E.DEFAULT_CONFIG, ...(plan.config || {}) }, one = k => E.num(cfg[k], E.DEFAULT_CONFIG[k]), pa = one('personalAllowance');
+  // the limits as HOUSEHOLD-REMEDY.md names them, typed here, not read from the code under test
+  const LIMITS = ['paTaperThreshold', 'basicBandLimit', 'higherBandLimit', 'scotStarterLimit', 'scotBasicLimit', 'scotIntermediateLimit', 'scotHigherLimit', 'scotAdvancedLimit'];
+  const pens = p => { const of = part => p.accounts.filter(a => a.category === 'Pensions' && (a.owner === 'Partner') === part).reduce((t, a) => t + E.num(a.balance, 0), 0); return [of(false), of(true)]; };
+  const [pA, pB] = pens(plan), k = (pA + pB) / Math.max(pA, pB), asBuilt = householdPlanFor(E, plan);
+  const off = hp => DOUBLED.filter(key => hp.config[key] !== (key === 'personalAllowance' ? 2 * pa : LIMITS.includes(key) ? 2 * pa + k * (one(key) - pa) : key === 'pclsMaxCap' ? k * one(key) : asBuilt.config[key]));
+  const scaled = () => householdPlanFor(E, plan, { scale: 'pensions' });
+  // the same couple with its two pensions made even (k = 2): design A's plan byte for byte
+  const even = JSON.parse(JSON.stringify(plan)), evenPens = even.accounts.filter(a => a.category === 'Pensions'), tot = evenPens.reduce((t, a) => t + E.num(a.balance, 0), 0);
+  evenPens.forEach(a => { a.balance = tot / evenPens.length; });
+  const evenSame = evenPens.length === 2 && JSON.stringify(householdPlanFor(E, even, { scale: 'pensions' })) === JSON.stringify(householdPlanFor(E, even));
+  const unsetSame = JSON.stringify(householdPlanFor(E, plan, {})) === JSON.stringify(asBuilt);
+  // the bands alone (HOUSEHOLD-REMEDY.md amendment 1): the cap design A's
+  const offB = hp => DOUBLED.filter(key => hp.config[key] !== (key === 'personalAllowance' ? 2 * pa : LIMITS.includes(key) ? 2 * pa + k * (one(key) - pa) : asBuilt.config[key]));
+  const sp = pensionsSplit(E, plan), o0 = off(scaled()), oB = offB(householdPlanFor(E, plan, { scale: 'bands' }));
+  check('(10a) part 1 on S191-90: the allowance doubled, each band limit 2 x PA + k x (L - PA), the cap k times one person\'s (design A\'s in the bands-alone form), every other doubled entry design A\'s; even pensions (k = 2) and unset, design A\'s plan byte for byte',
+    Math.abs(sp.k - k) < 1e-12 && k > 1 && k < 2 && o0.length === 0 && oB.length === 0 && evenSame && unsetSame, `k ${k.toFixed(4)} (s ${sp.s.toFixed(4)}), off ${o0.join(', ') || 'none'}; the bands alone (the cap doubled) off ${oB.join(', ') || 'none'}; even ${evenSame}, unset ${unsetSame}`);
+  HOUSE.plant = 'scaleall'; const oz = off(scaled()), ozB = offB(householdPlanFor(E, plan, { scale: 'bands' })); HOUSE.plant = '';
+  check('(10a) the plant \'scaleall\' fails it, in both forms', oz.length > 0 && ozB.length > 0, `${oz.join(', ') || 'none'} | ${ozB.join(', ') || 'none'}`);
+  let refusals = 0; for (const bad of [{ scale: 'pots' }, { scale: 'pensions', single: ['bands'] }]) { try { householdPlanFor(E, plan, bad); } catch { refusals++; } }
+  check('(10a) another rule, or the scale with the single groups, refused', refusals === 2, `${refusals} of 2`);
+  const light = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } };
+  const solveOne = (p, o) => solveForApp(E, M, p, { points: 6, ageWith: o.partnerAge0, research: { ...light } });
+  const d0 = E.DEFAULT_CONFIG.basicBandLimit, p0 = M.prepare(E, plan).ctx.P.cgtBandWidth;
+  const h = solveHousehold(E, M, plan, { solveOne, scale: 'pensions' });
+  check('(10b) part 1\'s solve: the table\'s band for gains k times one person\'s, the engine\'s default the same after, the scale recorded',
+    Math.abs(h.H.m.ctx.P.cgtBandWidth - k * p0) < 1e-6 && E.DEFAULT_CONFIG.basicBandLimit === d0 && Math.abs(h.meta.scale.k - k) < 1e-12 && h.hopts.scale && Math.abs(h.hopts.scale.k - k) < 1e-12,
+    `${h.H.m.ctx.P.cgtBandWidth} against k x ${p0} = ${k * p0}; the default ${E.DEFAULT_CONFIG.basicBandLimit} (before ${d0}); meta ${JSON.stringify(h.meta.scale)}`);
+  HOUSE.plant = 'scalecgt'; let threw = '';
+  try { solveHousehold(E, M, plan, { solveOne, scale: 'pensions' }); } catch (e) { threw = e.message; }
+  HOUSE.plant = ''; E.DEFAULT_CONFIG.basicBandLimit = d0;
+  check('(10b) the plant \'scalecgt\' (the solve inside twoBands) is refused by solveHousehold\'s own check', /capital gains band/.test(threw), threw || 'not refused');
+  // part 2 along 20 paths: the split at every decision, against the share of the two pensions as they stand
+  const cp = { ...h, split: 'pensions' };
+  const ownerShare = st => { const of = (who, pen) => h.m.ctx.accounts.filter(a => a.owner === who && (!pen || a.cat === 'pen')).reduce((t, a) => t + Math.max(0, st.pots[a.id] || 0), 0); const a = of('self', true), b = of('part', true); if (a + b > 0) return a / (a + b); const x = of('self', false), y = of('part', false); return x + y > 0 ? x / (x + y) : 0.5; };
+  const walk = () => {
+    let n = 0, bad = 0, moved = 0, agree = 0; const T = h.m.ctx.totalYears;
+    for (const zs of E.pathsForSeed(99002, 20, T)) {
+      const st = M.initialState(h.m), s0 = ownerShare(st);
+      for (let t = 0; t <= T; t++) {
+        const want = ownerShare(st), j = chooseHouseholdSingle(cp, st, t);
+        n++; if (Math.abs(j.split - want) > 1e-12) bad++; if (Math.abs(want - s0) > 1e-6) moved++;
+        const row = M.step(h.m, st, j, t, ratesAt(h.m, zs, t));
+        if (row.unmetDemand > 1 || row.preNmpaInsolvent) break;
+      }
+      const ctx = E.buildContext(withHouseholdSingle(h.plan, cp)), q = E.runTrial(ctx, zs), r = runHouseholdSinglePolicy(cp, zs);
+      if (q.survived === r.survived) agree++;
+    }
+    return { n, bad, moved, agree };
+  };
+  const w = walk();
+  check('(10c) part 2 along 20 paths of S191-90: the split the first person\'s share of the two pensions as they stand at every decision, the share moving along the path; the engine and runHouseholdSinglePolicy agree on every path',
+    w.n > 0 && w.bad === 0 && w.moved > 0 && w.agree === 20, `${w.n - w.bad} of ${w.n} decisions; the share moved at ${w.moved}; agree ${w.agree} of 20`);
+  HOUSE.plant = 'splitstart'; const wz = walk(); HOUSE.plant = '';
+  check('(10c) the plant \'splitstart\' fails it', wz.bad > 0, `${wz.bad} of ${wz.n} decisions not the year's share`);
+  // (10d) HSPA (D130 (2)): the allowance k times one person's as well, so each band limit k x L (its width above the
+  // allowance k times one person's, as part 1's), the cap k times; every other doubled entry design A's; k = 2 design A's plan
+  const offA = hp => DOUBLED.filter(key => Math.abs(hp.config[key] - (key === 'personalAllowance' ? k * pa : LIMITS.includes(key) ? k * one(key) : key === 'pclsMaxCap' ? k * one(key) : asBuilt.config[key])) > 1e-6);
+  const oA = offA(householdPlanFor(E, plan, { scale: 'pensionsPA' })), evenA = JSON.stringify(householdPlanFor(E, even, { scale: 'pensionsPA' })) === JSON.stringify(householdPlanFor(E, even));
+  check('(10d) HSPA on S191-90: the allowance and each band limit k times one person\'s, the cap k times, every other doubled entry design A\'s; even pensions (k = 2) design A\'s plan byte for byte',
+    oA.length === 0 && evenA, `off ${oA.join(', ') || 'none'}; even ${evenA}`);
+  HOUSE.plant = 'pakdouble'; const oAz = offA(householdPlanFor(E, plan, { scale: 'pensionsPA' })); HOUSE.plant = '';
+  check('(10d) the plant \'pakdouble\' (the allowance left doubled) fails it', oAz.includes('personalAllowance'), oAz.join(', ') || 'none');
+  const hA = solveHousehold(E, M, plan, { solveOne, scale: 'pensionsPA' });
+  check('(10d) HSPA\'s solve: the table\'s allowance k times one person\'s and its band for gains k times one person\'s, the engine\'s default the same after, the rule recorded',
+    Math.abs(hA.H.m.ctx.P.pa - k * pa) < 1e-6 && Math.abs(hA.H.m.ctx.P.cgtBandWidth - k * p0) < 1e-6 && E.DEFAULT_CONFIG.basicBandLimit === d0 && hA.meta.scale.rule === 'pensionsPA' && hA.hopts.scale.paK === true,
+    `the allowance ${hA.H.m.ctx.P.pa} against k x ${pa} = ${k * pa}; the band ${hA.H.m.ctx.P.cgtBandWidth} against ${k * p0}; the default ${E.DEFAULT_CONFIG.basicBandLimit}; meta ${JSON.stringify(hA.meta.scale)}`);
 }
 
 const bad = results.filter(ok => !ok).length;

@@ -1,0 +1,51 @@
+node research/solver/household-decomp-beside.mjs (18 Nov, after the read; EXPLORATORY)
+BESIDE THE DECOMPOSITION'S READ (EXPLORATORY, after the read, deciding nothing; the reviewer's findings 1 to 4): 3 units from /home/user/monte-carlo-retirement-planner/research/solver/results/household-decomp-7002, seed 7002, 4000 paths; code 603eeb595679, audit 8f3c434a5f55
+
+1. Each variant less K2, paired by path (survivalChange; survivalChangeU beside):
+  S191-90  HSB   +0.500 (+0.195 to +0.718); survivalChangeU +0.500 (+0.202 to +0.824)
+  S191-90  HSC   -8.975 (-9.024 to -8.748); survivalChangeU -8.975 (-9.897 to -8.112)
+  S191-90  HSBC  +0.175 (-0.112 to +0.425); survivalChangeU +0.175 (-0.103 to +0.463)
+  S333F    HSB   +0.025 (-0.234 to +0.278); survivalChangeU +0.025 (-0.237 to +0.288)
+  S333F    HSC   -0.400 (-0.701 to -0.046); survivalChangeU -0.400 (-0.750 to -0.059)
+  S333F    HSBC  +0.300 (-0.009 to +0.554); survivalChangeU +0.300 (+0.003 to +0.605)
+  S335F    HSB   +0.100 (-0.222 to +0.406); survivalChangeU +0.100 (-0.216 to +0.419)
+  S335F    HSC   -0.250 (-0.536 to +0.076); survivalChangeU -0.250 (-0.571 to +0.064)
+  S335F    HSBC  -0.025 (-0.317 to +0.272); survivalChangeU -0.025 (-0.323 to +0.273)
+  HSB recovery pooled: 912 of 955 (95.5%); without S191-90: 88 of 123 (71.5%)
+  HSC recovery pooled: 536 of 955 (56.1%); without S191-90: 64 of 123 (52.0%)
+  HSBC recovery pooled: 909 of 955 (95.2%); without S191-90: 88 of 123 (71.5%)
+
+2. The cost beside the spending: the capped pot and lifetime tax (the mean over every path):
+  S191-90  HSB   the capped pot against HS +9.855% (£473,426 a path), against K2 -0.305% (-£16,128 a path); lifetime tax £518,641 against HS £939,164 and K2 £600,613
+  S191-90  HSC   the capped pot against HS +1.837% (£88,245 a path), against K2 -7.581% (-£401,309 a path); lifetime tax £879,798 against HS £939,164 and K2 £600,613
+  S191-90  HSBC  the capped pot against HS +16.411% (£788,350 a path), against K2 +5.645% (£298,796 a path); lifetime tax £470,139 against HS £939,164 and K2 £600,613
+  S333F    HSB   the capped pot against HS -0.697% (-£45,716 a path), against K2 -1.797% (-£119,140 a path); lifetime tax £1,512,509 against HS £1,466,928 and K2 £1,334,911
+  S333F    HSC   the capped pot against HS +0.254% (£16,680 a path), against K2 -0.856% (-£56,744 a path); lifetime tax £1,472,732 against HS £1,466,928 and K2 £1,334,911
+  S333F    HSBC  the capped pot against HS -0.382% (-£25,018 a path), against K2 -1.485% (-£98,442 a path); lifetime tax £1,509,633 against HS £1,466,928 and K2 £1,334,911
+  S335F    HSB   the capped pot against HS -0.582% (-£39,722 a path), against K2 -1.452% (-£99,989 a path); lifetime tax £1,484,542 against HS £1,457,341 and K2 £1,353,244
+  S335F    HSC   the capped pot against HS -0.076% (-£5,191 a path), against K2 -0.950% (-£65,458 a path); lifetime tax £1,472,603 against HS £1,457,341 and K2 £1,353,244
+  S335F    HSBC  the capped pot against HS -0.233% (-£15,890 a path), against K2 -1.106% (-£76,157 a path); lifetime tax £1,481,474 against HS £1,457,341 and K2 £1,353,244
+
+3. On L, the paths K2 keeps and HS loses:
+  S191-90: L 832; under HS 670 fail at the minimum pot at the end (the pot £112,900; their end pot short of it by £31,293 on average), 162 a year unfunded
+    the mean lifetime tax on L: HS £955,054, CEIL £436,732, HSB £675,901, CEILB £845,102, HSC £939,840, CEILC £566,067, HSBC £640,325
+    HSB   keeps 824 of L: on those, its spending +0.104% of HS's, its lifetime tax -£280,418 against HS's and its end pot £318,210
+    HSC   keeps 477 of L: on those, its spending -0.027% of HS's, its lifetime tax -£14,111 against HS's and its end pot £69,333
+    HSBC  keeps 821 of L: on those, its spending -0.137% of HS's, its lifetime tax -£315,865 against HS's and its end pot £438,173
+  S333F: L 52; under HS 44 fail at the minimum pot at the end (the pot £135,300; their end pot short of it by £14,655 on average), 8 a year unfunded
+    the mean lifetime tax on L: HS £561,826, CEIL £420,272, HSB £427,191, CEILB £569,860, HSC £549,962, CEILC £476,956, HSBC £424,625
+    HSB   keeps 43 of L: on those, its spending +1.046% of HS's, its lifetime tax -£143,051 against HS's and its end pot £116,043
+    HSC   keeps 35 of L: on those, its spending +0.155% of HS's, its lifetime tax -£15,296 against HS's and its end pot £41,381
+    HSBC  keeps 45 of L: on those, its spending +0.785% of HS's, its lifetime tax -£143,408 against HS's and its end pot £123,539
+  S335F: L 71; under HS 56 fail at the minimum pot at the end (the pot £141,500; their end pot short of it by £17,213 on average), 15 a year unfunded
+    the mean lifetime tax on L: HS £521,835, CEIL £363,033, HSB £366,660, CEILB £547,163, HSC £489,705, CEILC £402,538, HSBC £361,566
+    HSB   keeps 57 of L: on those, its spending +0.575% of HS's, its lifetime tax -£155,072 against HS's and its end pot £106,418
+    HSC   keeps 50 of L: on those, its spending +0.084% of HS's, its lifetime tax -£35,911 against HS's and its end pot £48,299
+    HSBC  keeps 57 of L: on those, its spending +0.719% of HS's, its lifetime tax -£161,836 against HS's and its end pot £117,450
+
+4. HSBC less HSB, paired by path (survivalChange):
+  S191-90  -0.325 (-0.540 to -0.040) (8 saved, 21 lost)
+  S333F    +0.275 (+0.091 to +0.324) (12 saved, 1 lost)
+  S335F    -0.125 (-0.212 to +0.045) (2 saved, 7 lost)
+
+  the rule's half on S333F: HSC recovers 18 of L 52, where half is 26

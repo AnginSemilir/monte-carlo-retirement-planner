@@ -17,6 +17,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { b7Verdict, spendDiffs, leadsTo } from './b7-verdict.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const ARMS = ['CANDD', 'CANDW'], HELD_OUT = [7003, 7011, 7012, 7013, 7014, 7018, 7019];
@@ -37,6 +38,12 @@ export function gate(units, ids, filesAudit) {
     for (const k of ['inputs', 'target', 'retireT', 'Y']) if (new Set(us.map(u => u[k])).size > 1) P.push(`${id}: its arms differ in ${k} (${us.map(u => `${u.arm} ${u[k]}`).join(', ')})`);
     if (new Set(us.map(u => JSON.stringify(u.depT))).size > 1) P.push(`${id}: its arms differ in the deposit years`);
     if (us.some(u => !u.depT || !u.depT.length)) P.push(`${id}: no deposit year recorded`);
+    // B7-FACTORIALS.md amendment 1: a household's two arms on one arm A pick, recorded
+    if (us.some(u => typeof u.label !== 'string')) P.push(`${id}: arm A's pick not recorded`);
+    else if (new Set(us.map(u => u.label)).size > 1) P.push(`${id}: its arms on different arm A picks (${us.map(u => `${u.arm} ${u.label}`).join(', ')})`);
+    // B7-FACTORIALS.md: each household's arms on the menu the candidate takes for it, the same for both, recorded
+    if (us.some(u => !u.ran || !['anchors', 'whole'].includes(u.ran.menu))) P.push(`${id}: a unit's menu not recorded`);
+    else if (new Set(us.map(u => u.ran.menu)).size > 1) P.push(`${id}: its arms on different menus (${us.map(u => `${u.arm} ${u.ran.menu}`).join(', ')})`);
   }
   for (const u of read) {
     const want = u.arm === 'CANDW' ? 'on' : 'off';
@@ -69,6 +76,12 @@ export function read(units, ids) {
   const pool = f => { const ms = rows.map(r => f(r.p)); return { m: ms.reduce((x, v) => x + v.m, 0) / ms.length, se: Math.sqrt(ms.reduce((x, v) => x + v.se * v.se, 0)) / ms.length }; };
   return { rows, surv: pool(p => p.surv), spend: pool(p => p.spend), estate: pool(p => p.estate), losers: rows.filter(r => r.p.surv.m < -2 * r.p.surv.se && r.p.lost > 0).map(r => r.id) };
 }
+/* B7-FACTORIALS.md's verdict (b7-verdict.mjs): survival and spending, the panel (each household once) beyond 1.96 se and each
+   household by Holm, CANDW against CANDD */
+export function verdictOf(R) {
+  const hh = R.rows.map(({ id, a, b, p }) => ({ id, saved: p.saved, lost: p.lost, diffs: spendDiffs(dec(a, 'delivered', Float32Array), dec(b, 'delivered', Float32Array)) }));
+  return b7Verdict(hh, { surv: R.surv, spend: R.spend });
+}
 const f = (x, d = 3) => `${x >= 0 ? '+' : ''}${x.toFixed(d)}`;
 const SPLITS = ['the plan', 'pension then ISA', 'ISA', 'taxable'];
 export function report(R) {
@@ -88,8 +101,8 @@ function synth({ ids = ['H1', 'H2'], n = 400, lostOn = {}, ranAs = {}, drop = nu
     if (drop === `${id} ${arm}`) continue;
     const surv = new Uint8Array(n).fill(1), del = new Float32Array(n).fill(100), est = new Float32Array(n).fill(1000);
     if (arm === 'CANDW' && lostOn[id]) for (let k = 0; k < lostOn[id]; k++) surv[k] = 0;
-    units.push({ id, arm, inputs: 'i', target: 1, retireT: 0, Y: 2, depT: [3], rooms: [], stamp: { code: 'c', audit: 'a' }, seed: 7002, N: n, chosen: [[0, n, 0, 0]], after: [{}],
-      ran: { windfallSplit: arm === 'CANDW' ? 'on' : 'off', pts: 45, levels: [1], switchCharge: 0.001, raiseWeight: 0.003, failureShortfall: true, lambda: 1, ...(ranAs[`${id} ${arm}`] || {}) },
+    units.push({ id, arm, label: 'ISA First', landLabel: 'ISA First', inputs: 'i', target: 1, retireT: 0, Y: 2, depT: [3], rooms: [], stamp: { code: 'c', audit: 'a' }, seed: 7002, N: n, chosen: [[0, n, 0, 0]], after: [{}],
+      ran: { windfallSplit: arm === 'CANDW' ? 'on' : 'off', pts: 45, levels: [1], switchCharge: 0.001, raiseWeight: 0.003, failureShortfall: true, lambda: 1, menu: 'anchors', ...(ranAs[`${id} ${arm}`] || {}) },
       main: { survived: b64(surv), delivered: b64(del), estate: b64(est) } });
   }
   return units;
@@ -106,6 +119,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const R = read(synth({ lostOn: { H1: 8 } }), ['H1', 'H2']);
     ok(Math.abs(R.rows[0].p.surv.m + 2) < 1e-12 && R.rows[0].p.lost === 8 && Math.abs(R.surv.m + 1) < 1e-12 && R.rows[1].p.surv.m === 0, `known answer: 8 of 400 paths lost on H1 read as -2 points there (${R.rows[0].p.surv.m}), -1 on the panel (${R.surv.m}), none on H2`);
     ok(R.losers.includes('H1') && !R.losers.includes('H2'), 'the household losing beyond two se is named, the other not');
+    ok(gate(synth({ ranAs: { 'H1 CANDW': { menu: 'whole' } } }), ['H1', 'H2']).some(p => /H1: its arms on different menus/.test(p)), 'a household whose arms take different menus is refused (B7-FACTORIALS.md)');
+    ok(gate(synth({ ranAs: { 'H2 CANDD': { menu: undefined } } }), ['H1', 'H2']).some(p => /H2: a unit's menu not recorded/.test(p)), 'a unit with no menu recorded is refused');
+    ok(gate(synth().map(u => (u.id === 'H2' && u.arm === 'CANDD' ? { ...u, label: 'Bracket Fill' } : u)), ['H1', 'H2']).some(p => /H2: its arms on different arm A picks/.test(p)), 'a household whose arms ran on two arm A picks is refused (amendment 1)');
+    { const V = verdictOf(read(synth({ lostOn: { H1: 8 } }), ['H1', 'H2'])); ok(V.outcome === 'A HARM' && V.down.surv.join() === 'H1', `the verdict: 8 of 400 paths lost on H1 and none saved is A HARM on H1 (${V.outcome}; ${V.text})`); }
+    { const V = verdictOf(read(synth(), ['H1', 'H2'])); ok(V.outcome === 'NO EFFECT', `the verdict: nothing moving is NO EFFECT (${V.outcome})`); }
     console.log(bad ? `FAILED: ${bad}` : 'ALL PASS');
     process.exit(bad ? 1 : 0);
   }
@@ -123,7 +141,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (P.length) { console.log(`THE GATE REFUSES (${P.length}):\n${P.map(p => `  ${p}`).join('\n')}`); process.exit(1); }
   const u0 = units[0];
   console.log(`THE WINDFALL SPLIT ON THE CANDIDATE (EXPLORATORY): the gate: fair - ${ids.length} households in CANDD and CANDW, seed ${u0.seed}, ${u0.N} paths, one stamp (code ${u0.stamp.code}, audit ${u0.stamp.audit}), candidate ${u0.stamp.candidate}; runPolicy beside the engine: paths that differ ${units.reduce((x, u) => x + u.beside.engineOnly + u.beside.policyOnly, 0)} of ${units.reduce((x, u) => x + u.beside.N, 0)}`);
-  report(read(units, ids)).forEach(l => console.log(l));
+  const R = read(units, ids);
+  report(R).forEach(l => console.log(l));
+  { const menus = [...new Set(units.map(u => u.ran.menu))]; const V = verdictOf(R); console.log(`the menus taken: ${menus.map(m => `${m} on ${new Set(units.filter(u => u.ran.menu === m).map(u => u.id)).size} households`).join(', ')}${menus.includes('anchors') ? ' (on anchors the copies\' skip is not exact: B7-FACTORIALS.md)' : ''}`); console.log(`VERDICT (B7-FACTORIALS.md): ${V.outcome} (${V.text}): ${leadsTo(V.outcome)}`); }
   const secs = arm => units.filter(u => u.arm === arm).reduce((x, u) => x + u.solveSecs, 0);
   console.log(`The solve, CANDW against CANDD: ${(secs('CANDW') / 3600).toFixed(2)} and ${(secs('CANDD') / 3600).toFixed(2)} core-hours (x${(secs('CANDW') / secs('CANDD')).toFixed(2)}); the engine ${(units.reduce((x, u) => x + u.engineSecs, 0) / 3600).toFixed(2)} core-hours`);
 }

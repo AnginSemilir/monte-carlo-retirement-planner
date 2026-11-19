@@ -1,0 +1,19 @@
+THE ISA ALLOWANCE FIX'S REACH (D130 (1); EXPLORATORY, seed 7002, 1000 paths a plan, deciding nothing): the engine before the fix against the engine as fixed, each plan under its own rules; code 71fb4271c681
+a. Phase 4's panel, each household under arm A's own pick: 40 plans, 2 with a dated deposit or staged transfer into an ISA, 1 of them run differently on some path; the plans without one the same on every path: yes
+  survival, after less before, over the 2: the mean +0.000 points, the median +0.000, the lowest +0.000 (S090), the highest +0.000 (S090); losing more than a point 0, more than three 0; gaining more than a point 0; the mean terminal pot +£82 a path; the mean unmet spending -£14 a path
+  S090     its own pick, Windfall to ISA: survival 87.4% before, +0.000 points (0 saved, 0 lost of 1000); the terminal pot +£163 a path; unmet -£29 a path; paths run the same 654 of 1000
+b. the library's plans as entered: 420 plans, 0 with a dated deposit or staged transfer into an ISA, 0 of them run differently on some path; the plans without one the same on every path: yes
+c. the library's plans holding an Auto deposit, under Windfall to ISA: 210 plans, 210 with a dated deposit or staged transfer into an ISA, 68 of them run differently on some path; the plans without one the same on every path: yes
+  survival, after less before, over the 210: the mean +0.001 points, the median +0.000, the lowest -0.100 (S294), the highest +0.100 (S194); losing more than a point 0, more than three 0; gaining more than a point 0; the mean terminal pot -£1,595 a path; the mean unmet spending +£11 a path
+  S294     Windfall to ISA: survival 72.0% before, -0.100 points (0 saved, 1 lost of 1000); the terminal pot +£32,029 a path; unmet +£168 a path; paths run the same 0 of 1000
+  S002     Windfall to ISA: survival 99.9% before, +0.000 points (0 saved, 0 lost of 1000); the terminal pot -£3,270 a path; unmet +£0 a path; paths run the same 0 of 1000
+  S003     Windfall to ISA: survival 100.0% before, +0.000 points (0 saved, 0 lost of 1000); the terminal pot -£1,607 a path; unmet +£0 a path; paths run the same 0 of 1000
+  S014     Windfall to ISA: survival 99.5% before, +0.000 points (0 saved, 0 lost of 1000); the terminal pot -£4,065 a path; unmet +£0 a path; paths run the same 0 of 1000
+  S015     Windfall to ISA: survival 100.0% before, +0.000 points (0 saved, 0 lost of 1000); the terminal pot -£1,482 a path; unmet +£0 a path; paths run the same 0 of 1000
+  S018     Windfall to ISA: survival 99.9% before, +0.000 points (0 saved, 0 lost of 1000); the terminal pot -£1 a path; unmet +£0 a path; paths run the same 867 of 1000
+  S026     Windfall to ISA: survival 100.0% before, +0.000 points (0 saved, 0 lost of 1000); the terminal pot -£2,098 a path; unmet +£0 a path; paths run the same 0 of 1000
+  S027     Windfall to ISA: survival 100.0% before, +0.000 points (0 saved, 0 lost of 1000); the terminal pot -£655 a path; unmet +£0 a path; paths run the same 0 of 1000
+  S030     Windfall to ISA: survival 100.0% before, +0.000 points (0 saved, 0 lost of 1000); the terminal pot +£19 a path; unmet +£0 a path; paths run the same 769 of 1000
+  S038     Windfall to ISA: survival 100.0% before, +0.000 points (0 saved, 0 lost of 1000); the terminal pot -£2,766 a path; unmet +£0 a path; paths run the same 0 of 1000
+  S039     Windfall to ISA: survival 99.9% before, +0.000 points (0 saved, 0 lost of 1000); the terminal pot -£1,258 a path; unmet +£0 a path; paths run the same 0 of 1000
+  S042     Windfall to ISA: survival 98.7% before, +0.000 points (0 saved, 0 lost of 1000); the terminal pot -£1 a path; unmet +£0 a path; paths run the same 899 of 1000

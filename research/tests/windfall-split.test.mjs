@@ -93,7 +93,11 @@ const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light set
   // S090 again on 13 Nov (before: S090 9e5c0edb5552470b...): the tie-break above the estate cap joined the candidate (D95; D90 (1)), which moves a
   // single's forward runs above the cap and no table (the same pins and no others moved in the measurement of 12 Nov, results-stage-b-figures.txt;
   // with the candidate's margin set to nought this test passes on the figures before: results-tie-port.txt)
-  S090: 'b3cba73d08fe2c0b7f6f7769be977ab80bb079cc774d161cce204758d6d601a0',
+  // S090 again on 19 Nov (before: S090 b3cba73d08fe2c0b...): the ISA allowance in a deposit year (D130 (1), 675090f5). S090's own pick, Windfall
+  // to ISA, puts £20,000 of its Auto deposit into its ISA in plan year 4, which now counts against that year's allowance, so the year's own flows
+  // into the ISA read only the room it leaves; S026's and S040's pins hold. On the code before the fix (9d2b0a75)
+  // this test passes on the figures before, and on the fix S090's alone moves: results-isa-allowance-pins.txt
+  S090: 'bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac',
   [NODEP]: '1e2e0187a8f3ceaccb503e2d73febb4ae96bb158314d233085bb8c3efcdd393c'
 };
 const { tablesOf, digestOf } = await imp(ROOT, 'src/solverDigest.js');

@@ -23,7 +23,8 @@ NU=$(node research/solver/audit-household-hsp.mjs --units $LIST | tail -1)
 TODO=$(seq 0 $((NU - 1)) | while read -r k; do f="$OUT/case$k.txt"
   { [ -f "$f" ] && [ "$(head -1 "$f")" = "stamp: code $CODE audit $AUDIT prediction ${PREDICTION_FILE:-NOT-LAUNCHED} sha ${PREDICTION_SHA:--}" ] && grep -qE "^ +done unit $k secs " "$f"; } || echo "$k"; done)
 if [ "${TODO_ONLY:-0}" = 1 ]; then echo "stamp: code $CODE audit $AUDIT"; echo "todo: $(echo $TODO)"; exit 0; fi
-echo "STEP 8 ($MODE, the registered seed $HELD_SEED): $NU units (code $CODE, audit $AUDIT), $(printf '%s\n' $TODO | grep -c .) to run, ${JOBS:-4} at a time, from $(TZ=Europe/London date '+%d %b %H:%M') UK"
+case "$MODE" in pilot) ON="the pilot's seed, EXPLORATORY; the registered run's is $HELD_SEED" ;; *) ON="the registered seed $HELD_SEED" ;; esac
+echo "STEP 8 ($MODE, $ON): $NU units (code $CODE, audit $AUDIT), $(printf '%s\n' $TODO | grep -c .) to run, ${JOBS:-4} at a time, from $(TZ=Europe/London date '+%d %b %H:%M') UK"
 printf '%s\n' $TODO | grep . | xargs -P "${JOBS:-4}" -I{} sh -c \
   "research/solver/run-unit.sh node research/solver/audit-household-hsp.mjs $MODE part {}/$NU > $OUT/case{}.txt 2>&1 || echo \"unit {} exited \$?\""
 echo "STEP 8 ($MODE): runs done $(TZ=Europe/London date '+%d %b %H:%M') UK"

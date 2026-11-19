@@ -134,6 +134,16 @@ APP, each sending its unit to investigation without blocking on its own (D34 (3)
   - the sizing checks the pilot's code and runs its gate first;
   - it prints each unit's change and D34's chance of flagging it at the registered N;
   - the budget counts the 200 checked paths and one relaunch.
+  - **The first pilot's gate refused it** (19 Nov 02:36 to 03:13 UK, audit 2227dc534415; no outcome read). On S273's five
+    units, HSP's no-earnings pension limit was `18,624` (`21,591` on gap8), not twice one person's `3,600`. That is design
+    A as built: `householdPlanFor` raises the limit to the most a later retiree pays into a pension in a year
+    (`household.mjs`; `household.test.mjs` check 1 holds it at least doubled). The audit's own check before any path, which
+    compares HSP's plan with design A's as built, passed on every unit. The gate's check from the record wanted twice one
+    person's, so the fault was the gate's.
+  - **Fixed:** the record carries design A's entries, and the gate holds HSP's other doubled entries to them, and design A's
+    to one person's, with the no-earnings limit at least doubled (`reduce-household-hsp.mjs hspPlanProblems`). Four new
+    refusals each fire on a planted fault, and a unit with the limit raised as on S273 reads fair. The pilot then runs
+    again on the new stamp, the first kept aside unread (`results/household-hsp-pilot-1`).
 
 **The maintainer's, before the second round:**
 

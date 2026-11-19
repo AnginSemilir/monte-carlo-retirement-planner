@@ -55,9 +55,20 @@ export function loadDir(dir) {
 }
 /* HSP's plan entries from one person's, as part 1 prices them (HOUSEHOLD-REMEDY.md; audit-household-remedy.mjs scaleProblems):
    the allowance doubled, each SCALED limit 2 x PA + k x (L - PA), the cap k times one person's, every other entry doubled */
-export function hspPlanProblems(person, hsp, k) {
-  const pa = person.personalAllowance, want = key => (key === 'personalAllowance' ? 2 * pa : SCALED.includes(key) ? 2 * pa + k * (person[key] - pa) : key === 'pclsMaxCap' ? k * person[key] : 2 * person[key]);
-  return DOUBLED.filter(key => !(Math.abs(hsp[key] - want(key)) <= 1e-6 * Math.max(1, Math.abs(want(key))))).map(key => `${key} ${hsp[key]}, not ${want(key)}`);
+export function hspPlanProblems(person, hsp, k, asBuilt) {
+  // HSP's entries as part 1's (audit-household-remedy.mjs scaleProblems): the allowance doubled, each SCALED limit
+  // 2 x PA + k x (L - PA), the cap k times one person's, every other doubled entry design A's as built; and design A's own
+  // from one person's: each doubled, the no-earnings limit at least doubled (household.mjs raises it to the most a later
+  // retiree pays into a pension in a year; household.test.mjs check 1). The pilot's S273 units, whose later retiree pays
+  // more than the two limits, first showed the gate wanting twice one person's there.
+  const pa = person.personalAllowance, near = (x, y) => Math.abs(x - y) <= 1e-6 * Math.max(1, Math.abs(y));
+  const want = key => (key === 'personalAllowance' ? 2 * pa : SCALED.includes(key) ? 2 * pa + k * (person[key] - pa) : key === 'pclsMaxCap' ? k * person[key] : asBuilt[key]);
+  const P = DOUBLED.filter(key => !near(hsp[key], want(key))).map(key => `${key} ${hsp[key]}, not ${want(key)}`);
+  for (const key of DOUBLED) {
+    const two = 2 * person[key], ok = key === 'pensionNoEarningsLimit' ? asBuilt[key] >= two - 1e-6 * Math.max(1, two) : near(asBuilt[key], two);
+    if (!ok) P.push(`design A's ${key} ${asBuilt[key]}, not ${key === 'pensionNoEarningsLimit' ? 'at least ' : ''}${two}`);
+  }
+  return P;
 }
 /* the gate: refusals, each a line. `want` the panel's units (id, target, label, cohort, variant); `paths` id -> N, or null;
    `logs` the launch logs (file -> text), or null */
@@ -96,7 +107,8 @@ export function gate(units, want, { seed, prediction = null, audit = null, paths
       const safe = (f, what) => { try { return f(); } catch (e) { return [`${what} unreadable (${e.message})`]; } };
       for (const w of ['self', 'part', 'household']) for (const q of safe(() => wantProblems('CANDC', rec.settings[w], W, u.pts !== PTS), 'its settings line')) P.push(`${u.id} ${w}: ${q}`);
       for (const q of safe(() => shapesLineProblems(rec.lines.self, rec.lines.household, rec.lines.floor, rec.lines.houseFloorFrac, rec.lines.selfFloorFrac), 'household: its line against the first person\'s')) P.push(`${u.id}: ${q}`);
-      for (const q of hspPlanProblems(rec.plan.person, rec.plan.hsp, u.split.k)) P.push(`${u.id} HSP's plan: ${q}`);
+      if (!rec.plan || !rec.plan.asBuilt) P.push(`${u.id}: no record of design A's plan`);
+      else for (const q of safe(() => hspPlanProblems(rec.plan.person, rec.plan.hsp, u.split.k, rec.plan.asBuilt), 'its plan')) P.push(`${u.id} HSP's plan: ${q}`);
       if (!(Math.abs(rec.band.hsp - u.split.k * rec.band.person) < 1e-6)) P.push(`${u.id}: HSP's band for gains ${rec.band.hsp}, not k x ${rec.band.person}`);
     }
     for (const arm of ARMS) {
@@ -192,11 +204,14 @@ function planted() {
   { const want = [{ id: 'a', target: 1, label: 'x' }, { id: 'b', target: 1, label: 'x' }], k = 1 / 0.6;
     const person = Object.fromEntries(DOUBLED.map(key => [key, key === 'personalAllowance' ? 12570 : 50000]));
     const hsp = Object.fromEntries(DOUBLED.map(key => [key, key === 'personalAllowance' ? 2 * 12570 : SCALED.includes(key) ? 2 * 12570 + k * (50000 - 12570) : key === 'pclsMaxCap' ? k * 50000 : 100000]));
-    const mk = (id, n) => { const u = gainU(id); return { ...u, k: n, target: 1, label: 'x', seed: 9, W, pts: PTS, guard: { on: true }, stamp: { code: 'c', audit: 'a', prediction: 'p', node: 'n' }, record: { settings: { self: 'pts 45', part: 'pts 45', household: 'pts 45' }, lines: { self: 'pts 45 levels 1,0.8 minPot 0 tieAboveCap 0', household: 'pts 45 levels 1,0.8 minPot 0 tieAboveCap 0.0001', floor: 0, houseFloorFrac: 0.8, selfFloorFrac: 0.8 }, plan: { person: { ...person }, hsp: { ...hsp } }, band: { person: 37700, hsp: k * 37700 } }, arms: Object.fromEntries(ARMS.map(x => [x, { ...u.arms[x], config: configOf(x) }])) }; };
+    const asBuilt = Object.fromEntries(DOUBLED.map(key => [key, 2 * person[key]]));
+    const mk = (id, n) => { const u = gainU(id); return { ...u, k: n, target: 1, label: 'x', seed: 9, W, pts: PTS, guard: { on: true }, stamp: { code: 'c', audit: 'a', prediction: 'p', node: 'n' }, record: { settings: { self: 'pts 45', part: 'pts 45', household: 'pts 45' }, lines: { self: 'pts 45 levels 1,0.8 minPot 0 tieAboveCap 0', household: 'pts 45 levels 1,0.8 minPot 0 tieAboveCap 0.0001', floor: 0, houseFloorFrac: 0.8, selfFloorFrac: 0.8 }, plan: { person: { ...person }, hsp: { ...hsp }, asBuilt: { ...asBuilt } }, band: { person: 37700, hsp: k * 37700 } }, arms: Object.fromEntries(ARMS.map(x => [x, { ...u.arms[x], config: configOf(x) }])) }; };
     const log = (id, n, done = true) => `stamp: code c audit a prediction p sha -\nSTEP 8: unit ${n}/2: ${id} (lib, own), target 1\n${done ? `         done unit ${n} secs 5\n` : ''}`;
     const logsOf = (o = {}) => ({ 'case0.txt': log('a', 0, o.aDone !== false), ...(o.short ? {} : { 'case1.txt': log('b', 1) }) });
     const G = (mod, o = {}) => { const us = [mk('a', 0), mk('b', 1)]; if (mod) mod(us); return gate(us, want, { seed: 9, logs: logsOf(), ...o }).filter(x => !/^\S+ (self|part|household): |^\S+: (self|household): /.test(x)); };
     { const g0 = G(); cases.push(['the gate: the built units fair', g0.length ? `${g0.length}: ${g0.slice(0, 3).join(' | ')}` : '0', '0']); }
+    { const raised = us => { us[0].record.plan.asBuilt.pensionNoEarningsLimit = 120000; us[0].record.plan.hsp.pensionNoEarningsLimit = 120000; }, g1 = G(raised);
+      cases.push(["the gate: a unit whose later retiree pays more into a pension than the two no-earnings limits (design A's limit raised, HSP's the same) fair", g1.length ? `${g1.length}: ${g1.slice(0, 3).join(' | ')}` : '0', '0']); }
     const faults = [
       ['a unit missing', us => us.pop(), { logs: logsOf({ short: true }) }, /b: missing/],
       ['an arm missing', us => { delete us[0].arms.HSP; }, {}, /a HSP: missing/],
@@ -218,13 +233,17 @@ function planted() {
       ["a code not the panel's", null, { code: 'k' }, /not the code the panel was landed on/],
       ['no record of the solves', us => { delete us[0].record; }, {}, /a: no record of the solves/],
       ["HSP's plan not part 1's", us => { us[0].record.plan.hsp.basicBandLimit += 1; }, {}, /a HSP's plan: basicBandLimit/],
+      ["HSP's no-earnings limit not design A's raised one", us => { us[0].record.plan.asBuilt.pensionNoEarningsLimit = 120000; }, {}, /a HSP's plan: pensionNoEarningsLimit 100000, not 120000/],
+      ["design A's no-earnings limit below twice one person's", us => { us[1].record.plan.asBuilt.pensionNoEarningsLimit = 90000; us[1].record.plan.hsp.pensionNoEarningsLimit = 90000; }, {}, /b HSP's plan: design A's pensionNoEarningsLimit 90000, not at least 100000/],
+      ["design A's entry not twice one person's", us => { us[0].record.plan.asBuilt.pensionAnnualAllowance = 120000; us[0].record.plan.hsp.pensionAnnualAllowance = 120000; }, {}, /a HSP's plan: design A's pensionAnnualAllowance 120000, not 100000/],
+      ["no record of design A's plan", us => { delete us[0].record.plan.asBuilt; }, {}, /a: no record of design A's plan/],
       ["HSP's band for gains not k times one person's", us => { us[1].record.band.hsp = 37700; }, {}, /b: HSP's band for gains 37700/],
       ['a launch log short of the units', null, { logs: logsOf({ short: true }) }, /1 launch logs for 2 units/],
       ["a unit's log without its done line", null, { logs: logsOf({ aDone: false }) }, /a: 1 launch logs name it, without its done line/]
     ];
     const missed = faults.filter(([, mod, o, re]) => !G(mod, o).some(x => re.test(x))).map(([n]) => n);
     cases.push([`the gate: every refusal on its planted fault (${faults.length})`, missed.join(', ') || 'all fire', 'all fire']);
-    cases.push(['HSP\'s plan from one person\'s: none for part 1\'s entries, the cap at twice one person\'s refused', `${hspPlanProblems(person, hsp, k).length} ${hspPlanProblems(person, { ...hsp, pclsMaxCap: 100000 }, k).map(x => x.split(' ')[0]).join(',')}`, '0 pclsMaxCap']); }
+    cases.push(['HSP\'s plan from one person\'s: none for part 1\'s entries, the cap at twice one person\'s refused', `${hspPlanProblems(person, hsp, k, asBuilt).length} ${hspPlanProblems(person, { ...hsp, pclsMaxCap: 100000 }, k, asBuilt).map(x => x.split(' ')[0]).join(',')}`, '0 pclsMaxCap']); }
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED: ${bad} of ${cases.length} FAILED` : `PLANTED: ALL PASS (${cases.length})`);

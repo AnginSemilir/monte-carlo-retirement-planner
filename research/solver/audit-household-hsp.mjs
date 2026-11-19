@@ -249,7 +249,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const record = {
     settings: { self: settingsOf(k2.tables.self), part: settingsOf(k2.tables.part), household: settingsOf(house.H) },
     lines: { self: lineOf(k2.tables.self), household: lineOf(house.H), floor: k2.m.ctx.solvencyFloor || 0, houseFloorFrac: k2.m.ctx.floorFrac || 0, selfFloorFrac: shareFloorFrac(hp, k2.share) },
-    plan: { person: Object.fromEntries(DOUBLED.map(key => [key, E.num(cfgOne[key], E.DEFAULT_CONFIG[key])])), hsp: Object.fromEntries(DOUBLED.map(key => [key, house.hplan.config[key]])) },
+    plan: { person: Object.fromEntries(DOUBLED.map(key => [key, E.num(cfgOne[key], E.DEFAULT_CONFIG[key])])), hsp: Object.fromEntries(DOUBLED.map(key => [key, house.hplan.config[key]])),
+      asBuilt: (cfgA => Object.fromEntries(DOUBLED.map(key => [key, cfgA[key]])))(householdPlanFor(E, hp).config) },   // design A's as built: HSP's other doubled entries are its (the pilot's S273 units)
     band: { person: k2.m.ctx.P.cgtBandWidth, hsp: house.H.m.ctx.P.cgtBandWidth }
   };
   writeFileSync(join(OUT, fileOf(U.id)), gzipSync(js({ k: pk, id: U.id, couple: U.couple, base: U.base, cohort: U.cohort, place: U.place, variant: U.variant, feature: U.feature, target: U.target, label: a.label, seed, N: n, warm: WARM, pts, W, stamp: STAMP, configs: Object.fromEntries(ARMS.map(x => [x, configOf(x)])), joint: JOINT, order, digests: before, share: k2.share, split: { s: sp.s, k: sp.k }, guard, caps: [k2.tables.self.estateCap || 0, k2.tables.part.estateCap || 0], houseCap: house.H.estateCap, solvencyFloor: k2.m.ctx.solvencyFloor, T, beside, record, arms })));

@@ -11,6 +11,20 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**RULED (D130, 19 Nov, morning: "Proceed"): the agent's seven recommendations after D129's queue, in this order.**
+1. **The engine's ISA defect, fixed first:** a dated deposit or staged drip into an ISA counted against that year's
+   subscription, in the engine, the exact model and the forward run, with a test of its class shown failing; sized on the
+   library; to `main` with the next batch on B1's gate. Step 8's panel is then landed again on the fixed code.
+2. **Step 8 held; HSP and HSP with the personal allowance at `k`** read by step 8's own rule on the lead test's 28 units and
+   step 5's 28 shapes (EXPLORATORY, seed 7002, the fixed code), its rule committed first. Step 8 is registered on the arm
+   that passes on every unit, or comes back with the units that flag.
+3. **D80 lifted for the household table alone** (its tie-break kept).
+4. **Seed 7024** reserved when the registration goes to its second design review.
+5. **The guard kept as built**, so D129 (5)'s words on the couples card go with the next batch.
+6. **The windfall split closed**, no v2.
+7. **The savings split's v2**, a registered test, after step 8; its registration drafted while step 8 runs.
+- **Unlocks:** "Proceed" does not open the hook; each protected edit or moved pin in a fast-tier test is asked for by name.
+
 **RULED (D129, 18 Nov, evening: "Go ahead. Add the windfall and savings tests to the end"): the agent's seven
 recommendations after D128, in this order, then B7's two factorials at the end.** Each run is EXPLORATORY on seed 7002,
 its rule committed before it runs; none changes anything in the app on its own.

@@ -27,8 +27,9 @@ below this section says "the beta", read it as history. The order from here:
    that passes on every unit, or comes back with the units that flag.
    - **UNDER WAY:** HSPA built off in code (`household.mjs` `scale: 'pensionsPA'`; `household.test.mjs` (10d), its plant
      `pakdouble`). The rule is `HOUSEHOLD-ARM.md`, committed before any unit runs, with `audit-household-arm.mjs`,
-     `reduce-household-arm.mjs` (its planted checks) and `batch-household-arm.sh`. Every unit is run through the gate at
-     smoke settings first, then the launch: about five hours on four cores.
+     `reduce-household-arm.mjs` (its planted checks) and `batch-household-arm.sh`. Every unit was run through the gate at
+     smoke settings first. **Launched** 19 Nov 08:37 UK through the launcher (task bm4u4jfjz, its log
+     `results/household-arm-launch-1.log`; code 71fb4271c681, audit b5a75b884258): about five hours on four cores.
 3. **D80 lifted for the household table alone** (its tie-break kept).
 4. **Seed 7024** reserved when the registration goes to its second design review.
 5. **The guard kept as built**, so D129 (5)'s words on the couples card go with the next batch.
@@ -36,6 +37,12 @@ below this section says "the beta", read it as history. The order from here:
      (the words before), to fail at the next gate.
 6. **The windfall split closed**, no v2.
 7. **The savings split's v2**, a registered test, after step 8; its registration drafted while step 8 runs.
+   - **Its design drafted** (`SAVE-V2.md`, DRAFT, not run). Three choices are yours, each with the agent's
+     recommendation: the pair on anchors (the menu that would ship) beside the whole menu, a harm there coming back before
+     any change of default; how many households (Phase 4 took 40); and the spending bar in the rule (no household's
+     lifetime spending lower beyond noise by more than `0.1%`, which S308F's `-0.250%` would fail). Its seed, 7025 by the
+     next free number, needs your unlock of `check-prediction.mjs` by name when the registration goes to its design
+     review.
 - **Unlocks:** "Proceed" does not open the hook; each protected edit or moved pin in a fast-tier test is asked for by name.
 
 **RULED (D129, 18 Nov, evening: "Go ahead. Add the windfall and savings tests to the end"): the agent's seven

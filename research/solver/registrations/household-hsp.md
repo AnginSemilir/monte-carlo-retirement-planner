@@ -1,9 +1,12 @@
 # Registration: the household plan priced at the pensions' split against today's couples' default (D129 (3); STEP8.md)
 
 DRAFT (19 Nov), after the first design review (`reviews/2026-11-19-household-hsp-design.md`: FAIL, three BLOCKING and
-seven MINOR). Paths, Budget and the pilot's figures are filled from the pilot and the sizing. Its fields still in `<...>`
-wait on the maintainer's rulings (BLOCKING 1 and 3 and the seed's reservation, `STEP8.md`), the launch's stamp and the second
-design review. The launcher's check refuses it until each is
+seven MINOR). Paths, Budget and the pilot's figures are filled from the pilot and the sizing. BLOCKING 1 and 3 are ruled
+(D130 (2) and (3), 19 Nov): step 8 is registered on the arm that passes the arm read (`HOUSEHOLD-ARM.md`, HSP or HSPA by
+this registration's own rule on 56 units, EXPLORATORY), and the household table keeps the candidate's tie-break above the
+cap. Its fields still in `<...>` wait on that read, the seed's reservation at the second design review (D130 (4)), the
+launch's stamp and the second design review. The panel, the pilot and the sizing are taken again on the code with the ISA
+allowance fixed (675090f5; D130 (1)). The launcher's check refuses it until each is
 filled. Then the design review again, then the maintainer before launch (D129 (3)). Read once, by
 `research/solver/reduce-household-hsp.mjs`, after its gate. Launched only as
 `PREDICTION=research/solver/registrations/household-hsp.md research/solver/run-from-snapshot.sh bash research/solver/batch-household-hsp.sh`,
@@ -21,14 +24,15 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     (`results-shapes.txt`), the decomposition (`results-household-decomp.txt`) and the remedy's read
     (`results-household-remedy.txt`: HSP MENDS by its rule; read by this registration's own rule it FAILS on S191-90,
     flagged by D34 at 25 paths against a threshold of 23: the design review's BLOCKING 1).
-- **Arms:** APP `ef459a5c8ccb`, K2 `21ca0ea6a7f0`, HSP `dd698f0bcb93` with the candidate's tie-break above the cap `<the maintainer's ruling on D80: with it, or without it and a new hash>` (`audit-household-hsp.mjs` `configOf`)
+- **Arms:** APP `ef459a5c8ccb`, K2 `21ca0ea6a7f0`, HSP `dd698f0bcb93` with the candidate's tie-break above the cap, D80 lifted for the household table alone (D130 (3)) `<or HSPA e7913cca6fcd, the arm the arm read takes>` (`audit-household-hsp.mjs` `configOf`)
   - **APP:** arm A, the app's withdrawal-policy search on the couple's plan, without the tournament (D36).
   - **K2:** today's couples' default as the app solves a couple: each person's table at the couples' candidate
     (`COUPLES_CANDIDATE`, 45 points, weight 0.02), the joint move `JOINT` (the pots' share, D99; LOOKHOLD, D109), arm A's
     MPAA ages. The lead test's K2.
   - **HSP:** one household table at the candidate 17ff82379838, its plan `householdPlanFor` with `scale: 'pensions'`, the
     move at the even split: the remedy's read's HSP. Its table carries the candidate's tie-break above the cap, as every
-    read of the household plan ran it; D80 keeps a tie-break out of any registered couples' arm (BLOCKING 3).
+    read of the household plan ran it. D80 kept a tie-break out of any registered couples' arm (BLOCKING 3); D130 (3) lifts it
+    for the household table alone, its tie-break kept.
 - **Households:** the panel `household-hsp-panel.json` (`results-household-hsp-panel.txt`): eight couples, five units each, 40 units, every one inside today's guard
   - **Couples:** the library's S025, S193, S273 and S027 (D4's library order, first person older than 44; S111 passed over,
     its own plan not landing) and the younger cohort's S349F, S351F, S355F and S357F (first person 44 or under, each
@@ -46,7 +50,7 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
   - Beside it: spending delivered, the pot left and lifetime tax.
   - The couples' rollout runs beside the engine on K2's first 500 paths; a path the two score differently is a fidelity gap,
     reported. HSP has no rollout of its own beside the engine: its table's move is executed by the engine alone.
-- **Decision rule:** HSP against K2 over the 40 units; it passes if all three hold `<and the maintainer's ruling on BLOCKING 1: (a) step 8 held, (b) S191-90 a named replication unit whose flag fails the run, or (c) a pass read as advice and not a change of default>`
+- **Decision rule:** HSP against K2 over the 40 units; it passes if all three hold (BLOCKING 1, ruled by D130 (2): step 8 held until the arm read, and registered on the arm that passes this rule on its 56 units `<the arm read's outcome>`)
   1. **no harm:** no unit flagged by D34's harm rule (`reduce-couples.mjs harmOf`): the loss in survival (paths K2 keeps
      and HSP loses, less those HSP saves) above the threshold its realised discordance sets, compared in whole paths
      (`reduce-share-rules.mjs harmExact`);

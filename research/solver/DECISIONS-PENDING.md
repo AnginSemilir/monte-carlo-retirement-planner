@@ -64,13 +64,16 @@ below this section says "the beta", read it as history. The order from here:
 6. **The windfall split closed**, no v2.
 7. **The savings split's v2**, a registered test, after step 8; its registration drafted while step 8 runs.
    - **Its design drafted** (`SAVE-V2.md`, DRAFT, not run), and its registration drafted while step 8 runs
-     (`registrations/save-v2.md`, DRAFT: its fields in `<...>` wait on your three choices, the panel, the pilot and the
-     sizing after step 8, the seed and its design review). Three choices are yours, each with the agent's
-     recommendation: the pair on anchors (the menu that would ship) beside the whole menu, a harm there coming back before
-     any change of default; how many households (Phase 4 took 40); and the spending bar in the rule (no household's
-     lifetime spending lower beyond noise by more than `0.1%`, which S308F's `-0.250%` would fail). Its seed, 7025 by the
-     next free number, needs your unlock of `check-prediction.mjs` by name when the registration goes to its design
-     review.
+     (`registrations/save-v2.md`, DRAFT).
+   - **RULED (D133, 19 Nov, night), each as the agent recommended:** the library has no held-out pool of single savers
+     (of its 90, 27 were the factorial's, 58 touched by other runs, 5 untouched and none of them younger:
+     `results-save-v2-pool.txt`), so v2 draws on the 63 no run has taken the split on, held out for this question and
+     not from every run; 40 of them (the younger cohort's 10 and 30 of the 53 older); the pair on anchors beside on each
+     household's first `4,000` paths, a household flagged there coming back before any change of default; the spending
+     bar `0.1%`.
+   - **Next:** its machinery built while step 8 runs (nothing heavy run); the panel, the pilot and the sizing when the
+     cores are free; seed 7025's reservation, your unlock of `check-prediction.mjs` by name, asked for when the
+     registration goes to its design review.
 - **Unlocks:** "Proceed" does not open the hook; each protected edit or moved pin in a fast-tier test is asked for by name.
 
 **RULED (D129, 18 Nov, evening: "Go ahead. Add the windfall and savings tests to the end"): the agent's seven

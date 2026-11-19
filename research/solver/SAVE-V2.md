@@ -2,8 +2,8 @@
 
 DRAFT, written while step 8's arm read runs, and not run. D130 (7) places the test after step 8, on the fixed engine and
 the whole menu, with each household's working-year choices recorded with their tiers, and has its registration drafted
-while step 8 runs. The choices marked **for the maintainer** are open; everything else follows a design already used
-(Phase 4, the couples' tests, step 8).
+while step 8 runs. Its three open choices, and the panel's source, were ruled on 19 Nov (D133), each as the agent
+recommended; everything else follows a design already used (Phase 4, the couples' tests, step 8).
 
 ## Why
 
@@ -28,23 +28,31 @@ candidate as it stands (survival first, then spending), with no harm to any hous
 Each scored by the engine on the same paths of the held-out seed, at 45 points and the estate weight `0.02`:
 - **CANDD:** the candidate as it stands (17ff82379838), on the whole menu.
 - **CANDS:** the same with `saveSplit: true` (`SAVINGS-SPLIT.md`), on the whole menu.
-- **For the maintainer, beside or in the rule:** the same two on anchors, the menu the candidate ships with
-  (`coarseWhereFits`).
-  - On the whole menu the test measures the split itself.
-  - What would ship is the split on anchors.
-  - The agent's recommendation: the whole menu decides, as D130 (7) says. The pair on anchors runs beside on the first
-    `4,000` paths, and a household harmed there by D34's rule comes back before any change of default.
+- **Beside, deciding nothing in the rule (D133 (3)):** the same two on anchors, the menu the candidate ships with
+  (`coarseWhereFits`), CANDDA and CANDSA, on each household's first `4,000` paths.
+  - On the whole menu the test measures the split itself; what would ship is the split on anchors.
+  - A household flagged on anchors by D34's rule (at its `4,000` paths) comes back to the maintainer before any change of
+    default.
 
 ## Households
 
-- **Who:** single households who work and save into a pension or an ISA, none touched by any earlier run
-  (`held-out.mjs` `touchedAll` on the day).
-  - Half from the library, retiring at their plan's age.
-  - Half from the younger cohort, retiring at 52 before their pensions open: where the factorial put the saving ISA first,
-    and where S308F's harm lay.
+- **The pool, as it stands** (`results-save-v2-pool.txt`, EXPLORATORY, no path run; the scan frozen for step 8 on 19 Nov):
+  the library holds 90 single households who work and save into a pension or an ISA. 27 were the factorial's panel, 58
+  were touched by other runs, and 5 are untouched: S216 (aged 55) and S254, S266, S274 and S298 (aged 45). None of the
+  younger cohort is untouched. So a panel held out from every run, half of it younger, cannot be drawn.
+- **Who (D133 (1)):** the 63 single savers no run has taken the split on: the factorial's 27 left out, and
+  `save-split.test.mjs`'s households (S026, S090, S188, S204, S244, S260; the four that save are among the 27).
+  - Held out for this question: no run has measured the split on any of them.
+  - Not held out from every run: 58 of them were touched by other runs, and S224, S248 and S330 among them helped tune
+    the candidate itself, which both arms share.
+  - The younger cohort (44 or under, retiring at 52 before their pensions open, where the factorial put the saving ISA
+    first and where S308F's harm lay): its 10 in the pool.
+  - The library cohort (older than 44, retiring at their plan's age): 53 in the pool.
+- **How many (D133 (2)):** 40. The younger cohort's 10, and 30 of the 53 older taken evenly in library order, the rest in
+  library order as reserves. The younger cohort is walked first; an older household fills any younger place that does not
+  land (Phase 4's rule).
 - **Landing:** each landed so arm A survives 85 +/- 1% on `1,000` paths of seed 7005 (Phase 4's procedure, D35). The arms
   compare the candidate with itself, so the landing only places each household where survival can move both ways.
-- **How many:** for the maintainer. Phase 4 took 40; the sizing below gives the cost.
 
 ## Recorded
 
@@ -54,7 +62,7 @@ Each scored by the engine on the same paths of the held-out seed, at 45 points a
 - the pots at the top of the first retired year;
 - each arm held to `E.runTrial` on its first `200` paths, and `runPolicy` beside the engine.
 
-## The rule (for the design review; its numbers for the maintainer)
+## The rule (its bar ruled, D133 (4))
 
 CANDS against CANDD over the panel. It passes if all three hold:
 1. **no harm:** no household flagged by D34's harm rule on survival, compared in whole paths (`harmExact`);

@@ -1,0 +1,14 @@
+THE SAVINGS SPLIT'S v2, THE POOL (EXPLORATORY, no path run): the library's single households who work and save into a pension or an ISA
+the scan: step 8's, frozen 2026-11-19T00:49:25.436Z (household-hsp-orders.json: 318 ids touched, hash acedff4811b5); the factorial's panel: 27 households (Phase 4's working savers)
+
+THE LIBRARY COHORT (older than 44, retiring at their plan's age): 60 who save; stages near (age 55), mid (age 45)
+  in the factorial's panel: 7 (S188, S204, S228, S244, S260, S272, S290)
+  touched by an earlier run, the split never run on it: 48 (S180, S182, S184, S186, S190, S192, S194, S196, S198, S200, S202, S206, S208, S210, S212, S214, S218, S220, S222, S224, S226, S230, S232, S234, S236, S238, S240, S242, S246, S248, S250, S252, S256, S258, S262, S264, S268, S270, S276, S278, S280, S282, S284, S286, S288, S292, S294, S296)
+  untouched: 5 (S216, S254, S266, S274, S298)
+
+THE YOUNGER COHORT (44 or under, retiring at 52): 30 who save; stages far (age 37)
+  in the factorial's panel: 20 (S304, S306, S308, S310, S314, S316, S320, S322, S326, S328, S332, S334, S338, S340, S344, S346, S350, S352, S356, S358)
+  touched by an earlier run, the split never run on it: 10 (S300, S302, S312, S318, S324, S330, S336, S342, S348, S354)
+  untouched: 0 (none)
+
+IN ALL: 90 who save; 27 in the factorial's panel, 58 touched elsewhere, 5 untouched

@@ -133,4 +133,4 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
   - The run passes the task's 12-hour limit once: that window is relaunched under `RESUME=1`, each unit done kept and each
     unfinished one resumed from its saved chunks.
 - **The launch:** `<the stamp: code 71fb4271c681 audit <audit-household-hsp.mjs stampFilesHash> at the launch commit>` (filled by hand at the launch commit: `check-prediction.mjs` does not read this field, the second design review's MINOR 4)
-- **Design review:** research/solver/reviews/2026-11-19-household-hsp-design-2.md (the second round: PASS, four MINOR, each answered before the launch commit, `STEP8.md`; the first round: `reviews/2026-11-19-household-hsp-design.md`, FAIL)
+- **Design review:** research/solver/reviews/2026-11-19-household-hsp-design-3.md (the third look, at the second round's answers: PASS, two MINOR; the second round: `reviews/2026-11-19-household-hsp-design-2.md`, PASS, four MINOR, each answered (`STEP8.md`); the first round: `reviews/2026-11-19-household-hsp-design.md`, FAIL)

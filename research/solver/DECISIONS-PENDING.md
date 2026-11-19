@@ -47,7 +47,13 @@ below this section says "the beta", read it as history. The order from here:
      preflight, two paths of seed 7002); under a PASS each unit M1 names goes to you with the read before the default
      changes; the gate's re-checks gain planted cases on a real record; the launch stamp is filled by hand. The edits move
      the audit's stamp, so the pilot runs again on the final files and the Budget is taken from it.
-   - **Seed 7024 reserved** under your unlock (D131, 744eee1a); the registration complete by `check-prediction.mjs`. Before the launch: the preflight of the 25 units the pilot did not run, the pilot again on the final files and the Budget from it. **Yours, then:** the launch (D129 (3)).
+   - **Seed 7024 reserved** under your unlock (D131, 744eee1a). Done since: the preflight (the 25 units, none refused), the
+     pilot again on the final files (its arrays the same as before the edits), the Budget (54.5 core-hours, about 14.8
+     hours on four cores, one relaunch at the 12-hour limit), and the reviewer's third look at the second round's answers,
+     PASS, two MINOR (`reviews/2026-11-19-household-hsp-design-3.md`: the Design review line fixed; eight of the gate's
+     refusals without a planted case, each correct by inspection, left as they are before the launch on its advice).
+     `registrations/household-hsp.md` is complete but for the launch stamp, filled by hand at the launch commit.
+   - **Yours:** the launch (D129 (3)): through the launcher from a worktree at the launch commit, about 15 hours.
 3. **D80 lifted for the household table alone** (its tie-break kept).
 4. **Seed 7024** reserved when the registration goes to its second design review.
 5. **The guard kept as built**, so D129 (5)'s words on the couples card go with the next batch.

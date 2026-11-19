@@ -230,6 +230,18 @@ Done before the launch commit:
 Because the answers changed the registration's Outcomes and its gate after the pilot was read, they go back to the reviewer
 for a check of exactly those answers (`reviews/2026-11-19-household-hsp-design-3.md`), as the registration's own rule asks.
 
+**The third look** (`reviews/2026-11-19-household-hsp-design-3.md`): PASS, two MINOR. Each of the four answers does what the
+second round asked and nothing else in the design moved; the re-run pilot equals the run before the edits (0 of 465 arrays
+and fields differ), and the sizing recomputes as the registration states.
+1. **The Design review line named the second round's file first**, the one `check-prediction.mjs` reads: it now names this
+   look's (a field the registration lets change after the pilot).
+2. **Eight of the gate's refusals have no planted case:** an extra unit; more than one prediction, Node version or seed; a
+   unit off the given seed, estate weight or points; the audit stamp not these files'. Removing any one leaves `--planted`
+   at ALL PASS, so the registration's "each refusal has its planted case" is too broad there. Each is present and correct
+   by inspection, and the audit-stamp refusal fired live on the pilot (the sizing rewrites `household-hsp-paths.json`, one
+   of the stamp's files, after the pilot runs). The reviewer advises no change before the launch: the read is frozen at the
+   launch commit, and the sentence is outside the fields the registration lets change. It is said here for the maintainer.
+
 ## Box
 
 A day to build, land, pilot and size (from 19 Nov 01:00 UK). Then the design reviewer, then the maintainer before launch.

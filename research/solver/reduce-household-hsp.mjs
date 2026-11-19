@@ -9,10 +9,13 @@
  *   1. NO HARM: no unit flagged by D34's harm rule (reduce-couples.mjs harmOf: the loss over the unit's paths against the
  *      threshold its realised discordance sets), the loss and the threshold compared in whole paths (reduce-share-rules.mjs
  *      harmExact);
- *   2. A GAIN: the pooled survival change (stats.mjs survivalChange on the units' cells summed) with its 95% interval's lower
- *      end above nought;
- *   3. SPENDING: pooled spending delivered on the paths both keep (reduce-household.mjs spendOn) not lower than K2's by more
- *      than 0.05%.
+ *   2. A GAIN: the pooled survival change with its 95% interval's lower end above nought, the interval by path
+ *      (reduce-phase4.mjs survivalItem: each path's change averaged over the units, as the confirmatory reads take it; every
+ *      unit runs the same paths, so cells summed over the units would read them as independent: the design review's
+ *      BLOCKING 2);
+ *   3. SPENDING: pooled spending delivered on the paths both keep, each unit's change in percent of K2's mean on those paths,
+ *      the units weighted equally (keptSpend, its interval by path), its point estimate not lower than -0.05% (the design
+ *      review's MINOR 8: weighted by pounds two units carried 55%).
  * PASS if all three hold, else FAIL with the parts that fail. The pot's ruling (D116, M1) is in the rule as given: a smaller
  * pot left is not a harm where HSP keeps more paths and delivers no less spending; the pot is recorded, capped at the two
  * people's estate caps and in pounds a path, and is not a bar. M1 is read unit by unit as well (the remedy's reviewer,
@@ -30,9 +33,13 @@ import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { survivalChange } from './stats.mjs';
+import { survivalItem, byPath } from './reduce-phase4.mjs';
 import { harmExact } from './reduce-share-rules.mjs';
 import { cells, spendOn } from './reduce-household.mjs';
 import { requireFairLogs } from './fair-gate.mjs';
+import { wantProblems } from './audit-couples.mjs';
+import { shapesLineProblems } from './audit-shapes.mjs';
+import { DOUBLED, SCALED } from './household.mjs';
 import { ARMS, KEYS, SEED, PILOT_SEED, PTS, W, REGISTRATION, PATHS_FILE, configOf, stampFilesHash, pilotUnits } from './audit-household-hsp.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -46,12 +53,24 @@ export const armOf = x => ({ ...x, ...Object.fromEntries(Object.entries(KEYS).ma
 export function loadDir(dir) {
   return readdirSync(dir).filter(x => /\.json\.gz$/.test(x)).map(x => { const U = JSON.parse(gunzipSync(readFileSync(join(dir, x))).toString()); for (const a of ARMS) if (U.arms[a]) U.arms[a] = armOf(U.arms[a]); return U; });
 }
-/* the gate: refusals, each a line. `want` the panel's units (id, target, label, cohort, variant); `paths` id -> N, or null */
+/* HSP's plan entries from one person's, as part 1 prices them (HOUSEHOLD-REMEDY.md; audit-household-remedy.mjs scaleProblems):
+   the allowance doubled, each SCALED limit 2 x PA + k x (L - PA), the cap k times one person's, every other entry doubled */
+export function hspPlanProblems(person, hsp, k) {
+  const pa = person.personalAllowance, want = key => (key === 'personalAllowance' ? 2 * pa : SCALED.includes(key) ? 2 * pa + k * (person[key] - pa) : key === 'pclsMaxCap' ? k * person[key] : 2 * person[key]);
+  return DOUBLED.filter(key => !(Math.abs(hsp[key] - want(key)) <= 1e-6 * Math.max(1, Math.abs(want(key))))).map(key => `${key} ${hsp[key]}, not ${want(key)}`);
+}
+/* the gate: refusals, each a line. `want` the panel's units (id, target, label, cohort, variant); `paths` id -> N, or null;
+   `logs` the launch logs (file -> text), or null */
 export function gate(units, want, { seed, prediction = null, audit = null, paths = null, code = null, logs = null, pts = PTS } = {}) {
   const P = [], byId = Object.fromEntries(units.map(u => [u.id, u]));
   for (const w of want) if (!byId[w.id]) P.push(`${w.id}: missing`);
   for (const u of units) if (!want.some(w => w.id === u.id)) P.push(`${u.id}: not a unit of the panel`);
-  if (logs !== null && logs !== units.length) P.push(`${logs} launch logs for ${units.length} units`);
+  if (logs !== null) {
+    const texts = Object.values(logs);
+    if (texts.length !== units.length) P.push(`${texts.length} launch logs for ${units.length} units`);
+    // each unit's own log: its number and id on its first line after the stamp, its done line (MINOR 6: not a count alone)
+    for (const u of units) { const own = texts.filter(t => new RegExp(`unit ${u.k}/\\d+: ${u.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} `).test(t)); if (own.length !== 1 || !new RegExp(`^ +done unit ${u.k} secs `, 'm').test(own[0])) P.push(`${u.id}: ${own.length} launch logs name it${own.length === 1 ? ', without its done line' : ''}`); }
+  }
   const one = (what, g) => { const vs = [...new Set(units.map(g))]; if (vs.length > 1) P.push(`more than one ${what}: ${vs.join(', ')}`); };
   one('code', u => u.stamp.code); one('audit', u => u.stamp.audit); one('prediction', u => u.stamp.prediction); one('Node version', u => u.stamp.node); one('seed', u => u.seed); one('estate weight', u => u.W); one('points', u => u.pts);
   if (units.some(u => u.seed !== seed)) P.push(`a unit is not on seed ${seed}`);
@@ -69,6 +88,17 @@ export function gate(units, want, { seed, prediction = null, audit = null, paths
     if (u.label !== w.label) P.push(`${u.id}: arm A's pick ${u.label}, not the landing's ${w.label}`);
     if (!u.guard || !u.guard.on) P.push(`${u.id}: the app's guard off (${u.guard && u.guard.why})`);
     if (!(u.split && u.split.s >= 0.5 - 1e-12 && u.split.s <= 1 + 1e-12 && Math.abs(u.split.k - 1 / u.split.s) < 1e-12)) P.push(`${u.id}: HSP's k ${u.split && u.split.k}, not 1 / s for s in 0.5 to 1`);
+    // the record checked again (MINOR 6): each table's settings, the household line against the first person's, HSP's plan,
+    // its band for gains
+    const rec = u.record;
+    if (!rec) P.push(`${u.id}: no record of the solves`);
+    else {
+      const safe = (f, what) => { try { return f(); } catch (e) { return [`${what} unreadable (${e.message})`]; } };
+      for (const w of ['self', 'part', 'household']) for (const q of safe(() => wantProblems('CANDC', rec.settings[w], W, u.pts !== PTS), 'its settings line')) P.push(`${u.id} ${w}: ${q}`);
+      for (const q of safe(() => shapesLineProblems(rec.lines.self, rec.lines.household, rec.lines.floor, rec.lines.houseFloorFrac, rec.lines.selfFloorFrac), 'household: its line against the first person\'s')) P.push(`${u.id}: ${q}`);
+      for (const q of hspPlanProblems(rec.plan.person, rec.plan.hsp, u.split.k)) P.push(`${u.id} HSP's plan: ${q}`);
+      if (!(Math.abs(rec.band.hsp - u.split.k * rec.band.person) < 1e-6)) P.push(`${u.id}: HSP's band for gains ${rec.band.hsp}, not k x ${rec.band.person}`);
+    }
     for (const arm of ARMS) {
       const A = u.arms[arm];
       if (!A) { P.push(`${u.id} ${arm}: missing`); continue; }
@@ -78,11 +108,28 @@ export function gate(units, want, { seed, prediction = null, audit = null, paths
   }
   return P;
 }
-/* HSP against a base over the units: each unit's harm (D34, in whole paths) and change, the pooled change and spending */
+/* spending on the paths both keep, each unit's change in percent of the base's mean on those paths, the units weighted
+   equally, its interval by path: a unit's change on path i scaled by n over its kept count, so that its mean over every path
+   is its own figure, then averaged over the units path by path (reduce-phase4.mjs byPath) */
+export function keptSpend(units, base, arm, n) {
+  return byPath(units.map(u => {
+    const b = u.arms[base], x = u.arms[arm], kept = []; for (let i = 0; i < n; i++) if (b.survived[i] && x.survived[i]) kept.push(i);
+    const mb = kept.reduce((t, i) => t + b.delivered[i], 0) / (kept.length || 1), z = new Float64Array(n);
+    for (const i of kept) z[i] = (n / kept.length) * 100 * (x.delivered[i] - b.delivered[i]) / (mb || 1);
+    return i => z[i];
+  }), n);
+}
+/* the pooled survival change as cells summed over the units would read it (each unit independent): printed beside, never
+   decided on */
+export const summedCells = rows => survivalChange(sum(rows.map(r => r.cells.lost)), sum(rows.map(r => r.cells.saved)), sum(rows.map(r => r.cells.N)));
+/* HSP against a base over the units: each unit's harm (D34, in whole paths) and change, the pooled change and spending, both
+   by path over the units' common paths */
 export function compare(units, base, arm = 'HSP') {
-  const rows = units.map(u => { const c = cells(u.arms[base], u.arms[arm]); return { id: u.id, cohort: u.cohort, variant: u.variant, k: u.split.k, cells: c, ch: survivalChange(c.lost, c.saved, c.N), ...harmExact(u.arms[arm], u.arms[base], u.N) }; });
-  const pooled = survivalChange(sum(rows.map(r => r.cells.lost)), sum(rows.map(r => r.cells.saved)), sum(rows.map(r => r.cells.N)));
-  return { base, arm, rows, pooled, kept: spendOn(units.map(u => [u.arms[base], u.arms[arm]]), true) };
+  const ns = [...new Set(units.map(u => u.N))];
+  if (ns.length !== 1) throw new Error(`reduce-household-hsp: the units run ${ns.join(', ')} paths, not one count`);
+  const n = ns[0], rows = units.map(u => { const c = cells(u.arms[base], u.arms[arm]); return { id: u.id, cohort: u.cohort, variant: u.variant, k: u.split.k, cells: c, ch: survivalChange(c.lost, c.saved, c.N), ...harmExact(u.arms[arm], u.arms[base], u.N) }; });
+  const pooled = survivalItem(units.map(u => [u.arms[arm], u.arms[base]]), n);
+  return { base, arm, rows, pooled, summed: summedCells(rows), kept: { pooled: keptSpend(units, base, arm, n) } };
 }
 /* the rule (STEP8.md), HSP against K2 */
 /* M1 by unit: HSP against K2, the units that keep more paths but spend less on the paths both keep beyond noise */
@@ -118,6 +165,17 @@ function planted() {
     cases.push(['HSP the same as K2 on every path: no gain, FAIL', `${R.outcome} ${R.parts.gain}`, 'FAIL false']); }
   { const g = id => { const u = gainU(id); u.arms.HSP.delivered = Float64Array.from({ length: u.N }, () => 999); return u; }, R = rule([g('a'), g('b')]);
     cases.push(['HSP spending 0.1% less on the paths both keep: FAIL on spending alone', `${R.outcome} ${R.parts.harm} ${R.parts.gain} ${R.parts.spend}`, 'FAIL true true false']); }
+  // the pooled gain by path, where cells summed over the units would read the units as independent (the design review's
+  // BLOCKING 2): ten units sharing their paths, HSP saving the first 300 paths of each and losing the next 260, so each gains a
+  // point; summed, the interval clears nought; by path, the shared swing makes it straddle nought, and part 2 FAILS (the point
+  // above nought too: a mutant reading the point or the upper end would pass it; MINOR 5)
+  { const sw = id => unit(id, i => !(i < 300), i => !(i >= 300 && i < 560)), us = Array.from({ length: 10 }, (_, j) => sw(`s${j}`)), R = rule(us);
+    cases.push(['units sharing a swing: summed cells clear nought, by path the interval straddles it, part 2 FAILS though the point is above nought', `${R.C.summed.lo > 0} ${R.C.pooled.lo < 0} ${R.C.pooled.d > 0} ${R.parts.gain} ${R.outcome}`, 'true true true false FAIL']); }
+  // part 3 reads its point (MINOR 5): spending -0.04% on noisy paths, its lower end past -0.05: holds; -0.06% with its upper
+  // end above -0.05: FAILS
+  { const noisy = (id, m) => { const u = gainU(id); u.arms.HSP.delivered = Float64Array.from({ length: u.N }, (_, i) => 1000 * (1 + m / 100) + (Math.floor(i / 10) % 2 ? 30 : -30)); return u; };   // the noise alternating by blocks of ten, so it averages to nought over the kept paths (every tenth is lost)
+    const a = rule([noisy('a', -0.04), noisy('b', -0.04)]), b = rule([noisy('a', -0.06), noisy('b', -0.06)]);
+    cases.push(['part 3 reads its point: -0.04% with its lower end past -0.05 holds; -0.06% with its upper end above -0.05 fails', `${a.C.kept.pooled.lo < -0.05} ${a.parts.spend} ${b.C.kept.pooled.hi > -0.05} ${b.parts.spend}`, 'true true true false']); }
   // the bar either side by one path, through the rule's own wiring (the remedy's reviewer, MINOR 1): K2 keeps every path of
   // unit b and HSP loses its first m; m found as the first loss D34 flags at b's own discordance; a unit that gains carries the
   // pooled part
@@ -129,13 +187,18 @@ function planted() {
   { const keepsLessSpend = (() => { const u = gainU('a'); u.arms.HSP.delivered = Float64Array.from({ length: u.N }, (_, i) => 990 + (i % 3)); return u; })();
     const M = m1ByUnit([keepsLessSpend, gainU('b')]);
     cases.push(['M1 by unit: a unit keeping more paths but spending less beyond noise is named, one spending no less is not', M.filter(x => x.unmet).map(x => x.id).join(','), 'a']); }
-  // the gate on built units
-  { const want = [{ id: 'a', target: 1, label: 'x' }, { id: 'b', target: 1, label: 'x' }];
-    const mk = id => { const u = gainU(id); return { ...u, target: 1, label: 'x', seed: 9, W, pts: PTS, guard: { on: true }, stamp: { code: 'c', audit: 'a', prediction: 'p', node: 'n' }, arms: Object.fromEntries(ARMS.map(x => [x, { ...u.arms[x], config: configOf(x) }])) }; };
-    const G = (mod, o = {}) => { const us = [mk('a'), mk('b')]; if (mod) mod(us); return gate(us, want, { seed: 9, ...o }); };
-    cases.push(['the gate: the built units fair', String(G().length), '0']);
+  // the gate on built units, each with its record and its own launch log; the settings lines are left to the run (hand-made
+  // lines cannot pass wantProblems), as the share rules' planted gate leaves them
+  { const want = [{ id: 'a', target: 1, label: 'x' }, { id: 'b', target: 1, label: 'x' }], k = 1 / 0.6;
+    const person = Object.fromEntries(DOUBLED.map(key => [key, key === 'personalAllowance' ? 12570 : 50000]));
+    const hsp = Object.fromEntries(DOUBLED.map(key => [key, key === 'personalAllowance' ? 2 * 12570 : SCALED.includes(key) ? 2 * 12570 + k * (50000 - 12570) : key === 'pclsMaxCap' ? k * 50000 : 100000]));
+    const mk = (id, n) => { const u = gainU(id); return { ...u, k: n, target: 1, label: 'x', seed: 9, W, pts: PTS, guard: { on: true }, stamp: { code: 'c', audit: 'a', prediction: 'p', node: 'n' }, record: { settings: { self: 'pts 45', part: 'pts 45', household: 'pts 45' }, lines: { self: 'pts 45 levels 1,0.8 minPot 0 tieAboveCap 0', household: 'pts 45 levels 1,0.8 minPot 0 tieAboveCap 0.0001', floor: 0, houseFloorFrac: 0.8, selfFloorFrac: 0.8 }, plan: { person: { ...person }, hsp: { ...hsp } }, band: { person: 37700, hsp: k * 37700 } }, arms: Object.fromEntries(ARMS.map(x => [x, { ...u.arms[x], config: configOf(x) }])) }; };
+    const log = (id, n, done = true) => `stamp: code c audit a prediction p sha -\nSTEP 8: unit ${n}/2: ${id} (lib, own), target 1\n${done ? `         done unit ${n} secs 5\n` : ''}`;
+    const logsOf = (o = {}) => ({ 'case0.txt': log('a', 0, o.aDone !== false), ...(o.short ? {} : { 'case1.txt': log('b', 1) }) });
+    const G = (mod, o = {}) => { const us = [mk('a', 0), mk('b', 1)]; if (mod) mod(us); return gate(us, want, { seed: 9, logs: logsOf(), ...o }).filter(x => !/^\S+ (self|part|household): |^\S+: (self|household): /.test(x)); };
+    { const g0 = G(); cases.push(['the gate: the built units fair', g0.length ? `${g0.length}: ${g0.slice(0, 3).join(' | ')}` : '0', '0']); }
     const faults = [
-      ['a unit missing', us => us.pop(), {}, /b: missing/],
+      ['a unit missing', us => us.pop(), { logs: logsOf({ short: true }) }, /b: missing/],
       ['an arm missing', us => { delete us[0].arms.HSP; }, {}, /a HSP: missing/],
       ['another seed', us => { us[1].seed = 8; }, {}, /seed/],
       ['another code', us => { us[1].stamp = { ...us[1].stamp, code: 'd' }; }, {}, /more than one code/],
@@ -153,10 +216,15 @@ function planted() {
       ['a unit with no registered paths', null, { paths: { a: 4000 } }, /b: no paths for it/],
       ['run under another prediction', null, { prediction: 'r' }, /not run under r/],
       ["a code not the panel's", null, { code: 'k' }, /not the code the panel was landed on/],
-      ['a launch log short of the units', null, { logs: 1 }, /1 launch logs for 2 units/]
+      ['no record of the solves', us => { delete us[0].record; }, {}, /a: no record of the solves/],
+      ["HSP's plan not part 1's", us => { us[0].record.plan.hsp.basicBandLimit += 1; }, {}, /a HSP's plan: basicBandLimit/],
+      ["HSP's band for gains not k times one person's", us => { us[1].record.band.hsp = 37700; }, {}, /b: HSP's band for gains 37700/],
+      ['a launch log short of the units', null, { logs: logsOf({ short: true }) }, /1 launch logs for 2 units/],
+      ["a unit's log without its done line", null, { logs: logsOf({ aDone: false }) }, /a: 1 launch logs name it, without its done line/]
     ];
     const missed = faults.filter(([, mod, o, re]) => !G(mod, o).some(x => re.test(x))).map(([n]) => n);
-    cases.push([`the gate: every refusal on its planted fault (${faults.length})`, missed.join(', ') || 'all fire', 'all fire']); }
+    cases.push([`the gate: every refusal on its planted fault (${faults.length})`, missed.join(', ') || 'all fire', 'all fire']);
+    cases.push(['HSP\'s plan from one person\'s: none for part 1\'s entries, the cap at twice one person\'s refused', `${hspPlanProblems(person, hsp, k).length} ${hspPlanProblems(person, { ...hsp, pclsMaxCap: 100000 }, k).map(x => x.split(' ')[0]).join(',')}`, '0 pclsMaxCap']); }
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED: ${bad} of ${cases.length} FAILED` : `PLANTED: ALL PASS (${cases.length})`);
@@ -174,7 +242,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const logs = readdirSync(DIR).filter(x => /^case\d+\.txt$/.test(x));
   if (!PILOT) requireFairLogs(Object.fromEntries(logs.map(x => [x, readFileSync(join(DIR, x), 'utf8')])), REGISTRATION);
   const units = loadDir(DIR), paths = PILOT ? null : JSON.parse(readFileSync(PATHS_FILE, 'utf8')).paths;
-  const P = gate(units, want, { seed: PILOT ? PILOT_SEED : SEED, prediction: PILOT ? null : REGISTRATION, audit: stampFilesHash(), paths, code: JSON.parse(readFileSync(PANEL, 'utf8')).code, logs: logs.length });
+  const P = gate(units, want, { seed: PILOT ? PILOT_SEED : SEED, prediction: PILOT ? null : REGISTRATION, audit: stampFilesHash(), paths, code: JSON.parse(readFileSync(PANEL, 'utf8')).code, logs: Object.fromEntries(logs.map(x => [x, readFileSync(join(DIR, x), 'utf8')])) });
   console.log(`STEP 8${PILOT ? ', THE PILOT (EXPLORATORY)' : ''}: THE READ (STEP8.md; ${PILOT ? 'no outcome' : REGISTRATION}): ${units.length} units from ${DIR}`);
   if (P.length) { console.log(`THE GATE: REFUSED\n  ${P.join('\n  ')}`); process.exit(3); }
   console.log(`THE GATE: fair; one code ${units[0].stamp.code}, audit ${units[0].stamp.audit}, seed ${units[0].seed}, ${units[0].pts} points; every unit's three arms at their configurations, the guard on, at its registered paths`);
@@ -182,8 +250,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const R = rule(units), C = R.C;
   console.log('\nTHE RULE, HSP against K2 (paired by path):');
   console.log(`  1. no unit flagged by D34's harm rule: ${R.flagged.length ? R.flagged.map(r => `${r.id} (${r.lost - r.saved} paths net against a threshold of ${r.j})`).join('; ') : 'none'}: ${R.parts.harm ? 'HOLDS' : 'FAILS'}`);
-  console.log(`  2. pooled survival ${iv(C.pooled)} over ${units.length} units, its lower end above 0: ${R.parts.gain ? 'HOLDS' : 'FAILS'}`);
-  console.log(`  3. pooled spending on the paths both keep ${iv(C.kept.pooled, f4)}% of K2's, not lower by more than 0.05%: ${R.parts.spend ? 'HOLDS' : 'FAILS'}`);
+  console.log(`  2. pooled survival ${iv(C.pooled)} over ${units.length} units, by path, its lower end above 0: ${R.parts.gain ? 'HOLDS' : 'FAILS'} (beside, cells summed as if independent: ${iv(C.summed)})`);
+  console.log(`  3. pooled spending on the paths both keep ${iv(C.kept.pooled, f4)}% of K2's, the units weighted equally, by path; its point not lower than -0.05%: ${R.parts.spend ? 'HOLDS' : 'FAILS'}`);
   console.log(`OUTCOME: ${R.outcome}${R.outcome === 'PASS' ? ': HSP becomes the couples\' default, in the commit of the D-line naming this run, with the reviewer on the change of default (STEP8.md)' : ': today\'s default stays; to the maintainer'}`);
   console.log('\nBESIDE THE RULE, deciding nothing:');
   const low = C.rows.filter(r => r.tp < TP_BAR);

@@ -1,4 +1,4 @@
-# Step 8: the registered test of what holds, on HSP (D129 (3); DRAFT, 19 Nov)
+# Step 8: the registered test of what holds, on HSP (D129 (3); DRAFT, 19 Nov; its design review's first round FAIL)
 
 The remedy's read (`results-household-remedy.txt`, EXPLORATORY) took HSP: the household plan with each income-tax band
 above two personal allowances, and the tax-free cash cap, priced at `k = 1 / s` times one person's, `s` the larger
@@ -107,6 +107,58 @@ APP, each sending its unit to investigation without blocking on its own (D34 (3)
    code moves and the panel is landed again, since the audit refuses a run on code other than the panel's.
 6. **The cost,** measured by the pilot on this machine with nothing else running (D21) before the registration is
    complete: K2's path is the slowest of the three (the decomposition's times, `results-household-decomp.txt`).
+
+## The design review's first round (`reviews/2026-11-19-household-hsp-design.md`: FAIL, three BLOCKING, seven MINOR)
+
+**Answered in the draft (`registrations/household-hsp.md`, the audit, the read, the sizing):**
+- **BLOCKING 2, the pooled interval.** Part 2's interval is now by path (`reduce-phase4.mjs survivalItem`), since every unit
+  runs the same paths. A planted case has ten units sharing a swing: summed cells clear nought, by path the interval
+  straddles it, and part 2 fails. The mutant back on summed cells fails that case, and so does one reading the point.
+  - The pattern search, by CHECKLIST 7 (`pooled-bypath.mjs`, `results-pooled-bypath.txt`, EXPLORATORY): 28 pooled parts of
+    14 earlier reads recomputed by path from their stored arrays. They include TIE-C2's two parts, on which LOOKHOLD
+    became the default. None would change its verdict; the reads stand as printed.
+  - By path, the intervals are 1.3 to 6 times as wide on the household line's reads, whose units are variants of the same
+    couples, and about the same width elsewhere.
+  - The ISA sweep's arrays (D73's default) are no longer stored.
+- **MINOR 4, the format.** Each field is on its own line, the hashes on the Arms line, and every unfilled field a `<...>`
+  placeholder, so the launcher's check refuses the draft until each is filled.
+- **MINOR 5, the ends.** Planted cases pin part 2's lower end and part 3's point; four mutants each fail their case.
+- **MINOR 6, the record.** Each unit records its settings lines, the settings check's inputs, HSP's plan entries beside
+  one person's, and the two bands; the gate checks each again. Each unit's own log must name it, with its done line. A
+  resumed part must match the registration's hash and the Node version.
+- **MINOR 7, the ISA defect** reaches HSP's table on 30 units (planning), and the engine on S027-gap8. Both are stated.
+- **MINOR 8, part 3 weighting:** the units weighted equally, by path.
+- **MINOR 9, the guard** is read at the launch commit.
+- **MINOR 10, the port:** a PASS's port into the app must be shown identical to the tested arm, path for path.
+- **The pilot and sizing:**
+  - the sizing checks the pilot's code and runs its gate first;
+  - it prints each unit's change and D34's chance of flagging it at the registered N;
+  - the budget counts the 200 checked paths and one relaunch.
+
+**The maintainer's, before the second round:**
+
+1. **BLOCKING 1: HSP fails this rule on the read that took it.** The remedy's own units, read by step 8's rule, FAIL:
+   S191-90 is flagged by D34 at 25 paths against a threshold of 23. The remedy's bar (the interval's upper end above -0.3)
+   passed it by 0.38 of a path. At 16,000 paths a unit with its discordance and its loss is flagged with chance 0.996 (the
+   reviewer's figure). The choices:
+   - **(a) step 8 stays held** under its own bar, as D129 (3)'s "until those losses are fixed" reads. The next step would
+     be an EXPLORATORY variant that prices the personal allowance at `k` as well, read on the lead test's 28 units by this
+     registration's own rule; step 8 would then be registered on whichever form passes. The decomposition's bands single,
+     which left one personal allowance, kept S191-90 above K2 (`98.13%` against `97.63%`).
+   - **(b) S191-90 runs on 7024 as a named replication unit**, where a flag fails the run.
+   - **(c) a PASS goes to the maintainer** with S191-90's flag unresolved, and does not by itself change the default.
+   - **The agent recommends (a).** Registering HSP now spends a held-out seed, and the run the pilot will size, on an arm the
+     rule already flags on a couple it has run.
+2. **BLOCKING 3: the tie-break and D80.** HSP's table carries the candidate's tie-break above the cap (`tieAboveCap`
+   0.0001, D95). D80 keeps a tie-break out of any registered couples' arm. The choices:
+   - lift D80 for the household table;
+   - or run HSP without the tie-break, a new configuration none of the household plan's reads ran.
+   - **The agent recommends lifting D80 for the household table:**
+     - its move is the single solver's own chooser, where the tie-break has been the default since D95;
+     - every read of the household plan ran with it;
+     - D80 (11 Nov) was written for the two tables' joint move, before D95.
+3. **The seed:** 7024 reserved in `check-prediction.mjs`, a protected file: an unlock.
+4. **The ISA defect:** if it is fixed first (the maintainer's ruling pending), the panel is landed again, about an hour.
 
 ## Box
 

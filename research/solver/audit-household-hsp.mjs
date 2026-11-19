@@ -27,14 +27,14 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import * as CPL from '../../src/solver/couple.js';
-import { solveHousehold, withHouseholdSingle, mergedState, pensionsSplit, householdPlanFor } from './household.mjs';
+import { solveHousehold, withHouseholdSingle, mergedState, pensionsSplit, householdPlanFor, DOUBLED } from './household.mjs';
 import { vecOf } from '../../src/solver/grid.js';
 import { solveForApp } from '../../src/solverApp.js';
 import { tablesOf, digestOf } from '../../src/solverDigest.js';
 import { runPath, inputsHash } from './audit-phase4.mjs';
 import { JOINT, householdSolveOne, lineOf } from './audit-household.mjs';
 import { scaleProblems } from './audit-household-remedy.mjs';
-import { unitLineProblems } from './audit-shapes.mjs';
+import { unitLineProblems, shareFloorFrac } from './audit-shapes.mjs';
 import { solverPlanOf } from './shapes-panel.mjs';
 import { wantProblems, coupleProblems, d80Of, d80Problems } from './audit-couples.mjs';
 import { COUPLES_CANDIDATE, settingsOf } from './audit-couples-share.mjs';
@@ -206,7 +206,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     let A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, new Ty(n)])), done = 0, chunks = [];
     if (existsSync(pf)) {
       const P = JSON.parse(gunzipSync(readFileSync(pf)).toString());
-      if (P.stamp.code === STAMP.code && P.stamp.audit === STAMP.audit && P.stamp.prediction === STAMP.prediction && P.seed === seed && P.N === n && P.pts === pts && js(P.digests) === js(before) && js(P.options) === js(o)) {
+      if (P.stamp.code === STAMP.code && P.stamp.audit === STAMP.audit && P.stamp.prediction === STAMP.prediction && P.stamp.sha === STAMP.sha && P.stamp.node === STAMP.node && P.seed === seed && P.N === n && P.pts === pts && js(P.digests) === js(before) && js(P.options) === js(o)) {
         A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, dec(P.arrays[k], Ty)])); done = P.done; chunks = P.chunks;
         console.log(`${''.padEnd(8)} resumed ${arm} at path ${done} of ${n}, from a part saved by ${[...new Set(chunks.map(c => c.proc))].join(', ')}`);
       } else console.log(`${''.padEnd(8)} a saved part of ${arm} is not this unit's as solved now: ${arm} starts again`);
@@ -242,7 +242,17 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`${''.padEnd(8)} beside K2: the rollout in the model on ${NB} paths, ${Math.round(beside.secs)} s${REGISTERED || smoke ? '' : `; the engine alone ${engineOnly}, the model alone ${modelOnly}`}`);
   const after = await digest();
   if (js(after) !== js(before)) { console.error(`audit-household-hsp: ${U.id}: the tables changed while the paths ran`); process.exit(3); }
-  writeFileSync(join(OUT, fileOf(U.id)), gzipSync(js({ k: pk, id: U.id, couple: U.couple, base: U.base, cohort: U.cohort, place: U.place, variant: U.variant, feature: U.feature, target: U.target, label: a.label, seed, N: n, warm: WARM, pts, W, stamp: STAMP, configs: Object.fromEntries(ARMS.map(x => [x, configOf(x)])), joint: JOINT, order, digests: before, share: k2.share, split: { s: sp.s, k: sp.k }, guard, caps: [k2.tables.self.estateCap || 0, k2.tables.part.estateCap || 0], houseCap: house.H.estateCap, solvencyFloor: k2.m.ctx.solvencyFloor, T, beside, arms })));
+  // what the read's gate checks again from the record (the design review, MINOR 6): each table's settings line; the settings
+  // check's inputs (the household's minimum pot, its floor over its target, the first person's share's); one person's
+  // allowances and HSP's, each of DOUBLED; one person's band for gains and HSP's
+  const cfgOne = { ...E.DEFAULT_CONFIG, ...(hp.config || {}) };
+  const record = {
+    settings: { self: settingsOf(k2.tables.self), part: settingsOf(k2.tables.part), household: settingsOf(house.H) },
+    lines: { self: lineOf(k2.tables.self), household: lineOf(house.H), floor: k2.m.ctx.solvencyFloor || 0, houseFloorFrac: k2.m.ctx.floorFrac || 0, selfFloorFrac: shareFloorFrac(hp, k2.share) },
+    plan: { person: Object.fromEntries(DOUBLED.map(key => [key, E.num(cfgOne[key], E.DEFAULT_CONFIG[key])])), hsp: Object.fromEntries(DOUBLED.map(key => [key, house.hplan.config[key]])) },
+    band: { person: k2.m.ctx.P.cgtBandWidth, hsp: house.H.m.ctx.P.cgtBandWidth }
+  };
+  writeFileSync(join(OUT, fileOf(U.id)), gzipSync(js({ k: pk, id: U.id, couple: U.couple, base: U.base, cohort: U.cohort, place: U.place, variant: U.variant, feature: U.feature, target: U.target, label: a.label, seed, N: n, warm: WARM, pts, W, stamp: STAMP, configs: Object.fromEntries(ARMS.map(x => [x, configOf(x)])), joint: JOINT, order, digests: before, share: k2.share, split: { s: sp.s, k: sp.k }, guard, caps: [k2.tables.self.estateCap || 0, k2.tables.part.estateCap || 0], houseCap: house.H.estateCap, solvencyFloor: k2.m.ctx.solvencyFloor, T, beside, record, arms })));
   for (const arm of ARMS) rmSync(partOf(OUT, U.id, arm), { force: true });
   console.log(`${''.padEnd(8)} done unit ${pk} secs ${Math.round((Date.now() - t0) / 1000)}`);
 }

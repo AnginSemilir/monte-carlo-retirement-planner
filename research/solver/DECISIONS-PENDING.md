@@ -38,9 +38,25 @@ its rule committed before it runs; none changes anything in the app on its own.
        keeps more paths but spends less on the paths both keep beyond noise, S023-db with the largest fall in the capped
        pot (`-13.055%`); the rule reads spending pooled, so the outcome stands, and step 8 names such units.
 2. Design B, the axis (`AXIS.md`), is not built unless the decomposition points to it.
-3. **UNDER WAY, on HSP (`STEP8.md`, `registrations/household-hsp.md`, both DRAFT):** the panel landing, then the pilot
-   and the sizing, the design review, then to you before launch. **Yours before launch:** the held-out seed (7024
-   proposed) reserved in `check-prediction.mjs`, a protected file, so your unlock. Step 8, the registered test, is held until those losses are fixed and re-checked on the couples that lose. Then its
+3. **DRAFTED ON HSP, ITS DESIGN REVIEW FAILED: TWO RULINGS ARE YOURS** (`STEP8.md`, `registrations/household-hsp.md`;
+   `reviews/2026-11-19-household-hsp-design.md`: FAIL, three BLOCKING and seven MINOR).
+   - The panel is landed: eight held-out couples, 40 units (`results-household-hsp-panel.txt`). The audit, read, sizing
+     and batch are built with their planted checks. The pilot runs once the savings factorial has freed the cores.
+   - **Answered:** the pooled interval by path (BLOCKING 2) and every MINOR. The pattern search
+     (`results-pooled-bypath.txt`) re-read 28 pooled parts of 14 earlier reads by path: no verdict changes.
+   - **BLOCKING 1, yours: HSP fails step 8's own rule on the read that took it.** By D34's whole-path harm rule, S191-90
+     is flagged (25 paths against a threshold of 23). The choices:
+     - (a) step 8 stays held, and an EXPLORATORY variant that also prices the personal allowance at `k` is read on the 28
+       units by step 8's rule first;
+     - (b) S191-90 runs on 7024 as a named replication unit whose flag fails the run;
+     - (c) a PASS is read as advice, not a change of default.
+     - **The agent recommends (a).**
+   - **BLOCKING 3, yours: the tie-break and D80.** HSP's table carries the candidate's tie-break above the cap, which D80
+     keeps out of a registered couples' arm. The choices: lift D80 for the household table, or run HSP without it.
+     - **The agent recommends lifting it:** the household's move is the single chooser, where the tie-break has been the
+       default since D95, and every read of the household plan ran with it.
+   - **Also yours before launch:** the held-out seed (7024 proposed) reserved in `check-prediction.mjs`, a protected file,
+     so your unlock. If the ISA defect is fixed first, the panel is landed again (about an hour). Step 8, the registered test, is held until those losses are fixed and re-checked on the couples that lose. Then its
    registration is drafted, put to the design reviewer and brought to the maintainer before launch.
 4. **READ, FOR THE MAINTAINER: what keys D128's guard** (`results-guard.txt`; `reports/2026-11-18-guard-key-read.md`;
    its reviewer FAIL on the write-up, answered in one fix, then PASS).

@@ -142,8 +142,13 @@ APP, each sending its unit to investigation without blocking on its own (D34 (3)
     person's, so the fault was the gate's.
   - **Fixed:** the record carries design A's entries, and the gate holds HSP's other doubled entries to them, and design A's
     to one person's, with the no-earnings limit at least doubled (`reduce-household-hsp.mjs hspPlanProblems`). Four new
-    refusals each fire on a planted fault, and a unit with the limit raised as on S273 reads fair. The pilot then runs
-    again on the new stamp, the first kept aside unread (`results/household-hsp-pilot-1`).
+    refusals each fire on a planted fault, and a unit with the limit raised as on S273 reads fair. The pilot then ran
+    again on the new stamp (19 Nov 03:29 to 04:04 UK, audit ceff89265751), the first kept aside unread
+    (`results/household-hsp-pilot-1`). Its gate is fair.
+  - **The sizing** (`results-household-hsp-sizing.txt`): every unit at `16,000` paths, the floor, the pilot's discordance at
+    most `3.43%` at its upper bound. The budget is `44.3` core-hours, about `11.3` hours on four cores longest first, and the
+    longest unit `2.71` hours. Were the pilot's changes the truth, S273-sppart (`-0.50` points) would be flagged with chance
+    `0.901`, the same direction as BLOCKING 1.
 
 **The maintainer's, before the second round:**
 

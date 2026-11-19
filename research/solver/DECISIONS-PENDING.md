@@ -41,7 +41,13 @@ its rule committed before it runs; none changes anything in the app on its own.
 3. **DRAFTED ON HSP, ITS DESIGN REVIEW FAILED: TWO RULINGS ARE YOURS** (`STEP8.md`, `registrations/household-hsp.md`;
    `reviews/2026-11-19-household-hsp-design.md`: FAIL, three BLOCKING and seven MINOR).
    - The panel is landed: eight held-out couples, 40 units (`results-household-hsp-panel.txt`). The audit, read, sizing
-     and batch are built with their planted checks. The pilot runs once the savings factorial has freed the cores.
+     and batch are built with their planted checks.
+   - **The pilot and the sizing are done** (`results-household-hsp-sizing.txt`; EXPLORATORY, seed 7002). Every unit runs at
+     `16,000` paths: `44.3` core-hours, about `11.3` hours on four cores. The pilot's first run was refused by its gate on
+     the gate's own fault (design A raises the no-earnings pension limit to a later retiree's pension saving), fixed, and run
+     again (`STEP8.md`).
+   - **The pilot points the same way as BLOCKING 1:** were its changes the truth, S273-sppart (`-0.50` points on 1,000
+     paths) would be flagged at `16,000` with chance `0.901`.
    - **Answered:** the pooled interval by path (BLOCKING 2) and every MINOR. The pattern search
      (`results-pooled-bypath.txt`) re-read 28 pooled parts of 14 earlier reads by path: no verdict changes.
    - **BLOCKING 1, yours: HSP fails step 8's own rule on the read that took it.** By D34's whole-path harm rule, S191-90

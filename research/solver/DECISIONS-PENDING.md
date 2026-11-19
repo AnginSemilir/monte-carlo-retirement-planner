@@ -53,7 +53,9 @@ below this section says "the beta", read it as history. The order from here:
      PASS, two MINOR (`reviews/2026-11-19-household-hsp-design-3.md`: the Design review line fixed; eight of the gate's
      refusals without a planted case, each correct by inspection, left as they are before the launch on its advice).
      `registrations/household-hsp.md` is complete but for the launch stamp, filled by hand at the launch commit.
-   - **Yours:** the launch (D129 (3)): through the launcher from a worktree at the launch commit, about 15 hours.
+   - **Ruled (D132, "Yes"):** launched as registered on seed 7024 through the launcher from a worktree at the launch commit
+     (its stamp `code 71fb4271c681 audit 4cc4d37c0c19`), about 15 hours, relaunched under `RESUME=1` at the 12-hour limit;
+     read once by its rule. The savings split's v2 registration is drafted meanwhile (item 7).
 3. **D80 lifted for the household table alone** (its tie-break kept).
 4. **Seed 7024** reserved when the registration goes to its second design review.
 5. **The guard kept as built**, so D129 (5)'s words on the couples card go with the next batch.

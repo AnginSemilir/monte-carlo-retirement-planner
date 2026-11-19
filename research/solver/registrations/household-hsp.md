@@ -1,6 +1,6 @@
 # Registration: the household plan priced at the pensions' split (HSPA) against today's couples' default (D129 (3), D130 (2); STEP8.md)
 
-COMPLETE (19 Nov), but for the launch's stamp, filled by hand at the launch commit. The first design review
+COMPLETE (19 Nov), its launch's stamp filled by hand at the launch commit (D132). The first design review
 (`reviews/2026-11-19-household-hsp-design.md`) was FAIL, with three BLOCKING and seven MINOR. BLOCKING 1 and 3 were ruled
 (D130 (2) and (3), 19 Nov). Step 8 is registered on the arm that passed the arm read (`HOUSEHOLD-ARM.md`, EXPLORATORY: step
 8's own rule on 56 units), and that arm is HSPA (`results-household-arm.txt`; its reviewer PASS). The household table
@@ -132,5 +132,5 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     measured.
   - The run passes the task's 12-hour limit once: that window is relaunched under `RESUME=1`, each unit done kept and each
     unfinished one resumed from its saved chunks.
-- **The launch:** `<the stamp: code 71fb4271c681 audit <audit-household-hsp.mjs stampFilesHash> at the launch commit>` (filled by hand at the launch commit: `check-prediction.mjs` does not read this field, the second design review's MINOR 4)
+- **The launch:** the stamp `code 71fb4271c681 audit 4cc4d37c0c19`, at the launch commit (filled by hand there: `check-prediction.mjs` does not read this field, the second design review's MINOR 4); launched on the maintainer's word (D132)
 - **Design review:** research/solver/reviews/2026-11-19-household-hsp-design-3.md (the third look, at the second round's answers: PASS, two MINOR; the second round: `reviews/2026-11-19-household-hsp-design-2.md`, PASS, four MINOR, each answered (`STEP8.md`); the first round: `reviews/2026-11-19-household-hsp-design.md`, FAIL)

@@ -15,12 +15,25 @@ below this section says "the beta", read it as history. The order from here:
 1. **The engine's ISA defect, fixed first:** a dated deposit or staged drip into an ISA counted against that year's
    subscription, in the engine, the exact model and the forward run, with a test of its class shown failing; sized on the
    library; to `main` with the next batch on B1's gate. Step 8's panel is then landed again on the fixed code.
+   - **DONE (19 Nov), on the working branch:** `isa-allowance.test.mjs` (the full tier) passes on the fix and fails on the
+     code before and on each of its two plants (`results-isa-allowance.txt`); gaps-sweep's case on such a year, its plant
+     parting the forward run from the engine; the fast tier green, no figure pinned in it moving, so no unlock was needed.
+   - **Sized** (`results-isa-allowance-sizing.txt`, EXPLORATORY): no library plan as entered holds such a deposit; under
+     Windfall to ISA, 68 of 210 plans run differently on some path, each within one path of `1,000` on survival.
+   - The code id moves from `603eeb595679` to `71fb4271c681`. Next: `main` with the next batch. Step 8's panel is landed
+     again after the arm read (item 2), whose outcome names the arm the panel's refusals follow.
 2. **Step 8 held; HSP and HSP with the personal allowance at `k`** read by step 8's own rule on the lead test's 28 units and
    step 5's 28 shapes (EXPLORATORY, seed 7002, the fixed code), its rule committed first. Step 8 is registered on the arm
    that passes on every unit, or comes back with the units that flag.
+   - **UNDER WAY:** HSPA built off in code (`household.mjs` `scale: 'pensionsPA'`; `household.test.mjs` (10d), its plant
+     `pakdouble`). The rule is `HOUSEHOLD-ARM.md`, committed before any unit runs, with `audit-household-arm.mjs`,
+     `reduce-household-arm.mjs` (its planted checks) and `batch-household-arm.sh`. Every unit is run through the gate at
+     smoke settings first, then the launch: about five hours on four cores.
 3. **D80 lifted for the household table alone** (its tie-break kept).
 4. **Seed 7024** reserved when the registration goes to its second design review.
 5. **The guard kept as built**, so D129 (5)'s words on the couples card go with the next batch.
+   - **IN** (`src/PlannerCards.jsx`): the words, and the planner harness's check 19 reading them, with its plant `gapwords`
+     (the words before), to fail at the next gate.
 6. **The windfall split closed**, no v2.
 7. **The savings split's v2**, a registered test, after step 8; its registration drafted while step 8 runs.
 - **Unlocks:** "Proceed" does not open the hook; each protected edit or moved pin in a fast-tier test is asked for by name.

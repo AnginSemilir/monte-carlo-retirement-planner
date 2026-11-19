@@ -104,7 +104,9 @@
  * src/solverWorker.js; the client reads each assembly's joint move back and refuses the couple, the reviewer on D109's change
  * of default, MINOR 1; alone: PLANNER_PLANT=workernotie), nogapguard (19: the couples' guard running a couple more than
  * three years apart with other taxable income, as before D128, set from the build's plant by src/App.jsx; alone, it fails only
- * that couple's card: PLANNER_PLANT=nogapguard).
+ * that couple's card: PLANNER_PLANT=nogapguard), gapwords (19: that couple's card in its words before D129 (5), which said
+ * the solver had not been shown to do better where the tests found it did worse, src/PlannerCards.jsx; alone, it fails only
+ * that couple's card: PLANNER_PLANT=gapwords).
  *   node research/ui-harnesses/solver-planner-ui.cjs [port] [--plants]      (the build is served on port + 11, the rollback on + 12, couples on + 13)
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
@@ -124,8 +126,8 @@ const SPEED_SINGLE = 'Speed mode works out your figures faster by looking at few
 const SPEED_COUPLE = 'For couples, speed mode is less tested. It was usually only a little faster, it spent a little less, and for some couples it lowered the chance your money lasts by about 5 in 1,000. Use the full calculation for decisions.';
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback', 'workernotie', 'nogapguard'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19, workernotie: 19 , nogapguard: 19 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback', 'workernotie', 'nogapguard', 'gapwords'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19, workernotie: 19 , nogapguard: 19, gapwords: 19 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -763,8 +765,8 @@ const firstDiff = (a, b, at = '') => {
           const { p, errs } = await open(b, gapped, { port: COUPLES_PORT });
           await p.waitForSelector('[data-place="plan"] [data-planner-couple]', { timeout: 60000 }).catch(() => {});
           const st = await p.evaluate(() => { const el = document.querySelector('[data-place="plan"] [data-planner-couple]'); return { why: el ? el.dataset.plannerCouple : null, text: el ? el.textContent : '' }; });
-          ok(19, 'couples on: the same couple 12 years apart with other taxable income (a DB pension), its holdings inside the guard, keeps the app\'s rules (D128): the couples card, its reason the gap with that income, its words naming more than three years apart and a DB pension',
-            st.why === 'gapincome' && /more than three years apart/.test(st.text) && /DB \(final salary\) pension/.test(st.text), `the card ${st.why === null ? 'missing' : `says '${st.why}'`}`);
+          ok(19, 'couples on: the same couple 12 years apart with other taxable income (a DB pension), its holdings inside the guard, keeps the app\'s rules (D128): the couples card, its reason the gap with that income, its words naming more than three years apart and a DB pension, and what the tests found (D129 (5))',
+            st.why === 'gapincome' && /more than three years apart/.test(st.text) && /DB \(final salary\) pension/.test(st.text) && /In our tests the solver did worse than the app.s own rules for some couples like this/.test(st.text), `the card ${st.why === null ? 'missing' : `says '${st.why}'`}${st.why === 'gapincome' && !/In our tests/.test(st.text) ? ' without D129 (5)\'s words' : ''}`);
           ok(19, 'couples on, 12 years apart with other taxable income: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
           await p.context().close(); }
         // (e) a couple entered younger first (D104 (1)): the same couple re-held 75/25, its elder holding 75%, entered elder first

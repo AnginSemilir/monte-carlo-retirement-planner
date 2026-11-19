@@ -11,7 +11,18 @@
  *      household's), counted over the panel: the households whose saves went pension first on 90% or more of their
  *      decisions, and the rest with their shares;
  *   5. the panel's survival by path (reduce-phase4.mjs survivalItem), beside the read's (each household counted once with its
- *      own standard error): the pattern search's class (results-pooled-bypath.txt).
+ *      own standard error): the pattern search's class (results-pooled-bypath.txt); and, added after the reviewer at the read
+ *      (reviews/2026-11-19-read-save.md), its spending by path (spendingItem);
+ * Added after the reviewer at the read, its findings 2 and 3:
+ *   6. the panel without S310F, the one household the engine's ISA defect reaches (results-save-isa-deposits.txt), by the
+ *      read's own read(), beside S310F's own adjusted p from section 1;
+ *   7. S308F, the harm, beside it the effects the units show, and the other four households whose saves went ISA first:
+ *      lifetime spending delivered in pounds a path; the estate's mean, its median and the paths where it is higher or lower
+ *      by more than a pound; the year's spending in points of the year's target (the engine's level, audit-phase4.mjs runPath:
+ *      100 times the year's spending over the plan's target at that age), CANDS less CANDD, summed over three bands of
+ *      retired years on the path-years where both arms spend and taken a path, and its mean a path-year; the first year the
+ *      two arms' levels part; the pots at the top of the first retired year (runPolicy's first 1,000 paths, as the read
+ *      prints them).
  *   node research/solver/save-beside.mjs
  */
 import { readFileSync, readdirSync } from 'node:fs';
@@ -21,7 +32,7 @@ import { fileURLToPath } from 'node:url';
 import { read, verdictOf } from './reduce-save.mjs';
 import { saveIds } from './audit-save.mjs';
 import { readPanel } from './phase4-panel.mjs';
-import { survivalItem } from './reduce-phase4.mjs';
+import { survivalItem, spendingItem } from './reduce-phase4.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), DIR = join(HERE, 'results', 'save-7002');
 const units = readdirSync(DIR).filter(x => x.endsWith('.json.gz')).map(x => JSON.parse(gunzipSync(readFileSync(join(DIR, x))).toString()));
@@ -56,4 +67,33 @@ console.log('\n4. Where CANDS put the year\'s saving over the working years (run
 console.log('\n5. The panel\'s survival, CANDS against CANDD, by path (each path\'s change averaged over the households):');
 { const dec8 = (u, k) => { const b = Buffer.from(u.main[k], 'base64'), c = new Uint8Array(b.length); c.set(b); return c; };
   const pairs = R.rows.map(r => [{ survived: dec8(r.b, 'survived') }, { survived: dec8(r.a, 'survived') }]), n = Math.min(...pairs.map(([x]) => x.survived.length)), bp = survivalItem(pairs, n);
-  console.log(`  by path ${bp.d >= 0 ? '+' : ''}${bp.d.toFixed(3)} (${bp.lo.toFixed(3)} to ${bp.hi.toFixed(3)}), se ${bp.se.toFixed(4)}, on ${n} paths of ${pairs.length} households`); }
+  console.log(`  by path ${bp.d >= 0 ? '+' : ''}${bp.d.toFixed(3)} (${bp.lo.toFixed(3)} to ${bp.hi.toFixed(3)}), se ${bp.se.toFixed(4)}, on ${n} paths of ${pairs.length} households`);
+  const decF = (u, k) => { const b = Buffer.from(u.main[k], 'base64'), c = new Uint8Array(b.length); c.set(b); return new Float32Array(c.buffer); };
+  const sp = spendingItem(R.rows.map(r => [{ delivered: decF(r.b, 'delivered') }, { delivered: decF(r.a, 'delivered') }]), n);
+  console.log(`  the spending delivered by path (each path's change in percent of the household's CANDD mean, averaged over the households): ${f4(sp.d)}% (${f4(sp.lo)} to ${f4(sp.hi)}), se ${sp.se.toFixed(4)}; the read's, each household counted once: ${f4(R.spend.m)}% (se ${R.spend.se.toFixed(4)})`); }
+console.log('\n6. The panel without S310F, the one household the engine\'s ISA defect reaches (results-save-isa-deposits.txt), by the read\'s own read():');
+{ const R6 = read(units, ids.filter(id => id !== 'S310F')), v = V.rows.find(r => r.id === 'S310F');
+  console.log(`  ${R6.rows.length} households: survival ${R6.surv.m >= 0 ? '+' : ''}${R6.surv.m.toFixed(3)} points (se ${R6.surv.se.toFixed(4)}); spending delivered ${f4(R6.spend.m)}% (se ${R6.spend.se.toFixed(4)}); the read's on all ${R.rows.length}: ${R.surv.m >= 0 ? '+' : ''}${R.surv.m.toFixed(3)} (se ${R.surv.se.toFixed(4)}) and ${f4(R.spend.m)}% (se ${R.spend.se.toFixed(4)})`);
+  console.log(`  S310F's own: survival gain Holm ${e(v.holmGain)}, spending gain Holm ${e(v.holmSpendGain)} (section 1): not among the households the verdict names`); }
+console.log('\n7. S308F, the harm, and beside it the other four households whose saves went ISA first (CANDS less CANDD on each, from the unit files):');
+{ const by = {}; for (const u of units) (by[u.id] ||= {})[u.arm] = u;
+  const decF = (u, k) => { const b = Buffer.from(u.main[k], 'base64'), c = new Uint8Array(b.length); c.set(b); return new Float32Array(c.buffer); };
+  const decU = (u, k) => { const b = Buffer.from(u.main[k], 'base64'), c = new Uint8Array(b.length); c.set(b); return c; };
+  const med = a => { const s = Float64Array.from(a).sort(), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+  const gbp = x => `${x < 0 ? '-' : '+'}£${Math.abs(Math.round(x)).toLocaleString('en-GB')}`;
+  for (const id of ['S308F', 'S304F', 'S306F', 'S310F', 'S340F']) {
+    const a = by[id].CANDD, b = by[id].CANDS, n = a.N, Y = a.Y, R0 = a.retireT;
+    const da = decF(a, 'delivered'), db = decF(b, 'delivered'), ea = decF(a, 'estate'), eb = decF(b, 'estate'), la = decU(a, 'level'), lb = decU(b, 'level');
+    let DA = 0, DB = 0; for (let k = 0; k < n; k++) { DA += da[k]; DB += db[k]; }
+    const de = Array.from(eb, (v, k) => v - ea[k]); let up = 0, dn = 0; for (const x of de) { if (x > 1) up++; else if (x < -1) dn++; }
+    const mE = de.reduce((x, v) => x + v, 0) / n, sE = Math.sqrt(Math.max(0, de.reduce((x, v) => x + v * v, 0) / n - mE * mE) / n);
+    const bands = [[R0, Math.min(R0 + 6, Y)], [R0 + 6, Math.min(R0 + 16, Y)], [R0 + 16, Y]].map(([x, y]) => { let s = 0, c = 0; for (let k = 0; k < n; k++) for (let t = x; t < y; t++) { const p = la[k * Y + t], q = lb[k * Y + t]; if (p > 0 && q > 0) { s += q - p; c++; } } return `years ${x}-${y - 1} ${s / n >= 0 ? '+' : ''}${(s / n).toFixed(2)} a path (${c} path-years, ${c ? `${s / c >= 0 ? '+' : ''}${(s / c).toFixed(3)} a path-year` : '-'})`; });
+    let never = 0; const first = {}; for (let k = 0; k < n; k++) { let t0 = -1; for (let t = 0; t < Y; t++) if (la[k * Y + t] !== lb[k * Y + t]) { t0 = t; break; } if (t0 < 0) never++; else first[t0] = (first[t0] || 0) + 1; }
+    const firstTxt = Object.entries(first).sort((x, y) => y[1] - x[1] || x[0] - y[0]).slice(0, 4).map(([t, c]) => `year ${t} on ${c}`).join(', ');
+    const pa = (a.after || [])[0] || {}, pb = (b.after || [])[0] || {};
+    console.log(`  ${id} (retired from year ${R0}; ${n} paths): lifetime spending delivered CANDD £${Math.round(DA / n).toLocaleString('en-GB')} a path, CANDS ${gbp((DB - DA) / n)} a path (${f4(100 * (DB - DA) / DA)}%)`);
+    console.log(`    the estate: the mean ${gbp(mE)} a path (se ${Math.round(sE).toLocaleString('en-GB')}), the median ${gbp(med(de))}; higher by more than £1 on ${up} paths, lower on ${dn}; CANDD's own median estate £${Math.round(med(Array.from(ea))).toLocaleString('en-GB')}`);
+    console.log(`    the year's spending in points of its target, CANDS less CANDD, where both arms spend: ${bands.join('; ')}`);
+    console.log(`    the first year the two arms' levels part: never on ${never} paths; else most often ${firstTxt}`);
+    console.log(`    the pots at the top of the first retired year (runPolicy's first ${pa.n || 0} paths), CANDS less CANDD: pension ${gbp((pb.pen || 0) - (pa.pen || 0))}, ISA ${gbp((pb.isa || 0) - (pa.isa || 0))}, taxable ${gbp((pb.tax || 0) - (pa.tax || 0))}`);
+  } }

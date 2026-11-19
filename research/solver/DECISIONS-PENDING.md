@@ -112,10 +112,24 @@ its rule committed before it runs; none changes anything in the app on its own.
      AND A HARM.
      - Survival up on the panel (`+0.398` points) and on 14 of 27 households beyond noise, down on none.
      - Spending up on the panel (`+0.4233%`) and on 23; down on S308F (`-0.250%`), the harm, at once by B7.
+     - **The harm, with what is beside it** (`results-save-beside.txt`, section 7): S308F loses `£4,904` of `£1,963,500` a
+       path, its survival level (`-0.050`). Its estate's mean is `+£424,840` a path, the upper tail's: on the median path
+       it is `-£25,840`. It spends more in its first six retired years and less after, and retires with `£115,652` more
+       in its ISA and `£116,968` less in its pension on average. Why the same retirement policy then spends less is not
+       shown.
      - The split put the saving pension first on 12 households, and ISA first on five of the younger cohort (S308F among
        them).
-     - **The agent recommends** a v2 registered test of the savings split, after the ISA defect is fixed, on the whole menu
-       (on anchors the copies' skip is not exact). The reviewer at the read is next.
+     - **In retirement the two arms run one policy:** on anchors a copy reaches a year without a choice only where such a
+       year comes before one with a choice, and here the years with a choice run from each household's first year. So the
+       gains are the split's working-year choices, not the skip's. The write-up's first claim otherwise, from
+       `B7-FACTORIALS.md` item 2 (measured on the windfall's copies), is struck (the reviewer at the read, finding 1).
+     - **The ISA defect's part is bounded by the read:** S310F is not among the households the verdict names, and without
+       it the panel stays beyond noise (survival `+0.399`, spending `+0.4341%`; section 6).
+     - **The agent recommends** a v2 registered test of the savings split on the whole menu (within the working years, on
+       anchors, CANDS's shortlists are drawn from a menu three times as long as CANDD's, unmeasured), after the ISA
+       defect is fixed.
+     - The reviewer at the read: FAIL, one BLOCKING and two MINORs (`reviews/2026-11-19-read-save.md`), answered in one fix;
+       the reviewer again next.
    - **The savings factorial ran as D129 ordered, the defect said beside its read: it reaches one household, in both arms
      alike.** Checked on plan inputs alone (`save-isa-deposits.mjs`, `results-save-isa-deposits.txt`):
      - under arm A's own pick, none of its 27 households has a dated deposit or drip into an ISA in a working year with

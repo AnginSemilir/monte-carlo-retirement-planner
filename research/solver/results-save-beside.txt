@@ -55,3 +55,35 @@ BESIDE THE SAVINGS FACTORIAL'S READ (EXPLORATORY, after the read, deciding nothi
 
 5. The panel's survival, CANDS against CANDD, by path (each path's change averaged over the households):
   by path +0.398 (0.331 to 0.466), se 0.0345, on 4000 paths of 27 households
+  the spending delivered by path (each path's change in percent of the household's CANDD mean, averaged over the households): +0.4233% (+0.4082 to +0.4383), se 0.0077; the read's, each household counted once: +0.4233% (se 0.0053)
+
+6. The panel without S310F, the one household the engine's ISA defect reaches (results-save-isa-deposits.txt), by the read's own read():
+  26 households: survival +0.399 points (se 0.0266); spending delivered +0.4341% (se 0.0049); the read's on all 27: +0.398 (se 0.0270) and +0.4233% (se 0.0053)
+  S310F's own: survival gain Holm 5.78e-1, spending gain Holm 6.20e-2 (section 1): not among the households the verdict names
+
+7. S308F, the harm, and beside it the other four households whose saves went ISA first (CANDS less CANDD on each, from the unit files):
+  S308F (retired from year 15; 4000 paths): lifetime spending delivered CANDD £1,963,500 a path, CANDS -£4,904 a path (-0.2498%)
+    the estate: the mean +£424,840 a path (se 95,938), the median -£25,840; higher by more than £1 on 1820 paths, lower on 2137; CANDD's own median estate £5,475,245
+    the year's spending in points of its target, CANDS less CANDD, where both arms spend: years 15-20 +11.69 a path (24000 path-years, +1.948 a path-year); years 21-30 -7.95 a path (40000 path-years, -0.795 a path-year); years 31-60 -9.47 a path (120000 path-years, -0.316 a path-year)
+    the first year the two arms' levels part: never on 1492 paths; else most often year 15 on 1141, year 20 on 396, year 16 on 202, year 17 on 110
+    the pots at the top of the first retired year (runPolicy's first 1000 paths), CANDS less CANDD: pension -£116,968, ISA +£115,652, taxable +£0
+  S304F (retired from year 15; 4000 paths): lifetime spending delivered CANDD £1,038,350 a path, CANDS +£18,993 a path (+1.8291%)
+    the estate: the mean -£497,633 a path (se 13,094), the median -£310,174; higher by more than £1 on 512 paths, lower on 3476; CANDD's own median estate £2,646,846
+    the year's spending in points of its target, CANDS less CANDD, where both arms spend: years 15-20 +95.01 a path (24000 path-years, +15.835 a path-year); years 21-30 -2.29 a path (40000 path-years, -0.229 a path-year); years 31-60 -6.00 a path (120000 path-years, -0.200 a path-year)
+    the first year the two arms' levels part: never on 47 paths; else most often year 15 on 2426, year 16 on 423, year 17 on 332, year 18 on 268
+    the pots at the top of the first retired year (runPolicy's first 1000 paths), CANDS less CANDD: pension -£150,769, ISA +£100,935, taxable +£0
+  S306F (retired from year 15; 4000 paths): lifetime spending delivered CANDD £2,425,213 a path, CANDS +£10,114 a path (+0.4170%)
+    the estate: the mean +£463,185 a path (se 113,240), the median +£0; higher by more than £1 on 1947 paths, lower on 1943; CANDD's own median estate £5,050,944
+    the year's spending in points of its target, CANDS less CANDD, where both arms spend: years 15-20 +22.44 a path (24000 path-years, +3.740 a path-year); years 21-30 -8.42 a path (40000 path-years, -0.842 a path-year); years 31-60 -5.42 a path (120000 path-years, -0.181 a path-year)
+    the first year the two arms' levels part: never on 955 paths; else most often year 18 on 746, year 15 on 593, year 20 on 346, year 19 on 307
+    the pots at the top of the first retired year (runPolicy's first 1000 paths), CANDS less CANDD: pension -£138,887, ISA +£106,737, taxable -£436
+  S310F (retired from year 15; 4000 paths): lifetime spending delivered CANDD £4,762,261 a path, CANDS +£6,667 a path (+0.1400%)
+    the estate: the mean +£3,094,369 a path (se 234,082), the median +£224,880; higher by more than £1 on 2266 paths, lower on 1634; CANDD's own median estate £12,479,693
+    the year's spending in points of its target, CANDS less CANDD, where both arms spend: years 15-20 +13.50 a path (24000 path-years, +2.250 a path-year); years 21-30 -10.53 a path (40000 path-years, -1.053 a path-year); years 31-60 -9.04 a path (120000 path-years, -0.301 a path-year)
+    the first year the two arms' levels part: never on 1142 paths; else most often year 18 on 1103, year 17 on 315, year 20 on 274, year 19 on 211
+    the pots at the top of the first retired year (runPolicy's first 1000 paths), CANDS less CANDD: pension -£2,158, ISA +£167,908, taxable +£4,148
+  S340F (retired from year 15; 4000 paths): lifetime spending delivered CANDD £1,437,851 a path, CANDS +£2,514 a path (+0.1749%)
+    the estate: the mean -£546,509 a path (se 45,484), the median -£254,413; higher by more than £1 on 645 paths, lower on 3181; CANDD's own median estate £2,405,958
+    the year's spending in points of its target, CANDS less CANDD, where both arms spend: years 15-20 +4.50 a path (24000 path-years, +0.749 a path-year); years 21-30 -0.86 a path (40000 path-years, -0.086 a path-year); years 31-60 +5.22 a path (120000 path-years, +0.174 a path-year)
+    the first year the two arms' levels part: never on 2118 paths; else most often year 17 on 389, year 16 on 215, year 18 on 146, year 15 on 140
+    the pots at the top of the first retired year (runPolicy's first 1000 paths), CANDS less CANDD: pension -£137,842, ISA +£103,073, taxable -£847

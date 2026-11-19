@@ -147,7 +147,9 @@ export function compare(units, base, arm = 'HSPA') {
 export function m1ByUnit(units, arm = 'HSPA') {
   return units.map(u => {
     const c = cells(u.arms.K2, u.arms[arm]), sp = spendOn([[u.arms.K2, u.arms[arm]]], true).by[0], cap = cappedOf(u.caps[0] + u.caps[1], u.arms.K2, u.arms[arm]);
-    return { id: u.id, net: c.saved - c.lost, spend: sp, cap, unmet: c.saved - c.lost > 0 && sp.hi < 0 };
+    // spending over all paths beside it (the second design review, MINOR 2): the arm's mean delivered over every path against K2's
+    const all = (() => { const b = u.arms.K2.delivered, x = u.arms[arm].delivered; let sb = 0, sx = 0; for (let i = 0; i < b.length; i++) { sb += b[i]; sx += x[i]; } return sb > 0 ? 100 * (sx / sb - 1) : 0; })();
+    return { id: u.id, net: c.saved - c.lost, spend: sp, all, cap, unmet: c.saved - c.lost > 0 && sp.hi < 0 };
   });
 }
 export function rule(units) {
@@ -197,7 +199,9 @@ function planted() {
   // M1 by unit: more paths kept but less spent on the paths both keep is named; more paths and no less spent is not
   { const keepsLessSpend = (() => { const u = gainU('a'); u.arms.HSPA.delivered = Float64Array.from({ length: u.N }, (_, i) => 990 + (i % 3)); return u; })();
     const M = m1ByUnit([keepsLessSpend, gainU('b')]);
-    cases.push(['M1 by unit: a unit keeping more paths but spending less beyond noise is named, one spending no less is not', M.filter(x => x.unmet).map(x => x.id).join(','), 'a']); }
+    cases.push(['M1 by unit: a unit keeping more paths but spending less beyond noise is named, one spending no less is not', M.filter(x => x.unmet).map(x => x.id).join(','), 'a']);
+    const lower = (() => { const u = gainU('c'); u.arms.HSPA.delivered = Float64Array.from({ length: u.N }, () => 990); return u; })();
+    cases.push(['M1 by unit: spending over all paths beside it, 1% lower on every path reads -1.000', m1ByUnit([lower])[0].all.toFixed(3), '-1.000']); }
   // the gate on built units, each with its record and its own launch log; the settings lines are left to the run (hand-made
   // lines cannot pass wantProblems), as the share rules' planted gate leaves them
   { const want = [{ id: 'a', target: 1, label: 'x' }, { id: 'b', target: 1, label: 'x' }], k = 1 / 0.6;
@@ -240,13 +244,74 @@ function planted() {
       ['a launch log short of the units', null, { logs: logsOf({ short: true }) }, /1 launch logs for 2 units/],
       ["a unit's log without its done line", null, { logs: logsOf({ aDone: false }) }, /a: 1 launch logs name it, without its done line/]
     ];
+    // the gate's re-checks from the record on real lines (the second design review, MINOR 3): the settings lines and the
+    // household line of a pilot record (S025-own, 19 Nov), fair as they stand; one fault planted in each, each refused by its
+    // own check (the faults above leave these checks out, hand-made lines failing wantProblems)
+    const REAL = {"settings":{"self":"pts 45 mix 3 lambda 0.0223606797749979 bequestWeight 0.02 levels 1,1.1,0.95,0.9,0.8 raiseW 0.003 finalIntegral true bridgeRead reader readerRef adaptive readerSplit rs tierState 0/0,1/1,2/2,3/3 tiersBelow 3 tableDealing false switchCharge 0.001 e3 true e3pcls true hr yes jointWorlds true bridgeStep exact switchMargin 0 pclsInterp true lattice unbuilt failDelivered true minPot 11250 readerYears 0 sweepCashIsaTo isa coarse w2a3b3g2c2-NT-LRVOH-h3","part":"pts 45 mix 3 lambda 0.0223606797749979 bequestWeight 0.02 levels 1,1.1,0.95,0.9,0.8 raiseW 0.003 finalIntegral true bridgeRead reader readerRef adaptive readerSplit rs tierState 0/0,1/1,2/2,3/3 tiersBelow 3 tableDealing false switchCharge 0.001 e3 true e3pcls true hr yes jointWorlds true bridgeStep exact switchMargin 0 pclsInterp true lattice unbuilt failDelivered true minPot 11250 readerYears 0 sweepCashIsaTo isa coarse w2a3b3g2c2-NT-LRVOH-h3","household":"pts 45 mix 3 lambda 0.0223606797749979 bequestWeight 0.02 levels 1,1.1,0.95,0.9,0.8 raiseW 0.003 finalIntegral true bridgeRead reader readerRef adaptive readerSplit rs tierState 0/0,1/1,2/2,3/3 tiersBelow 3 tableDealing false switchCharge 0.001 e3 true e3pcls true hr yes jointWorlds true bridgeStep exact switchMargin 0 pclsInterp true lattice unbuilt failDelivered true minPot 22500 readerYears 0 sweepCashIsaTo isa coarse w2a3b3g2c2-NT-LRVOH-h3"},"lines":{"self":"pts 45 mix 3 lambda 0.0223606797749979 bequestWeight 0.02 levels 1,1.1,0.95,0.9,0.8 raiseW 0.003 finalIntegral true bridgeRead reader readerRef adaptive readerSplit rs tierState 0/0,1/1,2/2,3/3 tiersBelow 3 tableDealing false switchCharge 0.001 e3 true e3pcls true hr yes jointWorlds true bridgeStep exact switchMargin 0 pclsInterp true lattice unbuilt failDelivered true minPot 11250 readerYears 0 sweepCashIsaTo isa coarse w2a3b3g2c2-NT-LRVOH-h3 tieAboveCap 0","household":"pts 45 mix 3 lambda 0.0223606797749979 bequestWeight 0.02 levels 1,1.1,0.95,0.9,0.8 raiseW 0.003 finalIntegral true bridgeRead reader readerRef adaptive readerSplit rs tierState 0/0,1/1,2/2,3/3 tiersBelow 3 tableDealing false switchCharge 0.001 e3 true e3pcls true hr yes jointWorlds true bridgeStep exact switchMargin 0 pclsInterp true lattice unbuilt failDelivered true minPot 22500 readerYears 0 sweepCashIsaTo isa coarse w2a3b3g2c2-NT-LRVOH-h3 tieAboveCap 0.0001","floor":22500,"houseFloorFrac":0.8,"selfFloorFrac":0.8}};
+    const G2 = mod => { const us = [mk('a', 0), mk('b', 1)]; for (const u of us) { u.record.settings = { ...REAL.settings }; u.record.lines = { ...REAL.lines }; } if (mod) mod(us); return gate(us, want, { seed: 9, logs: logsOf() }); };
+    { const g0 = G2(); cases.push(['the gate on a real record\'s lines: fair', g0.length ? `${g0.length}: ${g0.slice(0, 3).join(' | ')}` : '0', '0']); }
+    const realFaults = [
+      ["the first person's settings line not the candidate's (pts 30)", us => { us[0].record.settings.self = REAL.settings.self.replace('pts 45', 'pts 30'); }, /^a self: pts 30 \(want 45\)$/],
+      ["the partner's (the estate weight 0.01)", us => { us[0].record.settings.part = REAL.settings.part.replace('bequestWeight 0.02', 'bequestWeight 0.01'); }, /^a part: bequestWeight 0\.01 \(want 0\.02\)$/],
+      ["the household table's (two tier steps)", us => { us[1].record.settings.household = REAL.settings.household.replace('tiersBelow 3', 'tiersBelow 2'); }, /^b household: tiersBelow 2 \(want 3\)$/],
+      ["the household line against the first person's (another mix)", us => { us[0].record.lines = { ...REAL.lines, household: REAL.lines.household.replace('mix 3', 'mix 2') }; }, /^a: household: mix 2, the first person's 3$/],
+      ["the household line without the tie-break", us => { us[1].record.lines = { ...REAL.lines, household: REAL.lines.household.replace('tieAboveCap 0.0001', 'tieAboveCap 0') }; }, /^b: household: tieAboveCap 0 \(want the candidate's 0\.0001\)$/],
+      ["the household table's lowest level not its floor over its target", us => { us[0].record.lines = { ...REAL.lines, houseFloorFrac: 0.85 }; }, /^a: household: its lowest spending level 0\.8, not the household's own floor over its target 0\.85$/]
+    ];
+    const missedReal = realFaults.filter(([, mod, re]) => { const g = G2(mod); return !(g.length === 1 && re.test(g[0])); }).map(([n]) => n);
+    cases.push([`the gate on real lines: each planted fault refused by its own check and nothing else (${realFaults.length})`, missedReal.join(', ') || 'all fire', 'all fire']);
     const missed = faults.filter(([, mod, o, re]) => !G(mod, o).some(x => re.test(x))).map(([n]) => n);
     cases.push([`the gate: every refusal on its planted fault (${faults.length})`, missed.join(', ') || 'all fire', 'all fire']);
     cases.push(['HSPA\'s plan from one person\'s: none for its form\'s entries; the cap at twice one person\'s refused; the allowance doubled (HSP\'s form) refused', `${hspaPlanProblems(person, hspa, k, asBuilt).length} ${hspaPlanProblems(person, { ...hspa, pclsMaxCap: 100000 }, k, asBuilt).map(x => x.split(' ')[0]).join(',')} ${hspaPlanProblems(person, { ...hspa, personalAllowance: 2 * 12570 }, k, asBuilt).map(x => x.split(' ')[0]).join(',')}`, '0 pclsMaxCap personalAllowance']); }
+  // the report's outcome under a PASS names M1's units for the maintainer (the second design review, MINOR 2): 30 units that
+  // gain with spending held and one that gains but spends 0.9% less on the paths both keep; the rule PASSES, the outcome line
+  // names that one unit, and with it removed names none
+  { const full = u => { for (const a of ['APP', 'K2', 'HSPA']) { u.arms[a].cpuUs = 1e6; u.arms[a].solveSecs = 1; u.arms[a].forecast = 0.95; } return { ...u, beside: { N: 500, engineOnly: 0, modelOnly: 0 } }; };
+    const many = Array.from({ length: 30 }, (_, j) => full(gainU(`g${j}`)));
+    const named = full((() => { const u = gainU('m'); u.arms.HSPA.delivered = Float64Array.from({ length: u.N }, (_, i) => 990 + (i % 3)); return u; })());
+    const withIt = report([...many, named]), without = report(many), out1 = withIt.out.find(x => /^OUTCOME/.test(x)), out0 = without.out.find(x => /^OUTCOME/.test(x));
+    cases.push(['the report: a PASS with a unit M1 names sends it to the maintainer first; without it, no such clause',
+      `${withIt.R.outcome} ${/first, the 1 unit M1 names below \(m\) go to the maintainer with this read/.test(out1)} ${without.R.outcome} ${/M1 names/.test(out0)} ${withIt.out.some(x => /m \(net \+\d+ paths, spending on the paths both keep -0\.\d+% se [\d.]+ and over all paths -0\.\d+%/.test(x))}`,
+      'PASS true PASS false true']); }
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED: ${bad} of ${cases.length} FAILED` : `PLANTED: ALL PASS (${cases.length})`);
   return bad;
+}
+
+/* the read's report after its gate: the rule, its outcome and what is printed beside it (lines, so a planted case can read
+   them: the second design review, MINOR 2) */
+export function report(units) {
+  const out = [], log = x => out.push(x);
+  const R = rule(units), C = R.C;
+  log('\nTHE RULE, HSPA against K2 (paired by path):');
+  log(`  1. no unit flagged by D34's harm rule: ${R.flagged.length ? R.flagged.map(r => `${r.id} (${r.lost - r.saved} paths net against a threshold of ${r.j})`).join('; ') : 'none'}: ${R.parts.harm ? 'HOLDS' : 'FAILS'}`);
+  log(`  2. pooled survival ${iv(C.pooled)} over ${units.length} units, by path, its lower end above 0: ${R.parts.gain ? 'HOLDS' : 'FAILS'} (beside, cells summed as if independent: ${iv(C.summed)})`);
+  log(`  3. pooled spending on the paths both keep ${iv(C.kept.pooled, f4)}% of K2's, the units weighted equally, by path; its point not lower than -0.05%: ${R.parts.spend ? 'HOLDS' : 'FAILS'}`);
+  // M1's units under a PASS go to the maintainer with the read before the default changes (the second design review, MINOR 2)
+  const m1 = m1ByUnit(units), unmetM1 = m1.filter(x => x.unmet);
+  log(`OUTCOME: ${R.outcome}${R.outcome === 'PASS' ? `: HSPA becomes the couples' default, in the commit of the D-line naming this run, with the reviewer on the change of default (STEP8.md)${unmetM1.length ? `; first, the ${unmetM1.length} unit${unmetM1.length > 1 ? 's' : ''} M1 names below (${unmetM1.map(x => x.id).join(', ')}) go to the maintainer with this read` : ''}` : ': today\'s default stays; to the maintainer'}`);
+  log('\nBESIDE THE RULE, deciding nothing:');
+  const low = C.rows.filter(r => r.tp < TP_BAR);
+  log(`  comparisons whose 1-point rate at their realised discordance falls below ${TP_BAR} (D34 (4)): ${low.length ? low.map(r => `${r.id} ${r.tp.toFixed(3)}`).join(', ') : 'none'}`);
+  for (const base of ['APP']) for (const arm of ['HSPA', 'K2']) {
+    const X = compare(units, base, arm), fl = X.rows.filter(r => r.flag);
+    log(`  ${arm} against ${base}: pooled survival ${iv(X.pooled)}; spending on the paths both keep ${iv(X.kept.pooled, f4)}%; flagged by D34 (for investigation, D34 (3)): ${fl.length ? fl.map(r => r.id).join(', ') : 'none'}`);
+  }
+  const capOf = u => u.caps[0] + u.caps[1], cap = units.map(u => cappedOf(capOf(u), u.arms.K2, u.arms.HSPA));
+  log(`  the pot capped at the two people's estate caps, HSPA against K2: ${f3(mean(cap.map(c => c.pct)))}% the mean of the units' (${gbp(mean(cap.map(c => c.gbp)))} a path); the pot left, the mean a unit: APP ${gbp(mean(units.map(u => mean(u.arms.APP.pot))))}, K2 ${gbp(mean(units.map(u => mean(u.arms.K2.pot))))}, HSPA ${gbp(mean(units.map(u => mean(u.arms.HSPA.pot))))}`);
+  log(`  M1 by unit (D116): the units where HSPA keeps more paths but spends less on the paths both keep beyond noise: ${unmetM1.length ? unmetM1.map(x => `${x.id} (net ${x.net >= 0 ? '+' : ''}${x.net} paths, spending on the paths both keep ${f4(x.spend.d)}% se ${x.spend.se.toFixed(4)} and over all paths ${f4(x.all)}%, the capped pot ${f3(x.cap.pct)}% ${gbp(x.cap.gbp)} a path)`).join('; ') : 'none'}`);
+  log(`  lifetime tax, the mean a unit: APP ${gbp(mean(units.map(u => mean(u.arms.APP.tax))))}, K2 ${gbp(mean(units.map(u => mean(u.arms.K2.tax))))}, HSPA ${gbp(mean(units.map(u => mean(u.arms.HSPA.tax))))}`);
+  log(`  the rollout beside the engine on K2's first paths: ${sum(units.map(u => u.beside.engineOnly + u.beside.modelOnly))} paths differ of ${sum(units.map(u => u.beside.N))}`);
+  log('  by unit (k; survival APP / K2 / HSPA; HSPA less K2; D34 against K2: net loss in paths and threshold; spending on the paths both keep and the capped pot, HSPA against K2; the forecasts K2 / HSPA):');
+  const sv = A => 100 * sum(A.survived) / A.survived.length;
+  for (const u of units) {
+    const r = C.rows.find(x => x.id === u.id);
+    const x = m1.find(y => y.id === u.id);
+    log(`    ${u.id.padEnd(13)} k ${u.split.k.toFixed(3)}; ${sv(u.arms.APP).toFixed(2)}% / ${sv(u.arms.K2).toFixed(2)}% / ${sv(u.arms.HSPA).toFixed(2)}%; ${iv(r.ch)} (${r.cells.saved} saved, ${r.cells.lost} lost); net ${r.lost - r.saved} against ${r.j}${r.flag ? ' FLAGGED' : ''}; spending ${f4(x.spend.d)}% (se ${x.spend.se.toFixed(4)}), the capped pot ${f3(x.cap.pct)}%; ${(100 * u.arms.K2.forecast).toFixed(2)}% / ${(100 * u.arms.HSPA.forecast).toFixed(2)}%`);
+  }
+  log(`  the time a path (CPU, the mean a unit): APP ${(mean(units.map(u => u.arms.APP.cpuUs / u.N)) / 1e3).toFixed(1)} ms, K2 ${(mean(units.map(u => u.arms.K2.cpuUs / u.N)) / 1e3).toFixed(1)} ms, HSPA ${(mean(units.map(u => u.arms.HSPA.cpuUs / u.N)) / 1e3).toFixed(1)} ms; the solve, the median a unit: K2 ${median(units.map(u => u.arms.K2.solveSecs)).toFixed(0)} s, HSPA ${median(units.map(u => u.arms.HSPA.solveSecs)).toFixed(0)} s`);
+  return { R, out };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
@@ -265,31 +330,5 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (P.length) { console.log(`THE GATE: REFUSED\n  ${P.join('\n  ')}`); process.exit(3); }
   console.log(`THE GATE: fair; one code ${units[0].stamp.code}, audit ${units[0].stamp.audit}, seed ${units[0].seed}, ${units[0].pts} points; every unit's three arms at their configurations, the guard on, at its registered paths`);
   if (PILOT) process.exit(0);
-  const R = rule(units), C = R.C;
-  console.log('\nTHE RULE, HSPA against K2 (paired by path):');
-  console.log(`  1. no unit flagged by D34's harm rule: ${R.flagged.length ? R.flagged.map(r => `${r.id} (${r.lost - r.saved} paths net against a threshold of ${r.j})`).join('; ') : 'none'}: ${R.parts.harm ? 'HOLDS' : 'FAILS'}`);
-  console.log(`  2. pooled survival ${iv(C.pooled)} over ${units.length} units, by path, its lower end above 0: ${R.parts.gain ? 'HOLDS' : 'FAILS'} (beside, cells summed as if independent: ${iv(C.summed)})`);
-  console.log(`  3. pooled spending on the paths both keep ${iv(C.kept.pooled, f4)}% of K2's, the units weighted equally, by path; its point not lower than -0.05%: ${R.parts.spend ? 'HOLDS' : 'FAILS'}`);
-  console.log(`OUTCOME: ${R.outcome}${R.outcome === 'PASS' ? ': HSPA becomes the couples\' default, in the commit of the D-line naming this run, with the reviewer on the change of default (STEP8.md)' : ': today\'s default stays; to the maintainer'}`);
-  console.log('\nBESIDE THE RULE, deciding nothing:');
-  const low = C.rows.filter(r => r.tp < TP_BAR);
-  console.log(`  comparisons whose 1-point rate at their realised discordance falls below ${TP_BAR} (D34 (4)): ${low.length ? low.map(r => `${r.id} ${r.tp.toFixed(3)}`).join(', ') : 'none'}`);
-  for (const base of ['APP']) for (const arm of ['HSPA', 'K2']) {
-    const X = compare(units, base, arm), fl = X.rows.filter(r => r.flag);
-    console.log(`  ${arm} against ${base}: pooled survival ${iv(X.pooled)}; spending on the paths both keep ${iv(X.kept.pooled, f4)}%; flagged by D34 (for investigation, D34 (3)): ${fl.length ? fl.map(r => r.id).join(', ') : 'none'}`);
-  }
-  const capOf = u => u.caps[0] + u.caps[1], cap = units.map(u => cappedOf(capOf(u), u.arms.K2, u.arms.HSPA));
-  console.log(`  the pot capped at the two people's estate caps, HSPA against K2: ${f3(mean(cap.map(c => c.pct)))}% the mean of the units' (${gbp(mean(cap.map(c => c.gbp)))} a path); the pot left, the mean a unit: APP ${gbp(mean(units.map(u => mean(u.arms.APP.pot))))}, K2 ${gbp(mean(units.map(u => mean(u.arms.K2.pot))))}, HSPA ${gbp(mean(units.map(u => mean(u.arms.HSPA.pot))))}`);
-  const m1 = m1ByUnit(units), unmetM1 = m1.filter(x => x.unmet);
-  console.log(`  M1 by unit (D116): the units where HSPA keeps more paths but spends less on the paths both keep beyond noise: ${unmetM1.length ? unmetM1.map(x => `${x.id} (net ${x.net >= 0 ? '+' : ''}${x.net} paths, spending ${f4(x.spend.d)}% se ${x.spend.se.toFixed(4)}, the capped pot ${f3(x.cap.pct)}% ${gbp(x.cap.gbp)} a path)`).join('; ') : 'none'}`);
-  console.log(`  lifetime tax, the mean a unit: APP ${gbp(mean(units.map(u => mean(u.arms.APP.tax))))}, K2 ${gbp(mean(units.map(u => mean(u.arms.K2.tax))))}, HSPA ${gbp(mean(units.map(u => mean(u.arms.HSPA.tax))))}`);
-  console.log(`  the rollout beside the engine on K2's first paths: ${sum(units.map(u => u.beside.engineOnly + u.beside.modelOnly))} paths differ of ${sum(units.map(u => u.beside.N))}`);
-  console.log('  by unit (k; survival APP / K2 / HSPA; HSPA less K2; D34 against K2: net loss in paths and threshold; spending on the paths both keep and the capped pot, HSPA against K2; the forecasts K2 / HSPA):');
-  const sv = A => 100 * sum(A.survived) / A.survived.length;
-  for (const u of units) {
-    const r = C.rows.find(x => x.id === u.id);
-    const x = m1.find(y => y.id === u.id);
-    console.log(`    ${u.id.padEnd(13)} k ${u.split.k.toFixed(3)}; ${sv(u.arms.APP).toFixed(2)}% / ${sv(u.arms.K2).toFixed(2)}% / ${sv(u.arms.HSPA).toFixed(2)}%; ${iv(r.ch)} (${r.cells.saved} saved, ${r.cells.lost} lost); net ${r.lost - r.saved} against ${r.j}${r.flag ? ' FLAGGED' : ''}; spending ${f4(x.spend.d)}% (se ${x.spend.se.toFixed(4)}), the capped pot ${f3(x.cap.pct)}%; ${(100 * u.arms.K2.forecast).toFixed(2)}% / ${(100 * u.arms.HSPA.forecast).toFixed(2)}%`);
-  }
-  console.log(`  the time a path (CPU, the mean a unit): APP ${(mean(units.map(u => u.arms.APP.cpuUs / u.N)) / 1e3).toFixed(1)} ms, K2 ${(mean(units.map(u => u.arms.K2.cpuUs / u.N)) / 1e3).toFixed(1)} ms, HSPA ${(mean(units.map(u => u.arms.HSPA.cpuUs / u.N)) / 1e3).toFixed(1)} ms; the solve, the median a unit: K2 ${median(units.map(u => u.arms.K2.solveSecs)).toFixed(0)} s, HSPA ${median(units.map(u => u.arms.HSPA.solveSecs)).toFixed(0)} s`);
+  console.log(report(units).out.join('\n'));
 }

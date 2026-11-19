@@ -41,7 +41,13 @@ below this section says "the beta", read it as history. The order from here:
      second round, seed 7024's unlock with it (item 4), and the registration to you before launch.
    - **Done (9c1dc08d):** the machinery switched to HSPA (its planted checks pass); the panel landed again on code
      71fb4271c681, the same eight couples and 40 units with every target and arm A's survival unchanged. The pilot on the
-     fixed code runs (19 Nov from 15:05 UK), then the sizing fills Paths, Budget and the pilot's figures.
+     fixed code ran (19 Nov 15:05 to 15:53 UK), and its sizing filled Paths and the pilot's figures (90f0757b).
+   - **The design review's second round: PASS, four MINOR** (`reviews/2026-11-19-household-hsp-design-2.md`), each answered
+     before the launch commit (`STEP8.md`): the 25 units the pilot did not run go through every check before any path (a
+     preflight, two paths of seed 7002); under a PASS each unit M1 names goes to you with the read before the default
+     changes; the gate's re-checks gain planted cases on a real record; the launch stamp is filled by hand. The edits move
+     the audit's stamp, so the pilot runs again on the final files and the Budget is taken from it.
+   - **Yours:** seed 7024's reservation, an unlock of `check-prediction.mjs` by name (item 4); then the launch.
 3. **D80 lifted for the household table alone** (its tie-break kept).
 4. **Seed 7024** reserved when the registration goes to its second design review.
 5. **The guard kept as built**, so D129 (5)'s words on the couples card go with the next batch.

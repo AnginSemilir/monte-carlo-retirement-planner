@@ -68,12 +68,15 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
   - **The pot's ruling (D116, M1):** where HSPA keeps more paths and delivers no less spending, a smaller pot left is not a
     harm. It is recorded, capped at the two people's estate caps and in pounds a path beside the spending, and is not a bar.
     It is read pooled and, beside it, by unit (`m1ByUnit`). A unit where HSPA keeps more paths but spends less on the paths
-    both keep, beyond noise, is named with its pot; M1's condition is not met there. It is not a bar.
+    both keep, beyond noise, is named with its pot and its spending over all paths beside that on the paths both keep; M1's
+    condition is not met there. It is not a bar to the rule, but under a PASS each unit it names goes to the maintainer with
+    the read before the default changes (the second design review, MINOR 2; the read's outcome line names them).
   - **Against APP, beside the rule:** HSPA and K2 against APP, pooled and by unit. D34's harm flags against APP each send
     their unit to investigation and do not block on their own (D34 (3)).
 - **Outcomes:** PASS makes HSPA the couples' default by a build and the reviewer on the change of default; FAIL keeps today's default; a flagged unit stops the default
   - **PASS:** HSPA becomes the couples' default, in the commit of the D-line naming this run, with the reviewer on the
-    change of default. That is a build:
+    change of default. Where M1 names a unit, the read goes to the maintainer first, with those units, and the default
+    changes only on the maintainer's word. That is a build:
     - the household plan's construction, its table and its move put into the app's solve of a couple (`src/`);
     - the port shown identical to the tested arm, path for path, as D99 and D109's changes of default were;
     - the decided-defaults block and the test that pins it, to `main` on B1's gate.
@@ -97,7 +100,7 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
 - **The guard** (D128) is read at the launch commit. Its key is with the maintainer (D129 (4)); were it re-keyed before the
   launch, each unit's guard is read again and the panel landed again where it changes.
 - **The gate:** first the launch logs' stamps against the registration's git blob (`fair-gate.mjs requireFairLogs`), then
-  `reduce-household-hsp.mjs gate`. Each refusal has its planted case (`--planted`, 27). It requires:
+  `reduce-household-hsp.mjs gate`. Each refusal has its planted case (`--planted`: 27 on built units; and the settings lines' and the household line's re-checks, 6, on a real pilot record's lines, each fault refused by its own check). It requires:
   - every unit of the panel with its three arms, and each unit's own launch log, naming it, with its done line;
   - one code, audit, seed, prediction, estate weight, points and Node version;
   - every unit at its registered paths, every array one a path;
@@ -119,7 +122,7 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     its task's 30-minute limit with 12 units done, the other three resumed under `RESUME=1` from their saved parts
     (`results/household-hsp-pilot-3.log`, `-4.log`). The pilots before, on HSP and the code before the fix, are kept aside
     unread or superseded (`STEP8.md`).
-- **Budget:** 58.2 core-hours; on four cores, longest first, 14.7 hours; the longest unit 3.81 hours (`results-household-hsp-sizing.txt`)
+- **Budget:** `<core-hours, hours on four cores in the batch's own order and longest first, and the longest unit, from the pilot on the final stamp (results-household-hsp-sizing.txt)>`
   - It counts the 200 checked paths of each arm and one relaunch of the longest unit.
   - It is measured from the pilot's units on this machine (D21, an Intel Xeon at 2.10GHz), four at a time and three for the
     resumed units, with nothing else running; the load at the units' chunks was 3.1 to 4.5 on four cores. The sizing before
@@ -127,5 +130,5 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     about a quarter slower in this pilot (S025-own `91.4` ms against `71.7`), the cause not measured.
   - The run passes the task's 12-hour limit once: that window is relaunched under `RESUME=1`, each unit done kept and each
     unfinished one resumed from its saved chunks.
-- **The launch:** `<the stamp: code 71fb4271c681 audit <audit-household-hsp.mjs stampFilesHash> at the launch commit>`
-- **Design review:** `<the reviewer's second round: research/solver/reviews/2026-11-19-household-hsp-design-2.md>` (the first round: `reviews/2026-11-19-household-hsp-design.md`, FAIL)
+- **The launch:** `<the stamp: code 71fb4271c681 audit <audit-household-hsp.mjs stampFilesHash> at the launch commit>` (filled by hand at the launch commit: `check-prediction.mjs` does not read this field, the second design review's MINOR 4)
+- **Design review:** research/solver/reviews/2026-11-19-household-hsp-design-2.md (the second round: PASS, four MINOR, each answered before the launch commit, `STEP8.md`; the first round: `reviews/2026-11-19-household-hsp-design.md`, FAIL)

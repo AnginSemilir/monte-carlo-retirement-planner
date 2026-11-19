@@ -75,21 +75,26 @@ its rule committed before it runs; none changes anything in the app on its own.
      - Survival: no effect beyond noise, on the panel (`+0.012` points) or on any household after Holm.
      - The harm: S026 spends `0.306%` less over its lifetime. The gains: five households spend more, by under a twentieth
        of a percent each.
-     - The reviewer at the read: FAIL, four BLOCKING and three MINORs, answered in one fix (d32f4ed1); its second round
-       next.
+     - The reviewer at the read: FAIL, four BLOCKING and three MINORs, answered in one fix (d32f4ed1); then PASS, two
+       MINORs, each answered (`reviews/2026-11-18-read-windfall-2.md`).
    - **AN ENGINE DEFECT, FOR THE MAINTAINER (found by that reviewer):** in a year with a dated deposit or a staged drip
      into an ISA, the deposit is not counted against the year's ISA subscription. The same year's cash ISA shelter,
      surplus sweep and re-wraps read that subscription, so they can put more than the allowance into the ISA. It is in
      the engine (on `main`), the exact model and the forward run.
      - It can favour the windfall split's ISA routes, so the five gains are not shown to be the split's own.
      - **The agent proposes:** fix it with a test of its class across the three, sized on the library, to `main` with the
-       next batch on B1's gate; then the windfall factorial run again on the fixed engine. The fix moves the solver's
-       code id and may move pinned figures in protected tests, so it needs the maintainer's "unlock enforcement".
-   - **The savings factorial is not reached by the defect, so it runs now (D129).** Checked on plan inputs alone
-     (`save-isa-deposits.mjs`, `results-save-isa-deposits.txt`): under arm A's own pick, none of its 27 households has a
-     dated deposit or drip into an ISA in a working year with a save choice. Only S290 would, under a policy it does not
-     take on this code. Its other ISA deposits fall outside the years with a save choice, where both arms route them
-     alike.
+       next batch on B1's gate; then the windfall factorial run again on the fixed engine and on the whole menu, where
+       the split's copies are skipped exactly outside the deposit year (or on anchors with the skip's part measured
+       beside it: the reviewer's second round, MINOR 2). The fix moves the solver's code id and may move pinned figures
+       in protected tests, so it needs the maintainer's "unlock enforcement".
+   - **The savings factorial runs now (D129), the defect said beside its read: it reaches one household, in both arms
+     alike.** Checked on plan inputs alone (`save-isa-deposits.mjs`, `results-save-isa-deposits.txt`):
+     - under arm A's own pick, none of its 27 households has a dated deposit or drip into an ISA in a working year with
+       a save choice (S290 would only under a policy it does not take on this code);
+     - one, S310F, puts its windfall into its ISA in a retired year (plan year 18) under its own pick, in both arms. The
+       defect then lets that year's cash ISA shelter add more, which parts the arms only where their moves that year
+       leave different cash, by at most a year's shelter. Unmeasured;
+     - the check's first form missed S310F and said "not reached" (the windfall reviewer's second round, MINOR 1).
 
 **RULED (D128, 18 Nov, morning: "Go with your recommendations. Unlock enforcement"): the four recommendations of the
 report on steps 4 to 7, as below.**

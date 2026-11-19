@@ -41,9 +41,11 @@ year, so CANDW also differs a little from CANDD in other years (`B7-FACTORIALS.m
 
 The reviewer at the read found that a deposit into the ISA in a year is not counted against that year's allowance when
 the same year's own flows also fill the ISA. Those flows are the cash ISA's shelter, the surplus sweep and the re-wraps.
-- **Where it is.** In the engine (`research/engine.mjs`, App.jsx `stepYear` step 1), a dated deposit adds to the pot, but
-  the year's ISA subscription (`isaContribThisYear`), which the later flows' rooms read, counts the regular
-  contributions alone. The exact model and the forward run (`model.js`, `fast.js`) do the same.
+- **Where it is.** In the engine (`research/engine.mjs`, App.jsx `stepYear` steps 1 and 1.5), a dated deposit or a
+  staged drip adds to the pot, but the year's ISA subscription (`isaContribThisYear`), which the later flows' rooms read,
+  counts the regular contributions alone. Those flows are the cash ISA's subscription and shelter, the surplus sweep,
+  the draw-first and harvest re-wraps, and N4's CGT move (not on the candidate's menu). The exact model and the forward
+  run (`model.js`, `fast.js`) do the same.
 - **What the reviewer measured** (its probe, an instrumented copy of the engine, not a committed result):
   - under the app's own rules, S090 puts more than `£20,000` into its ISA in the deposit year on 42 of 200 paths, by up
     to `£8,471`;
@@ -64,13 +66,22 @@ the same year's own flows also fill the ISA. Those flows are the cash ISA's shel
   effect beside it. Nothing changes in the candidate or the app on any outcome.
 - **The agent's recommendation:**
   - no v2 test of the windfall split until the defect is fixed;
-  - then this factorial run again on the fixed engine, which says whether the gains are the split's own;
-  - the savings factorial held until the fix too, since its ISA route may meet the same defect.
-- **Since checked (19 Nov, plan inputs alone): the savings factorial is not reached by the defect, so it runs now, as D129
-  orders.** The savings split's own ISA route goes through the year's regular contributions, which are counted. Under arm
-  A's own pick, none of its 27 households has a dated deposit or drip into an ISA in a year with a save choice
-  (`save-isa-deposits.mjs`, `results-save-isa-deposits.txt`). Only S290 would, under Windfall to ISA, and arm A picks
-  Bracket Fill for it on this code.
+  - then this factorial run again on the fixed engine and on the whole menu, where the split's copies are skipped
+    exactly outside the deposit year, or on anchors with the skip's part measured beside it. On anchors alone a re-run
+    would remove the defect's part of the gains but not the skip's (the reviewer's second round, MINOR 2);
+  - the savings factorial held until the fix too, since its ISA route may meet the same defect (since checked, below).
+- **Since checked (19 Nov, plan inputs alone): the defect reaches the savings factorial on one household, in both arms
+  alike, so it runs now, as D129 orders, with that said beside its read.**
+  - The savings split's own ISA route goes through the year's regular contributions, which are counted.
+  - Under arm A's own pick, none of its 27 households has a dated deposit or drip into an ISA in a year with a save
+    choice (`save-isa-deposits.mjs`, `results-save-isa-deposits.txt`). Only S290 would, under Windfall to ISA, and arm A
+    picks Bracket Fill for it on this code.
+  - One household, S310F, puts its windfall into its ISA in a retired year (plan year 18) under its own pick, Windfall
+    to ISA, in both arms. With the deposit uncounted, that year's cash ISA shelter can add more on top.
+  - That acts on both arms alike, except where their moves that year leave different cash to shelter. So it can part the
+    arms on S310F alone, by at most a year's shelter. Its size is not measured.
+  - The first form of this check said the savings factorial was "not reached". It found arm A's pick only where a save
+    choice year was reached, and so missed S310F (the reviewer's second round, MINOR 1).
 
 ## Beside, for the record
 
@@ -99,4 +110,12 @@ FAIL, four BLOCKING and three MINORs (`reviews/2026-11-18-read-windfall.md`), an
 
 The read's figures and outcome stand: the reviewer reproduced them byte for byte and recomputed them independently. The
 reviewer's probe beside the household plan's remedy run, which was running at the time, used too much memory, and the
-kernel stopped one of its units (S329F). It is run again from its saved parts when that batch's window ends.
+kernel stopped one of its units (S329F). It ran again from its saved parts after that batch's window ended.
+
+The reviewer again (`reviews/2026-11-18-read-windfall-2.md`): PASS, two MINORs, each answered above.
+1. The savings factorial is reached by the defect on S310F, in both arms alike. The check now finds arm A's pick wherever
+   a deposit or drip reaches an ISA, and names S310F.
+2. A re-run on the fixed engine says whether the gains are the split's own only on the whole menu, or with the skip's
+   part measured beside it.
+The reviewer also noted that "Where it is" left out step 1.5's drips and N4's CGT move. Neither moves anything in this
+read, and both are now named.

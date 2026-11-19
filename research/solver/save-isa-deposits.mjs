@@ -4,6 +4,10 @@
  * counted against the year's ISA subscription, which the same year's cash ISA shelter, surplus sweep and re-wraps read
  * (reviews/2026-11-18-read-windfall.md). For each household of a factorial's panel this lists every such deposit or drip
  * under each decumulation policy, and whether it falls in a working year with a save choice (the savings split's years).
+ * Arm A's own pick (the plan both arms of a factorial solve) is found for every household with any such deposit or drip,
+ * and the households counted twice: with one in a save-choice year, and with one in any year (the windfall read's
+ * reviewer, second round, MINOR 1: on 19 Nov the pick was found only where a save-choice year was reached, so S310F's
+ * deposit in a retired year under its own pick went unnamed).
  *   node research/solver/save-isa-deposits.mjs [save|windfall]
  */
 import { dirname, join } from 'node:path';
@@ -21,7 +25,8 @@ const POLS = Object.keys(E.DECUMULATION_POLICIES || {});
 const which = process.argv[2] || 'save';
 const ids = which === 'save' ? saveIds(panel) : windfallIds(panel);
 console.log(`${which} panel: ${ids.length} households; policies: ${POLS.join(' | ') || '(none exported)'}`);
-let touched = 0;
+let touched = 0, anyYear = 0;
+const named = [];
 for (const id of ids) {
   const h = byId[id], seen = new Map();
   for (const pol of POLS.length ? POLS : [null]) {
@@ -37,9 +42,13 @@ for (const id of ids) {
     }
   }
   const choice = [...seen].filter(([k]) => k.includes('choice year'));
-  // where a choice year is reached, arm A's own pick as it stands (the plan both arms solve, B7-FACTORIALS.md amendment 1)
-  const pick = choice.length ? armA(appPlan(h.plan), { tournament: false }).planState.spending.decumulationPolicy : null;
+  // wherever a deposit or drip reaches an ISA under some policy, arm A's own pick as it stands (the plan both arms solve,
+  // B7-FACTORIALS.md amendment 1)
+  const pick = seen.size ? armA(appPlan(h.plan), { tournament: false }).planState.spending.decumulationPolicy : null;
   if (choice.some(([, p]) => p.includes(pick))) touched++;
-  console.log(`${id.padEnd(7)} ${seen.size ? [...seen].map(([k, p]) => `${k} [${p.length === POLS.length ? 'every policy' : p.join(', ')}]`).join('; ') : 'no deposit or drip into an ISA'}${pick ? `; arm A picks ${pick} on this code` : ''}`);
+  const under = [...seen].filter(([, p]) => p.includes(pick)).map(([k]) => k);
+  if (under.length) { anyYear++; named.push(`${id} (${under.join('; ')})`); }
+  console.log(`${id.padEnd(7)} ${seen.size ? [...seen].map(([k, p]) => `${k} [${p.length === POLS.length ? 'every policy' : p.join(', ')}]`).join('; ') : 'no deposit or drip into an ISA'}${pick ? `; arm A picks ${pick} on this code${under.length ? ', so it lands under arm A\'s own pick' : ''}` : ''}`);
 }
 console.log(`households with an ISA deposit or drip in a save-choice year under arm A's own pick: ${touched} of ${ids.length}`);
+console.log(`households with an ISA deposit or drip in any year under arm A's own pick: ${anyYear} of ${ids.length}${named.length ? `: ${named.join(', ')}` : ''}`);

@@ -63,7 +63,9 @@ below this section says "the beta", read it as history. The order from here:
      (the words before), to fail at the next gate.
 6. **The windfall split closed**, no v2.
 7. **The savings split's v2**, a registered test, after step 8; its registration drafted while step 8 runs.
-   - **Its design drafted** (`SAVE-V2.md`, DRAFT, not run). Three choices are yours, each with the agent's
+   - **Its design drafted** (`SAVE-V2.md`, DRAFT, not run), and its registration drafted while step 8 runs
+     (`registrations/save-v2.md`, DRAFT: its fields in `<...>` wait on your three choices, the panel, the pilot and the
+     sizing after step 8, the seed and its design review). Three choices are yours, each with the agent's
      recommendation: the pair on anchors (the menu that would ship) beside the whole menu, a harm there coming back before
      any change of default; how many households (Phase 4 took 40); and the spending bar in the rule (no household's
      lifetime spending lower beyond noise by more than `0.1%`, which S308F's `-0.250%` would fail). Its seed, 7025 by the

@@ -56,6 +56,38 @@ The worktree's branch joins the working branch after both launches; its `src/` c
 7. **Review and gate.** The reviewer on the change of default; the fast and full tiers; `run-all.sh 4173 --both`. Then
    `main` only after the late tail reads with the build going on.
 
+## Design notes (20 Nov, from reading the code)
+
+- **Step 1, done in the worktree** (`/home/user/hsp-port`, local branch `port-household`, not yet committed: the commit waits
+  for the e3pcls pin to be re-taken there, since the fast tier refuses a stale pin). `src/solver/household.js` is the research
+  module line for line, its imports pointed at `src/solver`. `solveHousehold` is split into three parts without changing its
+  order of work:
+  - `householdForm`: the plan cut at its options, its band options and the people its band for gains is solved on;
+  - the solve itself, inside `householdBands`;
+  - `assembleHousehold`: the original checks and record, from a table solved here or elsewhere.
+- **Step 2, the worker** (`src/solverWorker.js`):
+  - The engine is `{ ...App, ...App.E }`, so `E.DEFAULT_CONFIG` is App's own object: the band scaling (`bandsAt`) reaches the
+    engine's functions as it does in research.
+  - A `household-plan` kind cuts the plan (`householdForm` at 'pensionsPA'). It returns the household plan, the bands
+    `{ k, paOne, paK }` and the partner's age.
+  - The table is solved as a single's, in a slot `household`, with `bands` beside its options. Every `solveForApp` call in
+    `solve`, `base` and `part` (restores included) is wrapped in `bandsAt`, so each part's model carries the scaled band for
+    gains.
+  - A `household` kind assembles (`assembleHousehold`, the table checked to be the one solved on the plan cut). The solve
+    in hand is `{ ...cp, split: 'even' }`.
+  - `isCouple` stays K2's; a household is `x.household === true`.
+- **Step 2, the client** (`src/solverClient.js`): where the couples' default names the household plan, the route is
+  `household-plan`, then one `phase('solve', ...)` in the `household` slot with `bands`, then `household`. The form each
+  assembly was made with is read back and a difference refused, as D109's joint move is.
+- **Step 3, the views.** `solvedContext` for a household is `withHouseholdSingle(solved.plan, solved)`. The couple's views
+  read K2's two tables (`cp.tables[who]`) for each person's skips, so a household needs its own. HSPA's move is the
+  household table's one move, taken by both people at the even split (`chooseHouseholdSingle`). So:
+  - this year's actions and their skips read like a single's from the household table, each skip forcing a household move
+    built from another of the table's actions;
+  - the rows, the ten years ahead and the strategy answer come from the engine's paths under the household policy.
+- **The identity** holds the app's route to step 8's audit, as D109's held the couples' route to its arm. Step 8's audit
+  builds HSPA from `solverPlanOf`'s plan with arm A's MPAA ages; the identity test says whether the page's plan matches it.
+
 ## Box
 
 Two days from the start of step 1. When the box runs out, stop and report what is done and what is not.

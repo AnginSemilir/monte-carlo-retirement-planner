@@ -23,6 +23,13 @@
  *   node research/solver/audit-late-tail.mjs --planted
  *   LT_PTS the points and LT_N the paths (a smoke only); LT_ONLY a comma list of units; LT_OUT the folder;
  *   LT_PLANT=wronglevel (a planted fault: L takes HSPA's own level)
+ * AMENDMENT 1 (20 Nov; LATE-TAIL.md, its amendment 1; the reviewer at the first read, finding 1): `recorded` passes the
+ * engine's every argument to the policy it records (it dropped the third, the tiers held, which a single's table reads:
+ * bridge.js tablePolicy, so CEIL charged nothing for a switch). Check 5, a check of that class: each recorded arm run equal
+ * bit for bit to the same arm without the recorder on its first CHECK paths. LT_ARMS a comma list of the arms to run (all
+ * by default; the wiring and pilot checks need the arms they compare, so run only with every arm); LT_FIRST the first
+ * run's folder, against whose K2, HSPA, L and R (each run again without the recorder on its first CHECK paths) the unit is
+ * held where those arms are not run. LT_PLANT=recorderdrop (a planted fault: the recorder dropping the tiers held again).
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -122,8 +129,9 @@ export function takesRight(take, out, k) {
 /* a policy recording, at each decision of path sink.k, the level it takes and the risk the held tiers carry (whyRecord's
    measure, in basis points of expected real return) */
 export function recorded(pol, m, sink) {
-  return { ...pol, choose(es, t) {
-    const j = pol.choose(es, t), tierHeld = {};
+  return { ...pol, choose(es, t, ...rest) {
+    // amendment 1: every argument the engine passes (a single's table reads the third, the tiers held); the plant drops it
+    const j = process.env.LT_PLANT === 'recorderdrop' ? pol.choose(es, t) : pol.choose(es, t, ...rest), tierHeld = {};
     for (const o of m.ctx.owners) { const h = es.tierHeld && es.tierHeld[o.key]; tierHeld[o.key] = { pen: h ? h.pen || 0 : 0, isa: h ? h.isa || 0 : 0 }; }
     const ms = { pots: es.pots, tierHeld };
     let w = 0, r = 0;
@@ -174,6 +182,13 @@ function planted() {
     cases.push(['the stamp: no file in it missing (the read and the batch aside while they are built)', missing.join(', ') || 'none', 'none']); }
   { const a = Float64Array.from([1, 2]), b = Float64Array.from([1, 2]), u = { survived: Uint8Array.from([1, 0]), failYear: Int16Array.from([-1, 3]), pot: a, estate: a, tax: a, delivered: a, unmet: a }, v = { ...u, tax: Float64Array.from([1, 2.0000001]) };
     cases.push(['the identity check: equal arrays the same; one value apart named', `${same(u, { ...u, pot: b }, 2)} ${same(u, v, 2)}`, 'null tax at path 1']); }
+  // amendment 1: the recorder hands its policy every argument the engine passes; the plant drops the third again
+  { const seen = [], stub = { kind: 'table', choose: (...a) => (seen.push(a.length), { spendLevel: 1 }) }, m = { ctx: { owners: [], accounts: [] } };
+    recorded(stub, m, null).choose({ pots: {} }, 0, { pen: 1, isa: 0 });
+    const plant = process.env.LT_PLANT; process.env.LT_PLANT = 'recorderdrop';
+    recorded(stub, m, null).choose({ pots: {} }, 0, { pen: 1, isa: 0 });
+    if (plant === undefined) delete process.env.LT_PLANT; else process.env.LT_PLANT = plant;
+    cases.push(['the recorder hands the policy the engine\'s three arguments; the planted recorder two', seen.join(' '), '3 2']); }
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
@@ -197,8 +212,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   mkdirSync(join(OUT, 'parts'), { recursive: true });
   const cid = codeId(), STAMP = { code: cid ? cid.hash : 'unknown', audit: stampFilesHash(), prediction: process.env.PREDICTION_FILE || 'NOT-LAUNCHED', sha: process.env.PREDICTION_SHA || '-', node: process.version };
   console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);   // fair-gate.mjs LOG_STAMP
-  const PROC = `${hostname()}:${process.pid}:${Date.now()}`, t0 = Date.now(), order = orderOf(pk);
-  console.log(`THE LATE TAIL (EXPLORATORY): unit ${pk}/${pn}: ${U.id} (${U.cohort}, ${U.variant}), seed ${SEED}, ${n} paths, ${pts} points, estate weight ${W}; K2 ${hspConfigOf('K2')}, HSPA ${hspConfigOf('HSPA')}; the order ${order.join(', ')}${smoke ? '; a smoke' : ''}; node ${process.version}`);
+  // amendment 1: LT_ARMS the arms to run (every arm by default), in the unit's order; LT_FIRST the first run's folder
+  const RUN = process.env.LT_ARMS ? process.env.LT_ARMS.split(',') : [...ARMS];
+  if (!RUN.length || RUN.some(a => !ARMS.includes(a)) || new Set(RUN).size !== RUN.length) { console.error(`audit-late-tail: LT_ARMS ${process.env.LT_ARMS}`); process.exit(2); }
+  const whole = RUN.length === ARMS.length, FIRST = process.env.LT_FIRST || null;
+  if (!whole && !FIRST) { console.error('audit-late-tail: a run of some arms alone names the first run\'s folder (LT_FIRST)'); process.exit(2); }
+  const PROC = `${hostname()}:${process.pid}:${Date.now()}`, t0 = Date.now(), order = orderOf(pk).filter(a => RUN.includes(a));
+  console.log(`THE LATE TAIL (EXPLORATORY): unit ${pk}/${pn}: ${U.id} (${U.cohort}, ${U.variant}), seed ${SEED}, ${n} paths, ${pts} points, estate weight ${W}; K2 ${hspConfigOf('K2')}, HSPA ${hspConfigOf('HSPA')}; the order ${order.join(', ')}${whole ? '' : ` (the arms run: ${RUN.join(', ')}; the rest the first run's, ${relative(REPO, FIRST)})`}${smoke ? '; a smoke' : ''}; node ${process.version}`);
   // the unit as step 8's audit built it
   const { a, hp } = solverPlanOf(U.plan, 'own'), sp = pensionsSplit(E, hp), guard = guardOf(U.plan);
   const light = smoke && pts <= 6 ? { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } : {};
@@ -216,27 +236,36 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const planWith = (plan, pol) => ({ ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...plan.spending, policyOverride: pol } });
   // each arm's engine context, its table arms' policies recording into `sink`, the variants' decisions into `seenTake`
   const seenTake = { L: 0, R: 0 }, cur = { k: -1 };
-  const ctxOf = (arm, sink = null) => {
+  // `bare` (amendment 1, check 5): the same arm without the recorder (and a variant without its watch)
+  const ctxOf = (arm, sink = null, bare = false) => {
+    const rec = (pol, m) => (bare ? pol : recorded(pol, m, sink));
     if (arm === 'APP') {
       const ctx = E.buildContext(E.resolveMpaa(a.planState));
       if (!ctx.guardrails || ctx.lookaheadYears !== 5 || ctx.raiseCapFrac !== 1.1 || !ctx.isCouple) { console.error(`audit-late-tail: ${U.id} APP: guardrails ${ctx.guardrails}, lookahead ${ctx.lookaheadYears}, raise cap ${ctx.raiseCapFrac}`); process.exit(3); }
       return ctx;
     }
-    if (arm === 'K2') return E.buildContext(planWith(withAges(k2.plan), recorded(kPol, k2.m, sink)));
-    if (arm === 'HSPA') return E.buildContext(planWith(withAges(house.plan), recorded(hPol, house.m, sink)));
+    if (arm === 'K2') return E.buildContext(planWith(withAges(k2.plan), rec(kPol, k2.m)));
+    if (arm === 'HSPA') return E.buildContext(planWith(withAges(house.plan), rec(hPol, house.m)));
     if (arm === 'L' || arm === 'R') {
       const take = TAKES[arm], watch = (t, out, h, k) => { if (cur.k >= 0 && cur.k < CHECK && !takesRight(take, out, k)) seenTake[arm]++; };
-      return E.buildContext(planWith(withAges(house.plan), recorded(variantPolicy(hPol, kPol, take, watch), house.m, sink)));
+      return E.buildContext(planWith(withAges(house.plan), rec(variantPolicy(hPol, kPol, take, bare ? null : watch), house.m)));
     }
     if (arm === 'NONE') return E.buildContext(planWith(withAges(house.plan), variantPolicy(hPol, kPol, 'none')));
     if (arm === 'ALL') return E.buildContext(planWith(withAges(k2.plan), variantPolicy(hPol, kPol, 'all')));
-    if (arm === 'CEIL') return householdBands(E, house.hopts, () => { const pc = withTable(house.hplan, house.H); return E.buildContext({ ...pc, spending: { ...pc.spending, policyOverride: recorded(pc.spending.policyOverride, house.hm, sink) } }); });
+    if (arm === 'CEIL') return householdBands(E, house.hopts, () => { const pc = withTable(house.hplan, house.H); return E.buildContext({ ...pc, spending: { ...pc.spending, policyOverride: rec(pc.spending.policyOverride, house.hm) } }); });
     throw new Error(`audit-late-tail: arm ${arm}`);
   };
   const T = ctxOf('K2').totalYears, Y = T + 1, paths = E.pathsForSeed(SEED, n, T).map(zs => Float64Array.from(zs));
   const inputs = { K2: inputsHash(ctxOf('K2')), HSPA: inputsHash(ctxOf('HSPA')) };
   // the household's first year of spending (its first retirement), on APP's first path: the plan's, the same on every path
   const firstSpend = (() => { const ctx = ctxOf('APP'), st = E.freshState(ctx), zs = paths[0], zPath = zs.length > Y ? zs[Y] : 0; for (let t = 0; t <= T; t++) { if (E.stepYear(ctx, st, t, { z: zs[t], zPath }).targetSpend > 0) return t; } return T + 1; })();
+  // the first m paths of an arm without its recorder, as KEYS arrays (check 5, amendment 1)
+  const runBare = (arm, m) => {
+    const ctx = ctxOf(arm, null, true), A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, new Ty(m)]));
+    for (let k = 0; k < m; k++) { const r = runRec(ctx, paths[k], null); A.survived[k] = r.survived ? 1 : 0; A.failYear[k] = r.failYear; A.pot[k] = r.wealth; A.estate[k] = r.estate; A.tax[k] = r.tax; A.delivered[k] = r.delivered; A.unmet[k] = r.unmet; }
+    return A;
+  };
+  const bareChecks = {};
   const arms = {};
   for (const arm of order) {
     const table = TABLE_ARMS.includes(arm), sink = table ? { k: -1, Y, level: new Uint8Array(n * Y), risk: new Int16Array(n * Y), taxYear: new Float32Array(n * Y) } : null;
@@ -273,6 +302,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     for (let k = 0; k < Math.min(CHECK, n); k++) { const q = E.runTrial(ctx, paths[k]); if (q.survived !== !!A.survived[k] || q.terminalPotNet !== A.estate[k] || q.unmetTotal !== A.unmet[k] || q.lifetimeTax !== A.tax[k]) bad++; }
     if (bad) { console.error(`audit-late-tail: ${U.id} ${arm}: the run differs from E.runTrial on ${bad} of the first ${Math.min(CHECK, n)} paths`); process.exit(3); }
     if ((arm === 'L' || arm === 'R') && seenTake[arm]) { console.error(`audit-late-tail: ${U.id} ${arm}: ${seenTake[arm]} decisions of the first ${CHECK} paths not taking K2's ${TAKES[arm]}`); process.exit(3); }
+    // check 5 (amendment 1): a recorded arm the same arm without its recorder, bit for bit on its first CHECK paths
+    if (table) {
+      const d = same(A, runBare(arm, Math.min(CHECK, n)), Math.min(CHECK, n));
+      if (d) { console.error(`audit-late-tail: ${U.id} ${arm}: the recorded arm differs from the same arm without the recorder (${d})`); process.exit(3); }
+      bareChecks[arm] = `equal without the recorder on ${Math.min(CHECK, n)} paths`;
+    }
     const cpuUs = chunks.reduce((t, x) => t + x.cpuUs, 0);
     arms[arm] = { n, cpuUs, wallMs: chunks.reduce((t, x) => t + x.wallMs, 0), chunks, place: order.indexOf(arm), solveSecs: solveSecs[arm] || 0, ...Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])), ...(table ? { Y, years: Object.fromEntries(Object.keys(YEAR_KEYS).map(k => [k, b64(sink[k])])) } : {}) };
     console.log(`${''.padEnd(8)} done ${arm}: CPU ${(cpuUs / 1e3 / n).toFixed(1)} ms a path`);
@@ -280,7 +315,20 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   // the variants' wiring: none of K2's move is HSPA, all of it K2, bit for bit on the first CHECK paths
   const decode = A => Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, dec(A[k], Ty)]));
   const wire = {};
-  for (const [w, like] of [['NONE', 'HSPA'], ['ALL', 'K2']]) {
+  // amendment 1: where some arms alone are run, the first run's K2, HSPA, L and R (not run now) each run again without the
+  // recorder on its first CHECK paths and held to the first run's arrays bit for bit, its household table the first run's
+  let first = null;
+  if (!whole) {
+    const F = JSON.parse(gunzipSync(readFileSync(join(FIRST, fileOf(U.id)))).toString()), m = Math.min(CHECK, n, F.N);
+    if (F.stamp.code !== STAMP.code || F.seed !== SEED || F.N !== n || F.pts !== pts || F.digests.household !== digests.household || F.T !== T || F.firstSpend !== firstSpend) { console.error(`audit-late-tail: ${U.id}: the first run's unit is not this one as solved now (code, seed, paths, points, household table, horizon or first year)`); process.exit(3); }
+    for (const arm of ['K2', 'HSPA', 'L', 'R'].filter(a => !RUN.includes(a))) {
+      const d = same(runBare(arm, m), decode(F.arms[arm]), m);
+      if (d) { console.error(`audit-late-tail: ${U.id} ${arm}: the first run's arm differs from the same arm without the recorder (${d})`); process.exit(3); }
+      bareChecks[`first ${arm}`] = `the first run's equal without the recorder on ${m} paths`;
+    }
+    first = { audit: F.stamp.audit, household: F.digests.household };
+  }
+  if (whole) for (const [w, like] of [['NONE', 'HSPA'], ['ALL', 'K2']]) {
     const ctx = ctxOf(w), m = Math.min(CHECK, n), A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, new Ty(m)]));
     for (let k = 0; k < m; k++) { const r = runRec(ctx, paths[k], null); A.survived[k] = r.survived ? 1 : 0; A.failYear[k] = r.failYear; A.pot[k] = r.wealth; A.estate[k] = r.estate; A.tax[k] = r.tax; A.delivered[k] = r.delivered; A.unmet[k] = r.unmet; }
     const d = same(A, decode(arms[like]), m);
@@ -288,8 +336,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     wire[w] = `${like} on ${m} paths`;
   }
   // step 8's pilot: K2 and HSPA equal to its arrays on its first 1,000 paths, where it ran this unit (a STOP otherwise)
-  let pilot = 'not in the pilot';
-  if (!smoke && existsSync(join(PILOT_DIR, fileOf(U.id)))) {
+  let pilot = whole ? 'not in the pilot' : 'not run: some arms alone';
+  if (whole && !smoke && existsSync(join(PILOT_DIR, fileOf(U.id)))) {
     const P = JSON.parse(gunzipSync(readFileSync(join(PILOT_DIR, fileOf(U.id)))).toString()), m = Math.min(PILOT_CHECK, n, P.N);
     if (P.stamp.code !== STAMP.code || P.seed !== SEED || P.pts !== pts) { console.error(`audit-late-tail: ${U.id}: step 8's pilot is not on this code, seed and points`); process.exit(3); }
     for (const arm of ['K2', 'HSPA']) {
@@ -298,8 +346,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     }
     pilot = `K2 and HSPA equal to step 8's pilot on ${m} paths`;
   }
-  console.log(`${''.padEnd(8)} checks: ${wire.NONE}; ${wire.ALL}; L and R take K2's part at every decision of the first ${Math.min(CHECK, n)} paths; ${pilot}`);
-  writeFileSync(join(OUT, fileOf(U.id)), gzipSync(js({ k: pk, id: U.id, variant: U.variant, cohort: U.cohort, seed: SEED, N: n, pts, W, stamp: STAMP, digests, configs: { K2: hspConfigOf('K2'), HSPA: hspConfigOf('HSPA') }, inputs, split: { s: sp.s, k: sp.k }, floor: k2.m.ctx.solvencyFloor, caps: [k2.tables.self.estateCap || 0, k2.tables.part.estateCap || 0], T, Y, firstSpend, order, checks: { wire, pilot, takes: seenTake }, arms })));
+  console.log(`${''.padEnd(8)} checks: ${whole ? `${wire.NONE}; ${wire.ALL}; L and R take K2's part at every decision of the first ${Math.min(CHECK, n)} paths; ${pilot}` : `the arms run ${RUN.join(', ')}`}; check 5: ${Object.entries(bareChecks).map(([a, x]) => `${a} ${x}`).join('; ')}`);
+  writeFileSync(join(OUT, fileOf(U.id)), gzipSync(js({ k: pk, id: U.id, variant: U.variant, cohort: U.cohort, seed: SEED, N: n, pts, W, stamp: STAMP, digests, configs: { K2: hspConfigOf('K2'), HSPA: hspConfigOf('HSPA') }, inputs, split: { s: sp.s, k: sp.k }, floor: k2.m.ctx.solvencyFloor, caps: [k2.tables.self.estateCap || 0, k2.tables.part.estateCap || 0], T, Y, firstSpend, order, armsRun: RUN, checks: { wire, pilot, takes: seenTake, bare: bareChecks, first }, arms })));
   for (const arm of ARMS) rmSync(partOf(OUT, U.id, arm), { force: true });
   console.log(`${''.padEnd(8)} done unit ${pk} secs ${Math.round((Date.now() - t0) / 1000)}`);
 }

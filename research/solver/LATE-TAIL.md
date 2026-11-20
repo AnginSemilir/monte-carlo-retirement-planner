@@ -94,3 +94,28 @@ return, `audit-household.mjs` `whyRecord`'s measure), and each year's tax.
 About 10 core-hours: each variant costs about K2's path and HSPA's path together, CEIL a single's path. That is under
 three hours on four free cores, run after the savings split's preflight and pilot. Through the launcher as an
 EXPLORATORY run on frozen code. Box: half a day to build with its checks, half a day to read.
+
+## Amendment 1 (20 Nov, after the first read; the reviewer at the read, `reviews/2026-11-20-read-late-tail.md`, finding 1)
+
+Committed before CEIL is run again. The rule above is unchanged.
+
+- **The fault.** The audit's recorder (`audit-late-tail.mjs` `recorded`) called each arm's chooser with two arguments. The
+  engine passes three: the third is the tiers held (`engine.mjs` `stepYear`). A single's table reads it for the switch
+  charge (`bridge.js` `tablePolicy`). Of the six arms only CEIL is a single's table, so only CEIL ran wrong: it charged
+  nothing for a switch of risk. K2, HSPA, L and R read the tiers held from the state; the pattern search over every wrapper
+  of a policy's chooser, in the research and in the app, found no other that drops it.
+- **The fix.** The recorder passes every argument. A check of its class, check 5: each recorded arm equal bit for bit to
+  the same arm without the recorder on its first `200` paths. Its planted fault, `LT_PLANT=recorderdrop` (the recorder
+  dropping the tiers held again), fails it, and the audit's planted cases include the recorder's arguments.
+- **The run again.** CEIL alone, on the amended audit, into `results/late-tail-7002-ceil`: the same ten units, code, seed,
+  paths and points (`LT_ARMS=CEIL`). Each unit is also held to the first run (`LT_FIRST`): the same household table (by
+  digest), horizon and first year of spending, and the first run's K2, HSPA, L and R each run again without the recorder
+  on its first `200` paths and equal to the first run's arrays bit for bit.
+- **The read again.** By the same rule, on the first run's APP, K2, HSPA, L and R and the re-run's CEIL
+  (`reduce-late-tail.mjs ... --ceil results/late-tail-7002-ceil`, into `results-late-tail-2.txt`). Its gate: the first
+  run's units as before on their own audit (`57cc9f06eafb`); the re-run's on the amended files; the logs on exactly those
+  two versions (`fair-gate.mjs`'s allowed versions); each refusal of the re-run's gate with its planted case.
+- **Added beside the rule, deciding nothing** (the reviewer's findings 2 and 5): each arm's survivors on the worst tenth;
+  APP's paths ending at nought, of which the worst tenth then takes the lowest-numbered.
+- **The first read** (`results-late-tail.txt`) stays as printed. Its CEIL NEAR K2 rests on the fault, and the second read
+  replaces it.

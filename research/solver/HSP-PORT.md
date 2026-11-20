@@ -88,6 +88,36 @@ The worktree's branch joins the working branch after both launches; its `src/` c
 - **The identity** holds the app's route to step 8's audit, as D109's held the couples' route to its arm. Step 8's audit
   builds HSPA from `solverPlanOf`'s plan with arm A's MPAA ages; the identity test says whether the page's plan matches it.
 
+## Progress (20 Nov, early afternoon; in the worktree, uncommitted)
+
+- **Step 1 done.** `src/solver/household.js`, with `householdForm`, `householdFromTable` (the plan check the worker makes)
+  and `assembleHousehold` split out of `solveHousehold`.
+- **Step 2, the worker done.** In `src/solverWorker.js`:
+  - the `household-plan` kind takes the page's plan through `householdPlan`, as `couplePlans` does, then cuts it, and
+    returns the couple's plan, the household plan, the bands and the partner's age;
+  - the `household` slot, and the `household` kind assembling through `householdFromTable`;
+  - every `solveForApp` call in `solve`, `base` and `part` wrapped in the bands.
+
+  `solvedContext` has its household branch.
+- **Step 2, the client drafted.** In `src/solverClient.js`, `phase` carries `bands` to the owner and every part, and the
+  household route runs before the couple's where a form is named. The household's parts are kept as a single's, and each
+  assembly's form is read back.
+- **The route's test passes:** `research/tests/household-route.test.mjs`. On S025-own and S351F-90 at light settings:
+  - the cut is `solveHousehold`'s;
+  - the table solved apart inside the bands has the whole solve's digest;
+  - the household assembled from it runs as the whole on 200 paths, survival, the pot and the tax, bit for bit;
+  - a table solved outside the bands, or for another plan, is refused.
+
+  Its plants `nobands` and `oddsplit` each fail it.
+- **Not yet:**
+  - a test of the client's route with stand-in workers, as `couple-split.test.mjs` tests the couple's;
+  - step 3: the single's views read the table's own actions by the move's `index`. HSPA's move carries its table's index
+    as `ia`, and the household table `H` has the same actions. So the views take `solved.H` for a household, the move's
+    `ia`, the merged state for ranking, and a skip forced as the household move built from another action;
+  - steps 4 to 7;
+  - the commit: the e3pcls pin is re-taken in the worktree first (about 13 minutes), and the fast tier runs on the commit.
+    Both wait for the late tail to finish, so as not to slow it.
+
 ## Box
 
 Two days from the start of step 1. When the box runs out, stop and report what is done and what is not.

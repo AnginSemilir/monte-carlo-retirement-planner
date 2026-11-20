@@ -393,3 +393,4 @@
 20 Nov 00:37 UK | main | research/solver/registrations/household-hsp.md | code 71fb4271c681 | dc85dfaf | load 0.80 0.24 0.08 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-household-hsp.sh
 20 Nov 04:58 UK | main | research/solver/registrations/household-hsp.md | code 71fb4271c681 | dc85dfaf | load 0.33 0.14 0.05 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-household-hsp.sh
 20 Nov 12:10 UK | main | none: EXPLORATORY: step 8's late tail taken apart (LATE-TAIL.md) | code 71fb4271c681 | 180432fe | load 1.53 1.50 2.44 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-late-tail.sh
+20 Nov 16:29 UK | main | none: EXPLORATORY: the late tail's CEIL run again on the amended audit (LATE-TAIL.md amendment 1) | code 71fb4271c681 | f3094f1b | load 1.03 1.72 2.05 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-late-tail.sh

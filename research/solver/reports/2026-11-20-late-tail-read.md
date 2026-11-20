@@ -16,13 +16,15 @@ second read replaces it.
 - **The fault** (the reviewer at the read, `reviews/2026-11-20-read-late-tail.md`, finding 1; confirmed in the code):
   - The audit's recorder called each arm's chooser with two arguments. The engine passes three; the third is the tiers held,
     which a single's table reads for the switch charge.
-  - Of the six arms only CEIL is a single's table, so only CEIL ran wrong: it charged nothing for a switch of risk.
+  - Of the six arms only CEIL is a single's table, so only CEIL ran wrong: its chooser weighed no switch charge in
+    choosing a move (the engine still charged each switch it made).
   - The pattern search over every wrapper of a policy's chooser, in the research and in the app, found no other wrapper
     that drops it.
 - **The fix** (amendment 1, committed before CEIL was run again: be0ac7e9, f3094f1b):
   - the recorder passes every argument;
   - check 5, a check of that class: each recorded arm equal bit for bit to the same arm without the recorder on its first
-    `200` paths. Its plant, the recorder dropping the tiers held again, failed it on both units tried in the smoke.
+    `200` paths. Its plant, the recorder dropping the tiers held again, failed it on both units tried in the smoke
+    (`results-late-tail-amend-smoke.txt`).
 - **The run again:** CEIL alone on the amended audit (5bbb8c62b042), 16:29 to 16:57 UK, no unit exiting with an error.
   Each unit was held to the first run: the same household table by digest, and the first run's K2, HSPA, L and R each
   equal to the same arm without the recorder on its first `200` paths. So the fault touched CEIL alone.

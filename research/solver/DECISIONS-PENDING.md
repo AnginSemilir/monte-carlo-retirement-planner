@@ -13,19 +13,25 @@ below this section says "the beta", read it as history. The order from here:
 
 **PENDING (20 Nov, afternoon): two items for the maintainer.**
 1. **The late tail, read twice: by the rule, step 8's build goes on to `main`** (D134 (1); `results-late-tail.txt`,
-   `results-late-tail-2.txt`, `reports/2026-11-20-late-tail-read.md`; the reviewer again under way).
+   `results-late-tail-2.txt`, `reports/2026-11-20-late-tail-read.md`; the reviewer again PASS, three MINORs answered,
+   `reviews/2026-11-20-read-late-tail-2.md`).
    - **The first read** printed THE GROWTH with CEIL NEAR K2, which would have stopped the build. The reviewer FAILED it:
-     its CEIL arm ran through a recorder that dropped the tiers held, so CEIL charged nothing for a switch of risk
+     its CEIL arm ran through a recorder that dropped the tiers held, so CEIL's chooser weighed no switch charge (the
+     engine still charged each switch)
      (confirmed; no other wrapper of a chooser in the research or the app drops it).
    - **The fix and the second read:** the recorder fixed with a check of its class (amendment 1); CEIL run again alone on
      the ten units, each held to the first run, whose other arms the fault did not touch. Second read, by the same rule:
-     THE GROWTH. CEIL restores `-21.1%` of D, not `87.4%`, so the table does not read the couple as safer than it is.
+     THE GROWTH. CEIL restores `-21.1%` of D, not `87.4%`, so by the rule's measure the table does not read the couple as
+     safer than it is. The read does not test the deep review's other sign of a gap: HSPA's forecast above what it
+     delivers on four of S273's units, by `0.52` to `0.82` points (`reviews/2026-11-20-deep-household-hsp.md`, item 4).
+     THE GROWTH is a lead, not a shown cause: R, which explains it, keeps fewer paths than HSPA on every unit.
    - **What the rule decides:** the build goes on to `main` on B1's gate, this read reported. Left: the words, the default
      and its pin (`couple-default.test.mjs`, which needs your unlock), the identity at 45 points, the reviewer on the change
      of default, and the gate.
    - **The trade, beside the rule:** on the seven units below nought HSPA keeps `28` paths fewer than K2 in `28,000` and
      ends the worst tenth `£52,873` a path lower; step 8's registered read has HSPA ahead over 40 held-out units, pooled
-     `+0.762` points. Holding couples to the late pot more strictly would be yours to ask for, not a build.
+     `+0.762` points. A wish to hold couples to survival more strictly than singles would be yours to ask for, not a
+     build (`LATE-TAIL.md`'s words).
 2. **The savings split's v2 is ready to launch** (`registrations/save-v2.md`; the design review PASS on its final look,
    `reviews/2026-11-20-save-v2-design-2.md`). It waits on your typed unlock to reserve seed 7025 for `save-v2*.md` in
    `check-prediction.mjs`, that edit alone, and your word to launch: about `12.3` hours on four cores.

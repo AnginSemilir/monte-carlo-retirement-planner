@@ -1,0 +1,17 @@
+THE SAVINGS SPLIT'S v2, THE SIZING from its pilot (results/save-v2-pilot; 4 households, seed 7002, 1000 paths each arm, code 71fb4271c681; EXPLORATORY)
+  S300F  fire CANDS against CANDD +1.60 points (CANDD 98.4%); discordant 16 of 1000 (1.60%, its upper bound 2.59%): D34's size 16000; on anchors +1.60 points, discordant 16 of 1000, its 1-point rate at 4000 0.892; lifetime spending +1.9876%
+  S330F  fire CANDS against CANDD +0.80 points (CANDD 94.2%); discordant 8 of 1000 (0.80%, its upper bound 1.57%): D34's size 16000; on anchors +0.80 points, discordant 8 of 1000, its 1-point rate at 4000 0.984; lifetime spending +0.5404%
+  S180   lib  CANDS against CANDD +0.10 points (CANDD 99.1%); discordant 3 of 1000 (0.30%, its upper bound 0.87%): D34's size 16000; on anchors +0.10 points, discordant 3 of 1000, its 1-point rate at 4000 NaN; lifetime spending +0.4854%
+  S238   lib  CANDS against CANDD +0.00 points (CANDD 97.0%); discordant 0 of 1000 (0.00%, its upper bound 0.37%): D34's size 16000; on anchors +0.10 points, discordant 1 of 1000, its 1-point rate at 4000 NaN; lifetime spending +0.3228%
+what the pilot shows, at the registered 16000 paths (each household's pilot change were it the truth; EXPLORATORY, deciding nothing):
+  S300F  +1.60 points; D34's threshold at 16000 0.456; the chance it is flagged 0.000
+  S330F  +0.80 points; D34's threshold at 16000 0.412; the chance it is flagged 0.000
+  S180   +0.10 points; D34's threshold at 16000 0.375; the chance it is flagged 0.000
+  S238   +0.00 points; D34's threshold at 16000 0.331; the chance it is flagged 0.000
+the run: every household at 16000 paths on the whole menu (the largest of the pilot's sizes, at most D61's 19000), its anchors pair on the first 4000; at 16000 a true 1-point loss reads as harm at least 90% of the time up to a discordance (its upper bound) of 10.50%
+the budget (D21: measured from the pilot's households on this machine), over 40 households and the longest once more for a relaunch: 45.9 core-hours; on 4 cores in the batch's own order (the panel's) 12.1 hours, longest first 12.1; the longest household 1.28 hours
+  pilot S300F  the solves CANDD 380 s, CANDS 476 s, CANDDA 71 s, CANDSA 78 s; a path CANDD 50.1 ms, CANDS 109.1 ms, CANDDA 52.9 ms, CANDSA 117.9 ms; beside 47 / 112 / 50 / 112 s; the load at its chunks 4.2
+  pilot S330F  the solves CANDD 406 s, CANDS 513 s, CANDDA 68 s, CANDSA 79 s; a path CANDD 61.4 ms, CANDS 121.0 ms, CANDDA 58.6 ms, CANDSA 128.9 ms; beside 55 / 120 / 55 / 125 s; the load at its chunks 1.8
+  pilot S180   the solves CANDD 287 s, CANDS 314 s, CANDDA 47 s, CANDSA 49 s; a path CANDD 40.4 ms, CANDS 79.8 ms, CANDDA 40.9 ms, CANDSA 79.5 ms; beside 39 / 77 / 39 / 80 s; the load at its chunks 4.0
+  pilot S238   the solves CANDD 302 s, CANDS 325 s, CANDDA 44 s, CANDSA 49 s; a path CANDD 47.0 ms, CANDS 88.2 ms, CANDDA 48.6 ms, CANDSA 89.1 ms; beside 48 / 86 / 48 / 94 s; the load at its chunks 4.2
+written: save-v2-paths.json (40 households at 16000)

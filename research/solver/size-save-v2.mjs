@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import * as E from '../engine.mjs';
 import { sizeOf, runN, flagChance, makespan, inOrderSpan, RUN_MAX, CORES } from './size-household-hsp.mjs';
 import { tpLimit } from './size-couples.mjs';
-import { harmRate, thresholdFor } from './size-phase4.mjs';
+import { harmRate, thresholdFor, D_MIN } from './size-phase4.mjs';
 import { loadDir, gate, spendRows } from './reduce-save-v2.mjs';
 import { ALL_ARMS, PILOT_N, PILOT_SEED, PATHS_FILE, CHECK, ANCHORS_N, pilotUnits, stampFilesHash, nOf } from './audit-save-v2.mjs';
 import { readSaveV2Panel, PANEL } from './save-v2-panel.mjs';
@@ -34,8 +34,14 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export function householdSecs(p, N, scale, check = CHECK) {
   return scale * ALL_ARMS.reduce((t, a) => { const A = p.arms[a], n = nOf(a, N); return t + (A.solveSecs || 0) + (A.cpuUs / 1e6 / A.n) * (n + Math.min(check, n)) + (A.beside ? A.beside.secs : 0); }, 0);
 }
+/* the pilot discordance's upper bound as D34's read takes it: never below D_MIN (size-phase4.mjs sizeFor, reduce-couples.mjs
+   harmOf). A true 1-point loss needs a discordance of at least 1%, below which harmRate has no rate (NaN), and thresholdFor
+   stops at its first lattice step. SIZE_SV2_PLANT=nofloor (a planted fault) takes the bound as it is. */
+export const dOf = dUp => (process.env.SIZE_SV2_PLANT === 'nofloor' ? dUp : Math.max(dUp, D_MIN));
 /* the 1-point rate of a comparison at n paths, from its pilot discordance's upper bound (D34 (4)) */
-export const rateAt = (dUp, n) => harmRate(dUp, n, thresholdFor(dUp, n), 1);
+export const rateAt = (dUp, n) => { const d = dOf(dUp); return harmRate(d, n, thresholdFor(d, n), 1); };
+/* D34's threshold and the chance a household is flagged at N were its pilot change the truth, the bound floored as above */
+export const flagAt = (s, change, N) => flagChance({ ...s, dUp: dOf(s.dUp) }, change, N);
 
 function planted() {
   const cases = [];
@@ -45,6 +51,9 @@ function planted() {
     cases.push(['scaled by the horizons', `${Math.round(householdSecs(p, 16000, 1.5))}`, `${Math.round(1.5 * want)}`]); }
   { const flips = (n, k) => { const a = new Uint8Array(n).fill(1); for (let i = 0; i < k; i++) a[i] = 0; return a; }, s = sizeOf(flips(1000, 30), flips(1000, 0));
     cases.push(['the anchors pair\'s 1-point rate at 4,000 paths below the rate at 16,000, at 3% discordance', `${rateAt(s.dUp, 4000) < rateAt(s.dUp, 16000)} ${rateAt(s.dUp, 16000) >= 0.9}`, 'true true']); }
+  // below a 1% discordance (3 of 1,000 differ, its upper bound under 1%): the rate and the threshold are D_MIN's, as the read's
+  { const flips = (n, k) => { const a = new Uint8Array(n).fill(1); for (let i = 0; i < k; i++) a[i] = 0; return a; }, s = sizeOf(flips(1000, 3), flips(1000, 0)), r = rateAt(s.dUp, 4000), f = flagAt(s, 0, 16000);
+    cases.push(['below a 1% discordance the rate and the threshold are taken at D_MIN, as the read takes them: a number, not NaN', `${s.dUp < 0.01} ${Number.isFinite(r) && r === rateAt(D_MIN, 4000)} ${f.t === thresholdFor(D_MIN, 16000)}`, 'true true true']); }
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
@@ -72,7 +81,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   const N = runN(Object.values(sizes)), lim = tpLimit(N), past = Object.entries(sizes).filter(([, s]) => s.N > N);
   console.log(`what the pilot shows, at the registered ${N} paths (each household's pilot change were it the truth; EXPLORATORY, deciding nothing):`);
-  for (const u of pu) { const r = U[u.id], ch = sv(r.arms.CANDS) - sv(r.arms.CANDD), fc = flagChance(sizes[u.id], ch, N); console.log(`  ${u.id.padEnd(6)} ${sg(ch)} points; D34's threshold at ${N} ${fc.t.toFixed(3)}; the chance it is flagged ${fc.chance.toFixed(3)}`); }
+  for (const u of pu) { const r = U[u.id], ch = sv(r.arms.CANDS) - sv(r.arms.CANDD), fc = flagAt(sizes[u.id], ch, N); console.log(`  ${u.id.padEnd(6)} ${sg(ch)} points; D34's threshold at ${N} ${fc.t.toFixed(3)}; the chance it is flagged ${fc.chance.toFixed(3)}`); }
   console.log(`the run: every household at ${N} paths on the whole menu (the largest of the pilot's sizes, at most D61's ${RUN_MAX}), its anchors pair on the first ${ANCHORS_N}; at ${N} a true 1-point loss reads as harm at least 90% of the time up to a discordance (its upper bound) of ${(100 * lim).toFixed(2)}%${past.length ? `; past it: ${past.map(([id]) => id).join(', ')}, read at ${N} and named with their rate (D34 (4))` : ''}`);
   const rows = panel.map(u => {
     const y = yearsOf(u), mine = pu.filter(p => p.cohort === u.cohort), pool = mine.length ? mine : pu, from = pool.reduce((b, p) => (Math.abs(yearsOf(p) - y) < Math.abs(yearsOf(b) - y) ? p : b));

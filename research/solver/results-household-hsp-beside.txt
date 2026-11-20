@@ -67,3 +67,18 @@ F. THE POT CAPPED AT THE TWO PEOPLE'S ESTATE CAPS, HSPA AGAINST K2 (the mean a p
   not lower under HSPA: S351F-own     +0.478% (£6,152 a path)
   not lower under HSPA: S357F-db      +0.679% (£47,837 a path)
   not lower under HSPA: S357F-own     +1.519% (£107,136 a path)
+
+G. THE UNITS WHERE HSPA KEEPS FEWER PATHS AT ITS POINT: SURVIVAL, THE CAPPED POT AND LIFETIME TAX (HSPA against K2)
+  below nought at its point: 7 units; the capped pot lower on 5, lifetime tax higher on 6
+  S025-45       survival -0.200 (-0.251 to -0.122) (wholly below nought), its interval reaching past -0.25; the capped pot -10.237%; lifetime tax -68.003%
+  S273-own      survival -0.019 (-0.161 to +0.125); the capped pot -1.071%; lifetime tax +5.342%
+  S273-sppart   survival -0.106 (-0.260 to +0.051), its interval reaching past -0.25; the capped pot -0.999%; lifetime tax +7.148%
+  S357F-45      survival -0.094 (-0.186 to +0.008); the capped pot -0.519%; lifetime tax +4.602%
+  S357F-db      survival -0.031 (-0.165 to +0.104); the capped pot +0.679%; lifetime tax +30.347%
+  S357F-gap8    survival -0.225 (-0.329 to -0.106) (wholly below nought), its interval reaching past -0.25; the capped pot -0.702%; lifetime tax +17.952%
+  S357F-own     survival -0.281 (-0.401 to -0.147) (wholly below nought), its interval reaching past -0.25, its point past -0.25; the capped pot +1.519%; lifetime tax +28.870%
+
+H. THE POT LEFT UNCAPPED, HSPA AGAINST K2, BY UNIT (the mean a path, and the median a path)
+  the mean a path higher under HSPA on 27 of 40 units; the median a path lower under HSPA on 31 of 40
+  the units' mean of the mean a path: K2 £7,519,884, HSPA £9,091,528; the units' mean of the median a path: K2 £3,931,008, HSPA £3,945,339
+  S273-90: the mean a path +3.834% (K2 £16,705,385, HSPA £17,345,936); the median a path -3.034% (K2 £9,169,528, HSPA £8,891,344); the capped pot -1.034%

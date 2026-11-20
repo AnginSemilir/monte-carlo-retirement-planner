@@ -6,7 +6,7 @@ audit 4cc4d37c0c19), relaunched under `RESUME=1` at 23:41, 00:37 and 04:58 UK af
 runs done 20 Nov 08:19 UK: 40 units, none exiting with an error. Read once at 08:20 UK by `reduce-household-hsp.mjs` from
 the launch worktree, its output whole in `results-household-hsp.txt`. The figures the read does not print are in
 `results-household-hsp-beside.txt` (`household-hsp-beside.mjs`, written after the read, on the read's own functions,
-deciding nothing).
+deciding nothing). The reviewer at the read: PASS, three MINORs, each answered here (`reviews/2026-11-20-read-household-hsp.md`).
 
 ## In plain words
 
@@ -19,7 +19,7 @@ D99 and D109). The panel is 40 held-out units: eight couples in five shapes each
 - `own`: the couple as entered, 60/40;
 - `45` and `90`: every wrapper re-held so the first person holds that share of the pots;
 - a feature at 60/40: the first person's `£15,000` a year DB pension (`db`), the same of the partner's (`dbpart`), or the
-  partner's state pension at 60 (`sppart`);
+  partner's state pension at `60%` of the first person's (`sppart`);
 - `gap8`: the partner eight years younger.
 
 Each arm ran on the same `16,000` paths of seed 7024.
@@ -42,19 +42,28 @@ On S273-90 HSPA keeps more paths but delivers less on the paths both keep, beyon
 there (the read's M1 line):
 - **Survival:** HSPA keeps `81` more paths net, `+0.506` points (`+0.356` to `+0.638`).
 - **Spending on the paths both keep:** `-0.1665%` (se `0.0074`). Over all paths, `-0.0256%`.
-- **The capped pot:** `-1.034%`, `-£64,271` a path.
+- **The capped pot:** `-1.034%`, `-£64,271` a path. Uncapped, the pot runs both ways: the mean a path `+3.834%`, the
+  median a path `-3.034%` (beside, section H).
 
 So on this unit the trade is about half a point more survival for about a sixth of a percent less spending on the paths
-both keep, and a pot about one percent smaller.
+both keep, and a capped pot about one percent smaller.
 
 ## Said beside the outcome
 
 From the read and the beside file:
-- **Three units lose survival beyond noise, each under D34's threshold** (beside, section C). Each interval lies wholly
-  below nought:
-  - S025-45 `-0.200` (`-0.251` to `-0.122`), net `32` paths lost against its threshold of `61`;
-  - S357F-gap8 `-0.225` (`-0.329` to `-0.106`), net `36` against `61`;
-  - S357F-own `-0.281` (`-0.401` to `-0.147`), net `45` against `61`.
+- **Three units lose survival beyond noise, each under D34's threshold** (beside, sections C and G). Each interval lies
+  wholly below nought:
+  - S025-45 `-0.200` (`-0.251` to `-0.122`), net `32` paths lost against its threshold of `61`; its capped pot
+    `-10.237%`, its lifetime tax `-68.003%`;
+  - S357F-gap8 `-0.225` (`-0.329` to `-0.106`), net `36` against `61`; its capped pot `-0.702%`, its lifetime tax
+    `+17.952%`;
+  - S357F-own `-0.281` (`-0.401` to `-0.147`), net `45` against `61`; its capped pot `+1.519%`, its lifetime tax
+    `+28.870%`.
+  - Under D34's threshold is not under a quarter point, the loss D34 calls harm at most 5% of the time: each of the three
+    intervals reaches past `-0.25`, and S357F-own's point lies past it.
+  - Four more units lie below nought at their point, within noise: S273-own `-0.019`, S273-sppart `-0.106` (its interval
+    reaching past `-0.25`), S357F-45 `-0.094` and S357F-db `-0.031`. Each pays more lifetime tax under HSPA (`+4.602%` to
+    `+30.347%`), and the capped pot is lower on all but S357F-db (section G).
   - 29 units lie wholly above nought and 8 across it.
 - **One couple gains nothing.** S357F's five units pooled: `-0.043` (`-0.104` to `+0.019`), four of them below nought at
   their point. S273's: `+0.145` (`+0.065` to `+0.225`). The other six couples run from `+0.489` (S351) to `+1.659`
@@ -68,13 +77,19 @@ From the read and the beside file:
 - **Lifetime tax** (section E). Lower under HSPA on 26 of the 40 units. Higher on 14, among them all five of S357F's and
   four of S273's (all but S273-90). On those nine units K2's lifetime tax runs from `£920,041` to `£1,342,891` a path. That
   the band pricing misplaces a higher-rate couple's draws is a lead, not shown.
-- **The pot** (the read; section F). The pot capped at the two people's estate caps is lower under HSPA on 35 of the 40
-  units: the units' mean `-3.630%` (`-£30,732` a path). By M1 it is recorded and is not a bar.
+- **The pot** (the read; sections F and H). The pot capped at the two people's estate caps is lower under HSPA on 35 of
+  the 40 units: the units' mean `-3.630%` (`-£30,732` a path). By the registration's rule the pot is recorded and is not a
+  bar. M1 (D116) says more only where HSPA keeps more paths and delivers no less spending, so it does not cover the
+  units where HSPA keeps fewer paths (above). Of those seven, the capped pot is lower on five and lifetime tax higher on
+  six (section G).
+  - Uncapped, the pot runs the other way on the mean: the mean a path is higher under HSPA on 27 of the 40 units (the
+    units' mean K2 `£7,519,884`, HSPA `£9,091,528`), while the median a path is lower on 31 of the 40.
 - **The forecast** (section D). HSPA's one table forecasts the household's survival at the start within one point of
   what the engine delivers on every one of the 40 units (the mean gap `+0.099`). K2's figure is the product of the two
   people's own tables, each planning its own part, so it is no forecast of the household (the mean gap `-10.909`).
-- **Speed** (the read). A path's CPU time, the mean a unit: HSPA `50.5` ms, K2 `159.5` ms. The solve, the median a unit:
-  HSPA `58` s, K2 `122` s.
+- **Speed** (the read). A path's CPU time, the mean a unit: HSPA `50.5` ms, K2 `159.5` ms, the arms' paths run in a
+  rotated order. The solve, the median a unit: HSPA `58` s, K2 `122` s. Each process solves K2 before HSPA
+  (`audit-household-hsp.mjs`), so the solve times carry an order effect, not measured. They decide nothing.
 - **Against the app's rules** (the read, beside). HSPA `+11.605` points (`+11.292` to `+11.917`), K2 `+10.842`
   (`+10.549` to `+11.135`); neither flagged against APP by D34.
 - **The checks beside the engine.** The rollout and the engine agree on all `20,000` of K2's first paths checked. No

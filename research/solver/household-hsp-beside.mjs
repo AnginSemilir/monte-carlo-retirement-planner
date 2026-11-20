@@ -7,7 +7,10 @@
  *   C. the units whose change lies wholly below nought, or wholly above it, each with D34's net loss and its threshold;
  *   D. each arm's table forecast at the start against the survival the engine delivers on the unit's paths;
  *   E. lifetime tax, HSPA against K2, by unit;
- *   F. the pot capped at the two people's estate caps (as the read's cappedOf takes it), HSPA against K2, by unit.
+ *   F. the pot capped at the two people's estate caps (as the read's cappedOf takes it), HSPA against K2, by unit;
+ *   G. the units where HSPA keeps fewer paths at its point: survival, the capped pot and lifetime tax together, and
+ *      whether the interval reaches past a quarter point (the loss D34 calls harm at most 5% of the time);
+ *   H. the pot left uncapped, the mean and the median a path, HSPA against K2, by unit (the reviewer at the read, MINOR 3).
  * K2's forecast is the product of the two people's own tables at the start, each table planning its own part (the audit's
  * forecast.K2), so it is no forecast of the household; HSPA's is its one table's.
  *   node research/solver/household-hsp-beside.mjs [dir] > research/solver/results-household-hsp-beside.txt
@@ -89,5 +92,25 @@ const capped = (cap, A) => { let t = 0; for (let i = 0; i < A.pot.length; i++) t
 const cp = units.map(u => { const cap = u.caps[0] + u.caps[1], b = capped(cap, u.arms.K2), x = capped(cap, u.arms.HSPA); return { id: u.id, pct: b > 0 ? 100 * (x / b - 1) : 0, gbp: x - b }; });
 log(`  lower under HSPA on ${cp.filter(x => x.pct < 0).length} of ${units.length} units; the units' mean ${f3(mean(cp.map(x => x.pct)))}% (${gbp(mean(cp.map(x => x.gbp)))} a path)`);
 for (const x of cp.filter(y => y.pct >= 0)) log(`  not lower under HSPA: ${x.id.padEnd(13)} ${f3(x.pct)}% (${gbp(x.gbp)} a path)`);
+
+// G. the units below nought at their point: survival, the capped pot and lifetime tax together
+log('');
+log('G. THE UNITS WHERE HSPA KEEPS FEWER PATHS AT ITS POINT: SURVIVAL, THE CAPPED POT AND LIFETIME TAX (HSPA against K2)');
+const capOf = id => cp.find(x => x.id === id), taxOf = id => tx.find(x => x.id === id);
+{ const below0 = C.rows.filter(x => x.ch.d < 0);
+  log(`  below nought at its point: ${below0.length} units; the capped pot lower on ${below0.filter(r => capOf(r.id).pct < 0).length}, lifetime tax higher on ${below0.filter(r => taxOf(r.id).pct > 0).length}`); }
+for (const r of C.rows.filter(x => x.ch.d < 0)) {
+  const c = capOf(r.id), t = taxOf(r.id);
+  log(`  ${r.id.padEnd(13)} survival ${iv(r.ch)}${r.ch.hi < 0 ? ' (wholly below nought)' : ''}${r.ch.lo < -0.25 ? ', its interval reaching past -0.25' : ''}${r.ch.d < -0.25 ? ', its point past -0.25' : ''}; the capped pot ${f3(c.pct)}%; lifetime tax ${f3(t.pct)}%`);
+}
+
+// H. the pot left uncapped, the mean and the median a path
+log('');
+log('H. THE POT LEFT UNCAPPED, HSPA AGAINST K2, BY UNIT (the mean a path, and the median a path)');
+const med = A => { const a = Float64Array.from(A).sort(), n = a.length; return n % 2 ? a[(n - 1) / 2] : (a[n / 2 - 1] + a[n / 2]) / 2; };
+const up = units.map(u => { const mk = mean(u.arms.K2.pot), mh = mean(u.arms.HSPA.pot), dk = med(u.arms.K2.pot), dh = med(u.arms.HSPA.pot); return { id: u.id, meanPct: mk > 0 ? 100 * (mh / mk - 1) : 0, medPct: dk > 0 ? 100 * (dh / dk - 1) : 0, mk, mh, dk, dh }; });
+log(`  the mean a path higher under HSPA on ${up.filter(x => x.mh > x.mk).length} of ${units.length} units; the median a path lower under HSPA on ${up.filter(x => x.dh < x.dk).length} of ${units.length}`);
+log(`  the units' mean of the mean a path: K2 ${gbp(mean(up.map(x => x.mk)))}, HSPA ${gbp(mean(up.map(x => x.mh)))}; the units' mean of the median a path: K2 ${gbp(mean(up.map(x => x.dk)))}, HSPA ${gbp(mean(up.map(x => x.dh)))}`);
+for (const id of ['S273-90']) { const x = up.find(y => y.id === id); if (x) log(`  ${id}: the mean a path ${f3(x.meanPct)}% (K2 ${gbp(x.mk)}, HSPA ${gbp(x.mh)}); the median a path ${f3(x.medPct)}% (K2 ${gbp(x.dk)}, HSPA ${gbp(x.dh)}); the capped pot ${f3(capOf(id).pct)}%`); }
 
 console.log(out.join('\n'));

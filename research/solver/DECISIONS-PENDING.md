@@ -23,8 +23,20 @@ below this section says "the beta", read it as history. The order from here:
 
    The agent recommends measuring it before the next batch merges, and meanwhile leaving the warning as it stands. The
    reviewer on the change of default agrees (`reviews/2026-11-20-default-household.md`, finding 5). The measure is ready:
-   `SPEED-H.md`, its rule committed, on SPEED-B's twelve couples, EXPLORATORY. It launches once the savings split's v2 frees
-   the cores, before B1's gate, and its read comes to you deciding nothing.
+   `SPEED-H.md`, its rule committed, on SPEED-B's twelve couples, EXPLORATORY.
+
+   **Read (20 Nov, 22:04 UK): HOLDS** (`results-speed-h.txt`, `reports/2026-11-20-speed-h-read.md`). On the household the
+   speed mode loses nothing beyond item 7's bars:
+   - pooled survival `-0.008` points (`-0.030` to `+0.013`);
+   - spending `-0.0082%`;
+   - the pot `-0.008%`;
+   - the largest loss on a unit `-0.050` points, a half in 1,000.
+
+   A path takes the median `x0.63` of the time, a guide, run beside the registered run. Beside it, SPEED-B on today's route,
+   the same twelve couples: LOSES on spending (`-0.0683%`), its paths `x0.79`.
+
+   The couples' warning's figures ("about 5 in 1,000") are SPEED-B's. Whether to keep its words or change them is yours. The
+   agent recommends keeping them as they stand: they err towards caution, and twelve couples on one seed is a narrow read.
 2. **FIXED (D136's fix round): under the speed mode a couple's shown decisions were made on the shortlist, on either route.** This year's actions,
    the next years and the rows (`src/solverCouple.js`) run the couple's policy as it is. D90's guard, that a decision the
    pages show is made on the whole menu (`src/solverStrategy.js` `shownPolicy`, `research/tests/shortlist-shown.test.mjs`),

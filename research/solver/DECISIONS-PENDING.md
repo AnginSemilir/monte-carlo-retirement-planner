@@ -11,6 +11,41 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**YOURS (20 Nov): three decisions, each put with the agent's recommendation.**
+1. **Step 8 read PASS, and M1 names one unit, so the couples' default waits for your word** (`results-household-hsp.txt`,
+   `reports/2026-11-20-household-hsp-read.md`; the reviewer at the read PASS, three MINORs answered; the deep review
+   `reviews/2026-11-20-deep-household-hsp.md`).
+   - **The rule, HSPA against K2 on 40 held-out units:** no unit flagged by D34; pooled survival `+0.762` (`+0.718` to
+     `+0.807`); spending on the paths both keep `+1.7223%`.
+   - **M1's unit, S273-90:** `81` more paths kept, but `-0.1665%` spending on the paths both keep and a capped pot
+     `-1.034%`.
+   - **Beside:** three units lose survival beyond noise but under D34's threshold (`-0.200` to `-0.281`, each interval
+     reaching past a quarter point); S357F gains nothing pooled; the near-even shape gains nothing beyond noise; HSPA's
+     paths about three times as fast as K2's.
+   - **The deep review's leading cause, a lead:** the household table's thinner late cushion, the paths it loses failing
+     late. **Its one test,** about a day: whether that is the table's own trade (the default then a word on that trade)
+     or the table reading the couple as safer than it is (design B before the default).
+   - **The agent's recommendation:** go, the build begun now (the household plan in the app's solve of a couple, shown
+     identical to the tested arm path for path, the reviewer on the change of default), the deep review's test run beside
+     it, and nothing to `main` before the test reads: if it shows the table over-reading the couple, the build stops there
+     and comes back. The other ways: the test first and then the word; or hold, today's default staying.
+2. **The savings split's v2, the design review's MINOR 2: a spending harm on anchors** (`reviews/2026-11-20-save-v2-design.md`).
+   Anchors is the menu that ships, and the factorial's S308F harm was seen there, but under a PASS only D34's survival flags on
+   anchors come back to you (D133 (3)). **The agent's recommendation:** under a PASS, each household failing part 3's
+   household clause on anchors, and the pair on anchors if its pooled survival interval lies wholly below nought, also comes
+   back to you before any change of default, deciding nothing in the rule. The other way: the registration says plainly that
+   a spending harm on anchors does not stop the change.
+3. **The savings split's v2, the design review's MINOR 3: the 2029 cap on salary sacrifice's NIC relief.** The engine leaves
+   it uncapped (stated, not modelled: D112 (M6)), which favours the pension first, one of the split's two answers (about 11%
+   more pension a net pound above the cap in the main band); 30 of the 40 households are employees. **The agent's
+   recommendation:** run as is, the read printing beside the rule the share of the employees' decisions from 2029 that take
+   the pension first (built), the limitation and its direction in the registration (written), and modelling the cap queued as
+   its own engine change for every plan, not this test's. The other way: model the cap before the run, which changes the
+   engine and so the landing, the pilot and the preflight.
+- **Also yours, when ready:** seed 7025's reservation for `save-v2*.md` needs your typed "unlock enforcement" (an answer in a
+  question dialog does not open the hook). The launch comes after the preflight, the pilot on the final files and the
+  reviewer's look at the answers.
+
 **RULED (D130, 19 Nov, morning: "Proceed"): the agent's seven recommendations after D129's queue, in this order.**
 1. **The engine's ISA defect, fixed first:** a dated deposit or staged drip into an ISA counted against that year's
    subscription, in the engine, the exact model and the forward run, with a test of its class shown failing; sized on the

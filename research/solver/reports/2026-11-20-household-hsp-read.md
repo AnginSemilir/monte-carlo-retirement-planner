@@ -75,8 +75,9 @@ From the read and the beside file:
   `+1.805`). The first person's DB pension (`db`, four units): `+1.567` (`+1.456` to `+1.678`). The first person holding
   `45%`, near even: `+0.034` (`-0.005` to `+0.074`), no gain beyond noise.
 - **Lifetime tax** (section E). Lower under HSPA on 26 of the 40 units. Higher on 14, among them all five of S357F's and
-  four of S273's (all but S273-90). On those nine units K2's lifetime tax runs from `£920,041` to `£1,342,891` a path. That
-  the band pricing misplaces a higher-rate couple's draws is a lead, not shown.
+  four of S273's (all but S273-90). On those nine units K2's lifetime tax runs from `£920,041` to `£1,342,891` a path. The
+  first write-up's lead, that the band pricing misplaces a higher-rate couple's draws, does not hold as worded: the deep
+  review finds no tax shortfall on the paths HSPA loses (below).
 - **The pot** (the read; sections F and H). The pot capped at the two people's estate caps is lower under HSPA on 35 of
   the 40 units: the units' mean `-3.630%` (`-£30,732` a path). By the registration's rule the pot is recorded and is not a
   bar. M1 (D116) says more only where HSPA keeps more paths and delivers no less spending, so it does not cover the
@@ -100,6 +101,28 @@ From the read and the beside file:
   partner holding more than `60%`, either over `90%`.
 - Shapes the panel lacks: gaps other than eight years, an elder entered second, pensions held unlike the pots.
 - The 'lower' estate aim, consent to change risk withdrawn, the dial's other positions and the speed mode.
+
+## The deep review (`reviews/2026-11-20-deep-household-hsp.md`)
+
+From the stored arrays, no path run; its figures beyond the results files are from its own scripts, so they are leads, not
+results.
+- **The PASS stands.** The pooled gain is smaller than the arm read's because of the panel's make-up, not the held-out
+  seed. On the pilot's 15 units the arm gained about as much on seed 7002 as here. The arm read's large gain rested on the
+  DB couples K2 does worst on, which today's guard now keeps on the app's rules.
+- **Its leading cause of what is unexplained: a thinner late cushion.** The household table reads the couple's money as
+  one household, rightly as safe. So it cuts less early and holds more growth than K2's two tables, each of which reads its
+  part as short. In the worst markets it ends nearer its minimum pot. The paths it loses fail late, most in the plan's last
+  year. Where K2 has nothing else wrong (near-even shares, the two richest couples), that cushion is what is left. The
+  evidence is inferred from end totals: step 8 recorded no yearly level or tier.
+- **Its one test** (EXPLORATORY, seed 7002, about 10 core-hours, a day to build, run and read). Ten units: the seven
+  below nought, S273-90 and two controls. Beside K2 and HSPA, two variants of HSPA each take one part of K2's move at
+  HSPA's own state: its spending level (L), or its tiers (R). CEIL, the household table on its own plan, runs beside. The
+  read is on the worst tenth of markets: a variant explains the loss if it restores at least half of HSPA's shortfall in
+  the end pot.
+  - If L or R explains it and CEIL is no nearer K2: the table makes the trade itself, on a right reading of the household.
+    The default is then a word on that trade.
+  - If CEIL is near K2: the table reads the couple as safer than it is, and design B comes before the default.
+  - If neither: the cause is where the money sits.
 
 ## What the maintainer's word decides
 

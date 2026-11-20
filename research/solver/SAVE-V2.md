@@ -91,9 +91,20 @@ split cuts is a harm, however the panel gains.
 
 ## The machinery (built 19 Nov, night, while step 8 runs; nothing of it run beyond its planted checks and a smoke)
 
-- **The panel**, `save-v2-panel.mjs` (`--planted`, 8 checks):
+- **The panel**, `save-v2-panel.mjs` (`--planted`, 12 checks):
   - `freeze` takes the pool, the scan of the day and the two orders once, into `save-v2-orders.json`. The scan decides
     nothing here: each household's status (untouched, or touched by another run) is recorded for the registration to state.
+  - The scan leaves out this study's own records (`results-save-v2-*.txt`), as Phase 4 left out its own. It is
+    `phase4-panel.mjs` `touched()` itself, which stays as Phase 4 stamped it, run on a view of the folder made of symbolic
+    links (`scanWithout`). The whole scan's count and hash are recorded beside it.
+  - Why, found at the first freeze (20 Nov, before dawn; not committed, nothing read from it but the orders' list): the scan
+    reads every top-level results file, so the pool's own count (`results-save-v2-pool.txt`), which ran nothing but names
+    the 5 untouched households, made them read as touched. Taken again with the view: the same pool, orders and
+    households a run took the split on, with exactly those 5 untouched and nothing else changed (`save-v2-orders.json`).
+  - The pattern search over the earlier freezes (each study's own top-level results files against its orders' first
+    commit): none was committed before its orders, except D4's pilot and sizing files, which went in with them in one
+    commit. The pilot's couples were run, so they were touched in fact. And the earlier panels leave a touched household
+    out, so a household wrongly counted there could only have been kept out of a panel, never let into one.
   - `land` is Phase 4's procedure (`phase4-panel.mjs` `landTarget`). A household landed with no working year to choose is
     passed over.
   - `combine` walks the younger cohort first, then the library's to 40 (the planted walk: a younger household not landed

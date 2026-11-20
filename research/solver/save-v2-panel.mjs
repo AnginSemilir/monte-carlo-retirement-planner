@@ -6,8 +6,11 @@
  *     less every household a run has taken the split on: the savings factorial's panel (audit-save.mjs saveIds on
  *     phase4-panel.json) and the households of save-split.test.mjs (the split's own test). The library holds no pool held out
  *     from every run (results-save-v2-pool.txt), so the scan of the day (held-out.mjs touchedAll) decides nothing here: it is
- *     recorded, so the panel says which households are untouched and which another run touched. Taken once with the orders
- *     and frozen in save-v2-orders.json (freeze), which every later step reads;
+ *     recorded, so the panel says which households are untouched and which another run touched. It is taken with this
+ *     study's own records left out (scanWithout: results-save-v2-*.txt, the pool's count, which ran nothing but names the
+ *     pool's untouched households), as Phase 4 left out its own (phase4-panel.mjs OWN and results-p4-select.txt), the
+ *     whole scan's count and hash recorded beside it. Taken once with the orders and frozen in save-v2-orders.json
+ *     (freeze), which every later step reads;
  *   - the two cohorts' orders: the younger (44 or under, retiring at 52 instead: the id with an F, phase4-panel.mjs idOf) in
  *     library order; the library's (older than 44, retiring at their plan's age) PER_LIB taken evenly in library order
  *     (select-7u-broad.mjs pick), the rest of its pool after them in library order as reserves;
@@ -26,18 +29,19 @@
  *   node research/solver/save-v2-panel.mjs summary > research/solver/results-save-v2-panel.txt
  *   node research/solver/save-v2-panel.mjs --planted              the checks on planted inputs
  */
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, symlinkSync, unlinkSync, rmdirSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import * as E from '../engine.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
-import { planOf, appPlan, readPanel as readPhase4Panel, landTarget, idOf, MAX_FIRE_AGE, LAND_SEED, LAND_PATHS, AIM, TOL } from './phase4-panel.mjs';
+import { planOf, appPlan, readPanel as readPhase4Panel, landTarget, idOf, touched, MAX_FIRE_AGE, LAND_SEED, LAND_PATHS, AIM, TOL } from './phase4-panel.mjs';
 import { choiceYears, saveIds } from './audit-save.mjs';
 import { armA } from './select-phase4.mjs';
 import { pick } from './select-7u-broad.mjs';
-import { touchedAll } from './held-out.mjs';
+import { touchedAll, reviewFiles, reviewIds } from './held-out.mjs';
 import { idsIn } from './scan-touched.mjs';
 import { codeId } from './code-id.mjs';
 
@@ -72,6 +76,31 @@ export function readSaveV2Panel(file = PANEL) {
   return j.panel.map((r, k) => ({ ...r, k, plan: planOf(byId[r.base], r.cohort, r.target) }));
 }
 
+/* the scan of the day with this study's own records left out: phase4-panel.mjs touched() itself, unchanged (Phase 4's read
+   takes its hash), run on a view of the folder (`root`) made of symbolic links to all it reads (results/, the top-level
+   results files but those `skip` names, the archived manifest's folder, the archive, the tests beside the folder), and the
+   review branch's ids added as held-out.mjs touchedAll adds them (`files`, the branch's files, read through git when not
+   given). The view's links are removed one by one and its two folders after them (rmdir, which refuses a folder not
+   empty), so nothing is deleted through a link. SAVE_V2_PLANT=scanall (a planted fault) links every results file. */
+export const OWN_TOP = /^results-save-v2-/;
+export function scanWithout(skip = OWN_TOP, { root = HERE, files = null } = {}) {
+  if (process.env.SAVE_V2_PLANT === 'scanall') skip = null;
+  const tmp = mkdtempSync(join(tmpdir(), 'save-v2-scan-')), view = join(tmp, 'solver'), made = [];
+  const link = (to, at) => { symlinkSync(to, at); made.push(at); };
+  try {
+    mkdirSync(view);
+    for (const d of ['results', 'results-archive', 'archive']) if (existsSync(join(root, d))) link(join(root, d), join(view, d));
+    if (existsSync(join(root, '..', 'tests'))) link(join(root, '..', 'tests'), join(tmp, 'tests'));
+    for (const f of readdirSync(root)) if (/^results-.*\.txt$/.test(f) && !(skip && skip.test(f))) link(join(root, f), join(view, f));
+    const S = touched(view);
+    for (const id of reviewIds(files || reviewFiles())) S.add(id);
+    return S;
+  } finally {
+    for (const at of made.reverse()) unlinkSync(at);
+    rmdirSync(view); rmdirSync(tmp);
+  }
+}
+
 function planted() {
   const cases = [];
   // a planted library: twelve singles, ages 40 (the younger) and 60, the savers the even ids, S004 the factorial's and S010
@@ -92,6 +121,22 @@ function planted() {
   { const singles = singlesOf(), run = splitRunOf(), o = ordersOf(singles, h => yearsAt(h, cohortOf(h), E.num(h.plan.spending.targetSpend, 0)).length > 0, run.all);
     cases.push(['on the library: the pool 63, the younger 10, the library\'s 53; none of the factorial\'s or the test\'s', `${o.pool.length} ${o.fire.length} ${o.lib.length} ${o.pool.some(h => run.all.has(h.id))}`, '63 10 53 false']);
     cases.push(['the households a run has taken the split on: the factorial\'s 27 and the test\'s six', `${run.factorial.length} ${run.test.join(',')}`, '27 S026,S090,S188,S204,S244,S260']); }
+  // the scan's view (scanWithout), on a planted folder: the study's own record (results-save-v2-x.txt) names S901 alone, and
+  // S900 beside another results file; results/, the archive, the tests beside the folder and the review branch each name one
+  { const tmp = mkdtempSync(join(tmpdir(), 'save-v2-planted-')), root = join(tmp, 'solver'), put = (rel, text) => { mkdirSync(dirname(join(tmp, rel)), { recursive: true }); writeFileSync(join(tmp, rel), text); };
+    try {
+      put('solver/results-a.txt', 'S900\n'); put('solver/results-save-v2-x.txt', 'S901 S900\n'); put('solver/results/sub/f.txt', 'S902\n');
+      put('solver/archive/g.md', 'S903\n'); put('tests/h.mjs', 'S904\n'); put('solver/results-p4-select.txt', 'S905\n');
+      put('solver/results-archive/MANIFEST-solver-results.sha256', 'x  S906.json\n'); put('solver/other.md', 'S907\n');
+      const files = [['research/reviews/r.md', 'S908']];
+      const got = S => [...S].sort().join(',');
+      cases.push(['the view leaves out only the study\'s own record: an id it alone names is untouched, all else the scan reads is read', got(scanWithout(OWN_TOP, { root, files })), 'S900,S902,S903,S904,S906,S908']);
+      cases.push(['the view with nothing left out reads what touched() and the review branch read (the own record\'s S901 too)', got(scanWithout(null, { root, files })), got(new Set([...touched(root), ...reviewIds(files)]))]);
+      cases.push(['the view\'s links are gone and the planted folder whole after it', `${readdirSync(tmpdir()).filter(f => f.startsWith('save-v2-scan-')).length} ${readdirSync(root).sort().join(',')}`, '0 archive,other.md,results,results-a.txt,results-archive,results-p4-select.txt,results-save-v2-x.txt']);
+    } finally { const rm = d => { for (const f of readdirSync(d, { withFileTypes: true })) { const p = join(d, f.name); if (f.isDirectory()) rm(p); else unlinkSync(p); } rmdirSync(d); }; rm(tmp); } }
+  // on this folder itself: with nothing left out the view's scan is touchedAll's exactly
+  { const a = [...touchedAll()].sort().join(','), b = [...scanWithout(null)].sort().join(',');
+    cases.push(['on this folder, with nothing left out the view\'s scan is held-out.mjs touchedAll\'s, id for id', `${a === b} ${b.split(',').length}`, `true ${a.split(',').length}`]); }
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
@@ -115,10 +160,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   };
   if (mode === 'freeze') {
     if (existsSync(ORDERS)) { console.error('save-v2-panel: save-v2-orders.json exists; the orders are taken once'); process.exit(2); }
-    const run = splitRunOf(), used = touchedAll(), ids = [...used].sort(), hash = createHash('sha256').update(ids.join(',')).digest('hex').slice(0, 12);
+    const hashOf = xs => createHash('sha256').update(xs.join(',')).digest('hex').slice(0, 12);
+    const run = splitRunOf(), whole = [...touchedAll()].sort(), used = scanWithout(OWN_TOP), ids = [...used].sort(), hash = hashOf(ids);
     const o = ordersOf(all, h => yearsAt(h, cohortOf(h), E.num(h.plan.spending.targetSpend, 0)).length > 0, run.all);
-    writeFileSync(ORDERS, JSON.stringify({ built: new Date().toISOString(), splitRun: { factorial: run.factorial, test: run.test }, scan: { count: ids.length, hash, ids }, pool: o.pool.map(h => h.id), lib: o.lib.map(h => h.id), fire: o.fire.map(h => h.id) }, null, 1) + '\n');
-    console.log(`frozen: the pool ${o.pool.length} (the younger ${o.fire.length}, the library's ${o.lib.length}); a run took the split on ${run.all.size} (the factorial's ${run.factorial.length}, the test's ${run.test.length}); the scan of the day ${ids.length} ids (hash ${hash}), of the pool untouched ${o.pool.filter(h => !used.has(h.id)).length}`);
+    writeFileSync(ORDERS, JSON.stringify({ built: new Date().toISOString(), splitRun: { factorial: run.factorial, test: run.test }, scan: { count: ids.length, hash, without: 'results-save-v2-*.txt (this study\'s own records)', whole: { count: whole.length, hash: hashOf(whole) }, ids }, pool: o.pool.map(h => h.id), lib: o.lib.map(h => h.id), fire: o.fire.map(h => h.id) }, null, 1) + '\n');
+    console.log(`frozen: the pool ${o.pool.length} (the younger ${o.fire.length}, the library's ${o.lib.length}); a run took the split on ${run.all.size} (the factorial's ${run.factorial.length}, the test's ${run.test.length}); the scan of the day ${whole.length} ids (hash ${hashOf(whole)}), this study's own records left out ${ids.length} (hash ${hash}), of the pool untouched ${o.pool.filter(h => !used.has(h.id)).length}`);
   }
   if (mode === 'list') {
     const o = orders();

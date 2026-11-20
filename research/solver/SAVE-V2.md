@@ -148,7 +148,17 @@ split cuts is a harm, however the panel gains.
 - **2 and 3, the maintainer's:** whether a spending harm on anchors comes back before a change of default (D133 (3) covers
   D34's flags alone); whether to model the cap on salary sacrifice's NIC relief from April 2029 before the run. Meanwhile
   the read prints, beside the rule, the share of the employees' working-year decisions from 2029 that take the pension
-  first, and the registration says which way the limitation leans.
+  first, and the registration says which way the limitation leans. Ruled (D134 (2), (3)): both carried into the read and
+  the registration.
+
+## The final look's answers (20 Nov; `reviews/2026-11-20-save-v2-design-2.md`, PASS, two MINORs)
+
+- **1, the exception the read did not print:** the read's FAIL branch prints the Outcomes' one exception (part 2 alone
+  failing, parts 1 and 3 holding, the pooled lifetime spending's interval by path above nought: back to the maintainer as
+  the trade, not closed), with the anchors' items the PASS line names; a planted case each way (spending up beyond noise,
+  and level). A copy of the read with the exception dropped fails exactly the first of them (1 of 18).
+- **2, the launch's stamp:** the registration gives the stamp the launcher computes at the launch commit and names the two
+  stamped files that differ from the pilot's, `save-v2-paths.json` and the read.
 
 ## Box
 

@@ -2,11 +2,12 @@
 
 DRAFT (19 Nov, filled 20 Nov), written while step 8 ran, as D130 (7) orders. Not run. Its design is `SAVE-V2.md`. Its
 panel's source and the three choices in it were ruled on 19 Nov (D133). The panel is landed and the pilot and its sizing
-are in (20 Nov). Its fields in `<...>` wait on the seed's reservation and on its design review; the launcher's check
-refuses it until each is filled. Its design review (20 Nov) PASSED with nine MINORs, answered here and in the code, two of
-them put to the maintainer (`reviews/2026-11-20-save-v2-design.md`). After that review only Paths, Budget, part 3's
-operating characteristic, Seed and Design review change, from the pilot and the sizing taken again on the final files;
-anything else goes back to the reviewer.
+are in (20 Nov). Its one field in `<...>`, Seed, waits on the seed's reservation; the launcher's check refuses it until it
+is filled. Its design review (20 Nov) PASSED with nine MINORs, answered here and in the code, two of them put to the
+maintainer (`reviews/2026-11-20-save-v2-design.md`). After that review only Paths, Budget, part 3's operating
+characteristic, Seed and Design review changed, from the pilot and the sizing taken again on the final files. The final look
+(20 Nov) PASSED with two MINORs, each answered before the launch commit within what it covers: the read's FAIL branch and
+the launch's stamp (`reviews/2026-11-20-save-v2-design-2.md`). Anything else goes back to the reviewer.
 - **The launch's conditions** (each met but the seed and the maintainer's word):
   - the preflight complete with no household refused (MET, 20 Nov 11:31 UK, `results-save-v2-preflight.txt`: all 36,
     none refused, none exiting with an error): every check before any path in all four arms, then two paths of seed 7002,
@@ -24,6 +25,14 @@ Read once, by `research/solver/reduce-save-v2.mjs`, after its gate. Its machiner
 Launched only as
 `PREDICTION=research/solver/registrations/save-v2.md research/solver/run-from-snapshot.sh bash research/solver/batch-save-v2.sh`,
 from a git worktree at the launch commit, where every relaunch under `RESUME=1` and the read also run.
+- **The launch's stamp** (the final look's finding 2): the audit stamp the launcher computes at the launch commit, not the
+  pilot's `f0a49255366e`. On the files as committed with the final look's answers it is `ffc59974f036`. Of the 60 stamped
+  files, exactly two differ from the pilot's (9039562a):
+  - `save-v2-paths.json`, which the sizing wrote from the pilot after the pilot had run (the pilot reads no paths file);
+  - the read, `reduce-save-v2.mjs`, whose FAIL branch now prints the Outcomes' one exception, with a planted case each
+    way (the final look's finding 1, a change that review covers; nothing the pilot or the sizing computes reads it).
+
+  So the pilot's own gate and the sizing's refuse at the launch's stamp; their figures reproduce on 9039562a's files.
 
 - **Question:** Does the candidate with the savings split give working singles who save into a pension or an ISA better outcomes than the candidate as it stands (survival first, then spending), with no harm to any household?
   - The savings split (`SAVINGS-SPLIT.md`; `saveSplit: true`, a research option, off): in each working year the solver
@@ -113,11 +122,12 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
       years from 2029 for a salary-sacrificing employee (above).
   - **FAIL:** the split stays off and is closed as measured, with one exception: a FAIL on part 2 alone, parts 1 and 3
     holding and the pooled lifetime spending up beyond noise (its interval by path above nought), comes back to the
-    maintainer as the trade it is (survival not shown up, spending up), not closed.
+    maintainer as the trade it is (survival not shown up, spending up), not closed. The read prints it so, with the
+    anchors' items the PASS line names (the final look's finding 1).
   - **The gate refusing:** no outcome. The read goes back to the maintainer with the gate's lines, and no result of seed
     7025 read.
   - **A household flagged:** no change of default, whatever the pooled gain; the household goes to investigation (D34 (3)).
   - A couple's plan does not take the split (`SAVINGS-SPLIT.md` scope); a test of it for couples would be its own.
 - **Budget:** 46.5 core-hours over the 40 households and the longest once more for a relaunch; 12.3 hours on four cores in the batch's order; the longest household 1.28 hours (`results-save-v2-sizing.txt`)
   - Measured from the pilot on the final files on this machine, 20 Nov 11:33 to 12:04 UK, with nothing else running (D21).
-- **Design review:** `<research/solver/reviews/<date>-save-v2-design.md>`
+- **Design review:** research/solver/reviews/2026-11-20-save-v2-design-2.md (the final look, at the answers and the files as they would launch: PASS, two MINOR, each answered before the launch commit: the read's FAIL branch prints the exception, its plant failing exactly the new case; the launch's stamp above). The first look: `reviews/2026-11-20-save-v2-design.md`, PASS, nine MINOR, seven answered in the code and here and two ruled by the maintainer (D134 (2), (3))

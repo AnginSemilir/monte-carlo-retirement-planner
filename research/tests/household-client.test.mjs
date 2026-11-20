@@ -43,7 +43,7 @@
  * Plants (--planted; each wants exactly the checks named): the key's 'bandsunkeyed' (the bands left out of the key: check 3),
  * the client's 'partnobands' (the first part handed no bands: every check whose table is solved split, 1, 2, 4, 5 and 6, its
  * assembly refused on the band for gains), 'noformcheck' (each assembly's setting unread: check 4), 'keyvariant' (a variant
- * keyed: check 5), 'nofallback' (a refusal of the plan's shape failing the solve: check 7), and the cut's (src/solverCouple.js)
+ * keyed: check 5), 'nofallback' (a refusal of the plan's shape failing the solve: check 7, and check 9's partner whose ceiling differs), and the cut's (src/solverCouple.js)
  * 'hhzerofloor' (a household's minimum pot left at the plan's nought: check 8) and 'partceilkey' (a partner's ceilings that
  * are the first person's handed to the household plan: check 9).
  *   node research/tests/household-client.test.mjs [--planted]
@@ -66,7 +66,7 @@ import { fileURLToPath } from 'node:url';
 
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['bandsunkeyed', ['3']], ['partnobands', ['1', '2', '4', '5', '6']], ['noformcheck', ['4']], ['keyvariant', ['5']], ['nofallback', ['7']], ['hhzerofloor', ['8']], ['partceilkey', ['9']]]) {
+  for (const [plant, want] of [['bandsunkeyed', ['3']], ['partnobands', ['1', '2', '4', '5', '6']], ['noformcheck', ['4']], ['keyvariant', ['5']], ['nofallback', ['7', '9']], ['hhzerofloor', ['8']], ['partceilkey', ['9']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, HOUSEHOLD_CLIENT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));

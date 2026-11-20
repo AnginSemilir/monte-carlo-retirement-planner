@@ -27,7 +27,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { UNITS, BELOW, CONTROLS, M1_UNIT, SEED, N, PTS, W, ARMS, TABLE_ARMS, YEAR_KEYS, dec, stampFilesHash } from './audit-late-tail.mjs';
+import { UNITS, BELOW, CONTROLS, M1_UNIT, SEED, N, PTS, W, ARMS, TABLE_ARMS, YEAR_KEYS, CHECK, dec, stampFilesHash } from './audit-late-tail.mjs';
 import { KEYS, configOf as hspConfigOf } from './audit-household-hsp.mjs';
 import { codeId } from './code-id.mjs';
 import { requireFairLogs } from './fair-gate.mjs';

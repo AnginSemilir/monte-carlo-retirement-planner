@@ -12,18 +12,18 @@ repository are public, knowingly. So no beta with users is under way and nothing
 below this section says "the beta", read it as history. The order from here:
 
 **PENDING (20 Nov, afternoon): two items for the maintainer.**
-1. **The late tail read THE GROWTH, with CEIL NEAR K2, so step 8's build stops before `main` and comes back to you**
-   (D134 (1); `results-late-tail.txt`, `reports/2026-11-20-late-tail-read.md`; the reviewer at the read under way).
-   - **The rule:** on the worst tenth of each unit's markets, K2 ends `£52,873` a path above HSPA, the mean over the seven
-     units below nought (D). Giving HSPA's move each person's tiers as K2 holds them (R) restores `136.8%` of D; the
-     household table on its own plan (CEIL) `87.4%`; K2's spending level (L) none. By `LATE-TAIL.md` the table reads the
-     couple as safer than it is.
-   - **Beside:** R loses `351` net paths against K2 pooled over the seven, where HSPA loses `28` and CEIL keeps `11` more;
-     the two controls lose their gain under R, so the gain and the loss are one trade.
-   - **The ways on:** (a) design B, the rule's next step (`HOUSEHOLD.md` section 2: each person's share of the pension
-     carried year by year; about two to three days with its tests, then a test against K2 and HSPA); (b) take HSPA as it
-     stands, as that trade; (c) hold, K2 staying the couples' default. The build so far is kept as
-     `drafts/hsp-port.patch` (steps 1 to 3 with their tests); none of it reaches `main` without your word.
+1. **The late tail: its first read is not to be acted on; the read is being made again** (D134 (1)).
+   - The first read printed THE GROWTH with CEIL NEAR K2, which by `LATE-TAIL.md` would stop step 8's build
+     (`results-late-tail.txt`, `reports/2026-11-20-late-tail-read.md`).
+   - The reviewer at the read FAILED it (`reviews/2026-11-20-read-late-tail.md`). Its first BLOCKING finding, confirmed:
+     the CEIL arm was miswired. Its recorder (`audit-late-tail.mjs` `recorded`) called the table's chooser without the
+     tiers held, which the engine passes, so CEIL charged nothing for a switch of risk. HSPA, K2, L and R are unaffected;
+     CEIL NEAR K2 rests on the fault. The reviewer's probe, with the tiers held passed, gives CEIL `-21.1%` of D, which would
+     leave THE GROWTH alone, under which the rule lets the build go on.
+   - Next, in one fix round (D81 (F)): the recorder fixed with a check of its class and its plant, CEIL run again alone on
+     the fixed audit by a dated amendment to `LATE-TAIL.md`, the read made again by the same rule, the write-up corrected
+     on the reviewer's other findings, and the reviewer again. Then the fault and both reads come to you before the build
+     moves either way. Nothing reaches `main` meanwhile.
 2. **The savings split's v2 is ready to launch** (`registrations/save-v2.md`; the design review PASS on its final look,
    `reviews/2026-11-20-save-v2-design-2.md`). It waits on your typed unlock to reserve seed 7025 for `save-v2*.md` in
    `check-prediction.mjs`, that edit alone, and your word to launch: about `12.3` hours on four cores.

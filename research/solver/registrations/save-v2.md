@@ -2,13 +2,12 @@
 
 DRAFT (19 Nov, filled 20 Nov), written while step 8 ran, as D130 (7) orders. Not run. Its design is `SAVE-V2.md`. Its
 panel's source and the three choices in it were ruled on 19 Nov (D133). The panel is landed and the pilot and its sizing
-are in (20 Nov). Its one field in `<...>`, Seed, waits on the seed's reservation; the launcher's check refuses it until it
-is filled. Its design review (20 Nov) PASSED with nine MINORs, answered here and in the code, two of them put to the
+are in (20 Nov). Its seed is reserved and the launch given (D135, 20 Nov); `check-prediction.mjs` reads it complete. Its design review (20 Nov) PASSED with nine MINORs, answered here and in the code, two of them put to the
 maintainer (`reviews/2026-11-20-save-v2-design.md`). After that review only Paths, Budget, part 3's operating
 characteristic, Seed and Design review changed, from the pilot and the sizing taken again on the final files. The final look
 (20 Nov) PASSED with two MINORs, each answered before the launch commit within what it covers: the read's FAIL branch and
 the launch's stamp (`reviews/2026-11-20-save-v2-design-2.md`). Anything else goes back to the reviewer.
-- **The launch's conditions** (each met but the seed and the maintainer's word):
+- **The launch's conditions** (each met; the seed and the maintainer's word on 20 Nov, D135):
   - the preflight complete with no household refused (MET, 20 Nov 11:31 UK, `results-save-v2-preflight.txt`: all 36,
     none refused, none exiting with an error): every check before any path in all four arms, then two paths of seed 7002,
     on the 36 households outside the pilot (from 20 Nov 08:59 UK). Its first eight units ran on audit
@@ -18,7 +17,8 @@ the launch's stamp (`reviews/2026-11-20-save-v2-design-2.md`). Anything else goe
     runs again if those checks or anything they import change;
   - the pilot taken again on the final files after the preflight has finished, with nothing else running (D21), and the
     sizing from it (MET, 20 Nov 12:04 UK);
-  - the seed reserved by the maintainer's unlock, and the maintainer's word.
+  - the seed reserved by the maintainer's unlock, and the maintainer's word (MET, 20 Nov, D135: "Unlock enforcement,
+    launch").
 Read once, by `research/solver/reduce-save-v2.mjs`, after its gate. Its machinery (the panel `save-v2-panel.mjs`, the audit
 `audit-save-v2.mjs`, the read, the sizing `size-save-v2.mjs` and the batch `batch-save-v2.sh`) is built, each script's
 `--planted` passing. Run so far, all EXPLORATORY: the landing (seed 7005), the pilot (seed 7002) and the preflight.
@@ -78,7 +78,7 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
     younger place that does not land.
   - Each landed so arm A survives 85 +/- 1% on 1,000 paths of seed 7005 (Phase 4's procedure, D35). Each household's status
     (untouched, or touched by another run) is recorded in the panel.
-- **Seed:** 7025 `<reserved in check-prediction.mjs for save-v2*.md by the maintainer's unlock, named in its commit>`
+- **Seed:** 7025, held out: reserved in `check-prediction.mjs` for `save-v2*.md` under the maintainer's unlock of 20 Nov (D135), that edit alone, named in its commit
 - **Paths:** 16,000 for every household on the whole menu, and the anchors pair on each household's first 4,000 (`save-v2-paths.json`; `results-save-v2-sizing.txt`)
   - D34's size for each household's comparison at the pilot's discordance (its upper 95% bound, never below `D_MIN`) is
     the floor of 16,000 on all four pilot households. The pilot on the final files (20 Nov 11:33 to 12:04 UK, audit

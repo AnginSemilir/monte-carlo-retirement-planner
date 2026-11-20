@@ -11,7 +11,9 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**PENDING (20 Nov, afternoon): two items for the maintainer.**
+**RULED (D135, 20 Nov, evening: "Unlock enforcement, launch"): the two items below. Seed 7025 reserved and the savings split's v2
+launched as registered; the late tail's rule taking the build on, the unlock covering `couple-default.test.mjs` for step 8's
+change of default.**
 1. **The late tail, read twice: by the rule, step 8's build goes on to `main`** (D134 (1); `results-late-tail.txt`,
    `results-late-tail-2.txt`, `reports/2026-11-20-late-tail-read.md`; the reviewer again PASS, three MINORs answered,
    `reviews/2026-11-20-read-late-tail-2.md`).

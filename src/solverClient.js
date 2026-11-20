@@ -31,7 +31,7 @@ import { PLANNER_PLANT } from './plannerPlant.js';
 import { swapOf } from './couplesSwitch.js';
 import { otherOrder, backMeta, backAnswer } from './coupleOrder.js';
 
-export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs); 'halfdefault' solves a couple on the half share unless asked otherwise, as before D99, and 'notie' assembles a couple without the couples' joint move, as before D108, and 'nojointcheck' leaves each assembly's joint move unread (couple-default.test.mjs); 'noformcheck' leaves each assembly of a household's setting unread and 'partnobands' hands its first part no bands (household-client.test.mjs); 'nohousehold' solves a couple on today's route though the couples' default names the household plan (couple-default.test.mjs); 'nofallback' fails the solve of a couple the household plan refuses (household-client.test.mjs)
+export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs); 'halfdefault' solves a couple on the half share unless asked otherwise, as before D99, and 'notie' assembles a couple without the couples' joint move, as before D108, and 'nojointcheck' leaves each assembly's joint move unread (couple-default.test.mjs); 'noformcheck' leaves each assembly of a household's setting (its form and split among it) unread and 'partnobands' hands its first part no bands (household-client.test.mjs); 'nohousehold' solves a couple on today's route though the couples' default names the household plan (couple-default.test.mjs); 'nofallback' fails the solve of a couple the household plan refuses (household-client.test.mjs)
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
 /* gate 5's four cores at most (D11), fewer where the machine has fewer */
@@ -272,10 +272,12 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
         const m = await phase('solve', hh.hplan, hKey, hBase, hOpts, 'household', hh.bands);
         if (finished || !m) return;
         phaseWho = null;
-        // the household's move: its table's chooser at the even split, the top three of its moves, the tie-break and the hold of
-        // the couples' joint move (step 8's HSPA as its audit ran it); each assembly's record read back against it and a
-        // difference refused, as a couple's joint move is (D109)
-        const joint = appJoint(), setting = { form, topK: 3, tieJoint: joint.tieJoint, holdPast: joint.holdPast }, asked = { household: hh.household, ...setting };
+        // the household's move: its table's own move, both people taking it at the even split (src/solver/household.js
+        // chooseHouseholdSingle; its tie-break the candidate's above the estate cap). The form and the split move it; the top
+        // three, the tie-break and the hold of the couples' joint move are passed as step 8's HSPA passed them (its audit) and
+        // do not reach it (the reviewer on D135's change of default, finding 2). Each assembly's record of the whole setting is
+        // read back and a difference refused, as a couple's joint move is (D109)
+        const joint = appJoint(), setting = { form, split: 'even', topK: 3, tieJoint: joint.tieJoint, holdPast: joint.holdPast }, asked = { household: hh.household, ...setting };
         const sameForm = (r, where) => {
           const got = JSON.stringify(r && r.meta && r.meta.household ? r.meta.setting : null);
           if (PLANT.rule !== 'noformcheck' && got !== JSON.stringify(setting)) throw new Error(`solverClient: the household was assembled ${where} with ${got}, not the ${JSON.stringify(setting)} asked for`);
@@ -290,7 +292,7 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
         }
         finished = true;
         resolve({ meta: h.meta, secs: m.secs + (b ? b.secs : 0), parts: n, restored: !!m.restored, base: null, code: null,
-          couple: { household: form, k: h.meta.k, joint: { tieJoint: joint.tieJoint, holdPast: joint.holdPast }, ...(mirror ? { mirrored: true } : {}) } });
+          couple: { household: form, k: h.meta.k, split: h.meta.split, ...(mirror ? { mirrored: true } : {}) } });
         return;
       }
       if (couple) {

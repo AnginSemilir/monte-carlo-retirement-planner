@@ -1,0 +1,24 @@
+couple-shown.test.mjs on the code before the fix (ddd5fe76, src/solverCouple.js as committed), 20 Nov 19:14 UK:
+PASS  1. no shortlist on a couple's tables (today's route and a household): no decision the views make counted as held to the whole menu or as taken on a shortlist  -- S069 held 90/10, today's route: 36 years in the ledger, 360 in the history check; held 0, on a shortlist 0; S025-own as one household: 28 years in the ledger, 280 in the history check; held 0, on a shortlist 0
+FAIL  2. the shortlist on: this year's move and its skips, the next ten years, the ledger and the history check are the whole menu's, none of their decisions on a shortlist  -- S069 held 90/10, today's route: differing ahead, ledger, history; 0 decisions held to the whole menu, 962 on a shortlist; S025-own as one household: differing history; 0 decisions held to the whole menu, 362 on a shortlist
+PASS  3. the paths that are counted take the shortlist: the strategy's runs and the skips' runs decide on it, none held to the whole menu  -- S069 held 90/10, today's route: the strategy's runs 4340 decisions on a shortlist (0 held), 56 of 60 paths end otherwise; 4 skips run 5573 decisions on a shortlist (0 held); S025-own as one household: the strategy's runs 1620 decisions on a shortlist (0 held), 5 of 60 paths end otherwise; 3 skips run 1560 decisions on a shortlist (0 held)
+FAIL  4. the typical run where the counted paths took the shortlist: the levels of the whole menu's own run of the path the rows are shown on  -- S069 held 90/10, today's route: path 38, 6 of 36 years' levels differ; S025-own as one household: path 20, 0 of 28 years' levels differ
+S069 held 90/10, today's route: a couple; S025-own as one household: a household
+
+FAILED: 2 of 4 checks
+exit 1
+
+couple-shown.test.mjs on the fixed code (src/solverCouple.js the views through wholeMenu), 20 Nov 19:42 UK:
+PASS  1. no shortlist on a couple's tables (today's route and a household): no decision the views make counted as held to the whole menu or as taken on a shortlist  -- S069 held 90/10, today's route: 36 years in the ledger, 360 in the history check; held 0, on a shortlist 0; S025-own as one household: 28 years in the ledger, 280 in the history check; held 0, on a shortlist 0
+PASS  2. the shortlist on: this year's move and its skips, the next ten years, the ledger and the history check are the whole menu's, none of their decisions on a shortlist  -- S069 held 90/10, today's route: differing none; 1030 decisions held to the whole menu, 0 on a shortlist; S025-own as one household: differing none; 403 decisions held to the whole menu, 0 on a shortlist
+PASS  3. the paths that are counted take the shortlist: the strategy's runs and the skips' runs decide on it, none held to the whole menu  -- S069 held 90/10, today's route: the strategy's runs 4340 decisions on a shortlist (0 held), 56 of 60 paths end otherwise; 4 skips run 5573 decisions on a shortlist (0 held); S025-own as one household: the strategy's runs 1620 decisions on a shortlist (0 held), 5 of 60 paths end otherwise; 3 skips run 1560 decisions on a shortlist (0 held)
+PASS  4. the typical run where the counted paths took the shortlist: the levels of the whole menu's own run of the path the rows are shown on  -- S069 held 90/10, today's route: path 38, 0 of 36 years' levels differ; S025-own as one household: path 20, 0 of 28 years' levels differ
+S069 held 90/10, today's route: a couple; S025-own as one household: a household
+
+ALL PASS: 4 checks
+exit 0
+
+its plants:
+plant 'noshown': the checks that fail: 2, 4; wanted exactly 2, 4: yes
+plant 'shown': the checks that fail: 2, 4; wanted exactly 2, 4: yes
+exit 0

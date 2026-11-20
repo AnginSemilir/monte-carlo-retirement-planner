@@ -180,6 +180,21 @@ launch" (D135) covers `couple-default.test.mjs`'s edits. The worktree's changes 
   - **A couple's views make their decisions on the shortlist under the speed mode, on either route.** These are this
     year's actions, the next years and the rows. D90's guard (`shownPolicy`, `shortlist-shown.test.mjs`) covers a
     single's views only, so this is older than the port.
+- **The reviewer on the change of default: FAIL** (`reviews/2026-11-20-default-household.md`): one BLOCKING and five MINOR.
+  Answered in one fix (D136):
+  1. **BLOCKING: a couple whose minimum pot was left at nought failed at the assembly.** This is the page's default: 126 of
+     the library's 210 couples, while every unit of step 8's panel set one. The cut now gives the household plan the
+     minimum pot its table is solved with, one year of its target. `household-client.test.mjs` check 8 covers it, with the
+     library as its pattern search and its plant `hhzerofloor`.
+  2. **The read-back now covers the even split.** The top three, the tie-break and the hold reach no move, which the
+     comments now say. The worker's plant is `workersplit`.
+  3. **A partner's ceilings that are the first person's no longer refuse the household plan.** Check 9 covers it, with its
+     plant `partceilkey`.
+  4. **The reach by inference** is said in D136.
+  5. **The speed mode on the household** is with the maintainer.
+  6. **A couple's shown decisions are made on the whole menu** (`couple-shown.test.mjs`).
+
+  On step 8's 40 panel units neither fix changes the cut (`results-household-port-floor.txt`), so the identity holds.
 - **Not yet:**
   - `research/solver/household.mjs` importing from `src` (step 1's last line). This is left until after the gate; the
     app does not read it.

@@ -21,8 +21,11 @@ below this section says "the beta", read it as history. The order from here:
    - measure it on the household (an EXPLORATORY read like SPEED-B's couples);
    - or keep the speed mode off for couples.
 
-   The agent recommends measuring it before the next batch merges, and meanwhile leaving the warning as it stands.
-2. **Under the speed mode a couple's shown decisions are made on the shortlist, on either route.** This year's actions,
+   The agent recommends measuring it before the next batch merges, and meanwhile leaving the warning as it stands. The
+   reviewer on the change of default agrees (`reviews/2026-11-20-default-household.md`, finding 5). The measure is ready:
+   `SPEED-H.md`, its rule committed, on SPEED-B's twelve couples, EXPLORATORY. It launches once the savings split's v2 frees
+   the cores, before B1's gate, and its read comes to you deciding nothing.
+2. **FIXED (D136's fix round): under the speed mode a couple's shown decisions were made on the shortlist, on either route.** This year's actions,
    the next years and the rows (`src/solverCouple.js`) run the couple's policy as it is. D90's guard, that a decision the
    pages show is made on the whole menu (`src/solverStrategy.js` `shownPolicy`, `research/tests/shortlist-shown.test.mjs`),
    wraps only a single's views. This predates the port, and is a defect by D90's words. The agent proposes to fix it with a

@@ -22,9 +22,10 @@
  *   3. the page's solve of a couple (src/solverClient.js startSolve, its workers in-process stand-ins that record what each is
  *      asked): by default (D134 (1), D135) a couple is solved as one household: its plan cut at the couples' default form
  *      ('household-plan', 'pensionsPA'), its one table solved in the slot 'household' inside the cut's bands, and the
- *      household assembled with the setting the default names (the form, the top three moves, the couples' joint move's
- *      tie-break and hold), the job's record naming the form and the cut's k, no person's table solved and no couple
- *      assembled (the household's route itself, its parts, its store and its read-back: household-client.test.mjs); today's
+ *      household assembled with the setting the default names (the form and the even split, which move its move, and the
+ *      top three, the tie-break and the hold, passed as step 8's arm passed them), the job's record naming the form, the
+ *      cut's k and the even split, no person's table solved and no couple assembled (the household's route itself, its
+ *      parts, its store and its read-back: household-client.test.mjs); today's
  *      route under the option that names it, `household: null`: a couple held 90/10 is cut and assembled on the pots' share,
  *      each person's plan cut on 90% and 10% of the household's spending, the job's record naming 'pots' and 0.9; a rule the
  *      caller names ('half') is kept; and the solver's own default stays the half share (src/solverCouple.js couplePlans
@@ -187,7 +188,7 @@ let refused = null;   // check 7, below: the client's read-back of each assembly
         // the household's route (D135): the cut as the worker makes it (householdCut), and the household's record as the worker's
         // (householdMeta: the setting the assembly was made with, here the one asked, and the cut's k)
         if (kind === 'household-plan') { const hc = householdCut(E, M, data.plan, data.form); this.k = hc.bands.k; asked.push({ kind, form: data.form }); this.reply({ id, ...hc }); return; }
-        if (kind === 'household') { const setting = { form: data.form, topK: data.topK, tieJoint: data.tieJoint, holdPast: data.holdPast }; asked.push({ kind, setting: JSON.stringify(setting) }); this.reply({ id, done: true, meta: { household: true, setting, k: this.k } }); return; }
+        if (kind === 'household') { asked.push({ kind, setting: JSON.stringify({ form: data.form, split: data.split, topK: data.topK, tieJoint: data.tieJoint, holdPast: data.holdPast }) }); this.reply({ id, done: true, meta: { household: true, setting: { form: data.form, split: 'even', topK: data.topK, tieJoint: data.tieJoint, holdPast: data.holdPast }, k: this.k, split: 'even' } }); return; }
         // the couple's record as the worker's (coupleMeta: the joint move it was assembled with); one that drops it (check 7)
         if (kind === 'couple') { asked.push({ kind, shareRule: data.shareRule, joint: JSON.stringify(data.joint === undefined ? 'unset' : data.joint) }); this.reply({ id, done: true, meta: { joint: dropJoint ? {} : JSON.parse(jointKey(data.joint)) } }); return; }
         throw new Error(`no '${kind}' here`);
@@ -202,9 +203,9 @@ let refused = null;   // check 7, below: the client's read-back of each assembly
   // by default the household (D135); today's route under `household: null`, the option that names it
   const byDefault = await run({ engine: E }), today = await run({ engine: E, household: null }), named = await run({ engine: E, shareRule: 'half', household: null }), noJoint = await run({ engine: E, joint: null, household: null });
   const wantCut = householdCut(E, M, p90, 'pensionsPA'), hp = byDefault.asked.find(a => a.kind === 'household-plan'), hSolves = byDefault.asked.filter(a => a.kind === 'solve'), hAsm = byDefault.asked.find(a => a.kind === 'household');
-  const wantSetting = JSON.stringify({ form: 'pensionsPA', topK: 3, tieJoint: 1e-4, holdPast: 2 }), hRec = byDefault.d.couple || {};
+  const wantSetting = JSON.stringify({ form: 'pensionsPA', split: 'even', topK: 3, tieJoint: 1e-4, holdPast: 2 }), hRec = byDefault.d.couple || {};
   const houseOk = !!hp && hp.form === 'pensionsPA' && hSolves.length === 1 && hSolves[0].slot === 'household' && hSolves[0].bands === JSON.stringify(wantCut.bands) && !!hAsm && hAsm.setting === wantSetting
-    && !byDefault.asked.some(a => a.kind === 'couple-plans' || a.kind === 'couple') && hRec.household === 'pensionsPA' && hRec.k === wantCut.bands.k && JSON.stringify(hRec.joint) === JSON.stringify({ tieJoint: 1e-4, holdPast: 2 })
+    && !byDefault.asked.some(a => a.kind === 'couple-plans' || a.kind === 'couple') && hRec.household === 'pensionsPA' && hRec.k === wantCut.bands.k && hRec.split === 'even'
     && ![today, named, noJoint].some(r => r.asked.some(a => a.kind === 'household-plan' || a.kind === 'household'));
   const cut = today.asked.find(a => a.kind === 'couple-plans'), joined = today.asked.find(a => a.kind === 'couple');
   const target = Number(E.normalizePlan(p90).spending.targetSpend);
@@ -213,11 +214,11 @@ let refused = null;   // check 7, below: the client's read-back of each assembly
   const research = couplePlans(E, p90), want = JSON.stringify(appJoint()), jN = noJoint.asked.find(a => a.kind === 'couple');
   const jointOk = !!joined && joined.joint === want && JSON.stringify(today.d.couple.joint) === want && !!joinedH && joinedH.joint === want
     && !!jN && jN.joint === 'null' && noJoint.d.couple.joint === null && want === JSON.stringify({ tieJoint: 1e-4, tieLook: true, holdPast: 2 });
-  ok('3. the page solves a couple as one household by default (D135): the plan cut at \'pensionsPA\', its one table solved in the slot \'household\' inside the cut\'s bands, the household assembled with the default\'s setting, the record naming the form and the cut\'s k, no person\'s table and no couple; today\'s route under `household: null`: held 90/10, cut and assembled on \'pots\', each person on 90% and 10% of the spending, the record naming it; a named \'half\' kept; the solver\'s own default the half share; the couple assembled with the couples\' joint move (D108), the record naming it, a caller\'s own (none) kept',
+  ok('3. the page solves a couple as one household by default (D135): the plan cut at \'pensionsPA\', its one table solved in the slot \'household\' inside the cut\'s bands, the household assembled with the default\'s setting (its form and the even split), the record naming the form, the cut\'s k and the even split, no person\'s table and no couple; today\'s route under `household: null`: held 90/10, cut and assembled on \'pots\', each person on 90% and 10% of the spending, the record naming it; a named \'half\' kept; the solver\'s own default the half share; the couple assembled with the couples\' joint move (D108), the record naming it, a caller\'s own (none) kept',
     houseOk && !!cut && cut.shareRule === 'pots' && !!joined && joined.shareRule === 'pots' && spendOk && today.d.couple.shareRule === 'pots' && Math.abs(today.d.couple.share - 0.9) < 1e-9
       && !!cutH && cutH.shareRule === 'half' && !!joinedH && joinedH.shareRule === 'half' && named.d.couple.shareRule === 'half' && named.d.couple.share === 0.5
       && research.shareRule === 'half' && research.share === 0.5 && jointOk,
-    `${c.id} held 90/10, target ${target}: by default asked to cut the household at ${hp ? hp.form : '-'}, ${hSolves.length} table${hSolves.length === 1 ? '' : 's'} solved (slot ${hSolves.map(a => a.slot).join(', ') || '-'}; inside the cut's bands ${hSolves.length === 1 && hSolves[0].bands === JSON.stringify(wantCut.bands)}), assembled with ${hAsm ? hAsm.setting : '-'}, the record ${hRec.household || '-'} at k ${hRec.k}; today's route asked to cut on ${cut && cut.shareRule} (each person's spending ${cut ? cut.spend.map(x => Math.round(x)).join(' and ') : '-'}), to assemble on ${joined && joined.shareRule}, the record ${today.d.couple.shareRule} at ${today.d.couple.share}; named 'half': ${cutH && cutH.shareRule}, ${joinedH && joinedH.shareRule}, ${named.d.couple.shareRule} at ${named.d.couple.share}; couplePlans unasked: ${research.shareRule} at ${research.share}; the joint move asked ${joined && joined.joint}, recorded ${JSON.stringify(byDefault.d.couple.joint)}, with 'half' ${joinedH && joinedH.joint}, none named ${jN && jN.joint}`);
+    `${c.id} held 90/10, target ${target}: by default asked to cut the household at ${hp ? hp.form : '-'}, ${hSolves.length} table${hSolves.length === 1 ? '' : 's'} solved (slot ${hSolves.map(a => a.slot).join(', ') || '-'}; inside the cut's bands ${hSolves.length === 1 && hSolves[0].bands === JSON.stringify(wantCut.bands)}), assembled with ${hAsm ? hAsm.setting : '-'}, the record ${hRec.household || '-'} at k ${hRec.k}, split ${hRec.split || '-'}; today's route asked to cut on ${cut && cut.shareRule} (each person's spending ${cut ? cut.spend.map(x => Math.round(x)).join(' and ') : '-'}), to assemble on ${joined && joined.shareRule}, the record ${today.d.couple.shareRule} at ${today.d.couple.share}; named 'half': ${cutH && cutH.shareRule}, ${joinedH && joinedH.shareRule}, ${named.d.couple.shareRule} at ${named.d.couple.share}; couplePlans unasked: ${research.shareRule} at ${research.share}; the joint move asked ${joined && joined.joint}, recorded ${JSON.stringify(byDefault.d.couple.joint)}, with 'half' ${joinedH && joinedH.joint}, none named ${jN && jN.joint}`);
   // 7's runs, on today's route (`household: null`): a stand-in worker that assembles the couple without the joint move asked
   // for, and one that keeps it
   dropJoint = true; let why = '';

@@ -9,15 +9,16 @@
  * a split solve gives, e2.test.mjs). The page's own worker is run by the browser harness (step 3). Light settings; S025-own
  * from step 8's panel, as household-route.test.mjs takes it:
  *   1. solved with three parts: the owner cuts the plan; the table is solved split, the cut's bands handed to the owner and to
- *      every part; the owner and both parts assemble the household with the setting asked (the form, the top three moves, the
- *      couples' joint move's tie-break and hold); each assembly's table the table solved whole inside the bands, by digest,
+ *      every part; the owner and both parts assemble the household with the setting asked (the form and the even split, which
+ *      move its move, and the top three, the tie-break and the hold, passed as step 8's arm passed them and reaching no move:
+ *      the reviewer on D135's change of default, finding 2); each assembly's table the table solved whole inside the bands, by digest,
  *      its record the whole household's, and the owner's household run on 50 paths as the whole's, bit for bit;
  *   2. the same couple again, its table now in the store: restored split (followed, the parts handed no tables), marked
  *      restored, both parts assembling, each assembly's table the same;
  *   3. the key names the bands: the household table's key is not the household plan's keyed without them; and with the
  *      household plan solved and stored first as a single's plan (outside the bands), the household's solve misses it and
  *      solves its own, never restoring a table solved outside the bands;
- *   4. a part assembling the household with another setting (its top two moves): refused, never shown;
+ *   4. a part assembling the household at another split (the pensions', not the even split asked for): refused, never shown;
  *   5. a household's variant through startFigures at the default (no form named: the couples' default since D135), as the
  *      page solves a What if variant: the household's route taken, split with its parts kept, not keyed, so neither restored
  *      nor stored, the store as it was; its headline and comparison the whole household's on the same paths;
@@ -28,18 +29,32 @@
  *      ISA held at another risk than the first person's) is solved on today's route, as before the household default: its two
  *      people's tables cut on the pots' share and solved in their slots, the couple assembled with the couples' joint move,
  *      the job's record naming no household and the refusal's reason (`householdRefused`); and a refusal that is not the
- *      plan's shape (a form the page does not solve at) fails the solve, never falls back.
+ *      plan's shape (a form the page does not solve at) fails the solve, never falls back;
+ *   8. a couple whose minimum pot is left at nought, the page's default (the reviewer on D135's change of default, finding 1:
+ *      the assembly refused every such couple): S001 as the library holds it solved at the default as one household, the
+ *      couple's model, its table and the engine's context each judging the household's year against one year of its target,
+ *      the minimum pot the solver keeps for a plan with none (src/solver/solve.js solvePlan's minPotYears); and over the
+ *      library's 210 couples as entered, the pattern search, the cut's household plan carrying the minimum pot its table is
+ *      solved with (as solvePlan sets it, no solve run) and its model the same one;
+ *   9. a partner's own ceilings (the limits per person) that are the first person's wrapper for wrapper, as the limits card
+ *      leaves them set back to free (the reviewer's finding 3), solve as one household; a partner's own ceiling that differs
+ *      falls back to today's route, its record naming the household plan's refusal (lockedPlan lowers the partner's pension
+ *      to the ceiling first, so the household plan refuses its risk before it reads the limit).
  * Plants (--planted; each wants exactly the checks named): the key's 'bandsunkeyed' (the bands left out of the key: check 3),
  * the client's 'partnobands' (the first part handed no bands: every check whose table is solved split, 1, 2, 4, 5 and 6, its
  * assembly refused on the band for gains), 'noformcheck' (each assembly's setting unread: check 4), 'keyvariant' (a variant
- * keyed: check 5) and 'nofallback' (a refusal of the plan's shape failing the solve: check 7).
+ * keyed: check 5), 'nofallback' (a refusal of the plan's shape failing the solve: check 7), and the cut's (src/solverCouple.js)
+ * 'hhzerofloor' (a household's minimum pot left at the plan's nought: check 8) and 'partceilkey' (a partner's ceilings that
+ * are the first person's handed to the household plan: check 9).
  *   node research/tests/household-client.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solveForApp } from '../../src/solverApp.js';
 import { cacheOf, followRecord, shareRecord } from '../../src/solverCache.js';
-import { householdCut, householdSolved, householdMeta, couplePlans, assembleCouple, coupleMeta } from '../../src/solverCouple.js';
+import { householdCut, householdSolved, householdMeta, couplePlans, assembleCouple, coupleMeta, PLANT as COUPLE_PLANT } from '../../src/solverCouple.js';
+import { PRODUCT_DEFAULTS } from '../../src/solver/solve.js';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { bandsAt } from '../../src/solver/household.js';
 import { solveKey, PLANT as KEY_PLANT } from '../../src/solverKey.js';
 import { solvedContext, strategyRuns, strategyAnswer, strategyOf } from '../../src/solverStrategy.js';
@@ -51,7 +66,7 @@ import { fileURLToPath } from 'node:url';
 
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['bandsunkeyed', ['3']], ['partnobands', ['1', '2', '4', '5', '6']], ['noformcheck', ['4']], ['keyvariant', ['5']], ['nofallback', ['7']]]) {
+  for (const [plant, want] of [['bandsunkeyed', ['3']], ['partnobands', ['1', '2', '4', '5', '6']], ['noformcheck', ['4']], ['keyvariant', ['5']], ['nofallback', ['7']], ['hhzerofloor', ['8']], ['partceilkey', ['9']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, HOUSEHOLD_CLIENT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
@@ -79,7 +94,7 @@ class InProcessWorker {
   constructor() { this.n = nextId++; this.isPart = false; this.solved = null; this.runs = null; this.held = null; this.persons = { self: null, part: null, household: null }; this.pending = null; this.onmessage = null; this.onerror = null; this.dead = false; }
   postMessage(data) {
     log.push({ w: this.n, kind: data.kind, slot: data.slot || null, follow: !!data.restore || !!data.restoreSplit, key: data.key || null, bands: data.bands ? js(data.bands) : null, base: !!(data.base || data.baseKey),
-      ...(data.kind === 'household' ? { setting: js({ form: data.form, topK: data.topK, tieJoint: data.tieJoint, holdPast: data.holdPast }) } : {}) });
+      ...(data.kind === 'household' ? { setting: js({ form: data.form, split: data.split, topK: data.topK, tieJoint: data.tieJoint, holdPast: data.holdPast }) } : {}) });
     setImmediate(() => this.handle(data));
   }
   terminate() { this.dead = true; }
@@ -121,8 +136,9 @@ class InProcessWorker {
       if (kind === 'household-plan') { this.reply({ id, ...householdCut(E, M, data.plan, data.form) }); return; }
       if (kind === 'household') {
         if (!this.persons.household) throw new Error('a household asked before its table was solved');
-        // check 4's stand-in: a part assembling the household with its top two moves, not the three asked
-        this.solved = householdSolved(E, M, oddPart && this.isPart ? { ...data, topK: 2 } : data, this.persons.household); this.runs = null;
+        // check 4's stand-in: a part assembling the household at the pensions' split, not the even split asked
+        this.solved = householdSolved(E, M, data, this.persons.household); this.runs = null;
+        if (oddPart && this.isPart) this.solved = { ...this.solved, split: 'pensions' };
         assembled.push({ w: this.n, isPart: this.isPart, cp: this.solved });
         this.reply({ id, done: true, meta: householdMeta(this.solved) }); return;
       }
@@ -144,11 +160,12 @@ class InProcessWorker {
 globalThis.Worker = InProcessWorker;
 const C = await import('../../src/solverClient.js');
 C.PLANT.rule = ['partnobands', 'noformcheck', 'keyvariant', 'nofallback'].includes(PLANT) ? PLANT : '';
+COUPLE_PLANT.rule = ['hhzerofloor', 'partceilkey'].includes(PLANT) ? PLANT : '';
 KEY_PLANT.rule = PLANT === 'bandsunkeyed' ? PLANT : '';
 
 // the whole: the cut, its table solved whole inside its bands, the household assembled on it, its record and its paths
 const cut = householdCut(E, M, plan, FORM), hOpts = { ...light, ageWith: cut.ageWith };
-const joint = appJoint(), setting = { form: FORM, topK: 3, tieJoint: joint.tieJoint, holdPast: joint.holdPast };
+const joint = appJoint(), setting = { form: FORM, split: 'even', topK: 3, tieJoint: joint.tieJoint, holdPast: joint.holdPast };
 const wholeH = solveOnce(cut.hplan, hOpts, cut.bands);
 const wholeCp = householdSolved(E, M, { household: cut.household, ...setting }, { plan: cut.hplan, r: wholeH });
 const wantDigest = await digestOf(tablesOf(wholeH)), wantMeta = js(householdMeta(wholeCp));
@@ -205,8 +222,8 @@ const digestsOf = async made => Promise.all(made.map(a => digestOf(tablesOf(a.cp
 { oddPart = true;
   const { done, threw } = await solveHousehold(plan);
   oddPart = false;
-  ok('4. a part assembling the household with its top two moves, not the three asked: refused, never shown',
-    !done && /assembled by part \d with .*"topK":2.* not the .*"topK":3/.test(threw), threw ? threw.slice(0, 200) : 'not refused'); }
+  ok('4. a part assembling the household at the pensions\' split, not the even split asked: refused, never shown',
+    !done && /assembled by part \d with .*"split":"pensions".* not the .*"split":"even"/.test(threw), threw ? threw.slice(0, 200) : 'not refused'); }
 
 // 5. a household's variant through startFigures at the default (no form named), as the page solves a What if variant: the
 // household's route, not keyed, neither restored nor stored; its figures the whole household's on the same paths
@@ -257,6 +274,40 @@ const digestsOf = async made => Promise.all(made.map(a => digestOf(tablesOf(a.cp
   ok('7. a couple the household plan refuses (the partner\'s ISA at another risk) is solved on today\'s route: cut on the pots\' share, both people\'s tables solved in their slots, the couple assembled with the joint move by the owner and both parts, its record naming no household and the refusal; a form the page does not solve at fails the solve',
     fellBack && /^householdCut: the page solves a household at a scaled form/.test(fault),
     threw ? `threw: ${threw.slice(0, 200)}` : `the refusal "${refusal.slice(0, 90)}"; cut on the pots' share ${cutPots}, tables solved in ${slots.join(', ')}, assembled as a couple ${made.length} times; the record ${js({ household: rec.household, shareRule: rec.shareRule, joint: rec.joint })}, its reason ${rec.householdRefused === refusal ? 'the refusal' : js(rec.householdRefused)}; the form 'even': ${fault ? fault.slice(0, 90) : 'not refused'}`); }
+
+// 8. a couple whose minimum pot is left at nought: one household, its model, its table and the engine's context on one minimum
+// pot, one year of its target; and the library's couples as entered, cut at the default's form, the pattern search
+{ const lib = buildScenarios().filter(x => x.plan.demographics.planningMode === 'couple'), s1 = lib.find(x => x.id === 'S001').plan;
+  const want = Math.round(PRODUCT_DEFAULTS.minPotYears * E.num(E.normalizePlan(s1).spending.targetSpend, 0));
+  const from = assembled.length; let done = null, threw = '';
+  const job = C.startSolve(s1, { ...light, parts: 1, couple: { engine: E } });
+  try { done = await job.done; } catch (e) { threw = e.message; }
+  job.close();
+  const made = assembled.slice(from), cp = made.length ? made[0].cp : null;
+  const floors = cp ? { model: cp.m.ctx.solvencyFloor, table: cp.H.m.ctx.solvencyFloor, engine: solvedContext(E, cp).solvencyFloor } : null;
+  const s1ok = !threw && !!done && !!done.couple && done.couple.household === FORM && !!floors && floors.model === want && floors.table === want && floors.engine === want && want > 0 && !(E.num(s1.config && s1.config.solvencyFloor, 0) > 0);
+  // the floor a table is solved with, as src/solver/solve.js solvePlan sets it with no minPotYears asked (the app asks none)
+  const tableFloor = hp => { const own = Math.max(0, E.num(hp.config && hp.config.solvencyFloor, 0)), t = E.num(hp.spending && hp.spending.targetSpend, 0); return own > 0 ? own : Math.round(PRODUCT_DEFAULTS.minPotYears * t); };
+  let n = 0, zero = 0, differ = 0, refused = 0; const first = [];
+  for (const c of lib) {
+    let cut = null; try { cut = householdCut(E, M, c.plan, FORM); } catch (e) { refused++; continue; }
+    n++; if (!(E.num(c.plan.config && c.plan.config.solvencyFloor, 0) > 0)) zero++;
+    const tf = tableFloor(cut.hplan), mf = M.prepare(E, cut.household).ctx.solvencyFloor || 0;
+    if (tf !== mf) { differ++; if (first.length < 3) first.push(`${c.id}: the table's ${tf}, the model's ${mf}`); }
+  }
+  ok('8. a couple whose minimum pot is left at nought (S001 as the library holds it) solves as one household, its model, its table and the engine\'s context on one minimum pot, one year of its target; every library couple, cut at the default\'s form, carrying the minimum pot its table is solved with',
+    s1ok && n === lib.length && differ === 0 && zero > 0,
+    `S001: ${threw ? `threw: ${threw.slice(0, 120)}` : `the record ${done && done.couple ? done.couple.household : '-'}, the minimum pots ${js(floors)} against ${want}`}; the library: ${n} of ${lib.length} couples cut (${refused} refused), ${zero} with their minimum pot at nought, ${differ} whose table and model differ${first.length ? ` (${first.join('; ')})` : ''}`); }
+
+// 9. a partner's own ceilings: the first person's wrapper for wrapper, as the limits card leaves them set back to free, one
+// household; a partner's own ceiling that differs, today's route with the refusal named
+{ const withLocks = part => ({ ...plan, solver: { ...(plan.solver || {}), locks: { pensionBefore: null, tierCeiling: { pen: null, isa: null }, lumpSum: 'free', tierCeilingPart: part } } });
+  const run1 = async p => { let done = null, threw = ''; const job = C.startSolve(p, { ...light, parts: 1, couple: { engine: E } }); try { done = await job.done; } catch (e) { threw = e.message; } job.close(); return { done, threw }; };
+  const same = await run1(withLocks({ pen: null, isa: null })), other = await run1(withLocks({ pen: 'Medium Risk', isa: null }));
+  const r1 = same.done && same.done.couple ? same.done.couple : {}, r2 = other.done && other.done.couple ? other.done.couple : {};
+  ok('9. a partner\'s own ceilings that are the first person\'s (both free, as the limits card leaves them set back) solve as one household; a partner\'s own pension ceiling that differs falls back to today\'s route, its record naming the household plan\'s refusal (the ceiling, applied to the partner\'s pension first, refused as its risk or as the limit)',
+    !same.threw && r1.household === FORM && !r1.householdRefused && !other.threw && r2.household === null && /^householdPlanFor: /.test(r2.householdRefused || ''),
+    `the same: ${same.threw ? `threw ${same.threw.slice(0, 100)}` : `household ${r1.household}${r1.householdRefused ? `, refused: ${r1.householdRefused.slice(0, 80)}` : ''}`}; a differing one: ${other.threw ? `threw ${other.threw.slice(0, 100)}` : `household ${r2.household}, refused: ${(r2.householdRefused || '-').slice(0, 80)}`}`); }
 
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
 process.exit(fail ? 1 : 0);

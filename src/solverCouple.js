@@ -13,14 +13,19 @@
  */
 import { shareBy, SHARE_RULES, singlePlanFor, solveCouple, chooseJoint, rankFor, ownerState } from './solver/couple.js';
 import { vecOf } from './solver/grid.js';
-import { solvedContext, runPath, partsOf, retireYearOf, firstSweep, joinSkipRuns } from './solverStrategy.js';
-import { prepareForSolve, JOINT_KEYS } from './solverSettings.js';
+import { solvedContext, runPath, partsOf, retireYearOf, firstSweep, joinSkipRuns, shownPolicy } from './solverStrategy.js';
+import { wholeMenu, PRODUCT_DEFAULTS } from './solver/solve.js';
+import { prepareForSolve, JOINT_KEYS, partCeilingsDiffer } from './solverSettings.js';
 import { appPlan } from './solverApp.js';
 import { householdForm, householdFromTable, SCALES, mergedState } from './solver/household.js';
 
 /* research/tests/couple-solve-client.test.mjs only: 'swap' hands each person the other's table; 'noage' cuts the plans with no
    partner's age (each solved as a single would be); research/tests/couple-default.test.mjs only: 'rawages' leaves a blank age
-   or end age as the plan has it, as before D99's fix round (householdPlan) */
+   or end age as the plan has it, as before D99's fix round (householdPlan); research/tests/household-client.test.mjs only:
+   'hhzerofloor' leaves a household's minimum pot at the plan's nought in the cut, and 'partceilkey' hands the household plan
+   a partner's ceilings that are the first person's, both as before the reviewer's fix round on D135's change of default;
+   research/tests/couple-shown.test.mjs only: 'noshown' reads the couple's policy as it is in the views, not through
+   wholeMenu, as before the fix of 20 Nov */
 export const PLANT = { rule: '' };
 
 /* the household's plan as a couple's tables are solved on: prepared as a single's is (prepareForSolve, then appPlan, so the
@@ -97,19 +102,41 @@ export const isPair = x => isCouple(x) || isHousehold(x);
  * cut names. householdSolved ('household'): the household assembled from a table solved on that cut (householdFromTable,
  * which refuses a table solved on another plan or outside the bands), as the solve in hand, at the even split.
  */
+/*
+ * Two things the page's plans carry that step 8's panel did not (the reviewer on D135's change of default, findings 1 and 3),
+ * read here before the cut:
+ *   - a minimum pot left at nought, the page's default. The solver keeps one year of the target for any plan with none
+ *     (src/solver/solve.js solvePlan's minPotYears), so the household's table is solved with one. The household plan is
+ *     given that minimum pot before it is cut, so its table, the couple's model each year is stepped on
+ *     (src/solver/household.js assembleHousehold) and the engine's context judge the household's year against the same
+ *     one, as a couple's on today's route are (src/solver/couple.js solveCouple: the two tables' together). Without it the
+ *     assembly refused every such couple (plant 'hhzerofloor').
+ *   - a partner's own ceilings that are, wrapper for wrapper, the first person's (partCeilingsDiffer), which the limits card
+ *     keeps once written. They hold the same accounts as none (lockedPlan), so the household plan is handed none. Ceilings
+ *     that differ stay, and the household plan refuses them, so such a couple keeps today's route (plant 'partceilkey').
+ */
 export function householdCut(E, M, plan, form) {
   if (!SCALES.includes(form)) throw new Error(`householdCut: the page solves a household at a scaled form (${SCALES.join(', ')}), not ${form}`);
-  const household = householdPlan(E, plan), f = householdForm(E, household, { scale: form }), sc = f.hopts.scale;
+  const L = plan && plan.solver && plan.solver.locks;
+  const own = L && L.tierCeilingPart && !partCeilingsDiffer(plan) && PLANT.rule !== 'partceilkey' ? (({ tierCeilingPart, ...rest }) => ({ ...plan, solver: { ...plan.solver, locks: rest } }))(L) : plan;
+  const h0 = householdPlan(E, own), floorOwn = Math.max(0, E.num(h0.config && h0.config.solvencyFloor, 0));
+  const floorKept = Math.round(PRODUCT_DEFAULTS.minPotYears * Math.max(0, E.num(h0.spending && h0.spending.targetSpend, 0)));
+  const household = !(floorOwn > 0) && floorKept > 0 && PLANT.rule !== 'hhzerofloor' ? { ...h0, config: { ...h0.config, solvencyFloor: floorKept } } : h0;
+  const f = householdForm(E, household, { scale: form }), sc = f.hopts.scale;
   return { household, hplan: f.hp, bands: { k: sc.k, paOne: sc.paOne, paK: !!sc.paK }, ageWith: M.prepare(E, household).ctx.agePart0 };
 }
+/* the household assembled at the even split: its move the table's own, both people taking it (src/solver/household.js
+   chooseHouseholdSingle). `topK`, `tieJoint` and `holdPast` are passed as step 8's arm passed them (audit-household-hsp.mjs's
+   HSPA) and do not reach that move (the reviewer on D135's change of default, finding 2): the form and the split are what
+   move it */
 export function householdSolved(E, M, { household, form, topK, tieJoint, holdPast }, table) {
   const cp = householdFromTable(E, M, household, table.plan, table.r, { scale: form, topK, tieJoint, holdPast });
   return { ...cp, split: 'even', counts: null };
 }
 /* the page's record of a household's solve (step 8's port, research/solver/HSP-PORT.md), plain data: its table's record, and
-   the setting it was assembled with as the assembly recorded it (src/solver/household.js assembleHousehold's meta), which the
-   client reads back against what it asked (src/solverClient.js) */
-export const householdMeta = cp => ({ household: true, setting: { form: cp.meta && cp.meta.scale ? cp.meta.scale.rule : null, topK: cp.meta.topK, tieJoint: cp.meta.tieJoint || 0, holdPast: cp.meta.holdPast || 0 }, k: cp.meta && cp.meta.scale ? cp.meta.scale.k : null, split: cp.split, tiersBelow: cp.tiersBelow, table: JSON.parse(JSON.stringify(cp.H.meta)) });
+   the setting it was assembled with as the assembly recorded it (src/solver/household.js assembleHousehold's meta, and the
+   split), which the client reads back against what it asked (src/solverClient.js) */
+export const householdMeta = cp => ({ household: true, setting: { form: cp.meta && cp.meta.scale ? cp.meta.scale.rule : null, split: cp.split, topK: cp.meta.topK, tieJoint: cp.meta.tieJoint || 0, holdPast: cp.meta.holdPast || 0 }, k: cp.meta && cp.meta.scale ? cp.meta.scale.k : null, split: cp.split, tiersBelow: cp.tiersBelow, table: JSON.parse(JSON.stringify(cp.H.meta)) });
 
 export function coupleMeta(cp) {
   const plain = r => JSON.parse(JSON.stringify(r.meta));
@@ -157,11 +184,22 @@ export function withPersonMove(cp, joint, who, ai) {
   delete out.score;
   return out;
 }
+/*
+ * A DECISION THE PAGES SHOW IS MADE ON THE WHOLE MENU (D90, for a couple: research/tests/couple-shown.test.mjs). Under the
+ * speed mode each of a couple's tables carries the chooser's shortlist (src/solver/solve.js), an approximation for the paths
+ * that only count. This year's move and its skips' alternatives, the next years and a market's rows are decisions the pages
+ * show, so they ask through wholeMenu (src/solverStrategy.js shownPolicy), as a single's views do. The skips' runs after the
+ * forced first year and the counted runs keep the couple's own policy (`base`). With no shortlist on the tables it is the
+ * same policy, decision for decision.
+ */
+const shownOf = base => (PLANT.rule === 'noshown' ? base : shownPolicy(base));
+const shownRank = fn => (PLANT.rule === 'noshown' ? fn() : wholeMenu(fn));
+const shortlisted = cp => (isHousehold(cp) ? [cp.H] : [cp.tables.self, cp.tables.part]).some(r => r && r.chooserShortlist);
 /* the first year's joint move as the engine took it, the model's state then, and the couple's engine context */
 export function coupleFirstMove(E, cp) {
-  const sc = solvedContext(E, cp), base = sc.policyOverride, T = sc.totalYears;
+  const sc = solvedContext(E, cp), base = sc.policyOverride, T = sc.totalYears, shown = shownOf(base);
   let rec = null;
-  const ctx = { ...sc, policyOverride: { ...base, choose(st, t) { const j = base.choose(st, t); if (t === 0 && !rec) rec = { joint: j, state: modelStateOfCouple(cp, st) }; return j; } } };
+  const ctx = { ...sc, policyOverride: { ...base, choose(st, t) { const j = shown.choose(st, t); if (t === 0 && !rec) rec = { joint: j, state: modelStateOfCouple(cp, st) }; return j; } } };
   E.runTrial(ctx, Float64Array.from(E.pathsForSeed(1, 1, T)[0]));
   return { ...rec, sc, base };
 }
@@ -174,7 +212,7 @@ export function coupleSkipsOf(E, cp) {
   const ranked = {};
   for (const who of WHO) {
     const tab = cp.tables[who], s = vecOf(tab.m, ownerState(f.state, who)), held = f.state.tierHeld[who];
-    ranked[who] = rankFor(tab, s, 0, tiered(tab) ? { pen: held.pen, isa: held.isa } : null, tab.actions.length);
+    ranked[who] = shownRank(() => rankFor(tab, s, 0, tiered(tab) ? { pen: held.pen, isa: held.isa } : null, tab.actions.length));
   }
   const level0 = j0.spendLevel !== undefined ? j0.spendLevel : 1;
   if (level0 !== 1) {
@@ -205,7 +243,7 @@ export function householdSkipsOf(E, cp) {
   const f = coupleFirstMove(E, cp), j0 = f.joint, list = [], H = cp.H;
   const lvl = ai => (H.levelOf ? H.levelOf[ai] : H.actions[ai].spendLevel !== undefined ? H.actions[ai].spendLevel : 1);
   const held = f.state.tierHeld.self, s = vecOf(H.m, PLANT.rule === 'hhpersonrank' ? ownerState(f.state, 'self') : mergedState(cp, f.state));
-  const ranked = rankFor(H, s, 0, tiered(H) ? { pen: held.pen, isa: held.isa } : null, H.actions.length);
+  const ranked = shownRank(() => rankFor(H, s, 0, tiered(H) ? { pen: held.pen, isa: held.isa } : null, H.actions.length));
   const level0 = j0.spendLevel !== undefined ? j0.spendLevel : 1;
   if (level0 !== 1) {
     const alt = ranked.find(ai => lvl(ai) !== level0);
@@ -261,22 +299,23 @@ export function coupleActionsOf(E, cp, plan, { seed = 12345, n = 1000, base = nu
 }
 /* the next years for a couple: each year's joint move taken apart on the median path of the runs given (a single's aheadOf) */
 export function coupleAheadOf(E, cp, plan, runs, { years = 10 } = {}) {
-  const sc = solvedContext(E, cp), base = sc.policyOverride, n = runs.solved.length;
+  const sc = solvedContext(E, cp), base = sc.policyOverride, n = runs.solved.length, shown = shownOf(base);
   const order = runs.solved.map((r, k) => [r.terminalPot, k]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   const k = order[Math.min(n - 1, Math.floor(n * 0.5))][1];
   const zs = E.pathsForSeed(runs.seed, k + 1, sc.totalYears)[k], rows = [];
-  const ctx = { ...sc, policyOverride: { ...base, choose(st, t) { const j = base.choose(st, t); if (t < years) rows.push({ t, age: sc.ageSelf0 + t, year: sc.baseYear + t, parts: jointParts(j) }); return j; } } };
+  const ctx = { ...sc, policyOverride: { ...base, choose(st, t) { const j = shown.choose(st, t); if (t < years) rows.push({ t, age: sc.ageSelf0 + t, year: sc.baseYear + t, parts: jointParts(j) }); return j; } } };
   const state = E.freshState(ctx), zPath = zs.length > sc.totalYears + 1 ? zs[sc.totalYears + 1] : 0;
   for (let t = 0; t < Math.min(years, sc.totalYears + 1); t++) {
     const row = E.stepYear(ctx, state, t, { z: zs[t], zPath });
     if (rows[t]) Object.assign(rows[t], { spend: row.targetSpend > 0 ? row.targetSpend : 0, pot: Math.max(0, row.totalCombined), swept: { toGia: row.sweptToGia || 0, fromGia: row.sweptFromGia || 0, toIsa: row.sweptToIsa || 0 } });
   }
-  return { couple: true, path: k, rows, typical: Array.from(runs.solved[k].level) };
+  // the typical run: where the counted runs took the shortlist, the whole menu's own run of the path the rows are shown on
+  return { couple: true, path: k, rows, typical: shortlisted(cp) && PLANT.rule !== 'noshown' ? Array.from(runPath(E, { ...sc, policyOverride: shown }, zs).level) : Array.from(runs.solved[k].level) };
 }
 /* one market's run of the solved couple year by year, each year's joint move taken apart (a single's rowsOf) */
 export function coupleRowsOf(E, cp, market) {
-  const sc = solvedContext(E, cp), base = sc.policyOverride, moves = [];
-  const ctx = { ...sc, policyOverride: { ...base, choose(st, t) { const j = base.choose(st, t); moves[t] = j ? jointParts(j) : null; return j; } } };
+  const sc = solvedContext(E, cp), base = sc.policyOverride, moves = [], shown = shownOf(base);
+  const ctx = { ...sc, policyOverride: { ...base, choose(st, t) { const j = shown.choose(st, t); moves[t] = j ? jointParts(j) : null; return j; } } };
   const state = E.freshState(ctx), rows = [];
   for (let t = 0; t <= ctx.totalYears; t++) rows.push(E.stepYear(ctx, state, t, market));
   return { couple: true, rows, parts: rows.map((_, t) => moves[t] || null), verdict: E.evaluateRows(ctx, rows) };

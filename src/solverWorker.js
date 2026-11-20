@@ -160,9 +160,10 @@ self.onmessage = async ({ data }) => {
     if (kind === 'household-plan') { self.postMessage({ id, ...householdCut(E, M, data.plan, data.form) }); return; }
     if (kind === 'household') {
       if (!persons.household) throw new Error('solverWorker: a household asked before its table was solved');
-      // plant 'workernohold' (solver-planner-ui check 19, a build's PLANNER_PLANT): the household assembled without the hold
-      // asked for, which the client's read-back of its setting refuses
-      solved = householdSolved(E, M, PLANNER_PLANT.has('workernohold') ? { ...data, holdPast: 0 } : data, persons.household); runs = null;
+      // plant 'workersplit' (solver-planner-ui check 19, a build's PLANNER_PLANT): the household assembled at the pensions'
+      // split, not the even split asked for, which the client's read-back of its setting refuses
+      solved = householdSolved(E, M, data, persons.household); runs = null;
+      if (PLANNER_PLANT.has('workersplit')) solved = { ...solved, split: 'pensions' };
       self.postMessage({ id, done: true, meta: householdMeta(solved) });
       return;
     }

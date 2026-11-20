@@ -58,15 +58,21 @@
  *      no classic tab's name on any of the four places, Details' full documentation open; the documentation leads with how the
  *      solver decides, the coverage card lists the solver's approximations, the glossary gives its four words;
  *  19  couples on (Part D, D5.5 and D6): a build of the site as it ships, couples on (src/couplesSwitch.js COUPLES, D99);
- *      a library couple holding its money 60/40 solves in the new planner (each person's table, then the couple): no couples
- *      card, the headline said to the two of them, this year's actions each named for its person, every figure the
- *      reference's bit for bit (the couple solved from the unbundled source in this Chromium as the worker solves it:
- *      src/solverCouple.js couplePlans, solveForApp for each person with their partner's age, assembleCouple; strategyOf on
- *      it); a reload restores both tables from the store (the diagnostic: restored, parts above one), every figure the
- *      reference's again (whether the parts then run shares of the paths the page cannot show: couple-split.test.mjs);
- *      You's Limits gives each person their own ceiling rows and says the pension age and the lump sum hold for both;
+ *      a library couple holding its money 60/40 solves in the new planner, as one household since D135 (the household plan's
+ *      one table, then the household): no couples card, the headline said to the two of them, this year's actions each named
+ *      for its person, every figure the reference's bit for bit (the household solved from the unbundled source in this
+ *      Chromium as the worker solves it: src/solverCouple.js householdCut at the couples' default form, solveForApp on the
+ *      household plan with the partner's age inside the cut's bands, src/solver/household.js bandsAt, householdSolved;
+ *      strategyOf on it); a reload restores its table from the store (the diagnostic: restored, parts above one), every
+ *      figure the reference's again (whether the parts then run shares of the paths the page cannot show:
+ *      household-client.test.mjs); You's Limits gives each person their own ceiling rows and says the pension age and the
+ *      lump sum hold for both;
  *      the guard (D99): the same couple re-held 90/10, its elder holding 90%, is solved to the end, no couples card, every
- *      figure the reference's on the couples' default share rule bit for bit (the reference solves on APP_COUPLE's); re-held 25/75, its
+ *      figure the reference's bit for bit (the household's bands from its 90/10 pensions); a couple the household plan refuses
+ *      (D135: the same couple re-held 90/10, the partner's ISA held at another risk than the first person's) is solved on
+ *      today's route, each person's table with their partner's age and then the couple (src/solverCouple.js couplePlans,
+ *      assembleCouple), no couples card, every figure the reference's on the couples' default share rule and joint move bit
+ *      for bit (the reference solves today's route on APP_COUPLE's); re-held 25/75, its
  *      younger partner holding 75%, the couples card with its reason ('uneven') and the share; the same couple as entered, its
  *      partner made 12 years younger and with £15,000 a year of other taxable income from 67 (a DB pension, as step 5's
  *      S147-db; D128, src/couplesSwitch.js DB_GAP_UP_TO), the couples card with its reason ('gapincome') and its words naming
@@ -75,8 +81,9 @@
  *      entered elder first and then the other way round by this harness's own hand (each person's fields, the end age so the
  *      plan ends in the same year, each account's and each one-off cost's owner, each account's id): entered younger first it
  *      is solved, no couples card, every
- *      figure the reference's bit for bit (solved on the couple's mirror, src/coupleOrder.js otherOrder, as the page solves
- *      it, and run against the plan as entered, its ages put in the entered first person's by the harness's own hand); its next
+ *      figure the reference's bit for bit (the household solved on the couple's mirror, src/coupleOrder.js otherOrder, as the
+ *      page solves it, and run against the plan as entered, its ages put in the entered first person's by the harness's own
+ *      hand); its next
  *      ten years, its outlook and its raise the elder-first entry's with each age the entered first person's, and this year's
  *      actions the elder-first entry's with each person's under the other's name;
  *  20  the speed mode (D97 (3), D98, on the main fixture): its box in the levers off by default with the single's warning,
@@ -95,14 +102,19 @@
  * classicfetch (14), optinloses (15: the switch between the planners resets the plan), betaignored (16: the page reads
  * rp_planner whatever PLANNER_BETA says), tournamentdocs (17: the documentation keeps the tournament's sections in the new
  * planner), diagwhole (18: the diagnostic appends the solve's record whole), couplecard (19: an in-band couple shown the couples
- * card), coupleage (19: each person's table solved without their partner's age, which the couple's assembly refuses),
+ * card), coupleage (19: each person's table solved without their partner's age, which the couple's assembly refuses; since
+ * D135 on today's route alone, so it fails the couple the household plan refuses),
  * speedoff (20: the speed mode's box writes nothing to the plan), speedcouple (10: the speed mode offered to a couple the
- * solver does not run), couplehalf (19: the page solving a couple on the half share, as before D99; alone, it fails only the
- * 90/10 couple's figures against the reference on the pots' share: PLANNER_PLANT=couplehalf), noback (19: a couple entered
+ * solver does not run), couplehalf (19: the page solving a couple on the half share, as before D99; since D135 the share rule
+ * is today's route's alone, so alone it fails only the refused couple's figures against the reference on the pots' share:
+ * PLANNER_PLANT=couplehalf), noback (19: a couple entered
  * younger first shown the answers of its mirror, src/solverClient.js; alone, it fails only that couple's next ten years and
  * actions: PLANNER_PLANT=noback), workernotie (19: the page's worker assembling a couple without the joint move asked for,
  * src/solverWorker.js; the client reads each assembly's joint move back and refuses the couple, the reviewer on D109's change
- * of default, MINOR 1; alone: PLANNER_PLANT=workernotie), nogapguard (19: the couples' guard running a couple more than
+ * of default, MINOR 1; since D135 on today's route alone, so the refused couple; alone: PLANNER_PLANT=workernotie),
+ * workernohold (19: the page's worker assembling a household without the hold asked for, src/solverWorker.js; the client
+ * reads each assembly's setting back and refuses the household, as it does a couple's joint move; alone:
+ * PLANNER_PLANT=workernohold), nogapguard (19: the couples' guard running a couple more than
  * three years apart with other taxable income, as before D128, set from the build's plant by src/App.jsx; alone, it fails only
  * that couple's card: PLANNER_PLANT=nogapguard), gapwords (19: that couple's card in its words before D129 (5), which said
  * the solver had not been shown to do better where the tests found it did worse, src/PlannerCards.jsx; alone, it fails only
@@ -126,8 +138,8 @@ const SPEED_SINGLE = 'Speed mode works out your figures faster by looking at few
 const SPEED_COUPLE = 'For couples, speed mode is less tested. It was usually only a little faster, it spent a little less, and for some couples it lowered the chance your money lasts by about 5 in 1,000. Use the full calculation for decisions.';
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback', 'workernotie', 'nogapguard', 'gapwords'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19, workernotie: 19 , nogapguard: 19, gapwords: 19 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback', 'workernotie', 'workernohold', 'nogapguard', 'gapwords'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19, workernotie: 19, workernohold: 19, nogapguard: 19, gapwords: 19 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -230,10 +242,10 @@ const firstDiff = (a, b, at = '') => {
     const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
     return JSON.stringify(strategyOf(E, solveForApp(E, M, pl, light), pl, { trials, seed }));
   }, { pl, light: LIGHT, seed: SEED, trials: last }));
-  // a couple's reference (Part D, D5.5): solved as the worker solves it, each person's table then the couple, in this Chromium,
-  // on the couples' default share rule (src/solverSettings.js APP_COUPLE, D99; the reviewer on D99, finding 2), so a couple held
-  // unevenly is checked against its own figures and a page solving it on another share fails; and with the couples' joint move
-  // (appJoint, D108), as the page assembles a couple
+  // a couple's reference on today's route (Part D, D5.5; since D135 a couple the household plan refuses): solved as the worker
+  // solves it, each person's table then the couple, in this Chromium, on the couples' default share rule (src/solverSettings.js
+  // APP_COUPLE, D99; the reviewer on D99, finding 2), so a couple held unevenly is checked against its own figures and a page
+  // solving it on another share fails; and with the couples' joint move (appJoint, D108), as the page assembles a couple
   const refCouple = async pl => JSON.parse(await ref.run(async ({ pl, light, seed, trials }) => {
     const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
     const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
@@ -242,23 +254,33 @@ const firstDiff = (a, b, at = '') => {
     const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, joint: appJoint(), solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
     return JSON.stringify(strategyOf(E, cp, pl, { trials, seed }));
   }, { pl, light: LIGHT, seed: SEED, trials: last }));
-  // a couple whose elder is entered second (D104 (1)): solved as the page solves it, on its mirror (src/coupleOrder.js
-  // otherOrder), and run against the plan as entered, as the Strategy tab's asks keep it (src/solverClient.js); its ages, the
-  // raise's and each outlook year's, worked out on the mirror's first person, put in the entered first person's by this
-  // harness's own hand (the reviewer on the change of default, BLOCKING 1: a reference on the mirror's ages hid the page's)
-  const refCoupleSwap = async pl => JSON.parse(await ref.run(async ({ pl, light, seed, trials }) => {
+  // a couple's reference as one household (D135; step 8's HSPA, research/solver/HSP-PORT.md): solved as the worker solves it,
+  // in this Chromium: the plan cut at the couples' default form (src/solverCouple.js householdCut), its one table solved
+  // inside the cut's bands (src/solver/household.js bandsAt) with the partner's age, the household assembled with the
+  // couples' default setting (the form, the top three moves, the joint move's tie-break and hold: householdSolved); and, for
+  // a couple whose elder is entered second (D104 (1), `swap`), on its mirror (src/coupleOrder.js otherOrder), run against the
+  // plan as entered, as the Strategy tab's asks keep it (src/solverClient.js), its ages, the raise's and each outlook
+  // year's, worked out on the mirror's first person, put in the entered first person's by this harness's own hand (the
+  // reviewer on D104 (1)'s change of default, BLOCKING 1: a reference on the mirror's ages hid the page's)
+  const refHousehold = async (pl, swap = false) => JSON.parse(await ref.run(async ({ pl, light, seed, trials, swap }) => {
     const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
     const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
-    const { couplePlans, assembleCouple } = await import('/src/solverCouple.js'), { APP_COUPLE, appJoint } = await import('/src/solverSettings.js');
-    const { otherOrder } = await import('/src/coupleOrder.js');
-    const mirror = otherOrder(E, pl), ctxOf = p => E.buildContext(E.resolveMpaa(E.normalizePlan(p))), gap = ctxOf(pl).ageSelf0 - ctxOf(mirror).ageSelf0;
-    const cut = couplePlans(E, mirror, { shareRule: APP_COUPLE.shareRule }), one = w => solveForApp(E, M, cut.plans[w], { ...light, ageWith: cut.ageWith[w] });
-    const cp = assembleCouple(E, M, cut.household, { self: one('self'), part: one('part') }, { shareRule: cut.shareRule, joint: appJoint(), solvedOn: { self: { plan: cut.plans.self, ageWith: cut.ageWith.self }, part: { plan: cut.plans.part, ageWith: cut.ageWith.part } } });
-    const s = strategyOf(E, cp, pl, { trials, seed });
-    if (s.raise) s.raise = { ...s.raise, age: s.raise.age + gap };
-    s.outlook = { ...s.outlook, spend: s.outlook.spend.map(x => ({ ...x, age: x.age + gap })) };
-    return JSON.stringify(s);
-  }, { pl, light: LIGHT, seed: SEED, trials: last }));
+    const { householdCut, householdSolved } = await import('/src/solverCouple.js'), { bandsAt } = await import('/src/solver/household.js');
+    const { APP_COUPLE, appJoint } = await import('/src/solverSettings.js'), { otherOrder } = await import('/src/coupleOrder.js');
+    const on = swap ? otherOrder(E, pl) : pl, ctxOf = p => E.buildContext(E.resolveMpaa(E.normalizePlan(p))), gap = swap ? ctxOf(pl).ageSelf0 - ctxOf(on).ageSelf0 : 0;
+    const cut = householdCut(E, M, on, APP_COUPLE.household), bd = cut.bands, j = appJoint();
+    const H = bandsAt(E, bd.k, bd.paOne, () => solveForApp(E, M, cut.hplan, { ...light, ageWith: cut.ageWith }), bd.paK);
+    const cp = householdSolved(E, M, { household: cut.household, form: APP_COUPLE.household, topK: 3, tieJoint: j.tieJoint, holdPast: j.holdPast }, { plan: cut.hplan, r: H });
+    const st = strategyOf(E, cp, pl, { trials, seed });
+    if (swap) { if (st.raise) st.raise = { ...st.raise, age: st.raise.age + gap }; st.outlook = { ...st.outlook, spend: st.outlook.spend.map(x => ({ ...x, age: x.age + gap })) }; }
+    return JSON.stringify(st);
+  }, { pl, light: LIGHT, seed: SEED, trials: last, swap }));
+  // whether the household plan takes a plan (D135: a couple it refuses is solved on today's route), from the unbundled source
+  const householdRefusal = async pl => ref.run(async ({ pl }) => {
+    const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
+    const { householdCut } = await import('/src/solverCouple.js'), { APP_COUPLE } = await import('/src/solverSettings.js');
+    try { householdCut(E, M, pl, APP_COUPLE.household); return null; } catch (e) { return e.message; }
+  }, { pl });
   try {
     execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), COUPLES_OFF: '1', PLANNER_PLANT: PLANTED.join(',') } });
     server = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT, '--port', PREVIEW_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
@@ -697,22 +719,22 @@ const firstDiff = (a, b, at = '') => {
         // (a) an in-band couple solves on the page, its figures the reference's
         { const { p, errs } = await open(b, even.plan, { port: COUPLES_PORT });
           const done = await waitCard(p, 'done', WAIT_MS);
-          const page = done ? await figs(p) : null, pl = await saved(p), want = page ? await refCouple(pl) : null;
+          const page = done ? await figs(p) : null, pl = await saved(p), want = page ? await refHousehold(pl) : null;
           const same = !!page && JSON.stringify(page) === JSON.stringify(want);
           const words = await p.evaluate(() => { const el = document.querySelector('[data-plan-answer]'); return el ? el.textContent : ''; });
           const card = !!(await p.$('[data-place="plan"] [data-planner-couple]'));
           if (done) await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
           const acts = await p.$$eval('[data-strategy-action]', els => els.map(e => e.dataset.strategyAction));
           ok(19, `couples on: ${even.id} (60/40) solves in the new planner, no couples card, the headline said to the two of you`, up3 && done && !card && /two of you|first of you/.test(words), `served ${up3}; done ${done}; card ${card}`);
-          ok(19, 'couples on: every figure the reference\'s bit for bit (each person\'s table with their partner\'s age, then the couple, strategyOf on it)', same, page ? `survival ${page.headline.survival}% against ${want && want.headline.survival}%` : 'no figures');
+          ok(19, 'couples on: every figure the reference\'s bit for bit (as one household, D135: the household plan\'s one table inside its bands with the partner\'s age, then the household, strategyOf on it)', same, page ? `survival ${page.headline.survival}% against ${want && want.headline.survival}%` : 'no figures');
           const speedWords = await p.evaluate(() => { const w = document.querySelector('[data-solver-aims] [data-solver-speed-warning]'); return w ? w.textContent : null; });
           ok(19, 'couples on: the speed mode offered with the couple\'s warning (D98)', speedWords === SPEED_COUPLE, speedWords === null ? 'no warning shown' : speedWords === SPEED_COUPLE ? 'the couple\'s' : `"${speedWords.slice(0, 60)}"`);
           ok(19, 'couples on: this year\'s actions each named for its person (or nothing to change)', acts.length > 0 && acts.every(a => a === 'none' || /^(self|part|household):/.test(a)), acts.join(', ') || 'none shown');
           ok(19, 'couples on: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
-          // (c) D5.6: a reload restores both people's tables from the store (the owner copying each record in, its parts
+          // (c) D5.6: a reload restores the household's table from the store (the owner copying the record in, its parts
           // following it): every figure the reference's again, the solve named restored with its parts, the actions per person.
-          // The diagnostic's parts are the last phase's count, so whether the parts then ran shares of the couple's paths is not
-          // seen here (the reviewer of 14 Nov, finding 4 (e)): couple-split.test.mjs shows it for the client
+          // The diagnostic's parts are the last phase's count, so whether the parts then ran shares of the household's paths is
+          // not seen here (the reviewer of 14 Nov, finding 4 (e)): household-client.test.mjs shows it for the client
           await p.reload({ waitUntil: 'networkidle' });
           const again = await waitCard(p, 'done', WAIT_MS), page2 = again ? await figs(p) : null;
           if (again) await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
@@ -720,7 +742,7 @@ const firstDiff = (a, b, at = '') => {
           await goPlace(p, 'Details');
           const g19 = await diagnosticIn(p, '[data-place="details"] [data-solver-settings]');
           const restored = !!g19 && /restored from the store/.test(g19.at.times || ''), nparts = g19 ? Number(g19.at.parts) : 0;
-          ok(19, 'couples on, reloaded: both people\'s tables restored from the store, the parts above one, every figure the reference\'s again, the actions per person',
+          ok(19, 'couples on, reloaded: the household\'s table restored from the store, the parts above one, every figure the reference\'s again, the actions per person',
             again && !!page2 && JSON.stringify(page2) === JSON.stringify(want) && restored && nparts > 1 && acts2.length > 0 && acts2.every(a => a === 'none' || /^(self|part|household):/.test(a)),
             `done ${again}; ${g19 ? `times "${g19.at.times}", parts ${g19.at.parts}` : 'no diagnostic'}; survival ${page2 ? page2.headline.survival : '-'}% against ${want && want.headline.survival}%`);
           ok(19, 'couples on, reloaded: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
@@ -741,13 +763,29 @@ const firstDiff = (a, b, at = '') => {
           for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); if (/_self$/.test(a.id)) a.balance = tot[k] * f; else if (/_part$/.test(a.id)) a.balance = tot[k] * (1 - f); }
           return re; };
         { const { p, errs } = await open(b, reheld(0.9), { port: COUPLES_PORT });
-          // solved to the end on the pots' share (the reviewer on D99, finding 2): no couples card, and every figure the reference's,
-          // which solves it on the couples' default share rule, bit for bit: a page solving it on the half share fails here
+          // solved to the end as one household (D135), its bands from its 90/10 pensions: no couples card, and every figure the
+          // reference's bit for bit
           const done90 = await waitCard(p, 'done', WAIT_MS), card90 = !!(await p.$('[data-place="plan"] [data-planner-couple]'));
-          const page90 = done90 ? await figs(p) : null, pl90 = await saved(p), want90 = page90 ? await refCouple(pl90) : null;
-          ok(19, 'couples on: the same couple re-held 90/10, its elder holding 90%, is solved (the guard, D99): no couples card, every figure the reference\'s on the pots\' share bit for bit',
+          const page90 = done90 ? await figs(p) : null, pl90 = await saved(p), want90 = page90 ? await refHousehold(pl90) : null;
+          ok(19, 'couples on: the same couple re-held 90/10, its elder holding 90%, is solved (the guard, D99): no couples card, every figure the reference\'s bit for bit (one household, its bands from its 90/10 pensions)',
             done90 && !card90 && !!page90 && JSON.stringify(page90) === JSON.stringify(want90), `done ${done90}; card ${card90}; survival ${page90 ? page90.headline.survival : '-'}% against ${want90 ? want90.headline.survival : '-'}%`);
           ok(19, 'couples on, held 90/10: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+          await p.context().close(); }
+        // (g) a couple the household plan refuses (D135; src/solver/household.js householdPlanFor, the plan's own shapes): the same
+        // couple re-held 90/10, the partner's ISA held at another risk than the first person's, is solved on today's route, two
+        // tables and the joint move, on the pots' share (held 90/10, so a page solving it on the half share fails here: plant
+        // 'couplehalf'), no couples card, every figure today's reference's bit for bit
+        { const odd = reheld(0.9), isaPart = odd.accounts.find(a => a.id === 'isa_part'), isaSelf = odd.accounts.find(a => a.id === 'isa_self');
+          if (!isaPart || !isaSelf) throw new Error('check 19 (g): the fixture has no ISA for each person');
+          isaPart.risk = isaSelf.risk === 'Medium Risk' ? 'Medium/High Risk' : 'Medium Risk';
+          const why = await householdRefusal(odd);
+          const { p, errs } = await open(b, odd, { port: COUPLES_PORT });
+          const doneG = await waitCard(p, 'done', WAIT_MS), cardG = !!(await p.$('[data-place="plan"] [data-planner-couple]'));
+          const pageG = doneG ? await figs(p) : null, plG = await saved(p), wantG = pageG ? await refCouple(plG) : null;
+          ok(19, 'couples on: a couple the household plan refuses (re-held 90/10, the partner\'s ISA at another risk) is solved on today\'s route (D135): no couples card, every figure the reference\'s on the pots\' share and the joint move bit for bit',
+            !!why && /^householdPlanFor: /.test(why) && doneG && !cardG && !!pageG && JSON.stringify(pageG) === JSON.stringify(wantG),
+            `the household plan ${why ? `refuses it ("${why.slice(0, 80)}")` : 'TAKES it'}; done ${doneG}; card ${cardG}; ${pageG && wantG ? (firstDiff(pageG, wantG) || `survival ${pageG.headline.survival}% the reference's`) : 'no figures'}`);
+          ok(19, 'couples on, refused by the household plan: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
           await p.context().close(); }
         { const { p, errs } = await open(b, reheld(0.25), { port: COUPLES_PORT });
           await p.waitForSelector('[data-place="plan"] [data-planner-couple]', { timeout: 60000 }).catch(() => {});
@@ -793,8 +831,8 @@ const firstDiff = (a, b, at = '') => {
             const ahead = await p.evaluate(() => { const el = document.querySelector('[data-ahead-spend]'); return el ? JSON.parse(el.dataset.aheadSpend) : null; });
             await p.context().close(); return { done, card, page, saw, acts, ahead, errs }; };
           const e75 = reheld(0.75), y75 = otherWayByHand(e75), gap = Number(y75.demographics.currentAgeSelf) - Number(e75.demographics.currentAgeSelf);
-          const E1 = await pageOf(e75), Y = await pageOf(y75), wantY = Y.page ? await refCoupleSwap(Y.saw) : null;
-          ok(19, `couples on: the same couple re-held 75/25 and entered younger first by hand (D104 (1); its elder second, holding 75%): solved, no couples card, every figure the reference's bit for bit (solved on its mirror, run against the plan as entered, its ages the entered first person's)`,
+          const E1 = await pageOf(e75), Y = await pageOf(y75), wantY = Y.page ? await refHousehold(Y.saw, true) : null;
+          ok(19, `couples on: the same couple re-held 75/25 and entered younger first by hand (D104 (1); its elder second, holding 75%): solved, no couples card, every figure the reference's bit for bit (the household solved on its mirror, run against the plan as entered, its ages the entered first person's)`,
             gap < 0 && Y.done && !Y.card && !!Y.page && JSON.stringify(Y.page) === JSON.stringify(wantY), `the age gap ${gap}; done ${Y.done}; card ${Y.card}; survival ${Y.page ? Y.page.headline.survival : '-'}% against ${wantY ? wantY.headline.survival : '-'}%`);
           const flip = a => a.replace(/^(self|part):/, (_, w) => `${w === 'self' ? 'part' : 'self'}:`);
           const aheadBack = E1.ahead ? E1.ahead.map(([age, spend]) => [age + gap, spend]) : null;

@@ -103,8 +103,16 @@ export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.sol
  * end on the median path (`tieLook`); and a person whose wealth is more than `holdPast` times the top of their table's wealth
  * axis never stepping down in risk (src/solver/couple.js lookPick, holdMove). Off in the solver's own code, as the share rule
  * is; the page's couple is assembled with them (appJoint: src/solverClient.js, src/solverCouple.js assembleCouple).
+ * And since D134 (1) and D135 (20 Nov; step 8, research/solver/registrations/household-hsp.md, read once: PASS,
+ * results-household-hsp.txt; the late tail's second read, THE GROWTH, results-late-tail-2.txt): a couple the guard hands to
+ * the solver is solved as one household (`household`, its form: the plan cut by src/solver/household.js householdPlanFor at
+ * 'pensionsPA', the bands, the tax-free cash cap and the personal allowance k times one person's, k from the pensions' split;
+ * its one table solved as a single's inside those bands; its move the table's own, both people taking it at the even split,
+ * with the joint move's tie-break and hold), not as two tables through the joint move (src/solverClient.js startSolve's
+ * household route; research/solver/HSP-PORT.md). The share rule and `tieLook` stay for today's route, which a caller still
+ * names with `household: null`.
  */
-export const APP_COUPLE = Object.freeze({ shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2 });
+export const APP_COUPLE = Object.freeze({ shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2, household: 'pensionsPA' });
 /* the joint move's options of the couples' default, as assembleCouple takes them */
 export const appJoint = () => ({ tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast });
 /* the joint move's options as a couple's record names them (src/solverCouple.js coupleMeta), and one key for comparing what a

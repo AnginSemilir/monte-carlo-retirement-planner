@@ -8,8 +8,9 @@
  * client is driven by in-process stand-ins for the page's workers, answering by the modules the worker calls (couplePlans,
  * assembleCouple, solveForApp, strategyRuns and strategyAnswer, coupleSkipRuns and coupleActionsOf; as solver-client.test.mjs
  * does, each part's table is solved whole, the tables a split solve gives, e2.test.mjs); the page's own worker is run by the
- * browser harness (solver-planner-ui.cjs check 19). Light settings, S069 (61 and 58, holding 60/40, some of its paths failing)
- * and S126:
+ * browser harness (solver-planner-ui.cjs check 19). Each couple here is solved on today's route, two tables and the joint move,
+ * named by `household: null` since the couples' default became the household plan (D135; its own route's parts, store and
+ * read-back: household-client.test.mjs). Light settings, S069 (61 and 58, holding 60/40, some of its paths failing) and S126:
  *   1. a couple solved with three parts: each part is handed both people's tables (the first person's, then the second's, in
  *      their slots) and assembles the couple, with the couples' joint move as the owner does (D108: appJoint); the job keeps
  *      the two parts beside the owner; the headline's figures on 120
@@ -130,7 +131,7 @@ const wantSingle = JSON.stringify(strategyOf(E, solveForApp(E, M, single, light)
 
 async function runCouple() {
   const at = log.length;
-  const job = C.startSolve(couple.plan, { ...light, parts: 3, key: 'couple', couple: { engine: E } });
+  const job = C.startSolve(couple.plan, { ...light, parts: 3, key: 'couple', couple: { engine: E, household: null } });
   const done = await job.done;
   const s = await job.strategy(couple.plan, SEED, N);
   const a = await job.actions(couple.plan, SEED, NA);
@@ -183,7 +184,7 @@ const partsOf = sent => [...new Set(sent.filter(m => m.kind === 'part').map(m =>
 { const variant = { ...couple.plan, spending: { ...couple.plan.spending, targetSpend: Math.round(Number(couple.plan.spending.targetSpend) * 0.95) } };
   const before = [...store.keys()].join(), at = log.length;
   let threw = '';
-  try { await C.startFigures(E, variant, { ...light, seed: SEED, upto: 60, parts: 3 }).done; } catch (e) { threw = e.message; }
+  try { await C.startFigures(E, variant, { ...light, seed: SEED, upto: 60, parts: 3, household: null }).done; } catch (e) { threw = e.message; }
   const sent = log.slice(at), keyed = sent.filter(m => m.kind === 'solve' && m.key).length, asked = sent.filter(m => m.kind === 'probe' || m.kind === 'follow').length;
   ok('5. a couple\'s What if variant, not keyed: its two people\'s solves neither restored nor stored, the store as it was',
     !threw && sent.filter(m => m.kind === 'solve').length === 2 && keyed === 0 && asked === 0 && [...store.keys()].join() === before,

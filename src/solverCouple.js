@@ -16,6 +16,7 @@ import { vecOf } from './solver/grid.js';
 import { solvedContext, runPath, partsOf, retireYearOf, firstSweep, joinSkipRuns } from './solverStrategy.js';
 import { prepareForSolve, JOINT_KEYS } from './solverSettings.js';
 import { appPlan } from './solverApp.js';
+import { householdForm, householdFromTable, SCALES, mergedState } from './solver/household.js';
 
 /* research/tests/couple-solve-client.test.mjs only: 'swap' hands each person the other's table; 'noage' cuts the plans with no
    partner's age (each solved as a single would be); research/tests/couple-default.test.mjs only: 'rawages' leaves a blank age
@@ -83,7 +84,33 @@ export function assembleCouple(E, M, household, tables, { shareRule = undefined,
 
 /* a couple's solve in hand (solveCouple's result), as against a single's table */
 export const isCouple = x => !!(x && x.tables && x.tables.self && x.tables.part && x.plans);
+/* a household's solve (step 8's port: one table through its one move, src/solver/household.js), and a couple's solve of either
+   kind, as the page's couple views take it (this year's actions, the next years, the ledger: the move taken apart per person) */
+export const isHousehold = x => !!(x && x.household === true && x.H);
+export const isPair = x => isCouple(x) || isHousehold(x);
 /* the page's record of a couple's solve: the household's figures and each person's table's own record, plain data */
+/*
+ * THE HOUSEHOLD PLAN IN THE PAGE (step 8's port, research/solver/HSP-PORT.md; D134 (1)): the worker's two steps, here so a
+ * test can run them as the worker does. householdCut ('household-plan'): the couple's plan as the solver takes it
+ * (householdPlan), cut at a form (src/solver/household.js householdForm), with the band scaling its table is solved inside
+ * ({ k, paOne, paK }, src/solverWorker.js inBands) and the partner's age today; only a scaled form (SCALES), whose bands the
+ * cut names. householdSolved ('household'): the household assembled from a table solved on that cut (householdFromTable,
+ * which refuses a table solved on another plan or outside the bands), as the solve in hand, at the even split.
+ */
+export function householdCut(E, M, plan, form) {
+  if (!SCALES.includes(form)) throw new Error(`householdCut: the page solves a household at a scaled form (${SCALES.join(', ')}), not ${form}`);
+  const household = householdPlan(E, plan), f = householdForm(E, household, { scale: form }), sc = f.hopts.scale;
+  return { household, hplan: f.hp, bands: { k: sc.k, paOne: sc.paOne, paK: !!sc.paK }, ageWith: M.prepare(E, household).ctx.agePart0 };
+}
+export function householdSolved(E, M, { household, form, topK, tieJoint, holdPast }, table) {
+  const cp = householdFromTable(E, M, household, table.plan, table.r, { scale: form, topK, tieJoint, holdPast });
+  return { ...cp, split: 'even', counts: null };
+}
+/* the page's record of a household's solve (step 8's port, research/solver/HSP-PORT.md), plain data: its table's record, and
+   the setting it was assembled with as the assembly recorded it (src/solver/household.js assembleHousehold's meta), which the
+   client reads back against what it asked (src/solverClient.js) */
+export const householdMeta = cp => ({ household: true, setting: { form: cp.meta && cp.meta.scale ? cp.meta.scale.rule : null, topK: cp.meta.topK, tieJoint: cp.meta.tieJoint || 0, holdPast: cp.meta.holdPast || 0 }, k: cp.meta && cp.meta.scale ? cp.meta.scale.k : null, split: cp.split, tiersBelow: cp.tiersBelow, table: JSON.parse(JSON.stringify(cp.H.meta)) });
+
 export function coupleMeta(cp) {
   const plain = r => JSON.parse(JSON.stringify(r.meta));
   const joint = Object.fromEntries(JOINT_KEYS.filter(k => cp.meta && cp.meta[k] !== undefined).map(k => [k, cp.meta[k]]));
@@ -121,7 +148,8 @@ export const jointParts = joint => ({ level: joint.spendLevel !== undefined ? jo
 /* the joint move with one person's move replaced by their move `ai` (the first person's also sets the household's draw, as
    chooseJoint takes it from theirs) */
 export function withPersonMove(cp, joint, who, ai) {
-  const tab = cp.tables[who], a = tab.actions[ai], on = tiered(tab);
+  // a household's (step 8's port): each person's alternative one of the household table's own moves
+  const tab = isHousehold(cp) ? cp.H : cp.tables[who], a = tab.actions[ai], on = tiered(tab);
   const per = { steps: a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', ...(on ? { tierPen: a.tierPen || 0, tierIsa: a.tierIsa || 0, tierPenName: tierName(tab, 'pen', a.tierPen || 0), tierIsaName: tierName(tab, 'isa', a.tierIsa || 0) } : {}) };
   const top = who === 'self' ? { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump } : {};
   const out = { ...joint, ...top, perOwner: { ...joint.perOwner, [who]: per }, ...(who === 'self' ? { ia: ai } : { ib: ai }) };
@@ -137,8 +165,10 @@ export function coupleFirstMove(E, cp) {
   E.runTrial(ctx, Float64Array.from(E.pathsForSeed(1, 1, T)[0]));
   return { ...rec, sc, base };
 }
-/* this year's skips, each { who, part, value, joint } with the forced joint move, or joint null where no move differs */
+/* this year's skips, each { who, part, value, joint } with the forced joint move, or joint null where no move differs (a
+   household's, householdSkipsOf) */
 export function coupleSkipsOf(E, cp) {
+  if (isHousehold(cp)) return householdSkipsOf(E, cp);
   const f = coupleFirstMove(E, cp), j0 = f.joint, list = [];
   const lvl = (tab, ai) => (tab.levelOf ? tab.levelOf[ai] : tab.actions[ai].spendLevel !== undefined ? tab.actions[ai].spendLevel : 1);
   const ranked = {};
@@ -161,6 +191,33 @@ export function coupleSkipsOf(E, cp) {
       const other = who === 'self' ? 'part' : 'self', otherAlt = ranked[other].find(ai => ai !== (other === 'self' ? j0.ia : j0.ib));
       const forced = alt === undefined ? null : PLANT.rule === 'skipother' && otherAlt !== undefined ? withPersonMove(cp, j0, other, otherAlt) : withPersonMove(cp, j0, who, alt);
       list.push({ who, part, value: p0[part], joint: forced });
+    }
+  }
+  return { f, list };
+}
+/* A HOUSEHOLD'S SKIPS THIS YEAR (step 8's port, research/solver/HSP-PORT.md step 3): coupleSkipsOf's, with the household's moves
+   ranked once on its table at the household's merged state, as its chooser reads them (src/solver/household.js
+   chooseHouseholdSingle, the tiers held the first person's); for each part each person's move takes, the best-ranked household
+   move that differs in that part, taken by that person alone (withPersonMove), the other person's move and the split held; the
+   household's level skipped to the level of its best-ranked move at another. Plant 'hhpersonrank' (household-views.test.mjs):
+   the moves ranked at the first person's own state, not the household's. */
+export function householdSkipsOf(E, cp) {
+  const f = coupleFirstMove(E, cp), j0 = f.joint, list = [], H = cp.H;
+  const lvl = ai => (H.levelOf ? H.levelOf[ai] : H.actions[ai].spendLevel !== undefined ? H.actions[ai].spendLevel : 1);
+  const held = f.state.tierHeld.self, s = vecOf(H.m, PLANT.rule === 'hhpersonrank' ? ownerState(f.state, 'self') : mergedState(cp, f.state));
+  const ranked = rankFor(H, s, 0, tiered(H) ? { pen: held.pen, isa: held.isa } : null, H.actions.length);
+  const level0 = j0.spendLevel !== undefined ? j0.spendLevel : 1;
+  if (level0 !== 1) {
+    const alt = ranked.find(ai => lvl(ai) !== level0);
+    list.push({ who: 'household', part: 'level', value: level0, joint: alt === undefined ? null : { ...j0, spendLevel: lvl(alt) } });
+  }
+  for (const who of WHO) {
+    const p0 = personParts(j0, who);
+    for (const part of PERSON_SKIPS) {
+      const taken = part === 'draw' ? p0.draw !== 'none' : part === 'harvest' ? p0.harvest !== null : p0[part] > 0;
+      if (!taken) continue;
+      const alt = ranked.find(ai => { const p = partsOf(H.actions[ai], { tierPen: H.actions[ai].tierPen || 0, tierIsa: H.actions[ai].tierIsa || 0 }); return part === 'draw' ? p.draw !== p0.draw : p[part] !== p0[part]; });
+      list.push({ who, part, value: p0[part], joint: alt === undefined ? null : withPersonMove(cp, j0, who, alt) });
     }
   }
   return { f, list };

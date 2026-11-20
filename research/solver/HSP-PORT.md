@@ -139,14 +139,53 @@ The worktree's branch joins the working branch after both launches; its `src/` c
 
     Plants: `hhpersonrank` fails check 3, `nosplit` checks 2 and 3. At light settings the first years show level and tier
     skips, not a draw or a harvest; the browser harness covers the app's settings.
+- **Step 6 done** (a18c430a): `results-household-port-identity.txt`, 15 of 15 units IDENTICAL.
+
+## Progress (20 Nov, evening; in the main tree, D135)
+
+The late tail read THE GROWTH on its second read, so the build goes on (D134 (1)). The maintainer's "Unlock enforcement,
+launch" (D135) covers `couple-default.test.mjs`'s edits. The worktree's changes are now in the main tree, and
+`drafts/hsp-port.patch` is gone.
+- **Step 4, the words.** The coverage line (`src/solverApproximations.js` `HOUSEHOLD_SENTENCE`) says how a couple is
+  planned: one plan for the money the two hold, its bands set by how their pensions are split, every figure from each
+  person's own tax. It also says that a plan one plan cannot hold is planned person by person. The couples' card and the
+  scenario list are unchanged: they say which couples the solver plans for, not how.
+- **Step 5, the default.**
+  - `APP_COUPLE.household` is 'pensionsPA', in the decided-defaults block.
+  - `couple-default.test.mjs`:
+    - check 1 pins the block, with a planted block without the household;
+    - check 3 has the household route as the page's default, and today's route under `household: null`, the option that
+      names it;
+    - check 4 has the sentence;
+    - check 7 names that option.
+
+    Its plants `nohousehold` (check 3) and `nohouseline` (check 4) each fail exactly their check, as do the ten before.
+  - `couple-split.test.mjs` names today's route.
+- **A couple the household plan refuses** (`householdPlanFor`'s refusals of the plan's own shapes, such as the two people's
+  ISAs held at different risks) is solved on today's route, as before the default. Its record says why
+  (`householdRefused`). Any other refusal, such as a form the page does not solve at, still fails the solve.
+  - `household-client.test.mjs` check 7 covers this, with its plant `nofallback`.
+  - Its check 5 now goes through `startFigures` at the default, as the page's What if does, and its figures are the
+    whole household's.
+- **The page's harness:** `solver-planner-ui.cjs` check 19 now takes the household's reference:
+  - the 60/40 couple, reloaded, at 90/10, and entered younger first;
+  - (g), a couple the household plan refuses, solved on today's route against today's reference. This is where the
+    plants `couplehalf`, `coupleage` and `workernotie` now bite.
+  - A new worker plant, `workernohold`: the household assembled without the hold, which the client refuses.
+
+  To run with its plants at B1's gate.
+- **Found, for the maintainer:**
+  - **The speed mode reaches the household's table** (its chooser's shortlist), unmeasured. On S025-own at light
+    settings, 185 of 200 paths end differently (EXPLORATORY scratch, not kept).
+  - **A couple's views make their decisions on the shortlist under the speed mode, on either route.** These are this
+    year's actions, the next years and the rows. D90's guard (`shownPolicy`, `shortlist-shown.test.mjs`) covers a
+    single's views only, so this is older than the port.
 - **Not yet:**
-  - the words (step 4);
-  - the default and its pin (step 5);
-  - the identity at 45 points against step 8's pilot (step 6);
-  - the reviewer and the gate (step 7);
-  - the page's harness (check 19 and its couples) once the default names the household;
-  - the commit: the e3pcls pin is re-taken in the worktree first (about 13 minutes), and the fast tier runs on the commit,
-    after the late tail finishes.
+  - `research/solver/household.mjs` importing from `src` (step 1's last line). This is left until after the gate; the
+    app does not read it.
+  - The new tests joining the fast tier (an unlock of `run-all.mjs`). They run in the full tier meanwhile.
+  - The reviewer on the change of default.
+  - B1's gate, on quiet cores after the savings split's v2 has run.
 
 ## Box
 

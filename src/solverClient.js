@@ -31,7 +31,7 @@ import { PLANNER_PLANT } from './plannerPlant.js';
 import { swapOf } from './couplesSwitch.js';
 import { otherOrder, backMeta, backAnswer } from './coupleOrder.js';
 
-export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs); 'halfdefault' solves a couple on the half share unless asked otherwise, as before D99, and 'notie' assembles a couple without the couples' joint move, as before D108, and 'nojointcheck' leaves each assembly's joint move unread (couple-default.test.mjs)
+export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs); 'halfdefault' solves a couple on the half share unless asked otherwise, as before D99, and 'notie' assembles a couple without the couples' joint move, as before D108, and 'nojointcheck' leaves each assembly's joint move unread (couple-default.test.mjs); 'noformcheck' leaves each assembly of a household's setting unread and 'partnobands' hands its first part no bands (household-client.test.mjs); 'nohousehold' solves a couple on today's route though the couples' default names the household plan (couple-default.test.mjs); 'nofallback' fails the solve of a couple the household plan refuses (household-client.test.mjs)
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
 /* gate 5's four cores at most (D11), fewer where the machine has fewer */
@@ -67,14 +67,15 @@ export async function baseOf(engine, plan, opts = {}) {
  * restored nor stored unless `keyed` (the dial's position 1 is that base, restored by its key).
  *   const f = startFigures(engine, plan, { seed, upto, ...opts });   const { headline, compare } = await f.done;   f.cancel();
  */
-export function startFigures(engine, plan, { seed, upto, keyed = false, parts = defaultParts(), ...opts } = {}) {
+// `household` (step 8's port): a couple's variant at another form than the couples' default (null: today's route); unset, the default
+export function startFigures(engine, plan, { seed, upto, keyed = false, parts = defaultParts(), household = undefined, ...opts } = {}) {
   let job = null, cancelled = false;
   const done = (async () => {
     // a couple's variant (Part D, D5.1): its two tables solved in turn, each with its own base (startSolve's `couple`)
     const isCouplePlan = !!(plan && plan.demographics && plan.demographics.planningMode === 'couple');
     const base = isCouplePlan ? null : await baseOf(engine, plan, opts), key = keyed ? await keyOf(engine, plan, opts) : null;
     if (cancelled) throw new Error('cancelled');
-    job = startSolve(plan, { ...opts, key, base, parts, ...(isCouplePlan ? { couple: { engine } } : {}) });
+    job = startSolve(plan, { ...opts, key, base, parts, ...(isCouplePlan ? { couple: { engine, ...(household !== undefined ? { household } : {}) } } : {}) });
     try {
       await job.done;
       const { strategy } = await job.strategy(plan, seed, upto, { exact: true });
@@ -96,6 +97,10 @@ export function startFigures(engine, plan, { seed, upto, keyed = false, parts = 
  * ('couple') and keeps it as the solve in hand. The two people's solves run on the same parts (D5.6), which then assemble
  * the couple too and keep it, so the couple's paths and skips are shared out as a single's are
  * (research/tests/couple-split.test.mjs); where the two did not split alike, the owner runs them all.
+ * That is today's route. Since D135 the couples' default solves a couple as one household (APP_COUPLE.household: the
+ * household route in startSolve, below; research/tests/household-client.test.mjs): one table, solved as a single's plan's
+ * is, inside the household's tax bands. `household` names the form (null: today's route, which a couple the household plan
+ * refuses also takes, its record saying why).
  */
 export function startSolve(plan, { key = null, base = null, parts: asked = defaultParts(), onProgress = null, onStored = null, couple = null, ...opts } = {}) {
   const parts = partsFor(asked, base);
@@ -185,7 +190,8 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
     // parts (D5.6): the first person's solve's parts are kept and solve (or restore) the second person's too, so each part ends
     // holding both tables, assembles the couple beside the owner and runs its share of the couple's paths, as a single's parts
     // do; where the two did not split alike (the arena refused, say) their parts are let go and the owner runs every path.
-    const phase = async (kind, phasePlan, phaseKey, phaseBase, phaseOpts = opts, slot = null) => {
+    // `bands` (the household's table, step 8's port): the band scaling every worker solves it inside (src/solverWorker.js inBands)
+    const phase = async (kind, phasePlan, phaseKey, phaseBase, phaseOpts = opts, slot = null, bands = null) => {
       const baseKey = phaseBase ? phaseBase.key : null;
       const hit = phaseKey ? (await ask('probe', { key: phaseKey })).hit : false;
       if (finished) return null;
@@ -211,13 +217,14 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
         ends.push(new Promise((res, rej) => {
           w.onmessage = ({ data }) => (data.error ? rej(new Error(data.error)) : res());
           w.onerror = e => rej(new Error((e && e.message) || `solver part ${i} failed`));
-          w.postMessage({ kind: 'part', part: i, parts: n, arena, plan: phasePlan, opts: phaseOpts, ...(partBase ? { base: partBase } : {}), ...(follow ? { restore: follow } : {}), ...(slot ? { slot } : {}) });
+          // plant 'partnobands' (household-client.test.mjs check 1): the first part handed no bands, its share solved outside them
+          w.postMessage({ kind: 'part', part: i, parts: n, arena, plan: phasePlan, opts: phaseOpts, ...(bands && !(PLANT.rule === 'partnobands' && i === 1) ? { bands } : {}), ...(partBase ? { base: partBase } : {}), ...(follow ? { restore: follow } : {}), ...(slot ? { slot } : {}) });
         }));
       }
       const main = new Promise((res, rej) => {
         onMain = data => (data.error ? rej(new Error(data.error)) : res(data));
         owner.onerror = e => rej(new Error((e && e.message) || 'the solver failed'));
-        owner.postMessage({ id: 0, kind, plan: phasePlan, opts: phaseOpts, parts: n, arena, key: phaseKey, ...(baseKey ? { baseKey } : {}), ...(slot ? { slot } : {}), ...(follow ? { restoreSplit: true } : {}) });
+        owner.postMessage({ id: 0, kind, plan: phasePlan, opts: phaseOpts, parts: n, arena, key: phaseKey, ...(bands ? { bands } : {}), ...(baseKey ? { baseKey } : {}), ...(slot ? { slot } : {}), ...(follow ? { restoreSplit: true } : {}) });
       });
       const [m] = await Promise.all([main, ...ends]);
       // the parts hold the base they were sent: the page lets its copy go (solver-close.test.mjs)
@@ -226,13 +233,66 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
       // the plan's own solve keeps its parts, each holding the solve, to run its share of the Strategy tab's paths (Phase 9); a
       // couple's first person's keeps them for the second's, and the second's (on the same parts) for the couple; a dial
       // position's base lets them go
-      if (kind === 'solve' && !slot) kept = mine.map(askerOf);
+      if (kind === 'solve' && (!slot || slot === 'household')) kept = mine.map(askerOf);
       else if (kind === 'solve' && slot === 'self' && n > 1) shared = { ws: mine, both: false };
       else if (kind === 'solve' && slot === 'part' && reuse) shared.both = true;
       else { drop(mine); if (kind === 'solve' && slot === 'part' && shared) { drop(shared.ws); shared = null; } }
       return m;
     };
     (async () => {
+      // THE HOUSEHOLD PLAN (step 8's port, research/solver/HSP-PORT.md; D134 (1)): where the couples' default names a form
+      // (APP_COUPLE.household, or the caller's `couple.household`; null for none), the couple is solved as one household:
+      // its plan cut in the worker at that form (src/solver/household.js householdForm), its one table solved as a single's
+      // is (its key, its base, its parts), every part inside the band scaling, and the household assembled by the owner and
+      // by each part kept; each assembly's form read back, a difference refused
+      // plant 'nohousehold' (couple-default.test.mjs check 3): the couples' default form not taken, today's route instead
+      const form = couple ? (couple.household !== undefined ? couple.household : PLANT.rule === 'nohousehold' ? null : APP_COUPLE.household || null) : null;
+      // a couple the household plan cannot take (src/solver/household.js householdPlanFor's refusals: the two people's accounts
+      // of one wrapper at different risks, their pay or contributions growing at different rates, a cash ISA subscription, a
+      // later retiree paid or saving in the plan's first year, the partner's own limits) is solved on today's route, as before
+      // the household default, and its record says why (`householdRefused`); any other error stands. Plant 'nofallback'
+      // (household-client.test.mjs check 7): a refusal fails the solve
+      let refusedWhy = null;
+      const hh = couple && form ? await ask('household-plan', { plan: mirror || plan, form }).catch(e => {
+        // the plan's own shapes only: a refusal of the options it was called with (`opts.`, an unknown group) is a fault and stands
+        if (PLANT.rule !== 'nofallback' && /^householdPlanFor: (?!opts\.|no group)/.test(e.message)) { refusedWhy = e.message; return null; }
+        throw e;
+      }) : null;
+      if (finished) return;
+      if (couple && form && hh) {
+        // the table's options as the workers take them (`bands` goes beside them, src/solverWorker.js inBands), and as its key and
+        // its dial base's key name them, the bands among them (src/solverKey.js): a table solved inside other bands never restored
+        const hOpts = { ...opts, ageWith: hh.ageWith }, hKeyOpts = { ...hOpts, bands: hh.bands };
+        const hKey = key || PLANT.rule === 'keyvariant' ? await solveKey(couple.engine, hh.hplan, hKeyOpts) : null;
+        const hBase = await baseOf(couple.engine, hh.hplan, hKeyOpts);
+        if (finished) return;
+        phaseWho = 'household';
+        const b = hBase ? await phase('base', hBase.plan, hBase.key, null, hOpts, null, hh.bands) : null;
+        if (finished || (hBase && !b)) return;
+        const m = await phase('solve', hh.hplan, hKey, hBase, hOpts, 'household', hh.bands);
+        if (finished || !m) return;
+        phaseWho = null;
+        // the household's move: its table's chooser at the even split, the top three of its moves, the tie-break and the hold of
+        // the couples' joint move (step 8's HSPA as its audit ran it); each assembly's record read back against it and a
+        // difference refused, as a couple's joint move is (D109)
+        const joint = appJoint(), setting = { form, topK: 3, tieJoint: joint.tieJoint, holdPast: joint.holdPast }, asked = { household: hh.household, ...setting };
+        const sameForm = (r, where) => {
+          const got = JSON.stringify(r && r.meta && r.meta.household ? r.meta.setting : null);
+          if (PLANT.rule !== 'noformcheck' && got !== JSON.stringify(setting)) throw new Error(`solverClient: the household was assembled ${where} with ${got}, not the ${JSON.stringify(setting)} asked for`);
+        };
+        const h = await ask('household', asked);
+        if (finished) return;
+        sameForm(h, 'by the owner');
+        if (kept.length) {
+          const replies = await Promise.all(kept.map(a => a('household', asked)));
+          if (finished) return;
+          replies.forEach((r, i) => sameForm(r, `by part ${i + 1}`));
+        }
+        finished = true;
+        resolve({ meta: h.meta, secs: m.secs + (b ? b.secs : 0), parts: n, restored: !!m.restored, base: null, code: null,
+          couple: { household: form, k: h.meta.k, joint: { tieJoint: joint.tieJoint, holdPast: joint.holdPast }, ...(mirror ? { mirrored: true } : {}) } });
+        return;
+      }
       if (couple) {
         // plant 'couplehalf' (solver-planner-ui check 19, a build's PLANNER_PLANT): the page solving a couple on the half share, as before D99
         const shareRule = couple.shareRule !== undefined ? couple.shareRule : PLANT.rule === 'halfdefault' || PLANNER_PLANT.has('couplehalf') ? undefined : APP_COUPLE.shareRule;
@@ -280,7 +340,7 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
         shared = null;
         finished = true;
         resolve({ meta: mirror && !PLANNER_PLANT.has('noback') ? backMeta(c.meta) : c.meta, secs, parts: n, restored, base: null, code: null,
-          couple: { share: mirror && !PLANNER_PLANT.has('noback') ? 1 - cpl.share : cpl.share, shareRule: cpl.shareRule, joint: joint || null, ...(mirror ? { mirrored: true } : {}) } });
+          couple: { share: mirror && !PLANNER_PLANT.has('noback') ? 1 - cpl.share : cpl.share, shareRule: cpl.shareRule, joint: joint || null, ...(refusedWhy ? { household: null, householdRefused: refusedWhy } : {}), ...(mirror ? { mirrored: true } : {}) } });
         return;
       }
       const b = base ? await phase('base', base.plan, base.key, null) : null;

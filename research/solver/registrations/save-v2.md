@@ -1,12 +1,14 @@
 # Registration: the savings split against the candidate as it stands, for working singles who save (D130 (7); SAVE-V2.md)
 
-DRAFT (19 Nov), written while step 8 runs, as D130 (7) orders. Not run. Its design is `SAVE-V2.md`. Its panel's source and
-the three choices in it were ruled on 19 Nov (D133). Its fields in `<...>` wait on the panel, the pilot and the sizing
-(when the cores are free after step 8), on the seed's reservation and on its design review. The launcher's check refuses
-it until each is filled. Then the design review, then the maintainer before launch.
+DRAFT (19 Nov, filled 20 Nov), written while step 8 ran, as D130 (7) orders. Not run. Its design is `SAVE-V2.md`. Its
+panel's source and the three choices in it were ruled on 19 Nov (D133). The panel is landed and the pilot and its sizing
+are in (20 Nov). Its fields in `<...>` wait on the seed's reservation and on its design review; the launcher's check
+refuses it until each is filled. The pilot and the sizing are taken again on the final files after the design review, as
+step 8's were. Then the maintainer before launch.
 Read once, by `research/solver/reduce-save-v2.mjs`, after its gate. Its machinery (the panel `save-v2-panel.mjs`, the audit
 `audit-save-v2.mjs`, the read, the sizing `size-save-v2.mjs` and the batch `batch-save-v2.sh`) is built, each script's
-`--planted` passing, and nothing of it has run beyond its planted checks. Launched only as
+`--planted` passing. Run so far, all EXPLORATORY: the landing (seed 7005), the pilot (seed 7002) and the preflight.
+Launched only as
 `PREDICTION=research/solver/registrations/save-v2.md research/solver/run-from-snapshot.sh bash research/solver/batch-save-v2.sh`,
 from a git worktree at the launch commit, where every relaunch under `RESUME=1` and the read also run.
 
@@ -27,7 +29,14 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   - **Beside, deciding nothing in the rule (D133 (3)):** CANDDA 17ff82379838 (the candidate itself) and CANDSA bf1cac401c13, the same two on
     anchors, the menu the candidate ships with (`coarseWhereFits`), on each household's first `4,000` paths. A household
     flagged there by D34's rule comes back to the maintainer before any change of default.
-- **Households:** `<the panel, save-v2-panel.json>`: 40 single households who work and save into a pension or an ISA, from the 63 no run has taken the split on (D133 (1) and (2); `results-save-v2-pool.txt`)
+- **Households:** the panel `save-v2-panel.json` (`results-save-v2-panel.txt`): 40 single households who work and save into a pension or an ISA, from the 63 no run has taken the split on (D133 (1) and (2); `results-save-v2-pool.txt`)
+  - Landed 20 Nov on code 71fb4271c681, none passed over: the younger cohort's 10 (S300F, S302F, S312F, S318F, S324F,
+    S330F, S336F, S342F, S348F, S354F) and the library's first 30 (S180, S182, S186, S192, S196, S198, S202, S208, S212,
+    S214, S218, S222, S226, S230, S234, S238, S242, S248, S250, S254, S258, S264, S266, S270, S276, S280, S282, S286,
+    S292, S296). Arm A from 84.0% to 86.0%. Every household has working years to choose: 15 for the younger cohort, 5 or
+    15 for the library's.
+  - Untouched: 2 (S254 and S266). The scan of the day was taken with this study's own records left out
+    (`save-v2-orders.json`: 330 ids, hash 6df97f992c27; the whole scan 335, hash 1037d4931dbc).
   - The pool leaves out the factorial's 27 and `save-split.test.mjs`'s households. It is held out for this question, not
     from every run: 58 of the 63 were touched by other runs (S224, S248 and S330 helped tune the candidate both arms share),
     and only 5 are untouched. A panel held out from every run cannot be drawn from the library (`SAVE-V2.md`).
@@ -37,7 +46,14 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   - Each landed so arm A survives 85 +/- 1% on 1,000 paths of seed 7005 (Phase 4's procedure, D35). Each household's status
     (untouched, or touched by another run) is recorded in the panel.
 - **Seed:** 7025 `<reserved in check-prediction.mjs for save-v2*.md by the maintainer's unlock, named in its commit>`
-- **Paths:** `<D34's size for each household's comparison from the pilot (seed 7002, 1,000 paths, four households: the younger cohort's places 0 and 5 and the library's 0 and 15, `audit-save-v2.mjs` `PILOT_PLACES`): the floor 16,000, the cap D61's 19,000>`
+- **Paths:** 16,000 for every household on the whole menu, and the anchors pair on each household's first 4,000 (`save-v2-paths.json`; `results-save-v2-sizing.txt`)
+  - D34's size for each household's comparison at the pilot's discordance (its upper 95% bound, never below `D_MIN`) is
+    the floor of 16,000 on all four pilot households. The pilot is seed 7002, 1,000 paths, the younger cohort's places 0
+    and 5 and the library's 0 and 15 (`audit-save-v2.mjs` `PILOT_PLACES`); that bound is at most 2.59%.
+  - At 16,000 a true 1-point loss reads as harm at least 90% of the time up to a discordance of 10.50%. The cap is D61's
+    19,000. A comparison whose 1-point rate at its realised discordance falls below 0.90 is read there and named with its
+    rate (D34 (4)).
+  - Provisional until the pilot runs again on the final files.
 - **Primary metric:** survival scored by the engine (`runPath`, held to `E.runTrial` on the first 200 paths of each arm), paired on the same paths of the held-out seed.
   - Recorded beside it on every path: lifetime spending delivered, the pot left and lifetime tax.
   - Each household's working-year choices (D130 (7)), on `runPolicy`'s first 1,000 paths beside the engine: at each
@@ -58,5 +74,8 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   - **FAIL:** the split stays off and is closed as measured.
   - **A household flagged:** no change of default, whatever the pooled gain; the household goes to investigation (D34 (3)).
   - A couple's plan does not take the split (`SAVINGS-SPLIT.md` scope); a test of it for couples would be its own.
-- **Budget:** `<core-hours and hours on four cores, from the pilot, measured on this machine with nothing else running (D21)>`
+- **Budget:** 45.9 core-hours over the 40 households and the longest once more for a relaunch; 12.1 hours on four cores in the batch's order; the longest household 1.28 hours (`results-save-v2-sizing.txt`)
+  - Measured from the pilot on this machine, 20 Nov 08:24 to 08:55 UK, with nothing else running but one commit's
+    fast-tier check (17 s) (D21).
+  - Provisional: taken again from the pilot on the final files.
 - **Design review:** `<research/solver/reviews/<date>-save-v2-design.md>`

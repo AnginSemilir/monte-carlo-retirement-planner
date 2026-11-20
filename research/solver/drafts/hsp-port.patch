@@ -1,3 +1,224 @@
+diff --git a/research/tests/household-client.test.mjs b/research/tests/household-client.test.mjs
+new file mode 100644
+index 00000000..a81538e0
+--- /dev/null
++++ b/research/tests/household-client.test.mjs
+@@ -0,0 +1,215 @@
++/*
++ * THE HOUSEHOLD'S SOLVE THROUGH THE PAGE'S CLIENT (step 8's port, research/solver/HSP-PORT.md step 2; D134 (1)).
++ * src/solverClient.js solves a couple at a household form as one single's solve of the household plan: the owner cuts the plan
++ * ('household-plan', src/solverCouple.js householdCut), its one table is solved as a single's is (its key, its dial base, its
++ * parts, the store), every part inside the band scaling, and the owner and each part kept assemble the household
++ * ('household', householdSolved), each assembly's setting read back. Driven by in-process stand-ins for the page's workers,
++ * answering by the functions the worker calls (householdCut, householdSolved, householdMeta, solveForApp inside bandsAt, the
++ * store's cacheOf and followRecord), as couple-split.test.mjs drives a couple's; each part's table is solved whole (the tables
++ * a split solve gives, e2.test.mjs). The page's own worker is run by the browser harness (step 3). Light settings; S025-own
++ * from step 8's panel, as household-route.test.mjs takes it:
++ *   1. solved with three parts: the owner cuts the plan; the table is solved split, the cut's bands handed to the owner and to
++ *      every part; the owner and both parts assemble the household with the setting asked (the form, the top three moves, the
++ *      couples' joint move's tie-break and hold); each assembly's table the table solved whole inside the bands, by digest,
++ *      its record the whole household's, and the owner's household run on 50 paths as the whole's, bit for bit;
++ *   2. the same couple again, its table now in the store: restored split (followed, the parts handed no tables), marked
++ *      restored, both parts assembling, each assembly's table the same;
++ *   3. the key names the bands: the household table's key is not the household plan's keyed without them; and with the
++ *      household plan solved and stored first as a single's plan (outside the bands), the household's solve misses it and
++ *      solves its own, never restoring a table solved outside the bands;
++ *   4. a part assembling the household with another setting (its top two moves): refused, never shown;
++ *   5. a household's variant, not keyed (as startFigures solves a What if variant): neither restored nor stored, the store as
++ *      it was;
++ *   6. at the dial's position 3, the store empty: the dial base (position 1) of the household plan solved first, split inside
++ *      the bands (the owner and both parts handed them) and keyed with them, its key the household's own at position 1 (so a
++ *      position-1 solve stored is the base restored), then the position on it; the household assembled.
++ * Plants (--planted; each wants exactly the checks named): the key's 'bandsunkeyed' (the bands left out of the key: check 3),
++ * the client's 'partnobands' (the first part handed no bands: every check whose table is solved split, 1, 2, 4, 5 and 6, its
++ * assembly refused on the band for gains), 'noformcheck' (each assembly's setting unread: check 4) and 'keyvariant' (a variant
++ * keyed: check 5).
++ *   node research/tests/household-client.test.mjs [--planted]
++ */
++import * as E from '../engine.mjs';
++import * as M from '../../src/solver/model.js';
++import { solveForApp } from '../../src/solverApp.js';
++import { cacheOf, followRecord, shareRecord } from '../../src/solverCache.js';
++import { householdCut, householdSolved, householdMeta } from '../../src/solverCouple.js';
++import { bandsAt } from '../../src/solver/household.js';
++import { solveKey, PLANT as KEY_PLANT } from '../../src/solverKey.js';
++import { solvedContext } from '../../src/solverStrategy.js';
++import { tablesOf, digestOf } from '../../src/solverDigest.js';
++import { appJoint, atDial, dialBase } from '../../src/solverSettings.js';
++import { readHspPanel } from '../solver/household-hsp-panel.mjs';
++import { execFileSync } from 'node:child_process';
++import { fileURLToPath } from 'node:url';
++
++if (process.argv.includes('--planted')) {
++  let bad = 0;
++  for (const [plant, want] of [['bandsunkeyed', ['3']], ['partnobands', ['1', '2', '4', '5', '6']], ['noformcheck', ['4']], ['keyvariant', ['5']]]) {
++    let out = '';
++    try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, HOUSEHOLD_CLIENT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
++    const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
++    console.log(`plant '${plant}': the checks that fail: ${failed.join(', ') || 'none'}; wanted exactly ${want.join(', ')}: ${okp ? 'yes' : 'NO'}`);
++    if (!okp) bad++;
++  }
++  process.exit(bad ? 1 : 0);
++}
++
++let pass = 0, fail = 0;
++const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
++const PLANT = process.env.HOUSEHOLD_CLIENT_PLANT || '';
++const light = { points: 6, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };
++const FORM = 'pensionsPA', N = 50, SEED = 99001;
++const U = readHspPanel().find(u => u.id === 'S025-own'), plan = U.plan;
++const js = x => JSON.stringify(x);
++const inBands = (b, f) => (b ? bandsAt(E, b.k, b.paOne, f, !!b.paK) : f());
++
++// the store, as the page's (a key's record, cacheOf), every message each stand-in was handed, and each household assembled
++const store = new Map(), log = [], assembled = [];
++const solves = new Map();
++const solveOnce = (p, o, b) => { const k = js([p, o, b || null]); if (!solves.has(k)) solves.set(k, inBands(b, () => solveForApp(E, M, p, o))); return solves.get(k); };
++let nextId = 0, oddPart = false;
++class InProcessWorker {
++  constructor() { this.n = nextId++; this.isPart = false; this.solved = null; this.held = null; this.persons = { self: null, part: null, household: null }; this.pending = null; this.onmessage = null; this.onerror = null; this.dead = false; }
++  postMessage(data) {
++    log.push({ w: this.n, kind: data.kind, slot: data.slot || null, follow: !!data.restore || !!data.restoreSplit, key: data.key || null, bands: data.bands ? js(data.bands) : null, base: !!(data.base || data.baseKey),
++      ...(data.kind === 'household' ? { setting: js({ form: data.form, topK: data.topK, tieJoint: data.tieJoint, holdPast: data.holdPast }) } : {}) });
++    setImmediate(() => this.handle(data));
++  }
++  terminate() { this.dead = true; }
++  reply(m) { setImmediate(() => { if (!this.dead && this.onmessage) this.onmessage({ data: m }); }); }
++  // the table, kept in its slot, or as the dial's base, or as the solve in hand; solved whole inside the bands it was handed
++  // (a split solve's tables), or restored from the store inside them, as the worker's inBands does
++  table(data, restore, isBase = false) {
++    const base = data.base ? inBands(data.bands, () => solveForApp(E, M, data.base.plan, { ...data.opts, restore: data.base.rec })) : data.baseKey ? this.held.r : null;
++    const r = restore ? inBands(data.bands, () => solveForApp(E, M, data.plan, { ...data.opts, restore, ...(base ? { base } : {}) }))
++      : base ? inBands(data.bands, () => solveForApp(E, M, data.plan, { ...data.opts, base })) : solveOnce(data.plan, data.opts, data.bands);
++    if (isBase) this.held = { key: data.key, r };
++    else if (data.slot) this.persons[data.slot] = { r, plan: data.plan, ageWith: data.opts && data.opts.ageWith };
++    else this.solved = r;
++    return r;
++  }
++  handle(data) {
++    if (this.dead) return;
++    const { id, kind } = data;
++    try {
++      if (kind === 'part') {
++        this.isPart = true;
++        if (data.restore && (data.restore.layers || !data.restore.follow)) throw new Error('a following part was handed tables');
++        this.table(data, null); this.reply({ done: true }); return;
++      }
++      if (kind === 'probe') { this.reply({ id, hit: store.has(data.key) }); return; }
++      if (kind === 'follow') { const rec = store.get(data.key) || null; this.pending = rec ? { key: data.key, rec } : null; this.reply({ id, follow: rec ? followRecord(rec) : null }); return; }
++      if (kind === 'solve' || kind === 'base') {
++        const isBase = kind === 'base';
++        if (isBase && this.held && this.held.key === data.key) { this.reply({ id: 0, done: true, meta: JSON.parse(JSON.stringify(this.held.r.meta)), secs: 0, restored: 'held' }); return; }
++        const rec = data.restoreSplit ? this.pending && this.pending.key === data.key && this.pending.rec : data.key && data.parts <= 1 ? store.get(data.key) || null : null;
++        if (data.restoreSplit && !rec) throw new Error('no record followed for this key');
++        this.pending = null;
++        const r = this.table(data, rec, isBase);
++        this.reply({ id: 0, done: true, meta: JSON.parse(JSON.stringify(r.meta)), secs: 0, restored: !!rec });
++        if (data.key && !rec) { store.set(data.key, cacheOf(r)); this.reply({ id: 0, stored: true, why: null }); }
++        return;
++      }
++      if (kind === 'share') { if (!this.held) throw new Error('no base held to share'); this.reply({ id, rec: shareRecord(cacheOf(this.held.r)) }); return; }
++      if (kind === 'household-plan') { this.reply({ id, ...householdCut(E, M, data.plan, data.form) }); return; }
++      if (kind === 'household') {
++        if (!this.persons.household) throw new Error('a household asked before its table was solved');
++        // check 4's stand-in: a part assembling the household with its top two moves, not the three asked
++        this.solved = householdSolved(E, M, oddPart && this.isPart ? { ...data, topK: 2 } : data, this.persons.household);
++        assembled.push({ w: this.n, isPart: this.isPart, cp: this.solved });
++        this.reply({ id, done: true, meta: householdMeta(this.solved) }); return;
++      }
++      throw new Error(`no '${kind}' here`);
++    } catch (e) { this.reply({ id: id === undefined ? undefined : id, error: e.message }); }
++  }
++}
++globalThis.Worker = InProcessWorker;
++const C = await import('../../src/solverClient.js');
++C.PLANT.rule = ['partnobands', 'noformcheck', 'keyvariant'].includes(PLANT) ? PLANT : '';
++KEY_PLANT.rule = PLANT === 'bandsunkeyed' ? PLANT : '';
++
++// the whole: the cut, its table solved whole inside its bands, the household assembled on it, its record and its paths
++const cut = householdCut(E, M, plan, FORM), hOpts = { ...light, ageWith: cut.ageWith };
++const joint = appJoint(), setting = { form: FORM, topK: 3, tieJoint: joint.tieJoint, holdPast: joint.holdPast };
++const wholeH = solveOnce(cut.hplan, hOpts, cut.bands);
++const wholeCp = householdSolved(E, M, { household: cut.household, ...setting }, { plan: cut.hplan, r: wholeH });
++const wantDigest = await digestOf(tablesOf(wholeH)), wantMeta = js(householdMeta(wholeCp));
++const run = cp => {
++  const ctx = solvedContext(E, cp), out = [];
++  for (const zs of E.pathsForSeed(SEED, N, ctx.totalYears)) { const q = E.runTrial(ctx, Float64Array.from(zs)); out.push([q.survived ? 1 : 0, q.terminalPotNet, q.lifetimeTax]); }
++  return out;
++};
++const wantRuns = js(run(wholeCp));
++
++async function solveHousehold(p, { parts = 3, key = 'hh' } = {}) {
++  const at = log.length, from = assembled.length;
++  let done = null, threw = '';
++  const job = C.startSolve(p, { ...light, parts, key, couple: { engine: E, household: FORM } });
++  try { done = await job.done; } catch (e) { threw = e.message; }
++  job.close();
++  return { done, threw, sent: log.slice(at), made: assembled.slice(from) };
++}
++const partsOf = sent => [...new Set(sent.filter(m => m.kind === 'part').map(m => m.w))];
++const bandsJs = js(cut.bands);
++const digestsOf = async made => Promise.all(made.map(a => digestOf(tablesOf(a.cp.H))));
++
++// 1. solved with three parts
++{ const { done, threw, sent, made } = await solveHousehold(plan), ps = partsOf(sent), owner = sent.find(m => m.kind === 'household-plan');
++  const cutFirst = !!owner && sent.findIndex(m => m.kind === 'household-plan') < sent.findIndex(m => m.kind === 'solve');
++  const solveMsg = sent.find(m => m.kind === 'solve'), partMsgs = sent.filter(m => m.kind === 'part');
++  const bandsEverywhere = !!solveMsg && solveMsg.slot === 'household' && solveMsg.bands === bandsJs && partMsgs.length === 2 && partMsgs.every(m => m.slot === 'household' && m.bands === bandsJs);
++  const settings = sent.filter(m => m.kind === 'household'), settingOk = settings.length === 3 && settings.every(m => m.setting === js(setting));
++  const ds = await digestsOf(made), metas = made.map(a => js(householdMeta(a.cp))), ownerCp = made.find(a => !a.isPart);
++  const same = made.length === 3 && ds.every(d => d === wantDigest) && metas.every(m => m === wantMeta) && !!ownerCp && js(run(ownerCp.cp)) === wantRuns;
++  ok('1. three parts: the plan cut by the owner, the table solved split inside the cut\'s bands in the owner and every part, the household assembled by the owner and both parts with the setting asked, each the whole household (its table by digest, its record, 50 paths)',
++    !threw && cutFirst && ps.length === 2 && bandsEverywhere && settingOk && same && done && done.couple && done.couple.household === FORM && done.couple.k === cut.bands.k,
++    threw ? `threw: ${threw.slice(0, 160)}` : `parts ${ps.length}; bands to the owner ${solveMsg ? solveMsg.bands === bandsJs : '-'}, to the parts ${partMsgs.map(m => m.bands === bandsJs).join('/')}; assembled ${made.length} times, the setting asked ${settingOk}; the whole household's ${same} (k ${cut.bands.k.toFixed(4)}, the table ${wantDigest.slice(0, 12)})`); }
++
++// 2. the same couple again, from the store
++{ const { done, threw, sent, made } = await solveHousehold(plan), ps = partsOf(sent);
++  const followed = sent.filter(m => m.kind === 'follow').length === 1 && sent.filter(m => m.kind === 'part').every(m => m.follow && m.bands === bandsJs);
++  const ds = await digestsOf(made);
++  ok('2. the household again from the store: its table restored split inside the bands (followed, the parts handed no tables), marked restored, the owner and both parts assembling, each the whole table',
++    !threw && done && done.restored === true && followed && ps.length === 2 && made.length === 3 && ds.every(d => d === wantDigest),
++    threw ? `threw: ${threw.slice(0, 160)}` : `restored ${done.restored}; follows ${sent.filter(m => m.kind === 'follow').length}; parts ${ps.length}; assembled ${made.length}, the whole table ${ds.every(d => d === wantDigest)}`); }
++
++// 3. the key names the bands; a table of the household plan solved outside them is never restored as the household's
++{ const kWith = await solveKey(E, cut.hplan, { ...hOpts, bands: cut.bands }), kWithout = await solveKey(E, cut.hplan, hOpts);
++  store.clear();
++  const single = C.startSolve(cut.hplan, { ...hOpts, parts: 1, key: kWithout }); await single.done; single.close();
++  const { done, threw, sent } = await solveHousehold(plan, { parts: 1 });
++  const keyed = sent.filter(m => m.kind === 'solve').map(m => m.key);
++  ok('3. the key names the bands: not the household plan\'s keyed without them; with that plan stored first as a single\'s, the household solves its own table inside its bands, never restoring one solved outside them',
++    kWith !== kWithout && !threw && done && done.restored === false && keyed.length === 1 && keyed[0] !== kWithout && store.size === 2,
++    threw ? `threw: ${threw.slice(0, 160)}` : `the keys ${kWith.slice(0, 12)} / ${kWithout.slice(0, 12)}; the household's solve restored ${done.restored}, keyed ${keyed.map(k => k.slice(0, 12)).join(', ')}; ${store.size} solves stored`); }
++
++// 4. a part assembling the household with another setting
++{ oddPart = true;
++  const { done, threw } = await solveHousehold(plan);
++  oddPart = false;
++  ok('4. a part assembling the household with its top two moves, not the three asked: refused, never shown',
++    !done && /assembled by part \d with .*"topK":2.* not the .*"topK":3/.test(threw), threw ? threw.slice(0, 200) : 'not refused'); }
++
++// 5. a household's variant, not keyed: neither restored nor stored
++{ const variant = { ...plan, spending: { ...plan.spending, targetSpend: Math.round(Number(plan.spending.targetSpend) * 0.95) } };
++  const before = [...store.keys()].join();
++  const { done, threw, sent } = await solveHousehold(variant, { key: null });
++  const keyed = sent.filter(m => (m.kind === 'solve' || m.kind === 'base') && m.key).length, asked = sent.filter(m => m.kind === 'probe' || m.kind === 'follow').length;
++  ok('5. a household\'s variant, not keyed: its table neither restored nor stored, the store as it was',
++    !threw && !!done && keyed === 0 && asked === 0 && [...store.keys()].join() === before,
++    threw ? `threw: ${threw.slice(0, 160)}` : `${keyed} solves keyed; ${asked} asks of the store; ${store.size} solves stored, as before: ${[...store.keys()].join() === before}`); }
++
++// 6. at the dial's position 3, the store empty: its base solved first, split inside the bands and keyed with them, then the
++// position on it
++{ const p3 = atDial(plan, 3), cut3 = householdCut(E, M, p3, FORM), bp = dialBase(E.normalizePlan(cut3.hplan));
++  const wantBaseKey = bp ? await solveKey(E, bp, { ...light, ageWith: cut3.ageWith, bands: cut3.bands }) : null, oneKey = await solveKey(E, cut.hplan, { ...hOpts, bands: cut.bands });
++  store.clear();
++  const { done, threw, sent, made } = await solveHousehold(p3);
++  const baseMsg = sent.find(m => m.kind === 'base'), basePart = sent.filter(m => m.kind === 'part' && !m.slot), posMsg = sent.find(m => m.kind === 'solve');
++  ok('6. at the dial\'s position 3, the store empty: the household plan\'s base solved first, split inside the bands (the owner and both parts) and keyed with them, its key the household\'s own at position 1, then the position on it, and the household assembled',
++    !threw && !!bp && !!baseMsg && baseMsg.key === wantBaseKey && wantBaseKey === oneKey && baseMsg.bands === js(cut3.bands) && basePart.length === 2 && basePart.every(m => m.bands === js(cut3.bands)) && !!posMsg && posMsg.base && posMsg.bands === js(cut3.bands) && made.length === 3 && !!done,
++    threw ? `threw: ${threw.slice(0, 160)}` : `base ${!!baseMsg}, keyed with the bands ${baseMsg ? baseMsg.key === wantBaseKey : '-'} (the position-1 key ${wantBaseKey === oneKey}), its parts' bands ${basePart.map(m => m.bands === js(cut3.bands)).join('/')}; the position on it ${posMsg ? posMsg.base : '-'}; assembled ${made.length}`); }
++
++console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
++process.exit(fail ? 1 : 0);
 diff --git a/research/tests/household-route.test.mjs b/research/tests/household-route.test.mjs
 new file mode 100644
 index 00000000..5c7b306e
@@ -86,6 +307,137 @@ index 00000000..5c7b306e
 +}
 +console.log(fails ? `household-route: ${fails} FAILED` : 'household-route: ALL PASS');
 +process.exit(fails ? 1 : 0);
+diff --git a/research/tests/household-views.test.mjs b/research/tests/household-views.test.mjs
+new file mode 100644
+index 00000000..c84fbb5d
+--- /dev/null
++++ b/research/tests/household-views.test.mjs
+@@ -0,0 +1,125 @@
++/*
++ * A HOUSEHOLD'S MOVES, PERSON BY PERSON, IN THE PAGE'S VIEWS (step 8's port, research/solver/HSP-PORT.md step 3; D134 (1)).
++ * The page's couple views (src/solverCouple.js: this year's actions and their skips, the next years, a market's rows) take a
++ * household's solve too: its one move each year (src/solver/household.js chooseHouseholdSingle: the household table's move,
++ * both people taking it, at the even split) taken apart for each person as a couple's joint move is. Each household is
++ * assembled as the page assembles it (householdCut, its table solved inside the cut's bands, householdSolved), at light
++ * settings, on two of step 8's units (S025-own, retired; S351F-90, with years before pension access):
++ *   1. the engine's state read as the household's move reads it (modelStateOfCouple): chooseHouseholdSingle on it in the first
++ *      year gives the move the engine took, field for field, both people's parts the same and the split even;
++ *   2. a person's move put back as itself (withPersonMove) leaves the household's move as it was, for either person;
++ *   3. each of this year's skips changes what it says and nothing else (a person's skip that person's part, the other person's
++ *      move, the split and the household's level as they were; the household's level skip the level alone), and each
++ *      alternative is the household table's best-ranked move that differs in that part, ranked at the household's merged
++ *      state (recomputed here from the table);
++ *   4. each skip runs through the engine, its cost (paths saved and lost against the plan's own runs, 200 paths of seed 99001)
++ *      the same with the plan's runs handed in as run afresh, and the same with its runs split across two parts and joined;
++ *   5. the next years (coupleAheadOf) and a market's rows (coupleRowsOf) take apart the household moves the engine took on
++ *      that path, year for year.
++ * Plants (--planted; each wants exactly the checks named): 'hhpersonrank' (the moves ranked at the first person's own state:
++ * check 3), 'nosplit' (the split dropped from a forced move, a move put back as itself among them: checks 2 and 3).
++ *   node research/tests/household-views.test.mjs [--planted]
++ */
++import * as E from '../engine.mjs';
++import * as M from '../../src/solver/model.js';
++import { solveForApp } from '../../src/solverApp.js';
++import { bandsAt, chooseHouseholdSingle, mergedState } from '../../src/solver/household.js';
++import { rankFor } from '../../src/solver/couple.js';
++import { vecOf } from '../../src/solver/grid.js';
++import { householdCut, householdSolved, coupleFirstMove, coupleSkipsOf, coupleSkipRuns, coupleActionsOf, coupleAheadOf, coupleRowsOf, modelStateOfCouple, withPersonMove, personParts, jointParts, isHousehold, isPair, PLANT } from '../../src/solverCouple.js';
++import { solvedContext, strategyRuns, partsOf } from '../../src/solverStrategy.js';
++import { appJoint } from '../../src/solverSettings.js';
++import { readHspPanel } from '../solver/household-hsp-panel.mjs';
++import { execFileSync } from 'node:child_process';
++import { fileURLToPath } from 'node:url';
++
++if (process.argv.includes('--planted')) {
++  let bad = 0;
++  for (const [plant, want] of [['hhpersonrank', ['3']], ['nosplit', ['2', '3']]]) {
++    let out = '';
++    try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, HOUSEHOLD_VIEWS_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
++    const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
++    console.log(`plant '${plant}': the checks that fail: ${failed.join(', ') || 'none'}; wanted exactly ${want.join(', ')}: ${okp ? 'yes' : 'NO'}`);
++    if (!okp) bad++;
++  }
++  process.exit(bad ? 1 : 0);
++}
++PLANT.rule = process.env.HOUSEHOLD_VIEWS_PLANT || '';
++
++let pass = 0, fail = 0;
++const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
++const light = { points: 6, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };
++const FORM = 'pensionsPA', SEED = 99001, N = 200;
++const strip = j => { const { score, ...rest } = j; return JSON.stringify(rest); };
++const others = (j, who) => JSON.stringify({ split: j.split, level: j.spendLevel, other: personParts(j, who === 'self' ? 'part' : 'self') });
++const tiered = H => !!(H.c && H.c.acts && H.c.acts.some(a => (a.tierPen || 0) > 0 || (a.tierIsa || 0) > 0));
++
++// the household as the page assembles it: the cut, its table solved inside the cut's bands, the household on it
++const joint = appJoint(), panel = readHspPanel(), results = [];
++for (const id of ['S025-own', 'S351F-90']) {
++  const U = panel.find(u => u.id === id), cut = householdCut(E, M, U.plan, FORM), b = cut.bands;
++  const H = bandsAt(E, b.k, b.paOne, () => solveForApp(E, M, cut.hplan, { ...light, ageWith: cut.ageWith }), b.paK);
++  const cp = householdSolved(E, M, { household: cut.household, form: FORM, topK: 3, tieJoint: joint.tieJoint, holdPast: joint.holdPast }, { plan: cut.hplan, r: H });
++  const f = coupleFirstMove(E, cp), again = chooseHouseholdSingle(cp, modelStateOfCouple(cp, E.freshState(f.sc)), 0);
++  const sk = coupleSkipsOf(E, cp), runs = strategyRuns(E, cp, cut.household, { seed: SEED, from: 0, to: N });
++  const a1 = coupleActionsOf(E, cp, cut.household, { seed: SEED, n: N }), a2 = coupleActionsOf(E, cp, cut.household, { seed: SEED, n: N, base: runs.solved });
++  const halves = [coupleSkipRuns(E, cp, { seed: SEED, from: 0, to: N / 2 }), coupleSkipRuns(E, cp, { seed: SEED, from: N / 2, to: N })];
++  const a3 = coupleActionsOf(E, cp, cut.household, { seed: SEED, n: N, base: runs.solved, parts: halves });
++  results.push({ id, cp, f, again, sk, a1, a2, a3, runs, household: cut.household });
++}
++ok('0. the households assembled as the page assembles them are households, and the page\'s couple views take them', results.every(r => isHousehold(r.cp) && isPair(r.cp)));
++
++// 1. the state read as the household's move reads it
++ok('1. chooseHouseholdSingle on the state read here gives the move the engine took in the first year, both people\'s parts the same, the split even',
++  results.every(r => strip(r.again) === strip(r.f.joint) && JSON.stringify(personParts(r.f.joint, 'self')) === JSON.stringify(personParts(r.f.joint, 'part')) && r.f.joint.split === 0.5),
++  results.map(r => `${r.id}: level ${r.f.joint.spendLevel}, ${JSON.stringify(personParts(r.f.joint, 'self'))}`).join('; '));
++
++// 2. a move put back as itself
++ok('2. either person\'s move put back as itself leaves the household\'s move as it was', results.every(r => ['self', 'part'].every(w => strip(withPersonMove(r.cp, r.f.joint, w, w === 'self' ? r.f.joint.ia : r.f.joint.ib)) === strip(r.f.joint))));
++
++// 3. each skip changes what it says and nothing else, its alternative the household table's own, ranked at the merged state
++{ let n = 0; const bad = [];
++  for (const r of results) {
++    const { H } = r.cp, held = r.f.state.tierHeld.self;
++    const ranked = rankFor(H, vecOf(H.m, mergedState(r.cp, r.f.state)), 0, tiered(H) ? { pen: held.pen, isa: held.isa } : null, H.actions.length);
++    for (const x of r.sk.list) {
++      if (!x.joint) continue;
++      n++;
++      const j0 = r.f.joint, j = x.joint;
++      if (x.part === 'level') {
++        const lvl = ai => (H.levelOf ? H.levelOf[ai] : H.actions[ai].spendLevel !== undefined ? H.actions[ai].spendLevel : 1);
++        const want = lvl(ranked.find(ai => lvl(ai) !== j0.spendLevel));
++        if (!(j.spendLevel === want && j.split === j0.split && strip({ ...j, spendLevel: j0.spendLevel }) === strip(j0))) bad.push(`${r.id} level`);
++        continue;
++      }
++      const alt = ranked.find(ai => { const p = partsOf(H.actions[ai], { tierPen: H.actions[ai].tierPen || 0, tierIsa: H.actions[ai].tierIsa || 0 }); return x.part === 'draw' ? p.draw !== personParts(j0, x.who).draw : p[x.part] !== personParts(j0, x.who)[x.part]; });
++      const mine = personParts(j, x.who)[x.part], was = personParts(j0, x.who)[x.part];
++      const altOk = (x.who === 'self' ? j.ia : j.ib) === alt;
++      if (mine === was || others(j, x.who) !== others(j0, x.who) || !('split' in j) || !altOk) bad.push(`${r.id} ${x.who} ${x.part}${altOk ? '' : ' (another alternative)'}`);
++    }
++  }
++  ok('3. each skip changes its own part and nothing else (the person\'s part moved, the other person, the split and the level as they were), its alternative the household table\'s best-ranked move at the merged state',
++    n > 0 && bad.length === 0, `${n} skips${bad.length ? `; wrong: ${bad.join(', ')}` : ''}`); }
++
++// 4. each skip runs, its cost the same with the plan's runs handed in, and with its runs split in two and joined
++ok('4. every skip runs through the engine, its cost the same with the plan\'s runs handed in as run afresh, and with its runs split across two parts and joined',
++  results.every(r => JSON.stringify(r.a1.actions) === JSON.stringify(r.a2.actions) && JSON.stringify(r.a3.actions) === JSON.stringify(r.a1.actions) && r.a1.actions.every(a => a.skip === null || Number.isFinite(a.cost)) && r.a1.couple === true),
++  results.map(r => `${r.id}: ${r.a1.actions.map(a => `${a.who} ${a.part} ${a.cost === null ? 'no skip' : a.cost.toFixed(2)}`).join(', ')}`).join('; '));
++
++// 5. the next years and the rows take apart the household moves the engine took
++{ let bad = 0;
++  for (const r of results) {
++    const ahead = coupleAheadOf(E, r.cp, null, r.runs, { years: 10 }), sc = solvedContext(E, r.cp), seen = [];
++    const ctx = { ...sc, policyOverride: { ...sc.policyOverride, choose(st, t) { const j = sc.policyOverride.choose(st, t); seen[t] = jointParts(j); return j; } } };
++    const zs = E.pathsForSeed(SEED, ahead.path + 1, sc.totalYears)[ahead.path], state = E.freshState(ctx), zPath = zs.length > sc.totalYears + 1 ? zs[sc.totalYears + 1] : 0;
++    for (let t = 0; t < Math.min(10, sc.totalYears + 1); t++) E.stepYear(ctx, state, t, { z: zs[t], zPath });
++    if (ahead.rows.some((row, t) => JSON.stringify(row.parts) !== JSON.stringify(seen[t]))) bad++;
++    const rows = coupleRowsOf(E, r.cp, 'expected'), seen2 = [];
++    const ctx2 = { ...sc, policyOverride: { ...sc.policyOverride, choose(st, t) { const j = sc.policyOverride.choose(st, t); seen2[t] = jointParts(j); return j; } } }, st2 = E.freshState(ctx2);
++    for (let t = 0; t <= sc.totalYears; t++) E.stepYear(ctx2, st2, t, 'expected');
++    if (rows.parts.some((p, t) => JSON.stringify(p) !== JSON.stringify(seen2[t] || null))) bad++;
++  }
++  ok('5. the next years and a market\'s rows take apart the household moves the engine took, year for year', bad === 0, `${bad} differing`); }
++
++console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
++process.exit(fail ? 1 : 0);
 diff --git a/src/solver/household.js b/src/solver/household.js
 new file mode 100644
 index 00000000..06b69ec7
@@ -632,9 +984,18 @@ index 00000000..06b69ec7
 +  return { ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...plan.spending, policyOverride: householdSinglePolicy(cp) } };
 +}
 diff --git a/src/solverClient.js b/src/solverClient.js
-index a57e8ba4..51cfac00 100644
+index a57e8ba4..7dc3467e 100644
 --- a/src/solverClient.js
 +++ b/src/solverClient.js
+@@ -31,7 +31,7 @@ import { PLANNER_PLANT } from './plannerPlant.js';
+ import { swapOf } from './couplesSwitch.js';
+ import { otherOrder, backMeta, backAnswer } from './coupleOrder.js';
+ 
+-export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs); 'halfdefault' solves a couple on the half share unless asked otherwise, as before D99, and 'notie' assembles a couple without the couples' joint move, as before D108, and 'nojointcheck' leaves each assembly's joint move unread (couple-default.test.mjs)
++export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs); 'halfdefault' solves a couple on the half share unless asked otherwise, as before D99, and 'notie' assembles a couple without the couples' joint move, as before D108, and 'nojointcheck' leaves each assembly's joint move unread (couple-default.test.mjs); 'noformcheck' leaves each assembly of a household's setting unread and 'partnobands' hands its first part no bands (household-client.test.mjs)
+ export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
+   && typeof SharedArrayBuffer.prototype.grow === 'function';
+ /* gate 5's four cores at most (D11), fewer where the machine has fewer */
 @@ -185,7 +185,8 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
      // parts (D5.6): the first person's solve's parts are kept and solve (or restore) the second person's too, so each part ends
      // holding both tables, assembles the couple beside the owner and runs its share of the couple's paths, as a single's parts
@@ -645,12 +1006,13 @@ index a57e8ba4..51cfac00 100644
        const baseKey = phaseBase ? phaseBase.key : null;
        const hit = phaseKey ? (await ask('probe', { key: phaseKey })).hit : false;
        if (finished) return null;
-@@ -211,13 +212,13 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
+@@ -211,13 +212,14 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
          ends.push(new Promise((res, rej) => {
            w.onmessage = ({ data }) => (data.error ? rej(new Error(data.error)) : res());
            w.onerror = e => rej(new Error((e && e.message) || `solver part ${i} failed`));
 -          w.postMessage({ kind: 'part', part: i, parts: n, arena, plan: phasePlan, opts: phaseOpts, ...(partBase ? { base: partBase } : {}), ...(follow ? { restore: follow } : {}), ...(slot ? { slot } : {}) });
-+          w.postMessage({ kind: 'part', part: i, parts: n, arena, plan: phasePlan, opts: phaseOpts, ...(bands ? { bands } : {}), ...(partBase ? { base: partBase } : {}), ...(follow ? { restore: follow } : {}), ...(slot ? { slot } : {}) });
++          // plant 'partnobands' (household-client.test.mjs check 1): the first part handed no bands, its share solved outside them
++          w.postMessage({ kind: 'part', part: i, parts: n, arena, plan: phasePlan, opts: phaseOpts, ...(bands && !(PLANT.rule === 'partnobands' && i === 1) ? { bands } : {}), ...(partBase ? { base: partBase } : {}), ...(follow ? { restore: follow } : {}), ...(slot ? { slot } : {}) });
          }));
        }
        const main = new Promise((res, rej) => {
@@ -661,7 +1023,7 @@ index a57e8ba4..51cfac00 100644
        });
        const [m] = await Promise.all([main, ...ends]);
        // the parts hold the base they were sent: the page lets its copy go (solver-close.test.mjs)
-@@ -226,13 +227,50 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
+@@ -226,13 +228,55 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
        // the plan's own solve keeps its parts, each holding the solve, to run its share of the Strategy tab's paths (Phase 9); a
        // couple's first person's keeps them for the second's, and the second's (on the same parts) for the couple; a dial
        // position's base lets them go
@@ -682,9 +1044,11 @@ index a57e8ba4..51cfac00 100644
 +      if (couple && form) {
 +        const hh = await ask('household-plan', { plan: mirror || plan, form });
 +        if (finished) return;
-+        const hOpts = { ...opts, ageWith: hh.ageWith };
-+        const hKey = key || PLANT.rule === 'keyvariant' ? await solveKey(couple.engine, hh.hplan, { ...hOpts, bands: hh.bands }) : null;
-+        const hBase = await baseOf(couple.engine, hh.hplan, hOpts);
++        // the table's options as the workers take them (`bands` goes beside them, src/solverWorker.js inBands), and as its key and
++        // its dial base's key name them, the bands among them (src/solverKey.js): a table solved inside other bands never restored
++        const hOpts = { ...opts, ageWith: hh.ageWith }, hKeyOpts = { ...hOpts, bands: hh.bands };
++        const hKey = key || PLANT.rule === 'keyvariant' ? await solveKey(couple.engine, hh.hplan, hKeyOpts) : null;
++        const hBase = await baseOf(couple.engine, hh.hplan, hKeyOpts);
 +        if (finished) return;
 +        phaseWho = 'household';
 +        const b = hBase ? await phase('base', hBase.plan, hBase.key, null, hOpts, null, hh.bands) : null;
@@ -692,10 +1056,13 @@ index a57e8ba4..51cfac00 100644
 +        const m = await phase('solve', hh.hplan, hKey, hBase, hOpts, 'household', hh.bands);
 +        if (finished || !m) return;
 +        phaseWho = null;
-+        const joint = appJoint(), asked = { household: hh.household, form, topK: 3, tieJoint: joint.tieJoint, holdPast: joint.holdPast };
++        // the household's move: its table's chooser at the even split, the top three of its moves, the tie-break and the hold of
++        // the couples' joint move (step 8's HSPA as its audit ran it); each assembly's record read back against it and a
++        // difference refused, as a couple's joint move is (D109)
++        const joint = appJoint(), setting = { form, topK: 3, tieJoint: joint.tieJoint, holdPast: joint.holdPast }, asked = { household: hh.household, ...setting };
 +        const sameForm = (r, where) => {
-+          const got = r && r.meta && r.meta.household ? r.meta.form : null;
-+          if (PLANT.rule !== 'noformcheck' && got !== form) throw new Error(`solverClient: the household was assembled ${where} with the form ${got}, not the ${form} asked for`);
++          const got = JSON.stringify(r && r.meta && r.meta.household ? r.meta.setting : null);
++          if (PLANT.rule !== 'noformcheck' && got !== JSON.stringify(setting)) throw new Error(`solverClient: the household was assembled ${where} with ${got}, not the ${JSON.stringify(setting)} asked for`);
 +        };
 +        const h = await ask('household', asked);
 +        if (finished) return;
@@ -713,6 +1080,142 @@ index a57e8ba4..51cfac00 100644
        if (couple) {
          // plant 'couplehalf' (solver-planner-ui check 19, a build's PLANNER_PLANT): the page solving a couple on the half share, as before D99
          const shareRule = couple.shareRule !== undefined ? couple.shareRule : PLANT.rule === 'halfdefault' || PLANNER_PLANT.has('couplehalf') ? undefined : APP_COUPLE.shareRule;
+diff --git a/src/solverCouple.js b/src/solverCouple.js
+index 538a2732..6c4f1111 100644
+--- a/src/solverCouple.js
++++ b/src/solverCouple.js
+@@ -16,6 +16,7 @@ import { vecOf } from './solver/grid.js';
+ import { solvedContext, runPath, partsOf, retireYearOf, firstSweep, joinSkipRuns } from './solverStrategy.js';
+ import { prepareForSolve, JOINT_KEYS } from './solverSettings.js';
+ import { appPlan } from './solverApp.js';
++import { householdForm, householdFromTable, SCALES, mergedState } from './solver/household.js';
+ 
+ /* research/tests/couple-solve-client.test.mjs only: 'swap' hands each person the other's table; 'noage' cuts the plans with no
+    partner's age (each solved as a single would be); research/tests/couple-default.test.mjs only: 'rawages' leaves a blank age
+@@ -83,7 +84,33 @@ export function assembleCouple(E, M, household, tables, { shareRule = undefined,
+ 
+ /* a couple's solve in hand (solveCouple's result), as against a single's table */
+ export const isCouple = x => !!(x && x.tables && x.tables.self && x.tables.part && x.plans);
++/* a household's solve (step 8's port: one table through its one move, src/solver/household.js), and a couple's solve of either
++   kind, as the page's couple views take it (this year's actions, the next years, the ledger: the move taken apart per person) */
++export const isHousehold = x => !!(x && x.household === true && x.H);
++export const isPair = x => isCouple(x) || isHousehold(x);
+ /* the page's record of a couple's solve: the household's figures and each person's table's own record, plain data */
++/*
++ * THE HOUSEHOLD PLAN IN THE PAGE (step 8's port, research/solver/HSP-PORT.md; D134 (1)): the worker's two steps, here so a
++ * test can run them as the worker does. householdCut ('household-plan'): the couple's plan as the solver takes it
++ * (householdPlan), cut at a form (src/solver/household.js householdForm), with the band scaling its table is solved inside
++ * ({ k, paOne, paK }, src/solverWorker.js inBands) and the partner's age today; only a scaled form (SCALES), whose bands the
++ * cut names. householdSolved ('household'): the household assembled from a table solved on that cut (householdFromTable,
++ * which refuses a table solved on another plan or outside the bands), as the solve in hand, at the even split.
++ */
++export function householdCut(E, M, plan, form) {
++  if (!SCALES.includes(form)) throw new Error(`householdCut: the page solves a household at a scaled form (${SCALES.join(', ')}), not ${form}`);
++  const household = householdPlan(E, plan), f = householdForm(E, household, { scale: form }), sc = f.hopts.scale;
++  return { household, hplan: f.hp, bands: { k: sc.k, paOne: sc.paOne, paK: !!sc.paK }, ageWith: M.prepare(E, household).ctx.agePart0 };
++}
++export function householdSolved(E, M, { household, form, topK, tieJoint, holdPast }, table) {
++  const cp = householdFromTable(E, M, household, table.plan, table.r, { scale: form, topK, tieJoint, holdPast });
++  return { ...cp, split: 'even', counts: null };
++}
++/* the page's record of a household's solve (step 8's port, research/solver/HSP-PORT.md), plain data: its table's record, and
++   the setting it was assembled with as the assembly recorded it (src/solver/household.js assembleHousehold's meta), which the
++   client reads back against what it asked (src/solverClient.js) */
++export const householdMeta = cp => ({ household: true, setting: { form: cp.meta && cp.meta.scale ? cp.meta.scale.rule : null, topK: cp.meta.topK, tieJoint: cp.meta.tieJoint || 0, holdPast: cp.meta.holdPast || 0 }, k: cp.meta && cp.meta.scale ? cp.meta.scale.k : null, split: cp.split, tiersBelow: cp.tiersBelow, table: JSON.parse(JSON.stringify(cp.H.meta)) });
++
+ export function coupleMeta(cp) {
+   const plain = r => JSON.parse(JSON.stringify(r.meta));
+   const joint = Object.fromEntries(JOINT_KEYS.filter(k => cp.meta && cp.meta[k] !== undefined).map(k => [k, cp.meta[k]]));
+@@ -121,7 +148,8 @@ export const jointParts = joint => ({ level: joint.spendLevel !== undefined ? jo
+ /* the joint move with one person's move replaced by their move `ai` (the first person's also sets the household's draw, as
+    chooseJoint takes it from theirs) */
+ export function withPersonMove(cp, joint, who, ai) {
+-  const tab = cp.tables[who], a = tab.actions[ai], on = tiered(tab);
++  // a household's (step 8's port): each person's alternative one of the household table's own moves
++  const tab = isHousehold(cp) ? cp.H : cp.tables[who], a = tab.actions[ai], on = tiered(tab);
+   const per = { steps: a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', ...(on ? { tierPen: a.tierPen || 0, tierIsa: a.tierIsa || 0, tierPenName: tierName(tab, 'pen', a.tierPen || 0), tierIsaName: tierName(tab, 'isa', a.tierIsa || 0) } : {}) };
+   const top = who === 'self' ? { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump } : {};
+   const out = { ...joint, ...top, perOwner: { ...joint.perOwner, [who]: per }, ...(who === 'self' ? { ia: ai } : { ib: ai }) };
+@@ -137,8 +165,10 @@ export function coupleFirstMove(E, cp) {
+   E.runTrial(ctx, Float64Array.from(E.pathsForSeed(1, 1, T)[0]));
+   return { ...rec, sc, base };
+ }
+-/* this year's skips, each { who, part, value, joint } with the forced joint move, or joint null where no move differs */
++/* this year's skips, each { who, part, value, joint } with the forced joint move, or joint null where no move differs (a
++   household's, householdSkipsOf) */
+ export function coupleSkipsOf(E, cp) {
++  if (isHousehold(cp)) return householdSkipsOf(E, cp);
+   const f = coupleFirstMove(E, cp), j0 = f.joint, list = [];
+   const lvl = (tab, ai) => (tab.levelOf ? tab.levelOf[ai] : tab.actions[ai].spendLevel !== undefined ? tab.actions[ai].spendLevel : 1);
+   const ranked = {};
+@@ -165,6 +195,33 @@ export function coupleSkipsOf(E, cp) {
+   }
+   return { f, list };
+ }
++/* A HOUSEHOLD'S SKIPS THIS YEAR (step 8's port, research/solver/HSP-PORT.md step 3): coupleSkipsOf's, with the household's moves
++   ranked once on its table at the household's merged state, as its chooser reads them (src/solver/household.js
++   chooseHouseholdSingle, the tiers held the first person's); for each part each person's move takes, the best-ranked household
++   move that differs in that part, taken by that person alone (withPersonMove), the other person's move and the split held; the
++   household's level skipped to the level of its best-ranked move at another. Plant 'hhpersonrank' (household-views.test.mjs):
++   the moves ranked at the first person's own state, not the household's. */
++export function householdSkipsOf(E, cp) {
++  const f = coupleFirstMove(E, cp), j0 = f.joint, list = [], H = cp.H;
++  const lvl = ai => (H.levelOf ? H.levelOf[ai] : H.actions[ai].spendLevel !== undefined ? H.actions[ai].spendLevel : 1);
++  const held = f.state.tierHeld.self, s = vecOf(H.m, PLANT.rule === 'hhpersonrank' ? ownerState(f.state, 'self') : mergedState(cp, f.state));
++  const ranked = rankFor(H, s, 0, tiered(H) ? { pen: held.pen, isa: held.isa } : null, H.actions.length);
++  const level0 = j0.spendLevel !== undefined ? j0.spendLevel : 1;
++  if (level0 !== 1) {
++    const alt = ranked.find(ai => lvl(ai) !== level0);
++    list.push({ who: 'household', part: 'level', value: level0, joint: alt === undefined ? null : { ...j0, spendLevel: lvl(alt) } });
++  }
++  for (const who of WHO) {
++    const p0 = personParts(j0, who);
++    for (const part of PERSON_SKIPS) {
++      const taken = part === 'draw' ? p0.draw !== 'none' : part === 'harvest' ? p0.harvest !== null : p0[part] > 0;
++      if (!taken) continue;
++      const alt = ranked.find(ai => { const p = partsOf(H.actions[ai], { tierPen: H.actions[ai].tierPen || 0, tierIsa: H.actions[ai].tierIsa || 0 }); return part === 'draw' ? p.draw !== p0.draw : p[part] !== p0[part]; });
++      list.push({ who, part, value: p0[part], joint: alt === undefined ? null : withPersonMove(cp, j0, who, alt) });
++    }
++  }
++  return { f, list };
++}
+ /* each skip's name, the same in every part that ranks it (joinSkipRuns refuses parts that ran other skips) */
+ const skipNames = sk => sk.list.map(x => (x.joint ? `${x.who} ${x.part} ${JSON.stringify(jointParts(x.joint))}` : null));
+ /*
+diff --git a/src/solverKey.js b/src/solverKey.js
+index 9fc0c5cd..95071059 100644
+--- a/src/solverKey.js
++++ b/src/solverKey.js
+@@ -10,7 +10,7 @@
+ import { prepareForSolve, aimsOptions, dialSettings, withAims, APP_CANDIDATE, APP_POINTS, APP_DIAL_VARIANT } from './solverSettings.js';
+ import { PLANNER_PLANT } from './plannerPlant.js';
+ 
+-export const PLANT = { rule: '' };   // research/tests/solve-key.test.mjs only: 'raw' keys the plan's aims, locks and view as stored; couple-solve-client.test.mjs: 'agenull' writes a partner's age of null into every key without one; cache-key.test.mjs: 'nod73' leaves `coarse` and `sweepCashIsaTo` out of the candidate the key names
++export const PLANT = { rule: '' };   // research/tests/solve-key.test.mjs only: 'raw' keys the plan's aims, locks and view as stored; couple-solve-client.test.mjs: 'agenull' writes a partner's age of null into every key without one; cache-key.test.mjs: 'nod73' leaves `coarse` and `sweepCashIsaTo` out of the candidate the key names; household-client.test.mjs: 'bandsunkeyed' leaves a household table's band scaling out of its key
+ 
+ const canonical = v => {
+   if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
+@@ -23,7 +23,10 @@ const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,
+  * what the solver aims for (Phase 8); lambda is the dial's unless given, as solveForApp takes it. */
+ // `ageWith` (Part D, D5.1): one person's table in a couple is solved with their partner's age today (solveForApp, B3a's age
+ // weights), so it names the solve too; a single's key has none (canonical leaves an undefined field out), so is unchanged
+-export async function solveKey(E, plan, { lambda = undefined, points = APP_POINTS, research = null, variant = APP_DIAL_VARIANT, ageWith = undefined } = {}, code = '') {
++// `bands` (step 8's port, research/solver/HSP-PORT.md): the household plan's table is solved inside its band scaling
++// (src/solver/household.js bandsAt), which moves the table and not the plan, so it names the solve too; any other table has
++// none (canonical leaves an undefined field out), so its key is unchanged
++export async function solveKey(E, plan, { lambda = undefined, points = APP_POINTS, research = null, variant = APP_DIAL_VARIANT, ageWith = undefined, bands = undefined } = {}, code = '') {
+   // the plan as the solver reads it (Phase 11): its aims and locks with their defaults filled in, so a plan that has never
+   // had them and one that carries the defaults are one solve (the quick start's plan, then the dial's base or a choice made
+   // and taken back), and the view of whose money (a couple's display) left out
+@@ -33,7 +36,7 @@ export async function solveKey(E, plan, { lambda = undefined, points = APP_POINT
+   if (PLANT.rule === 'speedunkeyed' && p.solver && 'speed' in p.solver) { p.solver = { ...p.solver }; delete p.solver.speed; }
+   // a dial position above 1 adds its variant and its lock to the base (step L2); position 1's key is as before
+   // step U's plant 'keyguard' (research/ui-harnesses/solver-planner-ui.cjs, check 7): the key made to read the guardrails
+-  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ageWith: ageWith === undefined && PLANT.rule === 'agenull' ? null : ageWith, ...dialSettings(p, variant) }, code });
++  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ageWith: ageWith === undefined && PLANT.rule === 'agenull' ? null : ageWith, ...dialSettings(p, variant), bands: PLANT.rule === 'bandsunkeyed' || !bands ? undefined : bands }, code });
+   return hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)));
+ }
+ export { canonical };
 diff --git a/src/solverStrategy.js b/src/solverStrategy.js
 index a4bbb1c4..a2b342de 100644
 --- a/src/solverStrategy.js
@@ -736,7 +1239,7 @@ index a4bbb1c4..a2b342de 100644
  
  /*
 diff --git a/src/solverWorker.js b/src/solverWorker.js
-index c5ad442e..1dd48453 100644
+index c5ad442e..f5e24c4a 100644
 --- a/src/solverWorker.js
 +++ b/src/solverWorker.js
 @@ -62,7 +62,8 @@ import { solveForApp } from './solverApp.js';
@@ -744,8 +1247,8 @@ index c5ad442e..1dd48453 100644
  import { tablesOf, digestOf, sizeOf } from './solverDigest.js';
  import { strategyRuns, strategyAnswer, actionsOf, skipRuns, aheadAnswer, rowsOf, solvedContext } from './solverStrategy.js';
 -import { couplePlans, assembleCouple, coupleMeta, isCouple, coupleActionsOf, coupleAheadOf, coupleRowsOf, coupleSkipRuns } from './solverCouple.js';
-+import { couplePlans, assembleCouple, coupleMeta, isCouple, coupleActionsOf, coupleAheadOf, coupleRowsOf, coupleSkipRuns, householdPlan } from './solverCouple.js'
-+import { householdForm, householdFromTable, bandsAt } from './solver/household.js';;
++import { couplePlans, assembleCouple, coupleMeta, isCouple, coupleActionsOf, coupleAheadOf, coupleRowsOf, coupleSkipRuns, householdCut, householdSolved, householdMeta, isHousehold, isPair } from './solverCouple.js';
++import { bandsAt } from './solver/household.js';
  import { headRuns } from './solverStrategy.js';
  import { distilOf } from './solverDistil.js';
  import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord, codeOf, followRecord } from './solverCache.js';
@@ -758,7 +1261,7 @@ index c5ad442e..1dd48453 100644
  let pending = null;                          // a stored solve 'follow' loaded, { key, rec }, until its split restore takes it (D5.6)
  const takePending = (key) => {
    const p = pending; pending = null;
-@@ -83,6 +84,12 @@ const takePending = (key) => {
+@@ -83,6 +84,10 @@ const takePending = (key) => {
  // placeholder (a screen change keeps it; step P1 (g)); under `vite dev`, this worker's own URL, as before
  const CODE = codeOf('__SOLVER_CODE_KEY__', self.location);
  const plainMeta = r => JSON.parse(JSON.stringify(r.meta));
@@ -766,12 +1269,10 @@ index c5ad442e..1dd48453 100644
 +// one person's), every solve and restore of it in every worker, so each part's model carries the same band; `b` the solve's
 +// `bands` ({ k, paOne, paK }), or none for any other table
 +const inBands = (b, f) => (b ? bandsAt(E, b.k, b.paOne, f, !!b.paK) : f());
-+/* the page's record of the household's solve: its table's record and the household's form, plain data */
-+const householdMeta = cp => ({ household: true, form: cp.meta && cp.meta.scale ? cp.meta.scale.rule : null, k: cp.meta && cp.meta.scale ? cp.meta.scale.k : null, split: cp.split, joint: { tieJoint: cp.tieJoint || 0, holdPast: cp.holdPast || 0 }, tiersBelow: cp.tiersBelow, table: JSON.parse(JSON.stringify(cp.H.meta)) });
  
  self.onmessage = async ({ data }) => {
    const { id, kind } = data || {};
-@@ -90,11 +97,11 @@ self.onmessage = async ({ data }) => {
+@@ -90,11 +95,11 @@ self.onmessage = async ({ data }) => {
      if (kind === 'part') {
        const pool = arenaPool(data.part, data.parts, data.arena);
        try {
@@ -785,7 +1286,7 @@ index c5ad442e..1dd48453 100644
          if (data.slot) persons[data.slot] = { r, plan: data.plan, ageWith: data.opts && data.opts.ageWith };
          else { solved = r; runs = null; }
        } catch (e) { pool.fail(); throw e; }
-@@ -135,7 +142,7 @@ self.onmessage = async ({ data }) => {
+@@ -135,7 +140,7 @@ self.onmessage = async ({ data }) => {
        if (rec) {
          const rpool = data.parts > 1 ? arenaPool(0, data.parts, data.arena) : null;
          let r;
@@ -794,7 +1295,7 @@ index c5ad442e..1dd48453 100644
          catch (e) { if (rpool) rpool.fail(); throw e; }
          keep(r);
          self.postMessage({ id, done: true, meta: plainMeta(r), secs: (performance.now() - t0) / 1000, restored: true, code: CODE });
-@@ -143,7 +150,7 @@ self.onmessage = async ({ data }) => {
+@@ -143,7 +148,7 @@ self.onmessage = async ({ data }) => {
        }
        const pool = data.parts > 1 ? arenaPool(0, data.parts, data.arena) : null;
        let r;
@@ -803,25 +1304,50 @@ index c5ad442e..1dd48453 100644
        catch (e) { if (pool) pool.fail(); throw e; }
        keep(r);
        self.postMessage({ id, done: true, meta: plainMeta(r), secs: (performance.now() - t0) / 1000, restored: false, code: CODE });
-@@ -151,6 +158,21 @@ self.onmessage = async ({ data }) => {
+@@ -151,6 +156,14 @@ self.onmessage = async ({ data }) => {
        return;
      }
      if (kind === 'probe') { self.postMessage({ id, hit: await probeSolve(data.key, CODE) }); return; }
 +    // the household plan (step 8's port, HSP-PORT.md): its plan cut at its form, and the household assembled from its table
-+    if (kind === 'household-plan') {
-+      // the couple's plan as the solver takes it (src/solverCouple.js householdPlan, as couplePlans takes it), then cut
-+      const household = householdPlan(E, data.plan), f = householdForm(E, household, { scale: data.form }), m0 = M.prepare(E, household), sc = f.hopts.scale;
-+      self.postMessage({ id, household, hplan: f.hp, bands: sc ? { k: sc.k, paOne: sc.paOne, paK: !!sc.paK } : null, ageWith: m0.ctx.agePart0 });
-+      return;
-+    }
++    if (kind === 'household-plan') { self.postMessage({ id, ...householdCut(E, M, data.plan, data.form) }); return; }
 +    if (kind === 'household') {
-+      const h = persons.household;
-+      if (!h) throw new Error('solverWorker: a household asked before its table was solved');
-+      const cp = householdFromTable(E, M, data.household, h.plan, h.r, { scale: data.form, topK: data.topK, tieJoint: data.tieJoint, holdPast: data.holdPast });
-+      solved = { ...cp, split: 'even', counts: null }; runs = null;
++      if (!persons.household) throw new Error('solverWorker: a household asked before its table was solved');
++      solved = householdSolved(E, M, data, persons.household); runs = null;
 +      self.postMessage({ id, done: true, meta: householdMeta(solved) });
 +      return;
 +    }
      if (kind === 'couple-plans') { self.postMessage({ id, ...couplePlans(E, data.plan, { shareRule: data.shareRule }) }); return; }
      if (kind === 'couple') {
        if (!persons.self || !persons.part) throw new Error('solverWorker: a couple asked before both tables were solved');
+@@ -174,7 +187,7 @@ self.onmessage = async ({ data }) => {
+     }
+     if (kind === 'skipruns') {
+       const span = { seed: data.seed, from: data.from, to: data.to };
+-      self.postMessage({ id, skipruns: isCouple(solved) ? coupleSkipRuns(E, solved, span) : skipRuns(E, solved, span) });
++      self.postMessage({ id, skipruns: isPair(solved) ? coupleSkipRuns(E, solved, span) : skipRuns(E, solved, span) });
+       return;
+     }
+     if (kind === 'strategy') {
+@@ -184,9 +197,10 @@ self.onmessage = async ({ data }) => {
+       self.postMessage({ id, strategy: a.strategy });
+       return;
+     }
+-    // a couple's questions about its moves (Part D, D5.3): each year's joint move taken apart for each person
+-    if (isCouple(solved) && kind === 'distil') throw new Error('solverWorker: the rule of thumb is worked out for one person\'s table, not a couple\'s');
+-    if (isCouple(solved) && (kind === 'rows' || kind === 'actions' || kind === 'ahead')) {
++    // a couple's questions about its moves (Part D, D5.3): each year's joint move taken apart for each person; a household's
++    // (step 8's port) the same, its one move taken by both
++    if (isPair(solved) && kind === 'distil') throw new Error('solverWorker: the rule of thumb is worked out for one person\'s table, not a couple\'s');
++    if (isPair(solved) && (kind === 'rows' || kind === 'actions' || kind === 'ahead')) {
+       const same = runs && runs.r === solved && runs.plan === JSON.stringify(data.plan) && runs.runs.seed === data.seed ? runs.runs : null;
+       if (kind === 'rows') self.postMessage({ id, rows: coupleRowsOf(E, solved, data.market) });
+       else if (kind === 'actions') self.postMessage({ id, actions: coupleActionsOf(E, solved, data.plan, { seed: data.seed, n: data.n, base: same ? same.solved : null, parts: data.parts || null }) });
+@@ -217,7 +231,7 @@ self.onmessage = async ({ data }) => {
+       return;
+     }
+     if (kind === 'digest') {
+-      const A = isCouple(solved) ? [...tablesOf(solved.tables.self), ...tablesOf(solved.tables.part)] : tablesOf(solved);
++      const A = isCouple(solved) ? [...tablesOf(solved.tables.self), ...tablesOf(solved.tables.part)] : isHousehold(solved) ? tablesOf(solved.H) : tablesOf(solved);
+       self.postMessage({ id, digest: await digestOf(A), ...sizeOf(A) });
+       return;
+     }

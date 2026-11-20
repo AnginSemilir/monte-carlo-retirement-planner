@@ -88,35 +88,65 @@ The worktree's branch joins the working branch after both launches; its `src/` c
 - **The identity** holds the app's route to step 8's audit, as D109's held the couples' route to its arm. Step 8's audit
   builds HSPA from `solverPlanOf`'s plan with arm A's MPAA ages; the identity test says whether the page's plan matches it.
 
-## Progress (20 Nov, early afternoon; in the worktree, uncommitted)
+## Progress (20 Nov, afternoon; in the worktree, uncommitted, kept on the remote as `drafts/hsp-port.patch`)
 
 - **Step 1 done.** `src/solver/household.js`, with `householdForm`, `householdFromTable` (the plan check the worker makes)
   and `assembleHousehold` split out of `solveHousehold`.
-- **Step 2, the worker done.** In `src/solverWorker.js`:
-  - the `household-plan` kind takes the page's plan through `householdPlan`, as `couplePlans` does, then cuts it, and
-    returns the couple's plan, the household plan, the bands and the partner's age;
-  - the `household` slot, and the `household` kind assembling through `householdFromTable`;
-  - every `solveForApp` call in `solve`, `base` and `part` wrapped in the bands.
+- **Step 2 done.**
+  - The worker's two household steps are in `src/solverCouple.js`, where a test runs them as the worker does:
+    - `householdCut` ('household-plan'): the page's plan through `householdPlan`, cut at a scaled form, with the bands
+      and the partner's age; a form without a scale refused;
+    - `householdSolved` ('household'): the household assembled from its table through `householdFromTable`, at the even
+      split;
+    - `householdMeta`: the record, with the setting the assembly recorded (the form, the top three, the tie-break, the
+      hold).
+  - Every `solveForApp` call in the worker's `solve`, `base` and `part` runs inside the bands.
+  - **The client** (`src/solverClient.js`):
+    - the household route runs before the couple's where a form is named;
+    - the household's parts are kept as a single's;
+    - each assembly's whole setting is read back, and a difference refused (as D109 reads back a couple's joint move).
+  - **A defect found and fixed:** the stored table's key left out its bands (`src/solverKey.js` ignored them), so a table
+    of the household plan solved outside the bands shared the household's key. The key and the dial base's key now name
+    the bands; a key without them is unchanged.
+  - **The route's test** `research/tests/household-route.test.mjs` (2 households) passes:
+    - the cut is `solveHousehold`'s;
+    - the table solved apart inside the bands has the whole solve's digest;
+    - the household assembled from it runs as the whole on 200 paths;
+    - its plants `nobands` and `oddsplit` each fail it.
+  - **The client's test** `research/tests/household-client.test.mjs` (stand-in workers, as `couple-split.test.mjs`)
+    passes all 6 checks:
+    1. three parts, the bands in the owner and every part, each assembly the whole household (its table, its record, 50
+       paths);
+    2. restored split from the store;
+    3. the key naming the bands, with a table solved outside them never restored;
+    4. a part assembling with another setting refused;
+    5. a variant neither restored nor stored;
+    6. the dial's position 3, its base solved split inside the bands, its key the household's own at position 1.
 
-  `solvedContext` has its household branch.
-- **Step 2, the client drafted.** In `src/solverClient.js`, `phase` carries `bands` to the owner and every part, and the
-  household route runs before the couple's where a form is named. The household's parts are kept as a single's, and each
-  assembly's form is read back.
-- **The route's test passes:** `research/tests/household-route.test.mjs`. On S025-own and S351F-90 at light settings:
-  - the cut is `solveHousehold`'s;
-  - the table solved apart inside the bands has the whole solve's digest;
-  - the household assembled from it runs as the whole on 200 paths, survival, the pot and the tax, bit for bit;
-  - a table solved outside the bands, or for another plan, is refused.
+    Plants: `bandsunkeyed` fails check 3, `noformcheck` 4, `keyvariant` 5, and `partnobands` every check solved split.
+- **Step 3, the views, built.**
+  - A household's moves have a couple's joint move's shape (both people taking the household's move, at the even split).
+    So the page's couple views take a household (`isPair`): this year's actions, the next years, the ledger, the skips'
+    runs shared across parts, and no rule of thumb.
+  - This year's skips (`householdSkipsOf`): the household's moves are ranked once on its table at the merged state, and
+    each person's alternative is the household table's best-ranked move differing in that part.
+  - `research/tests/household-views.test.mjs` passes all 6 checks:
+    1. the first move is the engine's, both people the same, the split even;
+    2. a move put back as itself is unchanged;
+    3. each skip changes only its part, its alternative the table's own at the merged state;
+    4. each skip's cost is the same afresh, with the plan's runs handed in, and split in two and joined;
+    5. the next years and the rows are the engine's moves.
 
-  Its plants `nobands` and `oddsplit` each fail it.
+    Plants: `hhpersonrank` fails check 3, `nosplit` checks 2 and 3. At light settings the first years show level and tier
+    skips, not a draw or a harvest; the browser harness covers the app's settings.
 - **Not yet:**
-  - a test of the client's route with stand-in workers, as `couple-split.test.mjs` tests the couple's;
-  - step 3: the single's views read the table's own actions by the move's `index`. HSPA's move carries its table's index
-    as `ia`, and the household table `H` has the same actions. So the views take `solved.H` for a household, the move's
-    `ia`, the merged state for ranking, and a skip forced as the household move built from another action;
-  - steps 4 to 7;
-  - the commit: the e3pcls pin is re-taken in the worktree first (about 13 minutes), and the fast tier runs on the commit.
-    Both wait for the late tail to finish, so as not to slow it.
+  - the words (step 4);
+  - the default and its pin (step 5);
+  - the identity at 45 points against step 8's pilot (step 6);
+  - the reviewer and the gate (step 7);
+  - the page's harness (check 19 and its couples) once the default names the household;
+  - the commit: the e3pcls pin is re-taken in the worktree first (about 13 minutes), and the fast tier runs on the commit,
+    after the late tail finishes.
 
 ## Box
 

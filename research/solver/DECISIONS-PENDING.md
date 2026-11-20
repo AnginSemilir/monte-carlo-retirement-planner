@@ -11,6 +11,24 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (20 Nov, evening), found while porting step 8; nothing decided, for your word:**
+1. **The speed mode reaches the household plan's table, unmeasured.** The opt-in "Beta - speed mode" (D97 (3)) hands a
+   solve the chooser's shortlist, and since the household default (D135) a couple's one table takes it as a single's does.
+   Its couples' warning ("usually only a little faster, spent a little less, ... about 5 in 1,000") was measured on
+   today's two-table route (SPEED-B). On a household nothing was measured: on S025-own at light settings, 185 of 200
+   paths end differently with it on (EXPLORATORY scratch, not kept). Options:
+   - leave it, the warning saying couples are less tested;
+   - measure it on the household (an EXPLORATORY read like SPEED-B's couples);
+   - or keep the speed mode off for couples.
+
+   The agent recommends measuring it before the next batch merges, and meanwhile leaving the warning as it stands.
+2. **Under the speed mode a couple's shown decisions are made on the shortlist, on either route.** This year's actions,
+   the next years and the rows (`src/solverCouple.js`) run the couple's policy as it is. D90's guard, that a decision the
+   pages show is made on the whole menu (`src/solverStrategy.js` `shownPolicy`, `research/tests/shortlist-shown.test.mjs`),
+   wraps only a single's views. This predates the port, and is a defect by D90's words. The agent proposes to fix it with a
+   test of its class (a couple's and a household's shown decisions the whole menu's under the speed mode, the paths that
+   count keeping the shortlist) after the reviewer's verdict on the change of default, in the same batch.
+
 **RULED (D135, 20 Nov, evening: "Unlock enforcement, launch"): the two items below. Seed 7025 reserved and the savings split's v2
 launched as registered; the late tail's rule taking the build on, the unlock covering `couple-default.test.mjs` for step 8's
 change of default.**

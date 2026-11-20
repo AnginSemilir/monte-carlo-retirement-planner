@@ -1,0 +1,25 @@
+THE LATE TAIL (LATE-TAIL.md; EXPLORATORY): 10 units from research/solver/results/late-tail-7002
+THE GATE: fair; one code 71fb4271c681, audit 57cc9f06eafb, seed 7002, 45 points; every unit's six arms at its paths, its checks passed
+
+THE RULE (LATE-TAIL.md), on the worst tenth of each unit's markets (its paths ranked by APP's end pot):
+  D, K2's mean end pot less HSPA's over the seven units below nought: £52,873 a path
+  L    restores -£51,403 a path (-97.2% of D): does not explain it
+  R    restores £72,326 a path (136.8% of D): EXPLAINS IT (at least half of D)
+  CEIL restores £46,214 a path (87.4% of D): EXPLAINS IT (at least half of D)
+OUTCOME: THE GROWTH; CEIL NEAR K2: step 8's build stops before main and comes back to the maintainer (D134 (1))
+
+BESIDE THE RULE, deciding nothing:
+  net whole paths lost against K2, pooled over the seven: HSPA 28, L 745, R 351, CEIL -11
+  by unit (worst-tenth mean end pot by arm; net whole paths lost against K2 by arm; the worst tenth's level and risk held, years 0-9 and 10 on, K2 / HSPA / L / R; lifetime tax on the worst tenth by arm):
+    S025-45      below   pot APP £4,300, K2 £36,755, HSPA £27,821, L £34,574, R £29,407, CEIL £27,108; lost HSPA 3, L 39, R 10, CEIL 0; years 0-9 80.1% 3.84% / 81.0% 3.99% / 80.3% 3.98% / 80.7% 3.84%; 10 on 85.2% 3.71% / 85.8% 3.60% / 84.5% 3.65% / 86.6% 3.70%; tax £0 / £0 / £0 / £0 / £0 / £0
+    S273-own     below   pot APP £0, K2 £243,217, HSPA £191,898, L £162,108, R £264,610, CEIL £244,553; lost HSPA 3, L 179, R 74, CEIL -5; years 0-9 81.4% 3.99% / 81.2% 4.05% / 82.5% 4.05% / 81.2% 4.04%; 10 on 88.0% 3.05% / 88.3% 3.09% / 89.5% 3.07% / 88.8% 3.18%; tax £301,217 / £377,336 / £368,654 / £386,758 / £368,097 / £394,151
+    S273-sppart  below   pot APP £0, K2 £246,417, HSPA £197,211, L £165,123, R £267,858, CEIL £262,894; lost HSPA 1, L 198, R 79, CEIL -6; years 0-9 81.4% 4.00% / 81.1% 4.05% / 82.5% 4.05% / 81.1% 4.05%; 10 on 87.9% 3.07% / 88.2% 3.09% / 89.3% 3.08% / 88.8% 3.18%; tax £302,612 / £371,028 / £371,735 / £391,031 / £367,288 / £392,184
+    S357F-45     below   pot APP £0, K2 £631,865, HSPA £608,972, L £652,182, R £616,590, CEIL £680,859; lost HSPA 2, L 2, R 13, CEIL -8; years 0-9 83.5% 4.02% / 84.4% 4.02% / 82.4% 4.02% / 84.4% 4.03%; 10 on 88.9% 3.46% / 88.9% 3.46% / 88.7% 3.46% / 89.0% 3.44%; tax £326,519 / £356,446 / £357,381 / £352,808 / £356,721 / £389,458
+    S357F-db     below   pot APP £0, K2 £672,766, HSPA £606,674, L £407,018, R £784,799, CEIL £615,347; lost HSPA 5, L 163, R 75, CEIL 2; years 0-9 83.5% 3.77% / 83.5% 4.02% / 87.7% 4.02% / 82.8% 3.79%; 10 on 87.9% 3.45% / 88.8% 3.48% / 90.7% 3.45% / 89.2% 3.60%; tax £416,563 / £455,609 / £445,929 / £495,051 / £464,475 / £487,404
+    S357F-gap8   below   pot APP £0, K2 £688,729, HSPA £625,514, L £582,057, R £691,654, CEIL £701,084; lost HSPA 0, L 51, R 37, CEIL -7; years 0-9 85.6% 3.98% / 85.5% 4.01% / 87.1% 4.01% / 85.5% 4.00%; 10 on 88.5% 3.48% / 88.8% 3.48% / 89.0% 3.46% / 89.0% 3.53%; tax £345,788 / £403,283 / £398,556 / £402,836 / £403,427 / £424,277
+    S357F-own    below   pot APP £0, K2 £694,380, HSPA £585,926, L £481,135, R £695,380, CEIL £635,665; lost HSPA 14, L 113, R 63, CEIL 13; years 0-9 83.0% 3.78% / 84.1% 4.02% / 85.9% 4.02% / 83.4% 3.79%; 10 on 88.5% 3.44% / 89.0% 3.48% / 90.5% 3.43% / 88.5% 3.48%; tax £333,430 / £378,616 / £368,757 / £387,742 / £396,434 / £423,055
+    S273-90      M1      pot APP £0, K2 £238,837, HSPA £219,994, L £94,245, R £240,018, CEIL £236,677; lost HSPA -11, L 115, R -4, CEIL 2; years 0-9 83.1% 4.13% / 80.9% 4.06% / 95.7% 4.08% / 81.0% 4.08%; 10 on 89.1% 3.09% / 88.7% 3.13% / 89.5% 3.07% / 89.4% 3.09%; tax £306,698 / £380,814 / £364,708 / £384,497 / £369,185 / £516,905
+    S349F-own    control pot APP £480, K2 £143,730, HSPA £127,948, L £137,808, R £135,179, CEIL £148,368; lost HSPA -25, L 18, R 25, CEIL -33; years 0-9 81.7% 3.88% / 81.6% 3.73% / 82.5% 3.73% / 81.7% 3.91%; 10 on 86.2% 3.63% / 86.7% 3.65% / 85.5% 3.66% / 89.0% 3.67%; tax £1 / £333 / £328 / £347 / £499 / £369
+    S355F-own    control pot APP £0, K2 £219,034, HSPA £183,692, L £167,749, R £259,447, CEIL £177,512; lost HSPA -13, L 150, R 65, CEIL -3; years 0-9 84.7% 4.00% / 82.2% 3.94% / 85.5% 3.94% / 82.3% 4.01%; 10 on 88.1% 3.46% / 89.1% 3.47% / 89.1% 3.43% / 89.8% 3.56%; tax £69,917 / £77,049 / £91,957 / £92,729 / £83,937 / £106,692
+  survival by arm (% of paths): S025-45 86.63/99.53/99.45/98.55/99.28/99.53; S273-own 85.65/93.33/93.25/88.85/91.47/93.45; S273-sppart 85.33/93.08/93.05/88.13/91.10/93.22; S357F-45 85.25/95.60/95.55/95.55/95.28/95.80; S357F-db 85.05/95.47/95.35/91.40/93.60/95.42; S357F-gap8 84.92/95.53/95.53/94.25/94.60/95.70; S357F-own 85.17/95.63/95.28/92.80/94.05/95.30; S273-90 85.28/93.00/93.28/90.13/93.10/92.95; S349F-own 86.88/96.97/97.60/96.53/96.35/97.80; S355F-own 85.15/94.92/95.25/91.17/93.30/95.00 (APP/K2/HSPA/L/R/CEIL)
+  the time a path (CPU, the mean a unit): APP 0.6 ms, K2 186.7 ms, HSPA 55.4 ms, L 233.7 ms, R 232.7 ms, CEIL 51.0 ms

@@ -11,6 +11,23 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**PENDING (20 Nov, afternoon): two items for the maintainer.**
+1. **The late tail read THE GROWTH, with CEIL NEAR K2, so step 8's build stops before `main` and comes back to you**
+   (D134 (1); `results-late-tail.txt`, `reports/2026-11-20-late-tail-read.md`; the reviewer at the read under way).
+   - **The rule:** on the worst tenth of each unit's markets, K2 ends `£52,873` a path above HSPA, the mean over the seven
+     units below nought (D). Giving HSPA's move each person's tiers as K2 holds them (R) restores `136.8%` of D; the
+     household table on its own plan (CEIL) `87.4%`; K2's spending level (L) none. By `LATE-TAIL.md` the table reads the
+     couple as safer than it is.
+   - **Beside:** R loses `351` net paths against K2 pooled over the seven, where HSPA loses `28` and CEIL keeps `11` more;
+     the two controls lose their gain under R, so the gain and the loss are one trade.
+   - **The ways on:** (a) design B, the rule's next step (`HOUSEHOLD.md` section 2: each person's share of the pension
+     carried year by year; about two to three days with its tests, then a test against K2 and HSPA); (b) take HSPA as it
+     stands, as that trade; (c) hold, K2 staying the couples' default. The build so far is kept as
+     `drafts/hsp-port.patch` (steps 1 to 3 with their tests); none of it reaches `main` without your word.
+2. **The savings split's v2 is ready to launch** (`registrations/save-v2.md`; the design review PASS on its final look,
+   `reviews/2026-11-20-save-v2-design-2.md`). It waits on your typed unlock to reserve seed 7025 for `save-v2*.md` in
+   `check-prediction.mjs`, that edit alone, and your word to launch: about `12.3` hours on four cores.
+
 **RULED (D134, 20 Nov, morning: "Go, test beside", "Yes, come back", "Run as is"): the three decisions below, each as the
 agent recommended.**
 1. **Step 8 read PASS, and M1 names one unit, so the couples' default waits for your word** (`results-household-hsp.txt`,

@@ -11,7 +11,8 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**YOURS (20 Nov): three decisions, each put with the agent's recommendation.**
+**RULED (D134, 20 Nov, morning: "Go, test beside", "Yes, come back", "Run as is"): the three decisions below, each as the
+agent recommended.**
 1. **Step 8 read PASS, and M1 names one unit, so the couples' default waits for your word** (`results-household-hsp.txt`,
    `reports/2026-11-20-household-hsp-read.md`; the reviewer at the read PASS, three MINORs answered; the deep review
    `reviews/2026-11-20-deep-household-hsp.md`).

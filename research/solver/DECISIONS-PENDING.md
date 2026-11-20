@@ -12,18 +12,20 @@ repository are public, knowingly. So no beta with users is under way and nothing
 below this section says "the beta", read it as history. The order from here:
 
 **PENDING (20 Nov, afternoon): two items for the maintainer.**
-1. **The late tail: its first read is not to be acted on; the read is being made again** (D134 (1)).
-   - The first read printed THE GROWTH with CEIL NEAR K2, which by `LATE-TAIL.md` would stop step 8's build
-     (`results-late-tail.txt`, `reports/2026-11-20-late-tail-read.md`).
-   - The reviewer at the read FAILED it (`reviews/2026-11-20-read-late-tail.md`). Its first BLOCKING finding, confirmed:
-     the CEIL arm was miswired. Its recorder (`audit-late-tail.mjs` `recorded`) called the table's chooser without the
-     tiers held, which the engine passes, so CEIL charged nothing for a switch of risk. HSPA, K2, L and R are unaffected;
-     CEIL NEAR K2 rests on the fault. The reviewer's probe, with the tiers held passed, gives CEIL `-21.1%` of D, which would
-     leave THE GROWTH alone, under which the rule lets the build go on.
-   - Next, in one fix round (D81 (F)): the recorder fixed with a check of its class and its plant, CEIL run again alone on
-     the fixed audit by a dated amendment to `LATE-TAIL.md`, the read made again by the same rule, the write-up corrected
-     on the reviewer's other findings, and the reviewer again. Then the fault and both reads come to you before the build
-     moves either way. Nothing reaches `main` meanwhile.
+1. **The late tail, read twice: by the rule, step 8's build goes on to `main`** (D134 (1); `results-late-tail.txt`,
+   `results-late-tail-2.txt`, `reports/2026-11-20-late-tail-read.md`; the reviewer again under way).
+   - **The first read** printed THE GROWTH with CEIL NEAR K2, which would have stopped the build. The reviewer FAILED it:
+     its CEIL arm ran through a recorder that dropped the tiers held, so CEIL charged nothing for a switch of risk
+     (confirmed; no other wrapper of a chooser in the research or the app drops it).
+   - **The fix and the second read:** the recorder fixed with a check of its class (amendment 1); CEIL run again alone on
+     the ten units, each held to the first run, whose other arms the fault did not touch. Second read, by the same rule:
+     THE GROWTH. CEIL restores `-21.1%` of D, not `87.4%`, so the table does not read the couple as safer than it is.
+   - **What the rule decides:** the build goes on to `main` on B1's gate, this read reported. Left: the words, the default
+     and its pin (`couple-default.test.mjs`, which needs your unlock), the identity at 45 points, the reviewer on the change
+     of default, and the gate.
+   - **The trade, beside the rule:** on the seven units below nought HSPA keeps `28` paths fewer than K2 in `28,000` and
+     ends the worst tenth `£52,873` a path lower; step 8's registered read has HSPA ahead over 40 held-out units, pooled
+     `+0.762` points. Holding couples to the late pot more strictly would be yours to ask for, not a build.
 2. **The savings split's v2 is ready to launch** (`registrations/save-v2.md`; the design review PASS on its final look,
    `reviews/2026-11-20-save-v2-design-2.md`). It waits on your typed unlock to reserve seed 7025 for `save-v2*.md` in
    `check-prediction.mjs`, that edit alone, and your word to launch: about `12.3` hours on four cores.

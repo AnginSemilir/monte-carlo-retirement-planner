@@ -21,8 +21,12 @@
  *      start years;
  *   3. the paths that are counted still take the shortlist: the strategy's runs and the skips' runs decide on it, none held
  *      to the whole menu;
- *   4. the typical run where the counted paths took the shortlist: the levels of the whole menu's own run of the path the
- *      rows are shown on.
+ *   4. the typical run where the counted paths took a shortlist: the levels of the whole menu's own run of the path the
+ *      rows are shown on. The counted runs here take a shortlist that leaves out the cells' own moves (SHORTLIST.plant
+ *      'nobest'), so on each unit the counted run of that path parts from the whole menu's own and the check can see a
+ *      typical run taken from it. On the 'order' shortlist a household's agreed with the whole menu's on every unit
+ *      scanned, so the check could not fail on the household (the reviewer on D135's change of default, second round,
+ *      MINOR 1).
  * Plants (--planted; each wants exactly the checks named):
  *   - 'noshown' (src/solverCouple.js: the views read the couple's policy as it is, not through wholeMenu, as before the fix):
  *     checks 2 and 4;
@@ -114,10 +118,13 @@ for (const P of pairs) {
   resetStats(); const runsS = strategyRuns(E, P.cp, P.plan, { seed: SEED, to: NRUN }), st3a = stats();
   const sk = coupleSkipsOf(E, P.cp); resetStats(); coupleSkipRuns(E, P.cp, { seed: SEED, from: 0, to: NSKIP }, sk); const st3b = stats();
   const nSkips = sk.list.filter(x => x.joint).length, moved = runsS.solved.filter((r, k) => r.terminalPot !== runsW.solved[k].terminalPot || r.survived !== runsW.solved[k].survived).length;
-  // 4. the typical run where the counted paths took the shortlist: the whole menu's own run of that path
-  const a = coupleAheadOf(E, P.cp, P.plan, runsS, { years: 10 }), sc = solvedContext(E, P.cp), zs = E.pathsForSeed(SEED, a.path + 1, sc.totalYears)[a.path];
+  // 4. the typical run where the counted paths took a shortlist, here one without the cells' own moves ('nobest'), so the
+  // counted run of the path the rows are shown on parts from the whole menu's own: the typical shown is the whole menu's
+  const was = SHORTLIST.plant; SHORTLIST.plant = 'nobest'; const runsN = strategyRuns(E, P.cp, P.plan, { seed: SEED, to: NRUN }); SHORTLIST.plant = was;
+  const a = coupleAheadOf(E, P.cp, P.plan, runsN, { years: 10 }), sc = solvedContext(E, P.cp), zs = E.pathsForSeed(SEED, a.path + 1, sc.totalYears)[a.path];
   setShort(P, null); const whole = runPath(E, solvedContext(E, P.cp), Float64Array.from(zs)); setShort(P, 'order');
-  R.push({ P, W, S, st1, st2, st3a, st3b, nSkips, moved, a, whole });
+  const countedDiff = Array.from(runsN.solved[a.path].level).filter((v, t) => v !== whole.level[t]).length;
+  R.push({ P, W, S, st1, st2, st3a, st3b, nSkips, moved, a, whole, countedDiff });
   setShort(P, null);
 }
 SHORTLIST.plant = '';
@@ -131,9 +138,9 @@ ok('2. the shortlist on: this year\'s move and its skips, the next ten years, th
 ok('3. the paths that are counted take the shortlist: the strategy\'s runs and the skips\' runs decide on it, none held to the whole menu',
   R.every(r => r.st3a.decisions > 0 && r.st3a.shown === 0 && (r.nSkips === 0 || (r.st3b.decisions > 0 && r.st3b.shown === 0))) && R.some(r => r.nSkips > 0),
   R.map(r => `${r.P.id}: the strategy's runs ${r.st3a.decisions} decisions on a shortlist (${r.st3a.shown} held), ${r.moved} of ${NRUN} paths end otherwise; ${r.nSkips} skips run ${r.st3b.decisions} decisions on a shortlist (${r.st3b.shown} held)`).join('; '));
-ok('4. the typical run where the counted paths took the shortlist: the levels of the whole menu\'s own run of the path the rows are shown on',
-  R.every(r => same(r.a.typical, Array.from(r.whole.level))),
-  R.map(r => `${r.P.id}: path ${r.a.path}, ${r.a.typical.filter((v, t) => v !== r.whole.level[t]).length} of ${r.whole.level.length} years' levels differ`).join('; '));
+ok('4. the typical run where the counted paths took a shortlist (one without the cells\' own moves, so the counted run parts from the whole menu\'s on every unit): the levels of the whole menu\'s own run of the path the rows are shown on',
+  R.every(r => same(r.a.typical, Array.from(r.whole.level)) && r.countedDiff > 0),
+  R.map(r => `${r.P.id}: path ${r.a.path}, the typical shown differs from the whole menu's own in ${r.a.typical.filter((v, t) => v !== r.whole.level[t]).length} of ${r.whole.level.length} years, the counted run in ${r.countedDiff}`).join('; '));
 console.log(`${R.map(r => `${r.P.id}: ${isHousehold(r.P.cp) ? 'a household' : 'a couple'}`).join('; ')}`);
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
 process.exit(fail ? 1 : 0);

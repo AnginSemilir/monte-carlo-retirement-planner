@@ -195,6 +195,12 @@ launch" (D135) covers `couple-default.test.mjs`'s edits. The worktree's changes 
   6. **A couple's shown decisions are made on the whole menu** (`couple-shown.test.mjs`).
 
   On step 8's 40 panel units neither fix changes the cut (`results-household-port-floor.txt`), so the identity holds.
+- **The reviewer again: PASS** (`reviews/2026-11-20-default-household-2.md`), one MINOR, now answered:
+  `couple-shown.test.mjs` check 4 could not fail on its household unit. Its counted runs now take a shortlist without the
+  cells' own moves, so the check sees a typical run taken from them on both units. The PASS leaves two conditions to the
+  process:
+  - check 19 runs at B1's gate with its plants; it is the one run of a couple entered younger first on the household route;
+  - SPEED-H's read reaches the maintainer before the batch merges.
 - **Not yet:**
   - `research/solver/household.mjs` importing from `src` (step 1's last line). This is left until after the gate; the
     app does not read it.

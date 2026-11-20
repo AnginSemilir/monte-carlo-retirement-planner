@@ -25,18 +25,26 @@ below this section says "the beta", read it as history. The order from here:
    reviewer on the change of default agrees (`reviews/2026-11-20-default-household.md`, finding 5). The measure is ready:
    `SPEED-H.md`, its rule committed, on SPEED-B's twelve couples, EXPLORATORY.
 
-   **Read (20 Nov, 22:04 UK): HOLDS** (`results-speed-h.txt`, `reports/2026-11-20-speed-h-read.md`). On the household the
-   speed mode loses nothing beyond item 7's bars:
+   **Read (20 Nov, 22:04 UK): HOLDS** (`results-speed-h.txt`, beside it `results-speed-h-beside.txt`;
+   `reports/2026-11-20-speed-h-read.md`; the reviewer at the read PASS, four MINOR answered,
+   `reviews/2026-11-20-read-speed-h.md`). On the household the speed mode loses nothing beyond item 7's bars:
    - pooled survival `-0.008` points (`-0.030` to `+0.013`);
    - spending `-0.0082%`;
-   - the pot `-0.008%`;
-   - the largest loss on a unit `-0.050` points, a half in 1,000.
+   - the capped pot `-0.034%`, the part nearest its bar.
 
-   A path takes the median `x0.63` of the time, a guide, run beside the registered run. Beside it, SPEED-B on today's route,
-   the same twelve couples: LOSES on spending (`-0.0683%`), its paths `x0.79`.
+   S047 carries nearly all of the spending and capped pot. Without it they are `+0.0006%` and `+0.003%`; S047's own capped
+   pot is `-0.442%`.
 
-   The couples' warning's figures ("about 5 in 1,000") are SPEED-B's. Whether to keep its words or change them is yours. The
-   agent recommends keeping them as they stand: they err towards caution, and twelve couples on one seed is a narrow read.
+   The largest loss on a unit, `-0.050` points, is a point estimate. Every unit's interval stays above the warning's 5 in
+   1,000, and S047's reaches lowest, to `-0.273`.
+
+   The twelve are of one shape: 60/40, three years apart, each with its own minimum pot. A path and its solve take the median
+   `x0.72` of the time, a guide (WHOLE was timed first, which flatters SPEED by a few percent). Beside it, SPEED-B on today's
+   route, the same twelve couples: LOSES on spending (`-0.0683%`), at `x0.82` by the same measure.
+
+   The couples' warning's figures ("about 5 in 1,000") are SPEED-B's, and today's route is still what a couple the household
+   plan refuses takes. Whether to keep its words or change them is yours. The agent recommends keeping them as they stand:
+   they err towards caution, and twelve couples of one shape on one seed is a narrow read.
 2. **FIXED (D136's fix round): under the speed mode a couple's shown decisions were made on the shortlist, on either route.** This year's actions,
    the next years and the rows (`src/solverCouple.js`) run the couple's policy as it is. D90's guard, that a decision the
    pages show is made on the whole menu (`src/solverStrategy.js` `shownPolicy`, `research/tests/shortlist-shown.test.mjs`),

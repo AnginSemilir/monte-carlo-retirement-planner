@@ -391,3 +391,4 @@
 19 Nov 20:59 UK | main | research/solver/registrations/household-hsp.md | code 71fb4271c681 | dc85dfaf | load 1.05 0.86 0.45 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-household-hsp.sh
 19 Nov 23:41 UK | main | research/solver/registrations/household-hsp.md | code 71fb4271c681 | dc85dfaf | load 0.39 0.13 0.05 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-household-hsp.sh
 20 Nov 00:37 UK | main | research/solver/registrations/household-hsp.md | code 71fb4271c681 | dc85dfaf | load 0.80 0.24 0.08 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-household-hsp.sh
+20 Nov 04:58 UK | main | research/solver/registrations/household-hsp.md | code 71fb4271c681 | dc85dfaf | load 0.33 0.14 0.05 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-household-hsp.sh

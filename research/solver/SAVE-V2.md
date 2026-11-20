@@ -113,11 +113,12 @@ split cuts is a harm, however the panel gains.
   before any path; each arm held to `E.runTrial` on its first 200 paths; `runPolicy` beside the engine on its first `1,000`,
   recording each working year's save and tier pair and the pots at the top of the first retired year; chunks of `1,000`
   paths, resumed after a restart; no outcome in a log under the registration.
-- **The read**, `reduce-save-v2.mjs` (`--planted`, 12 checks): the stamps, the gate (26 planted refusals), the rule and
+- **The read**, `reduce-save-v2.mjs` (`--planted`, 13 checks): the stamps, the gate (31 planted refusals), the rule and
   the report, an anchors flag named in the outcome under a PASS.
-- **The sizing**, `size-save-v2.mjs` (`--planted`, 3 checks), and **the batch**, `batch-save-v2.sh` (`registered`, `pilot`,
+- **The sizing**, `size-save-v2.mjs` (`--planted`, 5 checks), and **the batch**, `batch-save-v2.sh` (`registered`, `pilot`,
   `preflight`, `RESUME=1`).
-- **The pilot:** four households, the younger cohort's places 0 and 5 and the library's places 0 and 15. Seed 7002, `1,000`
+- **The pilot:** four households, the younger cohort's places 0 and 5 and the library's places 0 and 23 (the first pilot
+  took place 15; place 23 since the design review, for a library household with fifteen working years). Seed 7002, `1,000`
   paths, all four arms, one household a core. **The preflight:** the other 36, each through every check before any path,
   then two paths.
 - **Found while building it, for the design reviewer: the stamp's reading of a shell script.**
@@ -128,6 +129,26 @@ split cuts is a harm, however the panel gains.
   - Those audits are frozen (two read, one running), so they are left as they are.
   - This audit reads a shell script only for the solver scripts it names. Its planted check (no file in the stamp missing
     but the run's own data) fails with that line taken out.
+
+## The design review's answers (20 Nov; `reviews/2026-11-20-save-v2-design.md`, PASS, nine MINORs)
+
+- **1, the preflight:** a condition of launch in the registration, run again if the audit's checks or their imports change.
+- **4, part 3's operating characteristic:** the sizing prints it at each pilot household's paired noise and at S308F's in
+  the factorial (`size-save-v2.mjs` `part3Rate`, `spendSe`); the read's planted cases gain an S308F-sized harm caught among
+  forty; the plants (`SIZE_SV2_PLANT=noholm`, and a copy of the read without the bar) fail exactly their checks.
+- **5, the pilot:** the library's place 23 for 15, a household with fifteen working years.
+- **6, a PASS's reach:** the PASS line commits the change of default to a guard keeping a couple's solves off the split,
+  and lists what it reaches untested.
+- **7, beside the rule:** the audit keeps each year's spending level on every path and each arm's estate cap; the read
+  prints the cohorts apart, the pot left by household (mean, median, capped) and the levels of any household named.
+- **8, the Outcomes:** a gate refusal gives no outcome; a FAIL on part 2 alone with spending up beyond noise comes back to
+  the maintainer; only Paths, Budget, part 3's rates, Seed and Design review change after the review.
+- **9, the gate:** each paired arm's settings line held to its pair's, byte for byte, with two planted refusals; and the
+  levels, the estate cap and each household's employment and base year required, each with its planted refusal.
+- **2 and 3, the maintainer's:** whether a spending harm on anchors comes back before a change of default (D133 (3) covers
+  D34's flags alone); whether to model the cap on salary sacrifice's NIC relief from April 2029 before the run. Meanwhile
+  the read prints, beside the rule, the share of the employees' working-year decisions from 2029 that take the pension
+  first, and the registration says which way the limitation leans.
 
 ## Box
 

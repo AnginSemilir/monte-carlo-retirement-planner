@@ -3,8 +3,20 @@
 DRAFT (19 Nov, filled 20 Nov), written while step 8 ran, as D130 (7) orders. Not run. Its design is `SAVE-V2.md`. Its
 panel's source and the three choices in it were ruled on 19 Nov (D133). The panel is landed and the pilot and its sizing
 are in (20 Nov). Its fields in `<...>` wait on the seed's reservation and on its design review; the launcher's check
-refuses it until each is filled. The pilot and the sizing are taken again on the final files after the design review, as
-step 8's were. Then the maintainer before launch.
+refuses it until each is filled. Its design review (20 Nov) PASSED with nine MINORs, answered here and in the code, two of
+them put to the maintainer (`reviews/2026-11-20-save-v2-design.md`). After that review only Paths, Budget, part 3's
+operating characteristic, Seed and Design review change, from the pilot and the sizing taken again on the final files;
+anything else goes back to the reviewer.
+- **The launch's conditions:**
+  - the preflight complete with no household refused: every check before any path in all four arms, then two paths of
+    seed 7002, on the 36 households outside the pilot (from 20 Nov 08:59 UK). Its first eight units ran on audit
+    17ca54eedf37, the rest on the files as edited for the design review's answers. Those edits touch the pilot's places,
+    the run's records, the read and the sizing, and none of the checks before any path or what they import; from unit 22
+    on, its households are those outside the new pilot, so S238 is checked there and S270 (the new pilot's) is not. It
+    runs again if those checks or anything they import change;
+  - the pilot taken again on the final files after the preflight has finished, with nothing else running (D21), and the
+    sizing from it;
+  - the seed reserved by the maintainer's unlock, and the maintainer's word.
 Read once, by `research/solver/reduce-save-v2.mjs`, after its gate. Its machinery (the panel `save-v2-panel.mjs`, the audit
 `audit-save-v2.mjs`, the read, the sizing `size-save-v2.mjs` and the batch `batch-save-v2.sh`) is built, each script's
 `--planted` passing. Run so far, all EXPLORATORY: the landing (seed 7005), the pilot (seed 7002) and the preflight.
@@ -23,6 +35,15 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
     - It ran on anchors, where the split's shortlists are drawn from a menu three times as long as the candidate's. That
       approximation is unmeasured.
     - The engine's ISA defect, fixed since (675090f5, D130 (1)), reached one household of it (S310F), in both arms.
+- **A limitation bearing on this test (the design review's MINOR 3):** the engine relieves salary sacrifice of employee
+  NIC in every year, where the law caps that relief at £2,000 a year from April 2029 (not modelled, and said so in the app:
+  D112 (M6)).
+  - Both arms share it, so the comparison is fair within the model.
+  - It favours the pension first, one of the split's two answers. Above the cap in the main band the engine credits
+    about 11% more pension per net pound than the law gives, and about 3% more at the higher rate.
+  - 30 of the 40 households are employees. The read prints beside the rule the share of the employees' working-year
+    decisions from 2029 that CANDS takes the pension first.
+  - Whether to model the cap before this run is the maintainer's (put on 20 Nov).
 - **Arms:** CANDD 3a344e9f7ec6, CANDS 3f7b0397f544 (`audit-save-v2.mjs` `configOf`, as `candidate.mjs` `hashOf` hashes the candidate), each scored by the engine on the same paths of the held-out seed, at 45 points and the estate weight 0.02
   - **CANDD:** the candidate 17ff82379838 on the whole menu (its `coarse` key taken out).
   - **CANDS:** the same with `saveSplit: true`.
@@ -48,8 +69,10 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
 - **Seed:** 7025 `<reserved in check-prediction.mjs for save-v2*.md by the maintainer's unlock, named in its commit>`
 - **Paths:** 16,000 for every household on the whole menu, and the anchors pair on each household's first 4,000 (`save-v2-paths.json`; `results-save-v2-sizing.txt`)
   - D34's size for each household's comparison at the pilot's discordance (its upper 95% bound, never below `D_MIN`) is
-    the floor of 16,000 on all four pilot households. The pilot is seed 7002, 1,000 paths, the younger cohort's places 0
-    and 5 and the library's 0 and 15 (`audit-save-v2.mjs` `PILOT_PLACES`); that bound is at most 2.59%.
+    the floor of 16,000 on all four pilot households of the first pilot (seed 7002, 1,000 paths, the younger cohort's
+    places 0 and 5 and the library's 0 and 15); that bound is at most 2.59%. The pilot on the final files takes the
+    library's place 23 for its place 15, so it samples a library household with fifteen working years as well as one with
+    five (`audit-save-v2.mjs` `PILOT_PLACES`; the design review's MINOR 5).
   - At 16,000 a true 1-point loss reads as harm at least 90% of the time up to a discordance of 10.50%. The cap is D61's
     19,000. A comparison whose 1-point rate at its realised discordance falls below 0.90 is read there and named with its
     rate (D34 (4)).
@@ -59,6 +82,9 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   - Each household's working-year choices (D130 (7)), on `runPolicy`'s first 1,000 paths beside the engine: at each
     working-year decision, the save choice (the plan's, pension first, ISA first) and each wrapper's tier.
   - The pots at the top of the first retired year.
+  - Each year's spending level on every path (as the factorial kept it), and each arm's estate cap.
+  - Beside the rule, deciding nothing: the cohorts apart; the pot left by household, its mean, its median and capped at the
+    estate cap; the spending level by retired year of any household part 1 flags or part 3 fails.
 - **Decision rule:** CANDS against CANDD over the panel; it passes if all three hold
   1. **no harm:** no household flagged by D34's harm rule, compared in whole paths (`reduce-share-rules.mjs harmExact`);
   2. **a gain:** the pooled survival change, its 95% interval by path (`reduce-phase4.mjs survivalItem`), lower end
@@ -68,10 +94,23 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
      estimate (the households weighted equally, each in percent of its own CANDD mean) not below -0.05%.
   - S308F's harm in the factorial, `-0.250%`, would fail part 3: a household whose spending the split cuts is a harm,
     however the panel gains.
+  - Part 3's bar is read on the point estimate, so a true loss of exactly 0.1% fails about half the time. The sizing
+    prints the chance a true loss of 0.05, 0.08, 0.1, 0.12 and 0.25% fails part 3 at each pilot household's paired noise
+    and at S308F's in the factorial (`results-save-v2-sizing.txt`, part 3's operating characteristic):
+    `<the rates, from the sizing on the final files>`.
 - **Outcomes:** PASS makes the split part of the candidate for singles who work and save, a change of default; FAIL closes it; a flagged household stops the change
   - **PASS:** `saveSplit: true` joins the candidate for singles who work and save, in the commit of the D-line naming
     this run, with the reviewer on the change of default before it is committed, to `main` on B1's gate.
-  - **FAIL:** the split stays off and is closed as measured.
+    - The same commit keeps a couple's solves off the split, with its test and plant: a couple's person-solves take the
+      candidate's settings (`src/solverApp.js`), and nothing yet keeps the split out of them.
+    - What a PASS reaches untested, said in the D-line, by inference only: the dial's locked positions 3, 6 and 10,
+      consent to change risk withdrawn (one tier pair, on the whole menu), the speed mode, the 'lower' estate aim, and the
+      years from 2029 for a salary-sacrificing employee (above).
+  - **FAIL:** the split stays off and is closed as measured, with one exception: a FAIL on part 2 alone, parts 1 and 3
+    holding and the pooled lifetime spending up beyond noise (its interval by path above nought), comes back to the
+    maintainer as the trade it is (survival not shown up, spending up), not closed.
+  - **The gate refusing:** no outcome. The read goes back to the maintainer with the gate's lines, and no result of seed
+    7025 read.
   - **A household flagged:** no change of default, whatever the pooled gain; the household goes to investigation (D34 (3)).
   - A couple's plan does not take the split (`SAVINGS-SPLIT.md` scope); a test of it for couples would be its own.
 - **Budget:** 45.9 core-hours over the 40 households and the longest once more for a relaunch; 12.1 hours on four cores in the batch's order; the longest household 1.28 hours (`results-save-v2-sizing.txt`)

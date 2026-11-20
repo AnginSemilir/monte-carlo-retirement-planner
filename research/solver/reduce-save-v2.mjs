@@ -51,7 +51,7 @@ const iv = (r, f = f3) => `${f(r.d)} (${f(r.lo)} to ${f(r.hi)})`;
 const sum = a => { let s = 0; for (const x of a) s += x; return s; };
 const mean = a => sum(a) / a.length, median = a => { const s = [...a].sort((p, q) => p - q), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
 const dec = (str, Ty) => { const b = Buffer.from(str, 'base64'), c = new Uint8Array(b.length); c.set(b); return new Ty(c.buffer, 0, b.length / Ty.BYTES_PER_ELEMENT); };
-export const armOf = x => ({ ...x, ...Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, dec(x[k], Ty)])) });
+export const armOf = x => ({ ...x, ...Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, dec(x[k], Ty)])), level: typeof x.level === 'string' ? dec(x.level, Uint8Array) : x.level || null });
 export function loadDir(dir) {
   return readdirSync(dir).filter(x => /\.json\.gz$/.test(x)).map(x => { const U = JSON.parse(gunzipSync(readFileSync(join(dir, x))).toString()); for (const a of ALL_ARMS) if (U.arms[a]) U.arms[a] = armOf(U.arms[a]); return U; });
 }
@@ -95,9 +95,16 @@ export function gate(units, want, { seed, prediction = null, audit = null, paths
       if (!onAnchors(arm) && A.menu !== 'whole') P.push(`${u.id} ${arm}: on the menu ${A.menu}, not the whole menu`);
       const safe = f => { try { return f(); } catch (e) { return [`its settings line unreadable (${e.message})`]; } };
       for (const q of safe(() => settingsProblems(arm, A.settings, u.pts !== PTS))) P.push(`${u.id} ${arm}: ${q}`);
+      // each year's level on every path, and the arm's estate cap (the design review's MINOR 7)
+      if (!(A.Y > 0) || !A.level || A.level.length !== nOf(arm, u.N) * A.Y) P.push(`${u.id} ${arm}: its levels not ${A.Y} years a path`);
+      if (!(A.estateCap > 0)) P.push(`${u.id} ${arm}: no estate cap`);
       seen[arm] = { inputs: A.inputs, T: A.T, retireT: A.retireT, workT: A.workT || [] };
     }
     for (const q of sameProblems(seen)) P.push(`${u.id}: ${q}`);
+    // each paired arm's settings line its pair's, byte for byte: the fair test's diff of what each run recorded (CHECKLIST 3;
+    // the design review's MINOR 9), the split itself checked apart (saveSplit above)
+    for (const [x, y] of [['CANDD', 'CANDS'], ['CANDDA', 'CANDSA']]) if (u.arms[x] && u.arms[y] && u.arms[x].settings !== u.arms[y].settings) P.push(`${u.id}: ${y}'s settings line is not ${x}'s`);
+    if (typeof u.selfEmployed !== 'boolean' || !(u.baseYear > 2000)) P.push(`${u.id}: no employment or base year recorded`);
   }
   return P;
 }
@@ -151,6 +158,20 @@ export function report(units) {
   log(`  spending on the paths both keep, CANDS against CANDD: ${iv(C.spend.kept.pooled, f4)}%, weighted by pounds`);
   const pot = a => mean(units.map(u => mean(u.arms[a].pot))), tax = a => mean(units.map(u => mean(u.arms[a].tax)));
   log(`  the pot left, the mean a household: CANDD ${gbp(pot('CANDD'))}, CANDS ${gbp(pot('CANDS'))}; lifetime tax: CANDD ${gbp(tax('CANDD'))}, CANDS ${gbp(tax('CANDS'))}`);
+  // the cohorts apart (the design review's MINOR 7)
+  for (const [c, name] of [['fire', 'the younger cohort'], ['lib', "the library's cohort"]]) {
+    const us = units.filter(u => u.cohort === c); if (!us.length) continue;
+    const X = compare(us, 'CANDD', 'CANDS'); log(`  ${name} (${us.length}), CANDS against CANDD: pooled survival ${iv(X.pooled)}; lifetime spending ${iv(X.spend.pooled, f4)}%`);
+  }
+  // the employees' working-year decisions from 2029, when the cap on salary sacrifice's NIC relief starts, which the engine
+  // does not model (D112 (M6); the design review's MINOR 3), on runPolicy's first paths beside the engine
+  { let tot = 0, pen = 0, hh = 0;
+    for (const u of units) {
+      if (u.selfEmployed) continue; hh++;
+      const b = u.arms.CANDS.beside, saves = dec(b.save, Uint8Array), workT = u.arms.CANDS.workT || [], nw = b.years;
+      for (let k = 0; k < b.N; k++) for (let d = 0; d < nw; d++) if (u.baseYear + workT[d] >= 2029) { tot++; if (saves[k * nw + d] === 1) pen++; }
+    }
+    log(`  the employees' working-year decisions from 2029 (the NIC relief on salary sacrifice not capped there, D112 (M6)): CANDS takes the pension first in ${tot ? (100 * pen / tot).toFixed(1) : '-'}% of ${tot}, over ${hh} households`); }
   log(`  runPolicy beside the engine on each arm's first paths: ${sum(units.flatMap(u => ALL_ARMS.map(a => u.arms[a].beside.engineOnly + u.arms[a].beside.policyOnly)))} paths differ in survival of ${sum(units.flatMap(u => ALL_ARMS.map(a => u.arms[a].beside.N)))}`);
   log('  by household (cohort, status; survival CANDD / CANDS; CANDS less CANDD; D34: net loss in paths and threshold; lifetime spending and Holm; on anchors CANDSA less CANDDA; the saves CANDS takes in the working years, the plan\'s / the pension first / the ISA first; its mean tier pair there; the pots at the top of the first retired year, CANDS less CANDD):');
   const sv = X => 100 * sum(X.survived) / X.survived.length;
@@ -159,6 +180,18 @@ export function report(units) {
     const saves = dec(bS.save, Uint8Array), tp = dec(bS.tierPen, Uint8Array), ti = dec(bS.tierIsa, Uint8Array), share = j => (saves.length ? (100 * saves.filter(x => x === j).length / saves.length).toFixed(0) : '-');
     const potOf = (b, k) => mean(dec(b.pots[k], Float64Array));
     log(`    ${u.id.padEnd(6)} ${u.cohort.padEnd(4)} ${u.status.padEnd(9)} ${sv(u.arms.CANDD).toFixed(2)}% / ${sv(u.arms.CANDS).toFixed(2)}%; ${iv(r.ch)} (${r.cells.saved} saved, ${r.cells.lost} lost); net ${r.lost - r.saved} against ${r.j}${r.flag ? ' FLAGGED' : ''}; spending ${f4(s.pct)}% (Holm loss ${s.holmLoss.toExponential(2)})${s.fails ? ' FAILS PART 3' : ''}; anchors ${f3(ra.ch.d)}${ra.flag ? ' FLAGGED' : ''}; saves ${share(0)} / ${share(1)} / ${share(2)}%; tiers ${saves.length ? (sum(tp) / tp.length).toFixed(2) : '-'}/${saves.length ? (sum(ti) / ti.length).toFixed(2) : '-'}; pots pension ${gbp(potOf(bS, 'pen') - potOf(bD, 'pen'))}, ISA ${gbp(potOf(bS, 'isa') - potOf(bD, 'isa'))}, taxable ${gbp(potOf(bS, 'gia') - potOf(bD, 'gia'))}`);
+  }
+  // the pot left by household (the design review's MINOR 7): the mean and the median a path, and capped at the arm's estate cap
+  log('  the pot left by household, CANDS against CANDD (the mean a path; the median a path; capped at the estate cap):');
+  for (const u of units) {
+    const d = u.arms.CANDD, x = u.arms.CANDS, cap = d.estateCap, pc = (a, b) => (a > 0 ? `${f3(100 * (b / a - 1))}%` : '-');
+    const capm = A => mean(Array.from(A.pot, v => Math.min(v, cap)));
+    log(`    ${u.id.padEnd(6)} the mean ${pc(mean(d.pot), mean(x.pot))} (${gbp(mean(x.pot) - mean(d.pot))} a path); the median ${pc(median(Array.from(d.pot)), median(Array.from(x.pot)))}; capped ${pc(capm(d), capm(x))}`);
+  }
+  // the spending level by retired year of each household part 1 flags or part 3 fails (the design review's MINOR 7)
+  for (const id of [...new Set([...R.flagged.map(r => r.id), ...R.spendFail.map(r => r.id)])]) {
+    const u = units.find(x => x.id === id), band = (A, lo, hi) => { let t = 0, c = 0; for (let k = 0; k < A.n; k++) for (let y = A.retireT + lo; y < Math.min(A.Y, A.retireT + hi); y++) { t += A.level[k * A.Y + y]; c++; } return c ? (t / c).toFixed(1) : '-'; };
+    log(`  ${id}'s spending level by retired year, in percent of its target, the mean over its paths (years 0-4 / 5-9 / 10 on): CANDD ${band(u.arms.CANDD, 0, 5)} / ${band(u.arms.CANDD, 5, 10)} / ${band(u.arms.CANDD, 10, 1e9)}, CANDS ${band(u.arms.CANDS, 0, 5)} / ${band(u.arms.CANDS, 5, 10)} / ${band(u.arms.CANDS, 10, 1e9)}`);
   }
   log(`  the time a path (CPU, the mean a household): ${ALL_ARMS.map(a => `${a} ${(mean(units.map(u => u.arms[a].cpuUs / u.arms[a].n)) / 1e3).toFixed(1)} ms`).join(', ')}; the solve, the median a household: ${ALL_ARMS.map(a => `${a} ${median(units.map(u => u.arms[a].solveSecs)).toFixed(0)} s`).join(', ')}`);
   return { R, out };
@@ -173,8 +206,8 @@ function planted() {
   // unless set; N paths (4,000 unless set, so the sign-flip tests stay light), its anchors arms on the first 4,000
   const unit = (id, sD, sS, o = {}) => {
     const N = o.N || 4000, nA = Math.min(ANCHORS_N, N);
-    const A = (n, s, sp) => ({ config: '', n, survived: arr(n, s), failYear: new Int16Array(n), pot: fl(n, () => 100), estate: fl(n, () => 100), tax: fl(n, () => 1), delivered: fl(n, sp || (() => 1000)), unmet: fl(n, () => 0), cpuUs: 1e6, solveSecs: 1, beside: beside() });
-    return { id, cohort: 'lib', status: 'touched', N, arms: { CANDD: A(N, sD), CANDS: A(N, sS, o.spendS), CANDDA: A(nA, o.sDA || sD), CANDSA: A(nA, o.sSA || sS, o.spendSA || o.spendS) } };
+    const A = (n, s, sp) => ({ config: '', n, survived: arr(n, s), failYear: new Int16Array(n), pot: fl(n, () => 100), estate: fl(n, () => 100), tax: fl(n, () => 1), delivered: fl(n, sp || (() => 1000)), unmet: fl(n, () => 0), cpuUs: 1e6, solveSecs: 1, beside: beside(), Y: 10, level: new Uint8Array(n * 10).fill(100), estateCap: 500 });
+    return { id, cohort: o.cohort || 'lib', status: 'touched', selfEmployed: false, baseYear: 2026, N, arms: { CANDD: A(N, sD), CANDS: A(N, sS, o.spendS), CANDDA: A(nA, o.sDA || sD), CANDSA: A(nA, o.sSA || sS, o.spendSA || o.spendS) } };
   };
   const gainU = (id, o) => unit(id, i => i % 10 !== 0, i => i % 20 !== 0, o);
   { const R = rule([gainU('a'), gainU('b')]); cases.push(['CANDS saving 5% of paths on each household, spending held: PASS', `${R.outcome} ${R.parts.harm} ${R.parts.gain} ${R.parts.spend}`, 'PASS true true true']); }
@@ -200,6 +233,10 @@ function planted() {
   { const noisy = () => gainU('n', { spendS: i => 1000 - 1.2 + (i % 2 ? 27 : -27) }), alone = rule([noisy()]), among = rule([noisy(), ...Array.from({ length: 39 }, (_, j) => gainU(`z${j}`))]);
     const ra = alone.C.spend.rows[0], rb = among.C.spend.rows.find(x => x.id === 'n');
     cases.push(['Holm over the households: 0.12% lower on noisy paths fails part 3 alone (p under 0.05), holds among forty (Holm over 0.05)', `${ra.pct.toFixed(2)} ${ra.pLoss < LEVEL} ${alone.spendFail.length} | ${rb.holmLoss >= LEVEL} ${among.spendFail.length} ${among.parts.spend}`, '-0.12 true 1 | true 0 true']); }
+  // an S308F-sized harm among forty (the design review's MINOR 4): a household 0.25% lower on noisy paths fails part 3 with
+  // Holm over the forty
+  { const s308 = gainU('s', { spendS: i => 1000 - 2.5 + (i % 2 ? 27 : -27) }), R = rule([s308, ...Array.from({ length: 39 }, (_, j) => gainU(`z${j}`))]), r = R.C.spend.rows.find(x => x.id === 's');
+    cases.push(['an S308F-sized harm among forty: 0.25% lower on noisy paths fails part 3 with Holm over the forty', `${r.pct.toFixed(2)} ${r.holmLoss < LEVEL} ${R.spendFail.map(x => x.id).join(',')} ${R.parts.spend} ${R.outcome}`, '-0.25 true s false FAIL']); }
   // the bar either side by one path, through the rule's own wiring: CANDD keeps every path of b and CANDS loses its first m
   { const lose = m => unit('b', () => true, i => i >= m), big = gainU('a');
     let m = 1; while (m < 400 && !harmExact(lose(m).arms.CANDS, lose(m).arms.CANDD, 4000).flag) m++;
@@ -246,7 +283,12 @@ function planted() {
       ['run under another prediction', null, { prediction: 'r' }, /not run under r/],
       ["a code not the panel's", null, { code: 'k' }, /not the code the panel was landed on/],
       ['a launch log short of the units', null, { logs: logsOf({ short: true }) }, /1 launch logs for 2 units/],
-      ["a unit's log without its done line", null, { logs: logsOf({ aDone: false }) }, /a: 1 launch logs name it, without its done line/]
+      ["a unit's log without its done line", null, { logs: logsOf({ aDone: false }) }, /a: 1 launch logs name it, without its done line/],
+      ["a paired arm's settings line not its pair's (a field the wanted list leaves out)", us => { us[0].arms.CANDS.settings = us[0].arms.CANDS.settings.replace('mix 3', 'mix 4'); }, {}, /a: CANDS's settings line is not CANDD's/],
+      ["an anchors arm's settings line not its pair's", us => { us[1].arms.CANDDA.settings = us[1].arms.CANDDA.settings.replace('raiseW 0.003', 'raiseW 0.004'); }, {}, /b: CANDSA's settings line is not CANDDA's/],
+      ['the levels not one a year of every path', us => { us[0].arms.CANDD.level = new Uint8Array(5); }, {}, /a CANDD: its levels not 10 years a path/],
+      ['no estate cap', us => { us[1].arms.CANDSA.estateCap = 0; }, {}, /b CANDSA: no estate cap/],
+      ['no employment recorded', us => { delete us[0].selfEmployed; }, {}, /a: no employment or base year recorded/]
     ];
     const missed = faults.filter(([, mod, o, re]) => !G(mod, o).some(x => re.test(x))).map(([n]) => n);
     cases.push([`the gate: every refusal on its planted fault (${faults.length})`, missed.join(', ') || 'all fire', 'all fire']); }

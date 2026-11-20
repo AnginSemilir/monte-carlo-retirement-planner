@@ -62,8 +62,9 @@ const { coarse: _coarse, ...WHOLE } = CANDIDATE_OPTS;
 export const BASE = Object.freeze({ CANDD: WHOLE, CANDS: WHOLE, CANDDA: CANDIDATE_OPTS, CANDSA: CANDIDATE_OPTS });
 export const CONFIG = Object.freeze(Object.fromEntries(ALL_ARMS.map(a => [a, { ...BASE[a], ...(isSplit(a) ? { saveSplit: true } : {}) }])));
 export const configOf = arm => hashOf(CONFIG[arm]);
-/* the pilot: the younger cohort's places 0 and 5 and the library's places 0 and 15, one household on each core */
-export const PILOT_PLACES = [['fire', 0], ['fire', 5], ['lib', 0], ['lib', 15]];
+/* the pilot: the younger cohort's places 0 and 5, and the library's place 0 (five working years to choose) and place 23
+   (fifteen: the design review's MINOR 5, the library's places 16 to 29 having fifteen), one household on each core */
+export const PILOT_PLACES = [['fire', 0], ['fire', 5], ['lib', 0], ['lib', 23]];
 export const pilotUnits = panel => panel.filter(u => PILOT_PLACES.some(([c, p]) => u.cohort === c && u.place === p));
 export const notPilot = panel => { const ids = new Set(pilotUnits(panel).map(u => u.id)); return panel.filter(u => !ids.has(u.id)); };
 /*
@@ -138,7 +139,7 @@ async function planted() {
   cases.push(['the arms\' order rotates with the unit', [0, 1, 2, 3, 4].map(k => orderOf(k)[0]).join(','), 'CANDD,CANDS,CANDDA,CANDSA,CANDD']);
   cases.push(['the anchors arms run the first 4,000 paths, the whole menu\'s all', `${nOf('CANDD', 16000)} ${nOf('CANDSA', 16000)} ${nOf('CANDDA', 1000)}`, '16000 4000 1000']);
   cases.push(['the pilot\'s households: the younger cohort\'s places 0 and 5 and the library\'s 0 and 15',
-    pilotUnits([{ id: 'a', cohort: 'fire', place: 0 }, { id: 'b', cohort: 'fire', place: 1 }, { id: 'c', cohort: 'fire', place: 5 }, { id: 'd', cohort: 'lib', place: 0 }, { id: 'e', cohort: 'lib', place: 15 }, { id: 'f', cohort: 'lib', place: 5 }]).map(u => u.id).join(','), 'a,c,d,e']);
+    pilotUnits([{ id: 'a', cohort: 'fire', place: 0 }, { id: 'b', cohort: 'fire', place: 1 }, { id: 'c', cohort: 'fire', place: 5 }, { id: 'd', cohort: 'lib', place: 0 }, { id: 'e', cohort: 'lib', place: 23 }, { id: 'f', cohort: 'lib', place: 5 }, { id: 'g', cohort: 'lib', place: 15 }]).map(u => u.id).join(','), 'a,c,d,e']);
   { const f = stampFiles(), need = ['research/solver/reduce-share-rules.mjs', 'research/solver/fair-gate.mjs', 'research/solver/stats.mjs', 'research/solver/candidate.mjs', 'research/solver/b7-verdict.mjs', 'research/solver/save-v2-panel.mjs', ...STAMP_DATA];
     cases.push(['the stamp holds the read\'s library, the candidate\'s settings and the data files, and none of the code\'s own', `${need.every(x => f.includes(x))} ${f.some(x => x === 'research/engine.mjs' || x.startsWith('src/solver/'))}`, 'true false']);
     const text = rel => readFileSync(join(REPO, rel), 'utf8'), q = name => ['\'', './', name, '\''].join('');
@@ -207,17 +208,21 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const s0 = Date.now(), r = solveArm(arm), solveSecs = (Date.now() - s0) / 1000, n = nOf(arm, N), o = { config: configOf(arm) };
     const ctx = E.buildContext(withTable(r.m.ctx.plan, r)), T = ctx.totalYears, self = ctx.owners.find(x => x.key === 'self');
     const retireT = Math.max(0, Math.min(T + 1, self.retireAge - ctx.ageSelf0)), workT = choiceYears(ctx), line = settingsOf(r);
-    seen[arm] = { inputs: inputsHash(ctx), T, retireT, workT };
+    seen[arm] = { inputs: inputsHash(ctx), T, retireT, workT, baseYear: ctx.baseYear };
     const off = [...armProblems(arm, r), ...(smoke ? [] : settingsProblems(arm, line)), ...sameProblems(seen)];
     if (off.length) { console.error(`audit-save-v2: ${U.id} ${arm}: ${off.join('; ')}`); process.exit(3); }
     if (paths === null) { T0 = T; paths = E.pathsForSeed(seed, N, T).map(zs => Float64Array.from(zs)); }
     const before = await digestOf(tablesOf(r)), pf = partOf(OUT, U.id, arm), menu = r.meta.coarse ? (r.meta.coarse.off ? `whole (${r.meta.coarse.off})` : 'anchors') : 'whole';
     console.log(`${''.padEnd(8)} solved ${arm}: ${Math.round(solveSecs)} s; menu ${menu}, ${r.actions.length} moves; saveSplit ${r.meta.saveSplit || 'off'}; working years to choose ${workT.length ? `${workT[0]}-${workT[workT.length - 1]}` : 'none'}; the first retired year ${retireT}`);
-    let A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, new Ty(n)])), done = 0, chunks = [];
+    // each year's spending level on every path, in percent of the schedule's target (runPath's level, as the factorial kept
+    // it: the design review's MINOR 7), path k's years at k * Y
+    const Y = T + 1;
+    let A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, new Ty(n)])), L = new Uint8Array(n * Y), done = 0, chunks = [];
     if (existsSync(pf)) {
       const P = JSON.parse(gunzipSync(readFileSync(pf)).toString());
       if (P.stamp.code === STAMP.code && P.stamp.audit === STAMP.audit && P.stamp.prediction === STAMP.prediction && P.stamp.sha === STAMP.sha && P.stamp.node === STAMP.node && P.seed === seed && P.N === n && P.pts === pts && P.digest === before && js(P.options) === js(o)) {
-        A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, dec(P.arrays[k], Ty)])); done = P.done; chunks = P.chunks;
+        A = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, dec(P.arrays[k], Ty)])); L = dec(P.arrays.level, Uint8Array); done = P.done; chunks = P.chunks;
+        if (L.length !== n * Y) { console.error(`audit-save-v2: ${U.id} ${arm}: a saved part's levels are not ${n} paths of ${Y} years`); process.exit(3); }
         console.log(`${''.padEnd(8)} resumed ${arm} at path ${done} of ${n}, from a part saved by ${[...new Set(chunks.map(c => c.proc))].join(', ')}`);
       } else console.log(`${''.padEnd(8)} a saved part of ${arm} is not this unit's as solved now: ${arm} starts again`);
     }
@@ -225,14 +230,15 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     while (done < n) {
       const to = Math.min(n, done + CHUNK), load0 = loadavg()[0], c0 = process.cpuUsage(), w0 = performance.now();
       for (let k = done; k < to; k++) {
-        const q = runPath(ctx, paths[k], false);
+        const q = runPath(ctx, paths[k], true);
+        L.set(q.level, k * Y);
         A.survived[k] = q.survived ? 1 : 0; A.failYear[k] = q.failYear; A.pot[k] = q.wealth; A.estate[k] = q.estate; A.tax[k] = q.tax; A.delivered[k] = q.delivered; A.unmet[k] = q.unmet;
       }
       const c = process.cpuUsage(c0);
       chunks.push({ from: done, to, cpuUs: c.user + c.system, wallMs: performance.now() - w0, load: [load0, loadavg()[0]], cpu: cpus()[0].model, proc: PROC });
       done = to;
       const tmp = `${pf}.tmp`;
-      writeFileSync(tmp, gzipSync(js({ stamp: STAMP, seed, N: n, pts, digest: before, options: o, done, chunks, arrays: Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) })));
+      writeFileSync(tmp, gzipSync(js({ stamp: STAMP, seed, N: n, pts, digest: before, options: o, done, chunks, arrays: { ...Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])), level: b64(L) } })));
       renameSync(tmp, pf);
     }
     let bad = 0;
@@ -256,11 +262,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     if (after !== before) { console.error(`audit-save-v2: ${U.id} ${arm}: the tables changed while the paths ran`); process.exit(3); }
     const cpuUs = chunks.reduce((t, x) => t + x.cpuUs, 0), procs = [...new Set(chunks.map(x => x.proc))];
     arms[arm] = { ...o, n, menu, coarse: r.meta.coarse ? (r.meta.coarse.off ? `off:${r.meta.coarse.off}` : 'on') : 'none', saveSplit: r.meta.saveSplit || 'off', tieAboveCap: r.meta.tieAboveCap, actions: r.actions.length, settings: line, digest: before, ...seen[arm],
-      cpuUs, wallMs: chunks.reduce((t, x) => t + x.wallMs, 0), chunks, procs, cpus: [...new Set(chunks.map(x => x.cpu))], place: order.indexOf(arm), solveSecs, beside, ...Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) };
+      cpuUs, wallMs: chunks.reduce((t, x) => t + x.wallMs, 0), chunks, procs, cpus: [...new Set(chunks.map(x => x.cpu))], place: order.indexOf(arm), solveSecs, beside, estateCap: r.estateCap, Y, level: b64(L), ...Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) };
     // under the registration a log carries no outcome: its stamp, its settings, its timings and its done line
     console.log(`${''.padEnd(8)} done ${arm}: config ${o.config}; ${REGISTERED || smoke ? '' : `engine ${(100 * A.survived.reduce((t, v) => t + v, 0) / n).toFixed(2)}% on ${n}; the engine alone ${engineOnly}, runPolicy alone ${policyOnly} of ${NB}; `}CPU ${(cpuUs / 1e6).toFixed(0)} s (${(cpuUs / 1e3 / n).toFixed(1)} ms a path), in ${procs.length} process${procs.length > 1 ? 'es' : ''}; beside ${Math.round(beside.secs)} s`);
   }
-  writeFileSync(join(OUT, fileOf(U.id)), gzipSync(js({ k: pk, id: U.id, base: U.base, cohort: U.cohort, place: U.place, status: U.status, target: U.target, label: a.label, seed, N, nAnchors: nOf('CANDDA', N), warm: WARM, pts, W, stamp: STAMP, configs: Object.fromEntries(ALL_ARMS.map(x => [x, configOf(x)])), order, T: T0, arms })));
+  writeFileSync(join(OUT, fileOf(U.id)), gzipSync(js({ k: pk, id: U.id, base: U.base, cohort: U.cohort, place: U.place, status: U.status, target: U.target, label: a.label, selfEmployed: U.plan.demographics.employmentSelf === 'self-employed', baseYear: seen[order[0]].baseYear, seed, N, nAnchors: nOf('CANDDA', N), warm: WARM, pts, W, stamp: STAMP, configs: Object.fromEntries(ALL_ARMS.map(x => [x, configOf(x)])), order, T: T0, arms })));
   for (const arm of ALL_ARMS) rmSync(partOf(OUT, U.id, arm), { force: true });
   console.log(`${''.padEnd(8)} done unit ${pk} secs ${Math.round((Date.now() - t0) / 1000)}`);
 }

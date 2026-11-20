@@ -24,7 +24,9 @@ import * as E from '../engine.mjs';
 import { sizeOf, runN, flagChance, makespan, inOrderSpan, RUN_MAX, CORES } from './size-household-hsp.mjs';
 import { tpLimit } from './size-couples.mjs';
 import { harmRate, thresholdFor, D_MIN } from './size-phase4.mjs';
-import { loadDir, gate, spendRows } from './reduce-save-v2.mjs';
+import { normUpper, zFor } from './stats.mjs';
+import { gunzipSync } from 'node:zlib';
+import { loadDir, gate, spendRows, HH_SPEND_BAR, LEVEL } from './reduce-save-v2.mjs';
 import { ALL_ARMS, PILOT_N, PILOT_SEED, PATHS_FILE, CHECK, ANCHORS_N, pilotUnits, stampFilesHash, nOf } from './audit-save-v2.mjs';
 import { readSaveV2Panel, PANEL } from './save-v2-panel.mjs';
 
@@ -42,6 +44,21 @@ export const dOf = dUp => (process.env.SIZE_SV2_PLANT === 'nofloor' ? dUp : Math
 export const rateAt = (dUp, n) => { const d = dOf(dUp); return harmRate(d, n, thresholdFor(d, n), 1); };
 /* D34's threshold and the chance a household is flagged at N were its pilot change the truth, the bound floored as above */
 export const flagAt = (s, change, N) => flagChance({ ...s, dUp: dOf(s.dUp) }, change, N);
+/* part 3's operating characteristic (the design review's MINOR 4): the chance a household whose true lifetime spending loss
+   is L (in percent) fails part 3, where its observed change, normal about -L with the household's paired se at the run's
+   paths, falls below the bar and its one-sided p below LEVEL over `households` (Holm's worst rank, so the rate is a lower
+   bound where that rank is not reached). SIZE_SV2_PLANT=noholm (a planted fault) drops the Holm bound. */
+export function part3Rate(L, se, households = 40) {
+  const holmBar = process.env.SIZE_SV2_PLANT === 'noholm' ? 0 : zFor(2 * LEVEL / households) * se, bar = Math.max(-HH_SPEND_BAR, holmBar);
+  return 1 - normUpper((L - bar) / se);
+}
+/* a household's paired spending se, in percent of the base arm's mean, from per-path delivered arrays */
+export function spendSe(base, arm) {
+  const n = Math.min(base.length, arm.length); let m = 0; for (let i = 0; i < n; i++) m += base[i]; m /= n;
+  const d = Array.from({ length: n }, (_, i) => 100 * (arm[i] - base[i]) / m), mu = d.reduce((t, x) => t + x, 0) / n;
+  return Math.sqrt(d.reduce((t, x) => t + (x - mu) ** 2, 0) / (n - 1) / n);
+}
+export const RATE_LOSSES = [0.05, 0.08, 0.1, 0.12, 0.25];
 
 function planted() {
   const cases = [];
@@ -54,6 +71,10 @@ function planted() {
   // below a 1% discordance (3 of 1,000 differ, its upper bound under 1%): the rate and the threshold are D_MIN's, as the read's
   { const flips = (n, k) => { const a = new Uint8Array(n).fill(1); for (let i = 0; i < k; i++) a[i] = 0; return a; }, s = sizeOf(flips(1000, 3), flips(1000, 0)), r = rateAt(s.dUp, 4000), f = flagAt(s, 0, 16000);
     cases.push(['below a 1% discordance the rate and the threshold are taken at D_MIN, as the read takes them: a number, not NaN', `${s.dUp < 0.01} ${Number.isFinite(r) && r === rateAt(D_MIN, 4000)} ${f.t === thresholdFor(D_MIN, 16000)}`, 'true true true']); }
+  // part 3's operating characteristic: a tiny se, the bar alone (a true loss at the bar fails half the time); a large se, the
+  // Holm bound over forty (the one-sided z at 0.05 / 40 times the se) the bar
+  { const z = zFor(2 * LEVEL / 40), a = part3Rate(0.1, 0.001), b = part3Rate(z * 0.05, 0.05), c = part3Rate(0.12, 0.001), d = part3Rate(0.08, 0.001);
+    cases.push(['part 3\'s rate: at the bar half; past it nearly always; inside it nearly never; at a large se the Holm bound the bar', `${a.toFixed(2)} ${c > 0.999} ${d < 0.001} ${b.toFixed(2)}`, '0.50 true true 0.50']); }
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
@@ -82,6 +103,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const N = runN(Object.values(sizes)), lim = tpLimit(N), past = Object.entries(sizes).filter(([, s]) => s.N > N);
   console.log(`what the pilot shows, at the registered ${N} paths (each household's pilot change were it the truth; EXPLORATORY, deciding nothing):`);
   for (const u of pu) { const r = U[u.id], ch = sv(r.arms.CANDS) - sv(r.arms.CANDD), fc = flagAt(sizes[u.id], ch, N); console.log(`  ${u.id.padEnd(6)} ${sg(ch)} points; D34's threshold at ${N} ${fc.t.toFixed(3)}; the chance it is flagged ${fc.chance.toFixed(3)}`); }
+  // part 3's operating characteristic at the run's N (the design review's MINOR 4), at each pilot household's paired spending
+  // noise, and at the factorial's S308F (seed 7002, 4,000 paths, on anchors: the household of the harm part 3 guards against)
+  { const seRows = pu.map(u => { const r = U[u.id]; return [u.id, spendSe(r.arms.CANDD.delivered, r.arms.CANDS.delivered) * Math.sqrt(r.arms.CANDD.delivered.length / N)]; });
+    const fac = join(HERE, 'results', 'save-7002'), facOf = arm => { const j = JSON.parse(gunzipSync(readFileSync(join(fac, `S308F-${arm}.json.gz`))).toString()); const b = Buffer.from(j.main.delivered, 'base64'), c = new Uint8Array(b.length); c.set(b); return new Float32Array(c.buffer); };
+    try { const d = facOf('candd'), x = facOf('cands'); seRows.push(['S308F (the factorial)', spendSe(d, x) * Math.sqrt(d.length / N)]); } catch { console.log('  (the factorial\'s S308F not found: its row left out)'); }
+    console.log(`part 3's operating characteristic at ${N} paths (EXPLORATORY): the chance a household with a true lifetime spending loss of ${RATE_LOSSES.map(l => `${l}%`).join(', ')} fails part 3 (its change below -0.1% and its one-sided p below 0.05 over forty, Holm's worst rank), by the normal approximation at its paired se:`);
+    for (const [id, se] of seRows) console.log(`  ${id.padEnd(22)} se ${se.toFixed(4)}%: ${RATE_LOSSES.map(l => part3Rate(l, se).toFixed(3)).join(' / ')}`); }
   console.log(`the run: every household at ${N} paths on the whole menu (the largest of the pilot's sizes, at most D61's ${RUN_MAX}), its anchors pair on the first ${ANCHORS_N}; at ${N} a true 1-point loss reads as harm at least 90% of the time up to a discordance (its upper bound) of ${(100 * lim).toFixed(2)}%${past.length ? `; past it: ${past.map(([id]) => id).join(', ')}, read at ${N} and named with their rate (D34 (4))` : ''}`);
   const rows = panel.map(u => {
     const y = yearsOf(u), mine = pu.filter(p => p.cohort === u.cohort), pool = mine.length ? mine : pu, from = pool.reduce((b, p) => (Math.abs(yearsOf(p) - y) < Math.abs(yearsOf(b) - y) ? p : b));

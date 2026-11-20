@@ -4105,6 +4105,7 @@
    "research/solver/results-household-hsp.txt",
    "research/solver/results-household-line-check.txt",
    "research/solver/results-household-planted.txt",
+   "research/solver/results-household-port-identity.txt",
    "research/solver/results-household-remedy-beside.txt",
    "research/solver/results-household-remedy-planted.txt",
    "research/solver/results-household-remedy.txt",

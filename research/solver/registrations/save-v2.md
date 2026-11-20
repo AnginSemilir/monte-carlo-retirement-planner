@@ -7,7 +7,7 @@ refuses it until each is filled. Its design review (20 Nov) PASSED with nine MIN
 them put to the maintainer (`reviews/2026-11-20-save-v2-design.md`). After that review only Paths, Budget, part 3's
 operating characteristic, Seed and Design review change, from the pilot and the sizing taken again on the final files;
 anything else goes back to the reviewer.
-- **The launch's conditions:**
+- **The launch's conditions** (each met but the seed and the maintainer's word):
   - the preflight complete with no household refused (MET, 20 Nov 11:31 UK, `results-save-v2-preflight.txt`: all 36,
     none refused, none exiting with an error): every check before any path in all four arms, then two paths of seed 7002,
     on the 36 households outside the pilot (from 20 Nov 08:59 UK). Its first eight units ran on audit
@@ -16,7 +16,7 @@ anything else goes back to the reviewer.
     on, its households are those outside the new pilot, so S238 is checked there and S270 (the new pilot's) is not. It
     runs again if those checks or anything they import change;
   - the pilot taken again on the final files after the preflight has finished, with nothing else running (D21), and the
-    sizing from it;
+    sizing from it (MET, 20 Nov 12:04 UK);
   - the seed reserved by the maintainer's unlock, and the maintainer's word.
 Read once, by `research/solver/reduce-save-v2.mjs`, after its gate. Its machinery (the panel `save-v2-panel.mjs`, the audit
 `audit-save-v2.mjs`, the read, the sizing `size-save-v2.mjs` and the batch `batch-save-v2.sh`) is built, each script's
@@ -72,14 +72,13 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
 - **Seed:** 7025 `<reserved in check-prediction.mjs for save-v2*.md by the maintainer's unlock, named in its commit>`
 - **Paths:** 16,000 for every household on the whole menu, and the anchors pair on each household's first 4,000 (`save-v2-paths.json`; `results-save-v2-sizing.txt`)
   - D34's size for each household's comparison at the pilot's discordance (its upper 95% bound, never below `D_MIN`) is
-    the floor of 16,000 on all four pilot households of the first pilot (seed 7002, 1,000 paths, the younger cohort's
-    places 0 and 5 and the library's 0 and 15); that bound is at most 2.59%. The pilot on the final files takes the
-    library's place 23 for its place 15, so it samples a library household with fifteen working years as well as one with
-    five (`audit-save-v2.mjs` `PILOT_PLACES`; the design review's MINOR 5).
+    the floor of 16,000 on all four pilot households. The pilot on the final files (20 Nov 11:33 to 12:04 UK, audit
+    f0a49255366e; seed 7002, 1,000 paths, all four arms) took the younger cohort's places 0 and 5 (S300F, S330F) and the
+    library's places 0 and 23 (S180, five working years; S270, fifteen: the design review's MINOR 5); that bound is at
+    most 2.59%.
   - At 16,000 a true 1-point loss reads as harm at least 90% of the time up to a discordance of 10.50%. The cap is D61's
     19,000. A comparison whose 1-point rate at its realised discordance falls below 0.90 is read there and named with its
     rate (D34 (4)).
-  - Provisional until the pilot runs again on the final files.
 - **Primary metric:** survival scored by the engine (`runPath`, held to `E.runTrial` on the first 200 paths of each arm), paired on the same paths of the held-out seed.
   - Recorded beside it on every path: lifetime spending delivered, the pot left and lifetime tax.
   - Each household's working-year choices (D130 (7)), on `runPolicy`'s first 1,000 paths beside the engine: at each
@@ -100,7 +99,10 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   - Part 3's bar is read on the point estimate, so a true loss of exactly 0.1% fails about half the time. The sizing
     prints the chance a true loss of 0.05, 0.08, 0.1, 0.12 and 0.25% fails part 3 at each pilot household's paired noise
     and at S308F's in the factorial (`results-save-v2-sizing.txt`, part 3's operating characteristic):
-    `<the rates, from the sizing on the final files>`.
+    - at the pilot's households' noise (a paired se of 0.0075% to 0.0152% at 16,000 paths), a true loss of 0.12% fails
+      part 3 with chance 0.906 to 0.996, of 0.10% with 0.500, of 0.08% with 0.004 to 0.094, and of 0.05% with at most 0.001;
+    - at the factorial's S308F's noise (0.0281%), 0.12% fails it with chance 0.762, 0.08% with 0.238, 0.05% with 0.038;
+      its own `-0.250%` fails it always.
 - **Outcomes:** PASS makes the split part of the candidate for singles who work and save, a change of default; FAIL closes it; a flagged household stops the change
   - **PASS:** `saveSplit: true` joins the candidate for singles who work and save, in the commit of the D-line naming
     this run, with the reviewer on the change of default before it is committed, to `main` on B1's gate.
@@ -116,8 +118,6 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
     7025 read.
   - **A household flagged:** no change of default, whatever the pooled gain; the household goes to investigation (D34 (3)).
   - A couple's plan does not take the split (`SAVINGS-SPLIT.md` scope); a test of it for couples would be its own.
-- **Budget:** 45.9 core-hours over the 40 households and the longest once more for a relaunch; 12.1 hours on four cores in the batch's order; the longest household 1.28 hours (`results-save-v2-sizing.txt`)
-  - Measured from the pilot on this machine, 20 Nov 08:24 to 08:55 UK, with nothing else running but one commit's
-    fast-tier check (17 s) (D21).
-  - Provisional: taken again from the pilot on the final files.
+- **Budget:** 46.5 core-hours over the 40 households and the longest once more for a relaunch; 12.3 hours on four cores in the batch's order; the longest household 1.28 hours (`results-save-v2-sizing.txt`)
+  - Measured from the pilot on the final files on this machine, 20 Nov 11:33 to 12:04 UK, with nothing else running (D21).
 - **Design review:** `<research/solver/reviews/<date>-save-v2-design.md>`

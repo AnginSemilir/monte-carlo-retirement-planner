@@ -138,7 +138,10 @@ export function rule(units) {
   const C = compare(units, 'CANDD', 'CANDS'), flagged = C.rows.filter(r => r.flag), spendFail = C.spend.rows.filter(r => r.fails);
   const parts = { harm: flagged.length === 0, gain: C.pooled.lo > POOL_BAR, spend: spendFail.length === 0 && C.spend.pooled.d >= POOL_SPEND_BAR };
   const A = compare(units, 'CANDDA', 'CANDSA'), anchorsFlagged = A.rows.filter(r => r.flag);
-  return { C, A, flagged, spendFail, anchorsFlagged, parts, outcome: parts.harm && parts.gain && parts.spend ? 'PASS' : 'FAIL' };
+  // D134 (2): under a PASS, a household failing part 3's household clause on anchors, and the pair on anchors with its pooled
+  // survival interval wholly below nought, come back to the maintainer before any change of default, deciding nothing here
+  const anchorsSpendFail = A.spend.rows.filter(r => r.fails), anchorsDown = A.pooled.hi < 0;
+  return { C, A, flagged, spendFail, anchorsFlagged, anchorsSpendFail, anchorsDown, parts, outcome: parts.harm && parts.gain && parts.spend ? 'PASS' : 'FAIL' };
 }
 
 /* the read's report after its gate: the rule, its outcome and what is printed beside it (lines, so a planted case can read
@@ -149,7 +152,7 @@ export function report(units) {
   log(`  1. no household flagged by D34's harm rule: ${R.flagged.length ? R.flagged.map(r => `${r.id} (${r.lost - r.saved} paths net against a threshold of ${r.j})`).join('; ') : 'none'}: ${R.parts.harm ? 'HOLDS' : 'FAILS'}`);
   log(`  2. pooled survival ${iv(C.pooled)} over ${units.length} households, by path, its lower end above 0: ${R.parts.gain ? 'HOLDS' : 'FAILS'}`);
   log(`  3. no household's lifetime spending lower beyond noise (Holm at 5%) by more than 0.1%: ${R.spendFail.length ? R.spendFail.map(r => `${r.id} ${f4(r.pct)}% (Holm ${r.holmLoss.toExponential(2)})`).join('; ') : 'none'}; the pooled change ${iv(C.spend.pooled, f4)}%, the households weighted equally, its point not lower than -0.05%: ${R.parts.spend ? 'HOLDS' : 'FAILS'}`);
-  log(`OUTCOME: ${R.outcome}${R.outcome === 'PASS' ? `: saveSplit joins the candidate for singles who work and save, in the commit of the D-line naming this run, with the reviewer on the change of default (SAVE-V2.md)${R.anchorsFlagged.length ? `; first, the ${R.anchorsFlagged.length} household${R.anchorsFlagged.length > 1 ? 's' : ''} flagged on anchors (${R.anchorsFlagged.map(r => r.id).join(', ')}) go to the maintainer with this read (D133 (3))` : ''}` : `: the split stays off and is closed as measured${R.flagged.length ? `; ${R.flagged.map(r => r.id).join(', ')} to investigation (D34 (3))` : ''}; to the maintainer`}`);
+  log(`OUTCOME: ${R.outcome}${R.outcome === 'PASS' ? `: saveSplit joins the candidate for singles who work and save, in the commit of the D-line naming this run, with the reviewer on the change of default (SAVE-V2.md)${R.anchorsFlagged.length ? `; first, the ${R.anchorsFlagged.length} household${R.anchorsFlagged.length > 1 ? 's' : ''} flagged on anchors (${R.anchorsFlagged.map(r => r.id).join(', ')}) go to the maintainer with this read (D133 (3))` : ''}${R.anchorsSpendFail.length || R.anchorsDown ? `; first, ${[...R.anchorsSpendFail.map(r => `${r.id} (its lifetime spending on anchors ${f4(r.pct)}%, Holm ${r.holmLoss.toExponential(2)})`), ...(R.anchorsDown ? [`the pair on anchors (its pooled survival ${iv(A.pooled)})`] : [])].join(' and ')} go to the maintainer with this read before any change of default (D134 (2))` : ''}` : `: the split stays off and is closed as measured${R.flagged.length ? `; ${R.flagged.map(r => r.id).join(', ')} to investigation (D34 (3))` : ''}; to the maintainer`}`);
   log('\nBESIDE THE RULE, deciding nothing:');
   log(`  the pair on anchors, CANDSA against CANDDA on the first ${A.n} paths: pooled survival ${iv(A.pooled)}; flagged by D34: ${R.anchorsFlagged.length ? R.anchorsFlagged.map(r => `${r.id} (${r.lost - r.saved} net against ${r.j})`).join('; ') : 'none'}; lifetime spending pooled ${iv(A.spend.pooled, f4)}%, lower beyond noise by more than 0.1%: ${A.spend.rows.filter(r => r.fails).map(r => `${r.id} ${f4(r.pct)}%`).join(', ') || 'none'}`);
   for (const [b, x] of [['CANDD', 'CANDDA'], ['CANDS', 'CANDSA']]) { const X = compare(units, b, x); log(`  ${x} against ${b}, the menu on anchors against the whole, on the first ${X.n} paths: pooled survival ${iv(X.pooled)}; lifetime spending ${iv(X.spend.pooled, f4)}%; D34 flags ${X.rows.filter(r => r.flag).map(r => r.id).join(', ') || 'none'}`); }
@@ -248,7 +251,14 @@ function planted() {
   { const flaggedOnAnchors = gainU('f', { N: 16000, sSA: i => i % 10 !== 0 && i >= 200 }), us = [gainU('a', { N: 16000 }), flaggedOnAnchors], R = rule(us), { out } = report(us), line = out.find(x => /^OUTCOME/.test(x));
     cases.push(['a household flagged on anchors alone: the rule PASSES and the outcome sends it to the maintainer first; the anchors pair read on 4,000 paths', `${R.outcome} ${R.anchorsFlagged.map(r => r.id).join(',')} ${/first, the 1 household flagged on anchors \(f\) go to the maintainer/.test(line)} ${R.C.n} ${R.A.n}`, 'PASS f true 16000 4000']);
     const clean = report([gainU('a'), gainU('b')]).out.find(x => /^OUTCOME/.test(x));
-    cases.push(['no household flagged on anchors: no such clause', `${/flagged on anchors/.test(clean)}`, 'false']); }
+    cases.push(['no household flagged on anchors: no such clause', `${/flagged on anchors/.test(clean)}`, 'false']);
+    cases.push(['no harm on anchors: no D134 (2) clause', `${/D134 \(2\)/.test(clean)}`, 'false']); }
+  // D134 (2): a household whose spending the split cuts on anchors alone (0.25% on noisy paths): the rule PASSES on the whole
+  // menu and the outcome sends it to the maintainer first; the pair on anchors losing paths pooled is named too
+  { const cut = gainU('c', { spendSA: i => 1000 - 2.5 + (i % 2 ? 27 : -27) }), us = [gainU('a'), cut], R = rule(us), line = report(us).out.find(x => /^OUTCOME/.test(x));
+    cases.push(['a spending harm on anchors alone: PASS, the household named for the maintainer before any change of default (D134 (2))', `${R.outcome} ${R.anchorsSpendFail.map(r => r.id).join(',')} ${/first, c \(its lifetime spending on anchors -0\.2500%.*go to the maintainer with this read before any change of default \(D134 \(2\)\)/.test(line)}`, 'PASS c true']);
+    const down = ['a', 'b', 'd'].map(id => gainU(id, { sSA: i => i % 10 !== 0 && i % 7 !== 1 })), D = rule(down), dl = report(down).out.find(x => /^OUTCOME/.test(x));
+    cases.push(['the pair on anchors with its pooled survival wholly below nought: named under a PASS (D134 (2))', `${D.outcome} ${D.anchorsDown} ${/the pair on anchors \(its pooled survival -/.test(dl)}`, 'PASS true true']); }
   // the gate on built units, each with its own launch log; real settings lines of the candidate on each menu
   { const real = 'pts 45 mix 3 lambda 0.0223606797749979 bequestWeight 0.02 levels 1,1.1,0.95,0.9,0.8 raiseW 0.003 finalIntegral true bridgeRead reader readerRef adaptive readerSplit rs tierState 0/0,1/1,2/2,3/3 tiersBelow 3 tableDealing false switchCharge 0.001 e3 true e3pcls true hr yes jointWorlds true bridgeStep exact switchMargin 0 pclsInterp true lattice unbuilt failDelivered true minPot 22500 readerYears 0 sweepCashIsaTo isa coarse w2a3b3g2c2-NT-LRVOH-h3';
     const want = [{ id: 'a', target: 1, label: 'x' }, { id: 'b', target: 1, label: 'x' }];

@@ -8,8 +8,9 @@ them put to the maintainer (`reviews/2026-11-20-save-v2-design.md`). After that 
 operating characteristic, Seed and Design review change, from the pilot and the sizing taken again on the final files;
 anything else goes back to the reviewer.
 - **The launch's conditions:**
-  - the preflight complete with no household refused: every check before any path in all four arms, then two paths of
-    seed 7002, on the 36 households outside the pilot (from 20 Nov 08:59 UK). Its first eight units ran on audit
+  - the preflight complete with no household refused (MET, 20 Nov 11:31 UK, `results-save-v2-preflight.txt`: all 36,
+    none refused, none exiting with an error): every check before any path in all four arms, then two paths of seed 7002,
+    on the 36 households outside the pilot (from 20 Nov 08:59 UK). Its first eight units ran on audit
     17ca54eedf37, the rest on the files as edited for the design review's answers. Those edits touch the pilot's places,
     the run's records, the read and the sizing, and none of the checks before any path or what they import; from unit 22
     on, its households are those outside the new pilot, so S238 is checked there and S270 (the new pilot's) is not. It
@@ -35,7 +36,7 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
     - It ran on anchors, where the split's shortlists are drawn from a menu three times as long as the candidate's. That
       approximation is unmeasured.
     - The engine's ISA defect, fixed since (675090f5, D130 (1)), reached one household of it (S310F), in both arms.
-- **A limitation bearing on this test (the design review's MINOR 3):** the engine relieves salary sacrifice of employee
+- **A limitation bearing on this test (the design review's MINOR 3; D134 (3): run as is):** the engine relieves salary sacrifice of employee
   NIC in every year, where the law caps that relief at £2,000 a year from April 2029 (not modelled, and said so in the app:
   D112 (M6)).
   - Both arms share it, so the comparison is fair within the model.
@@ -43,13 +44,15 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
     about 11% more pension per net pound than the law gives, and about 3% more at the higher rate.
   - 30 of the 40 households are employees. The read prints beside the rule the share of the employees' working-year
     decisions from 2029 that CANDS takes the pension first.
-  - Whether to model the cap before this run is the maintainer's (put on 20 Nov).
+  - The maintainer ruled to run as is (D134 (3)); modelling the cap is queued as its own engine change for every plan.
 - **Arms:** CANDD 3a344e9f7ec6, CANDS 3f7b0397f544 (`audit-save-v2.mjs` `configOf`, as `candidate.mjs` `hashOf` hashes the candidate), each scored by the engine on the same paths of the held-out seed, at 45 points and the estate weight 0.02
   - **CANDD:** the candidate 17ff82379838 on the whole menu (its `coarse` key taken out).
   - **CANDS:** the same with `saveSplit: true`.
   - **Beside, deciding nothing in the rule (D133 (3)):** CANDDA 17ff82379838 (the candidate itself) and CANDSA bf1cac401c13, the same two on
     anchors, the menu the candidate ships with (`coarseWhereFits`), on each household's first `4,000` paths. A household
-    flagged there by D34's rule comes back to the maintainer before any change of default.
+    flagged there by D34's rule comes back to the maintainer before any change of default (D133 (3)), and so do a household
+    failing part 3's household clause there and the pair if its pooled survival interval there lies wholly below nought
+    (D134 (2)); none of it decides the rule.
 - **Households:** the panel `save-v2-panel.json` (`results-save-v2-panel.txt`): 40 single households who work and save into a pension or an ISA, from the 63 no run has taken the split on (D133 (1) and (2); `results-save-v2-pool.txt`)
   - Landed 20 Nov on code 71fb4271c681, none passed over: the younger cohort's 10 (S300F, S302F, S312F, S318F, S324F,
     S330F, S336F, S342F, S348F, S354F) and the library's first 30 (S180, S182, S186, S192, S196, S198, S202, S208, S212,

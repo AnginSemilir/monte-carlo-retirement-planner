@@ -1,0 +1,40 @@
+THE SAVINGS SPLIT'S v2, THE PREFLIGHT (the design review's MINOR 1; EXPLORATORY, seed 7002, two paths a unit, no outcome): the 36 households outside the pilot, each through every check before any path at 45 points in all four arms; its first eight units on audit 17ca54eedf37, the rest on the files as edited for the design review's answers (627fc4a699d0), the checks before any path the same in both
+THE SAVINGS SPLIT'S v2 (preflight, the pilot's seed, EXPLORATORY; the registered run's is 7025): 36 households (code 71fb4271c681, audit 17ca54eedf37), 36 to run, 4 at a time, from 20 Nov 08:59 UK
+  unit 0/36: S302F (fire, place 1): audit 17ca54eedf37; solved CANDD: 399 s, CANDS: 512 s, CANDDA: 78 s, CANDSA: 85 s; done unit 0 secs 1101
+  unit 1/36: S312F (fire, place 2): audit 17ca54eedf37; solved CANDS: 485 s, CANDDA: 80 s, CANDSA: 82 s, CANDD: 384 s; done unit 1 secs 1059
+  unit 2/36: S318F (fire, place 3): audit 17ca54eedf37; solved CANDDA: 70 s, CANDSA: 74 s, CANDD: 411 s, CANDS: 494 s; done unit 2 secs 1076
+  unit 3/36: S324F (fire, place 4): audit 17ca54eedf37; solved CANDSA: 79 s, CANDD: 395 s, CANDS: 495 s, CANDDA: 69 s; done unit 3 secs 1065
+  unit 4/36: S336F (fire, place 6): audit 17ca54eedf37; solved CANDD: 403 s, CANDS: 534 s, CANDDA: 74 s, CANDSA: 79 s; done unit 4 secs 1119
+  unit 5/36: S342F (fire, place 7): audit 17ca54eedf37; solved CANDS: 540 s, CANDDA: 70 s, CANDSA: 75 s, CANDD: 423 s; done unit 5 secs 1135
+  unit 6/36: S348F (fire, place 8): audit 17ca54eedf37; solved CANDDA: 70 s, CANDSA: 78 s, CANDD: 436 s, CANDS: 498 s; done unit 6 secs 1113
+  unit 7/36: S354F (fire, place 9): audit 17ca54eedf37; solved CANDSA: 81 s, CANDD: 446 s, CANDS: 515 s, CANDDA: 73 s; done unit 7 secs 1141
+  unit 8/36: S182 (lib, place 1): audit 627fc4a699d0; solved CANDD: 296 s, CANDS: 332 s, CANDDA: 43 s, CANDSA: 45 s; done unit 8 secs 735
+  unit 9/36: S186 (lib, place 2): audit 627fc4a699d0; solved CANDS: 333 s, CANDDA: 41 s, CANDSA: 43 s, CANDD: 290 s; done unit 9 secs 727
+  unit 10/36: S192 (lib, place 3): audit 627fc4a699d0; solved CANDDA: 45 s, CANDSA: 44 s, CANDD: 286 s, CANDS: 320 s; done unit 10 secs 714
+  unit 11/36: S196 (lib, place 4): audit 627fc4a699d0; solved CANDSA: 47 s, CANDD: 291 s, CANDS: 331 s, CANDDA: 44 s; done unit 11 secs 733
+  unit 12/36: S198 (lib, place 5): audit 627fc4a699d0; solved CANDD: 296 s, CANDS: 326 s, CANDDA: 39 s, CANDSA: 44 s; done unit 12 secs 726
+  unit 13/36: S202 (lib, place 6): audit 627fc4a699d0; solved CANDS: 323 s, CANDDA: 39 s, CANDSA: 44 s, CANDD: 291 s; done unit 13 secs 716
+  unit 14/36: S208 (lib, place 7): audit 627fc4a699d0; solved CANDDA: 47 s, CANDSA: 46 s, CANDD: 285 s, CANDS: 322 s; done unit 14 secs 719
+  unit 15/36: S212 (lib, place 8): audit 627fc4a699d0; solved CANDSA: 46 s, CANDD: 288 s, CANDS: 335 s, CANDDA: 43 s; done unit 15 secs 731
+  unit 16/36: S214 (lib, place 9): audit 627fc4a699d0; solved CANDD: 299 s, CANDS: 345 s, CANDDA: 51 s, CANDSA: 63 s; done unit 16 secs 779
+  unit 17/36: S218 (lib, place 10): audit 627fc4a699d0; solved CANDS: 342 s, CANDDA: 50 s, CANDSA: 49 s, CANDD: 338 s; done unit 17 secs 802
+  unit 18/36: S222 (lib, place 11): audit 627fc4a699d0; solved CANDDA: 43 s, CANDSA: 47 s, CANDD: 311 s, CANDS: 358 s; done unit 18 secs 780
+  unit 19/36: S226 (lib, place 12): audit 627fc4a699d0; solved CANDSA: 48 s, CANDD: 306 s, CANDS: 371 s, CANDDA: 83 s; done unit 19 secs 837
+  unit 20/36: S230 (lib, place 13): audit 627fc4a699d0; solved CANDD: 586 s, CANDS: 727 s, CANDDA: 112 s, CANDSA: 95 s; done unit 20 secs 1568
+  unit 21/36: S234 (lib, place 14): audit 627fc4a699d0; solved CANDS: 621 s, CANDDA: 41 s, CANDSA: 66 s, CANDD: 766 s; done unit 21 secs 1526
+  unit 22/36: S238 (lib, place 15): audit 627fc4a699d0; solved CANDDA: 89 s, CANDSA: 92 s, CANDD: 487 s, CANDS: 809 s; done unit 22 secs 1516
+  unit 23/36: S242 (lib, place 16): audit 627fc4a699d0; solved CANDSA: 108 s, CANDD: 570 s, CANDS: 1061 s, CANDDA: 97 s; done unit 23 secs 1884
+  unit 24/36: S248 (lib, place 17): audit 627fc4a699d0; solved CANDD: 579 s, CANDS: 429 s, CANDDA: 45 s, CANDSA: 54 s; done unit 24 secs 1133
+  unit 25/36: S250 (lib, place 18): audit 627fc4a699d0; solved CANDS: 666 s, CANDDA: 47 s, CANDSA: 52 s, CANDD: 317 s; done unit 25 secs 1109
+  unit 26/36: S254 (lib, place 19): audit 627fc4a699d0; solved CANDDA: 105 s, CANDSA: 108 s, CANDD: 457 s, CANDS: 423 s; done unit 26 secs 1130
+  unit 27/36: S258 (lib, place 20): audit 627fc4a699d0; solved CANDSA: 59 s, CANDD: 331 s, CANDS: 419 s, CANDDA: 46 s; done unit 27 secs 879
+  unit 28/36: S264 (lib, place 21): audit 627fc4a699d0; solved CANDD: 329 s, CANDS: 420 s, CANDDA: 49 s, CANDSA: 53 s; done unit 28 secs 873
+  unit 29/36: S266 (lib, place 22): audit 627fc4a699d0; solved CANDS: 431 s, CANDDA: 51 s, CANDSA: 53 s, CANDD: 340 s; done unit 29 secs 899
+  unit 30/36: S276 (lib, place 24): audit 627fc4a699d0; solved CANDDA: 49 s, CANDSA: 54 s, CANDD: 330 s, CANDS: 433 s; done unit 30 secs 889
+  unit 31/36: S280 (lib, place 25): audit 627fc4a699d0; solved CANDSA: 54 s, CANDD: 333 s, CANDS: 443 s, CANDDA: 46 s; done unit 31 secs 900
+  unit 32/36: S282 (lib, place 26): audit 627fc4a699d0; solved CANDD: 344 s, CANDS: 437 s, CANDDA: 45 s, CANDSA: 54 s; done unit 32 secs 902
+  unit 33/36: S286 (lib, place 27): audit 627fc4a699d0; solved CANDS: 443 s, CANDDA: 45 s, CANDSA: 55 s, CANDD: 330 s; done unit 33 secs 896
+  unit 34/36: S292 (lib, place 28): audit 627fc4a699d0; solved CANDDA: 51 s, CANDSA: 58 s, CANDD: 340 s, CANDS: 436 s; done unit 34 secs 907
+  unit 35/36: S296 (lib, place 29): audit 627fc4a699d0; solved CANDSA: 54 s, CANDD: 342 s, CANDS: 426 s, CANDDA: 44 s; done unit 35 secs 891
+refused: 0 of 36; a unit exiting with an error: 0
+THE SAVINGS SPLIT'S v2 (preflight): runs done 20 Nov 11:31 UK

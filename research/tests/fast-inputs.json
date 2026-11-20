@@ -4378,6 +4378,7 @@
    "research/solver/results-save-skip.txt",
    "research/solver/results-save-v2-panel.txt",
    "research/solver/results-save-v2-pool.txt",
+   "research/solver/results-save-v2-preflight.txt",
    "research/solver/results-save-v2-sizing.txt",
    "research/solver/results-save.txt",
    "research/solver/results-scan-touched.txt",

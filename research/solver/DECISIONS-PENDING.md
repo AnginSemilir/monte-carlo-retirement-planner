@@ -11,6 +11,20 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (21 Nov, night), from the reviewer on D138's change of default (MINOR 6, `reviews/2026-11-21-default-save-split.md`),
+for your word: two unlocks, by name, for what D138 adds that no protected file records.**
+- **The couples' exclusion.** A couple's solves keep the savings split off on both of the page's routes (`src/solverApp.js`
+  `solveForApp`, a solve with a partner's age). Only `save-default.test.mjs` check 4 pins it (the full tier, unprotected).
+  Every other decided couples default is pinned against the decided-defaults block by `couple-default.test.mjs`
+  (protected), and the block's `couples` entry says nothing of it. The ask: the unlock for `couple-default.test.mjs`, so
+  that the block's `couples` entry records the exclusion and the test pins it there, with a plant.
+- **The fair-test rows.** `fair-variables.mjs` (protected) has no row for the split's two keys (`saveSplit`,
+  `saveIsaFirst`), now candidate keys; D73 (rows 35, 36), D81 (37, 38) and D93 (39 to 43) gave each new setting a row. The
+  settings line each run records names the menu's size, which catches the copies and the hold indirectly, but a
+  registration's fair-test table does not list them. The ask: the unlock for `fair-variables.mjs`, one row for the two.
+- **The agent recommends both**, in one unlock, each protected file named in the commit that edits it. Until then D138's
+  D-line says each is missing and why.
+
 **OPEN (21 Nov, night), from test K's read (D137 (4)), for your word: does the app ask how an employee pays into their
 pension?**
 - **Where it comes from.** Test K (EXPLORATORY; `results-save-k.txt`, `reports/2026-11-21-save-k-read.md`) read THE CAUSE
@@ -136,6 +150,15 @@ as they were put, kept as history:
      - Whether it changed any decision in the registered run cannot be read from its records, which keep the save only in
        the working years.
      - The windfall split's copies, research and closed, had the same defect; the fix covers both.
+   - **Corrected (21 Nov, night; the reviewer on D138's change of default, MINOR 3,
+     `reviews/2026-11-21-default-save-split.md`).** No decision could change on the stale flows, in the registered run or
+     anywhere, so "could pick one on them" and "cannot be read from its records" above are withdrawn:
+     - the centre world is the solve itself (`solve.js`, the worlds built `k === centre ? r : {...}`), which carried the
+       moves a year before the fix;
+     - its scorer makes each copy left out unchoosable (`movesAt`), and the mixture fails a move that fails in any table;
+     - so a left-out copy's combined score was minus infinity at every decision, whatever the other worlds read.
+     - What the stale flows reached was the other worlds' scores and tax for those copies, which the share check (a test
+       mode) compares, and work wasted on them. Check 6's count of copies picked is a guard its plant cannot fail.
 
 **OPEN (20 Nov, evening), found while porting step 8; nothing decided, for your word:**
 1. **The speed mode reaches the household plan's table, unmeasured.** The opt-in "Beta - speed mode" (D97 (3)) hands a

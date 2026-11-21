@@ -1,0 +1,14 @@
+TEST K, BESIDE THE READ (written after the read, deciding nothing): the 30 employees, 4000 paths of seed 7025; the units' tree /home/user/sv2-launch
+
+A. The working years with a saving to place from 2029: 260 of 350 (74.3%); each plan's own pension saving in its first working year from £3540 to £10200, every one above the £2000 a year the cap relieves of NIC
+
+B. K by working years (post hoc, a lead and not a result), its 95% interval by the delta method, and each group's share of the registered gain over the 30:
+  fifteen working years (20, 20 of them working from 2029): K 0.698 (0.648 to 0.748); 88.4% of the registered gain
+  five working years (10, 10 of them working from 2029): K 0.939 (0.785 to 1.093); 11.6% of the registered gain
+
+C. The registered read's guards (reduce-save-v2.mjs compare: D34's harm rule in whole paths; part 3's spending by household, Holm over the 30, its bar 0.1%; the pooled change) on the 30 employees' first 4,000 paths, against CANDDA:
+  CANDSA-T, at income tax relief alone: flagged by D34 none; spending lower beyond noise S348F -0.0750% (Holm 4.50e-3), inside the bar; pooled spending +0.3902 (+0.3803 to +0.4002)%
+  CANDSA, the registered price: flagged by D34 none; spending lower beyond noise none; pooled spending +0.4943 (+0.4816 to +0.5070)%
+  S336F at K's price: 20 lost and 9 saved, 11 net against its threshold of 21
+
+D. S336F at K's price: -0.275 (-0.539 to -0.011) points by path; the ISA first on 73.8% of its working-year decisions under CANDSA and 85.2% under CANDSA-T (runPolicy's first paths)

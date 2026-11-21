@@ -3,7 +3,9 @@
 The deep review's one test of the savings split's v2 (`reviews/2026-11-21-deep-save-v2.md` section 3), ruled by D137 (4);
 its rule `SAVE-K.md`, committed before any unit ran (d56a2910). Run directly as a tracked task on the read's code, from the
 launch worktree at a83cd90b (code 71fb4271c681), 21 Nov 18:17 to 20:26 UK: 31 units, none stopped, none exiting with an
-error. Read once by `reduce-save-k.mjs`; its output whole is `results-save-k.txt`.
+error. Read once by `reduce-save-k.mjs`; its output whole is `results-save-k.txt`. Beside it, written after the read and deciding
+nothing, `results-save-k-beside.txt` (`save-k-beside.mjs`), printing every figure below that the read does not. Corrected on
+the reviewer at the read's three findings (`reviews/2026-11-21-read-save-k.md`).
 
 ## The gate
 
@@ -43,17 +45,41 @@ Against the deep review's prediction:
 - its D-line gives both figures;
 - whether the app asks how an employee pays in goes to the maintainer.
 
+In every outcome, D137 (4) also holds the ISA first back for an employee: an employee's split offers the plan's own saving
+and the pension first. Both arms read here offer the ISA first, so neither figure is the employees' gain as the change ships
+it (the cap, with the ISA first held back); nothing here measures that arm, and D137 (4) accepted the hold's cost
+unmeasured. Part of each pooled figure rests on the route the change removes:
+- the three take the ISA first on `89.2%` (CANDSA) and `93.5%` (CANDSA-T) of their decisions from 2029, and the 30 as a whole
+  on `17.6%` and `19.1%`;
+- S336F, the one household below nought at K's price, takes it on `73.8%` and `85.2%` of its working-year decisions
+  (`results-save-k-beside.txt` D).
+
 ## Beside, deciding nothing
 
-- **What K measures.** K prices an employee's pension pound at income tax relief alone. That is the law for an employee who
-  does not sacrifice salary, in every year, and for a sacrificer's pound above £2,000 a year from April 2029.
-  - The law's price for a sacrificer lies between the engine's and K's: NIC relief in full to April 2029, and on the first
-    £2,000 a year after.
-  - So for a sacrificer, the share of the employees' gain the law keeps lies between `0.726` and all of it, pooled. Nothing
-    here measures it.
-- **One household falls below nought at the lower price:** S336F `-0.275` (9 saved, 20 lost of `4,000`), where CANDSA gave
-  `+0.125` (17 saved, 12 lost). In the registered run it saves ISA first `74.6%` of the time (the deep review's figure,
-  not printed by this read). This is not a harm test, and D34's rule is not applied here.
+- **What K measures, and what the law's price adds** (the reviewer at the read, finding 1). K prices an employee's pension
+  pound at income tax relief alone: the law for an employee who does not sacrifice salary, in every year.
+  - The law relieves a salary sacrificer of employee NIC in full until April 2029, and on the first £2,000 a year of the
+    sacrifice after.
+  - Every one of the 30 plans pays more than that into the pension: from £3,540 to £10,200 in its first working year
+    (`results-save-k-beside.txt` A). So under the cap, a further pound of sacrifice from April 2029 is priced as K priced
+    it, and the pension first's route is K's to the penny. The change's identity holds this on the 30 employees' plans,
+    in `260` of their `260` working years from 2029 (`results-save-default-identity.txt` part 2, committed with the
+    change).
+  - From 2029 lie `260` of the 30 employees' `350` working years with a saving to place (`74.3%`; A).
+  - With the ISA first held back for an employee, a sacrificer's split under the law differs from K's only in 2026 to
+    2028. Only in those years does it also differ from a non-sacrificer's. On these plans, that is all the question of how an
+    employee pays in decides.
+  - Post hoc, a lead and not a result (B): the 20 employees with fifteen working years carry `88.4%` of the registered gain,
+    their K `0.698` (`0.648` to `0.748`); the ten with five carry `11.6%`, their K `0.939` (`0.785` to `1.093`).
+- **The registered read's guards at K's price** (the reviewer at the read, finding 3; `results-save-k-beside.txt` C, post
+  hoc), CANDSA-T against CANDDA on the 30 employees' first `4,000` paths:
+  - D34 flags none. S336F loses 20 paths and saves 9, a net 11 against its threshold of 21.
+  - Part 3 fails none. One household's lifetime spending is lower beyond noise: S348F `-0.0750%` (Holm `4.50e-3`), inside
+    the `0.1%` bar.
+  - Pooled spending is `+0.3902%` (`+0.3803` to `+0.4002`), against the registered CANDSA's `+0.4943%` (`+0.4816` to
+    `+0.5070`) on the same 30, which flags none and has no fall beyond noise.
+- **One household falls below nought at the lower price:** S336F `-0.275` (`-0.539` to `-0.011`) by path (9 saved, 20 lost
+  of `4,000`; D), where CANDSA gave `+0.125` (17 saved, 12 lost). D34's rule does not flag it (C).
 - **The working-year decisions from 2029, over the 30:**
   - the pension first `77.6%` under CANDSA, `74.3%` under CANDSA-T;
   - the ISA first `17.6%` and `19.1%`;

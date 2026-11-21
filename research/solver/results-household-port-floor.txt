@@ -1,0 +1,4 @@
+STEP 8'S PORT, THE FIX ROUND'S REACH (EXPLORATORY, no path run): the page's cut now against the cut under each plant; this code 9f9857213b75
+1. step 8's panel: 40 units, the cut unchanged by either fix on 40
+2. the library's 210 couples as entered: 126 leave their minimum pot at nought; the cut changed by the minimum pot's fix on 126, by the ceilings' on 0; refused by the household plan now 0
+3. the same couples with the limits as the card leaves them set back to free: taken by the household plan before the fix 0 of 210, now 210 (S001: before refused (householdPlanFor: the partner's own limits (tierCeilingPart)), now taken; S003: before refused (householdPlanFor: the partner's own limits (tierCeilingPart)), now taken)

@@ -23,6 +23,7 @@
  */
 import { withTable, modelStateOf } from './solver/bridge.js';
 import { withCouple } from './solver/couple.js';
+import { withHouseholdSingle } from './solver/household.js';
 import { rankActions, wholeMenu } from './solver/solve.js';
 import { vecOf } from './solver/grid.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
@@ -40,7 +41,8 @@ export const yourContext = (E, plan) => E.buildContext(E.resolveMpaa(E.normalize
 /* the solved plan, as the worker's 'simulate' runs it: a single's table (bridge.js withTable), or a couple's two through the
    joint move (couple.js withCouple, Part D D5.2), the household's plan as solved (its minimum pot set) */
 // research/tests/couple-figures.test.mjs plant 'oneperson': a couple's context built from the first person's table alone
-export const solvedContext = (E, solved) => E.buildContext(solved && solved.tables && solved.plans
+// a household (step 8's port: src/solver/household.js) through its table's one move, both people taking it at its split
+export const solvedContext = (E, solved) => E.buildContext(solved && solved.household ? withHouseholdSingle(solved.plan, solved) : solved && solved.tables && solved.plans
   ? (PLANT.rule === 'oneperson' ? withTable(solved.plan, solved.tables.self) : withCouple(solved.plan, solved)) : withTable(solved.m.ctx.plan, solved));
 
 /*

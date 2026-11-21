@@ -64,7 +64,8 @@ import { solveForApp } from './solverApp.js';
 import { arenaPool } from './solverPool.js';
 import { tablesOf, digestOf, sizeOf } from './solverDigest.js';
 import { strategyRuns, strategyAnswer, actionsOf, skipRuns, aheadAnswer, rowsOf, solvedContext } from './solverStrategy.js';
-import { couplePlans, assembleCouple, coupleMeta, isCouple, coupleActionsOf, coupleAheadOf, coupleRowsOf, coupleSkipRuns } from './solverCouple.js';
+import { couplePlans, assembleCouple, coupleMeta, isCouple, coupleActionsOf, coupleAheadOf, coupleRowsOf, coupleSkipRuns, householdCut, householdSolved, householdMeta, isHousehold, isPair } from './solverCouple.js';
+import { bandsAt } from './solver/household.js';
 import { headRuns } from './solverStrategy.js';
 import { distilOf } from './solverDistil.js';
 import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord, codeOf, followRecord } from './solverCache.js';
@@ -74,7 +75,7 @@ import { PLANNER_PLANT } from './plannerPlant.js';
 const E = { ...App, ...App.E };
 let solved = null, held = null;   // held: { key, r }, the base a dial position is solved on, kept between solves
 let runs = null;                  // the Strategy tab's paths run so far: { r, plan, runs } (src/solverStrategy.js)
-let persons = { self: null, part: null };   // a couple's two tables, each { r, plan, ageWith }, until assembled (D5.1)
+let persons = { self: null, part: null, household: null };   // a couple's two tables, or the household's one (step 8's port), each { r, plan, ageWith }, until assembled (D5.1)
 let pending = null;                          // a stored solve 'follow' loaded, { key, rec }, until its split restore takes it (D5.6)
 const takePending = (key) => {
   const p = pending; pending = null;
@@ -85,6 +86,10 @@ const takePending = (key) => {
 // placeholder (a screen change keeps it; step P1 (g)); under `vite dev`, this worker's own URL, as before
 const CODE = codeOf('__SOLVER_CODE_KEY__', self.location);
 const plainMeta = r => JSON.parse(JSON.stringify(r.meta));
+// the household plan's table is solved inside its band scaling (src/solver/household.js bandsAt: the band for gains k times
+// one person's), every solve and restore of it in every worker, so each part's model carries the same band; `b` the solve's
+// `bands` ({ k, paOne, paK }), or none for any other table
+const inBands = (b, f) => (b ? bandsAt(E, b.k, b.paOne, f, !!b.paK) : f());
 
 self.onmessage = async ({ data }) => {
   const { id, kind } = data || {};
@@ -92,11 +97,11 @@ self.onmessage = async ({ data }) => {
     if (kind === 'part') {
       const pool = arenaPool(data.part, data.parts, data.arena);
       try {
-        const base = data.base ? solveForApp(E, M, data.base.plan, { ...data.opts, restore: data.base.rec }) : null;
+        const base = data.base ? inBands(data.bands, () => solveForApp(E, M, data.base.plan, { ...data.opts, restore: data.base.rec })) : null;
         // kept: a split solve's part runs its share of the Strategy tab's paths ('runs', Phase 9). A stored solve restored
         // split (D5.6): this part follows the owner, which copies the record in (`restore`, src/solverCache.js followRecord).
         // A couple's person (D5.6): the part keeps that person's table in their slot, for the couple it assembles after
-        const r = solveForApp(E, M, data.plan, { ...data.opts, e2: pool, ...(base ? { base } : {}), ...(data.restore ? { restore: data.restore } : {}) });
+        const r = inBands(data.bands, () => solveForApp(E, M, data.plan, { ...data.opts, e2: pool, ...(base ? { base } : {}), ...(data.restore ? { restore: data.restore } : {}) }));
         if (data.slot) persons[data.slot] = { r, plan: data.plan, ageWith: data.opts && data.opts.ageWith };
         else { solved = r; runs = null; }
       } catch (e) { pool.fail(); throw e; }
@@ -137,7 +142,7 @@ self.onmessage = async ({ data }) => {
       if (rec) {
         const rpool = data.parts > 1 ? arenaPool(0, data.parts, data.arena) : null;
         let r;
-        try { r = solveForApp(E, M, data.plan, { ...data.opts, restore: rec, progress, ...(rpool ? { e2: rpool } : {}), ...(base ? { base } : {}) }); }
+        try { r = inBands(data.bands, () => solveForApp(E, M, data.plan, { ...data.opts, restore: rec, progress, ...(rpool ? { e2: rpool } : {}), ...(base ? { base } : {}) })); }
         catch (e) { if (rpool) rpool.fail(); throw e; }
         keep(r);
         self.postMessage({ id, done: true, meta: plainMeta(r), secs: (performance.now() - t0) / 1000, restored: true, code: CODE });
@@ -145,7 +150,7 @@ self.onmessage = async ({ data }) => {
       }
       const pool = data.parts > 1 ? arenaPool(0, data.parts, data.arena) : null;
       let r;
-      try { r = solveForApp(E, M, data.plan, { ...data.opts, ...(pool ? { e2: pool } : {}), progress, ...(base ? { base } : {}) }); }
+      try { r = inBands(data.bands, () => solveForApp(E, M, data.plan, { ...data.opts, ...(pool ? { e2: pool } : {}), progress, ...(base ? { base } : {}) })); }
       catch (e) { if (pool) pool.fail(); throw e; }
       keep(r);
       self.postMessage({ id, done: true, meta: plainMeta(r), secs: (performance.now() - t0) / 1000, restored: false, code: CODE });
@@ -153,6 +158,17 @@ self.onmessage = async ({ data }) => {
       return;
     }
     if (kind === 'probe') { self.postMessage({ id, hit: await probeSolve(data.key, CODE) }); return; }
+    // the household plan (step 8's port, HSP-PORT.md): its plan cut at its form, and the household assembled from its table
+    if (kind === 'household-plan') { self.postMessage({ id, ...householdCut(E, M, data.plan, data.form) }); return; }
+    if (kind === 'household') {
+      if (!persons.household) throw new Error('solverWorker: a household asked before its table was solved');
+      // plant 'workersplit' (solver-planner-ui check 19, a build's PLANNER_PLANT): the household assembled at the pensions'
+      // split, not the even split asked for, which the client's read-back of its setting refuses
+      solved = householdSolved(E, M, data, persons.household); runs = null;
+      if (PLANNER_PLANT.has('workersplit')) solved = { ...solved, split: 'pensions' };
+      self.postMessage({ id, done: true, meta: householdMeta(solved) });
+      return;
+    }
     if (kind === 'couple-plans') { self.postMessage({ id, ...couplePlans(E, data.plan, { shareRule: data.shareRule }) }); return; }
     if (kind === 'couple') {
       if (!persons.self || !persons.part) throw new Error('solverWorker: a couple asked before both tables were solved');
@@ -176,7 +192,7 @@ self.onmessage = async ({ data }) => {
     }
     if (kind === 'skipruns') {
       const span = { seed: data.seed, from: data.from, to: data.to };
-      self.postMessage({ id, skipruns: isCouple(solved) ? coupleSkipRuns(E, solved, span) : skipRuns(E, solved, span) });
+      self.postMessage({ id, skipruns: isPair(solved) ? coupleSkipRuns(E, solved, span) : skipRuns(E, solved, span) });
       return;
     }
     if (kind === 'strategy') {
@@ -187,15 +203,16 @@ self.onmessage = async ({ data }) => {
       return;
     }
     // every start year of history at once (the new planner's UI pass, 20 Nov): the solved plan's verdict on each, by calendar
-    // year so a couple solved on its mirror reads the same (src/PlannerMore.jsx HistoryStrip)
+    // year so a couple solved on its mirror reads the same (src/PlannerMore.jsx HistoryStrip); a household's through its rows
     if (kind === 'history') {
-      const of = isCouple(solved) ? coupleRowsOf : rowsOf;
+      const of = isPair(solved) ? coupleRowsOf : rowsOf;
       self.postMessage({ id, history: data.years.map(y => { const v = of(E, solved, { historical: true, startYear: y }).verdict; return { y, ok: !!v.survived, failYear: v.failYear }; }) });
       return;
     }
-    // a couple's questions about its moves (Part D, D5.3): each year's joint move taken apart for each person
-    if (isCouple(solved) && kind === 'distil') throw new Error('solverWorker: the rule of thumb is worked out for one person\'s table, not a couple\'s');
-    if (isCouple(solved) && (kind === 'rows' || kind === 'actions' || kind === 'ahead')) {
+    // a couple's questions about its moves (Part D, D5.3): each year's joint move taken apart for each person; a household's
+    // (step 8's port) the same, its one move taken by both
+    if (isPair(solved) && kind === 'distil') throw new Error('solverWorker: the rule of thumb is worked out for one person\'s table, not a couple\'s');
+    if (isPair(solved) && (kind === 'rows' || kind === 'actions' || kind === 'ahead')) {
       const same = runs && runs.r === solved && runs.plan === JSON.stringify(data.plan) && runs.runs.seed === data.seed ? runs.runs : null;
       if (kind === 'rows') self.postMessage({ id, rows: coupleRowsOf(E, solved, data.market) });
       else if (kind === 'actions') self.postMessage({ id, actions: coupleActionsOf(E, solved, data.plan, { seed: data.seed, n: data.n, base: same ? same.solved : null, parts: data.parts || null }) });
@@ -226,7 +243,7 @@ self.onmessage = async ({ data }) => {
       return;
     }
     if (kind === 'digest') {
-      const A = isCouple(solved) ? [...tablesOf(solved.tables.self), ...tablesOf(solved.tables.part)] : tablesOf(solved);
+      const A = isCouple(solved) ? [...tablesOf(solved.tables.self), ...tablesOf(solved.tables.part)] : isHousehold(solved) ? tablesOf(solved.H) : tablesOf(solved);
       self.postMessage({ id, digest: await digestOf(A), ...sizeOf(A) });
       return;
     }

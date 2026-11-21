@@ -8,9 +8,10 @@
  *        as the lead test's K2 (audit-household.mjs);
  *   HSPA the household plan priced at the pensions' split, the arm the arm read took (D130 (2); HOUSEHOLD-ARM.md,
  *        results-household-arm.txt): one household table at the candidate with its tie-break
- *        (audit-household.mjs householdSolveOne), its plan householdPlanFor's with scale 'pensions' (each band above two
- *        personal allowances and the tax-free cash cap at k = 1 / s, its band for gains k times one person's), the year's
- *        move household.mjs chooseHouseholdSingle at the even split, as the remedy's read ran it (audit-household-remedy.mjs).
+ *        (audit-household.mjs householdSolveOne), its plan householdPlanFor's with scale 'pensionsPA' (the personal
+ *        allowance, each band limit and the tax-free cash cap at k = 1 / s times one person's, its band for gains k times one
+ *        person's), the year's move household.mjs chooseHouseholdSingle at the even split, as the arm read ran it
+ *        (audit-household-arm.mjs).
  * Checked before any path, a failure ending the unit (exit 3): arm A's pick the landing's; the app's guard on
  * (src/couplesSwitch.js coupleSolverOn); each person's settings and the household table's (audit-couples.mjs wantProblems
  * 'CANDC'); the household table's line against the first person's (audit-shapes.mjs unitLineProblems, as amended); the
@@ -51,7 +52,7 @@ import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), REPO = join(HERE, '../..');
-export const SEED = 7024, PILOT_SEED = 7002, PTS = 45, W = 0.02, CHECK = 200, BESIDE = 500, PILOT_N = 1000, WARM = 3, CHUNK = 1000, TOPK = 3;
+export const SEED = 7024, PILOT_SEED = 7002, PTS = 45, W = 0.02, CHECK = 200, BESIDE = 500, PILOT_N = 1000, PREFLIGHT_N = 2, WARM = 3, CHUNK = 1000, TOPK = 3;
 export const ARMS = ['APP', 'K2', 'HSPA'];
 export const REGISTRATION = 'research/solver/registrations/household-hsp.md';
 export const PATHS_FILE = join(HERE, 'household-hsp-paths.json');
@@ -153,21 +154,24 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
   if (args[0] === '--planted') process.exit((await planted()) ? 1 : 0);
   const panel = readHspPanel();
-  if (args[0] === '--units') { const us = args[1] === 'pilot' ? pilotUnits(panel) : panel; us.forEach((u, k) => console.log(`${k} ${u.id}`)); console.log(us.length); process.exit(0); }
-  const REGISTERED = args[0] === 'registered', PILOT = args[0] === 'pilot';
-  if (!REGISTERED && !PILOT) { console.error('audit-household-hsp: registered part k/n, or pilot part k/n'); process.exit(2); }
+  // the units the pilot did not run, for the check before the launch (the second design review, MINOR 1): every check before
+  // any path on each, at 45 points, then PREFLIGHT_N paths of the pilot's seed (EXPLORATORY, no outcome; nothing of 7024)
+  const notPilot = p => { const ids = new Set(pilotUnits(p).map(u => u.id)); return p.filter(u => !ids.has(u.id)); };
+  if (args[0] === '--units') { const us = args[1] === 'pilot' ? pilotUnits(panel) : args[1] === 'preflight' ? notPilot(panel) : panel; us.forEach((u, k) => console.log(`${k} ${u.id}`)); console.log(us.length); process.exit(0); }
+  const REGISTERED = args[0] === 'registered', PREFLIGHT = args[0] === 'preflight', PILOT = args[0] === 'pilot' || PREFLIGHT;
+  if (!REGISTERED && !PILOT) { console.error('audit-household-hsp: registered part k/n, pilot part k/n, or preflight part k/n'); process.exit(2); }
   if (REGISTERED && (process.env.HH_PTS || process.env.HH_N || process.env.HH_ONLY || process.env.HH_OUT)) { console.error('audit-household-hsp: the registered run takes no limits'); process.exit(2); }
   if (REGISTERED && process.env.PREDICTION_FILE !== REGISTRATION) { console.error(`audit-household-hsp: the registered run runs only under ${REGISTRATION}, through the launcher (PREDICTION_FILE ${process.env.PREDICTION_FILE || 'unset'})`); process.exit(2); }
   // the registered run only on the code the panel was landed on: a change of code means landing again, a new pilot and review
   if (REGISTERED) { const pc = JSON.parse(readFileSync(PANEL, 'utf8')).code, cc = codeId(); if (!cc || cc.hash !== pc) { console.error(`audit-household-hsp: the code ${cc ? cc.hash : 'unknown'} is not the code the panel was landed on (${pc})`); process.exit(2); } }
   const seed = REGISTERED ? SEED : PILOT_SEED, reg = REGISTERED ? JSON.parse(readFileSync(PATHS_FILE, 'utf8')) : null;
   const only = process.env.HH_ONLY ? new Set(process.env.HH_ONLY.split(',')) : null;
-  const units = (PILOT ? pilotUnits(panel) : panel).filter(u => !only || only.has(u.id));
+  const units = (PREFLIGHT ? notPilot(panel) : PILOT ? pilotUnits(panel) : panel).filter(u => !only || only.has(u.id));
   if (REGISTERED && units.some(u => !(reg.paths[u.id] > 0))) { console.error(`audit-household-hsp: ${PATHS_FILE} gives no paths for ${units.filter(u => !(reg.paths[u.id] > 0)).map(u => u.id).join(', ')}`); process.exit(2); }
   const at = args.indexOf('part'), [pk, pn] = at >= 0 ? args[at + 1].split('/').map(Number) : [NaN, NaN];
   if (!(pn === units.length && pk >= 0 && pk < pn)) { console.error(`audit-household-hsp: part k/${units.length}`); process.exit(2); }
-  const pts = Number(process.env.HH_PTS) || PTS, U = units[pk], n = REGISTERED ? reg.paths[U.id] : Number(process.env.HH_N) || PILOT_N;
-  const smoke = pts !== PTS, OUT = process.env.HH_OUT || join(HERE, 'results', REGISTERED ? 'household-hsp-run' : 'household-hsp-pilot');
+  const pts = Number(process.env.HH_PTS) || PTS, U = units[pk], n = REGISTERED ? reg.paths[U.id] : Number(process.env.HH_N) || (PREFLIGHT ? PREFLIGHT_N : PILOT_N);
+  const smoke = pts !== PTS, OUT = process.env.HH_OUT || join(HERE, 'results', REGISTERED ? 'household-hsp-run' : PREFLIGHT ? 'household-hsp-preflight' : 'household-hsp-pilot');
   mkdirSync(join(OUT, 'parts'), { recursive: true });
   const cid = codeId(), STAMP = { code: cid ? cid.hash : 'unknown', audit: stampFilesHash(), prediction: process.env.PREDICTION_FILE || 'NOT-LAUNCHED', sha: process.env.PREDICTION_SHA || '-', node: process.version };
   console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);   // fair-gate.mjs LOG_STAMP

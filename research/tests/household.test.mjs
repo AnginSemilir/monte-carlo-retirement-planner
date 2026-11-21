@@ -29,7 +29,8 @@
  *      before and after solveHousehold and householdContext, a throwing solve among them ('nofinally': a twoBands without
  *      its finally, on a throwing fn); (c) a couple's M.prepare and E.buildContext, called after solveHousehold, carry a
  *      person's band (the same plant); (d) the solver's code id, 603eeb595679 to 19 Nov (D115: nothing under src/ and not the
- *      engine edited), 71fb4271c681 since D130 (1)'s ISA fix;
+ *      engine edited), 71fb4271c681 since D130 (1)'s ISA fix, 9f9857213b75 since step 8's port (D134 (1), D136: the household
+ *      plan in src/solver/household.js, 20 Nov; every household run of this line read on the code before it);
  *   8. THE TWIN (PRESCRIPTIVE-PLAN.md step 3): on check 3's six units, the couple made of the first person twice (built as the
  *      review's scripts/twin-trace.mjs builds it), under arm A's policy, 100 paths of seed 99001, the household plan
  *      (through householdContext) against the couple, year by year: (1) on S205, S061-dbpart, S327F, S227-90 and S023-db
@@ -289,8 +290,10 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   check('(7c) the same plant fails it', !(planted[1] === p0 && planted[2] === p0), `${planted[1]} and ${planted[2]}`);
   const cid = codeId();
   // D115 held the solver's code at 603eeb595679 for steps 1 to 8; D130 (1) lifted it for the ISA allowance's fix (19 Nov), the
-  // household line's later runs on the fixed code
-  check('(7d) the solver\'s code id 71fb4271c681 (D115\'s, then D130 (1)\'s fix)', !!cid && cid.hash === '71fb4271c681', cid ? cid.hash : 'none');
+  // household line's later runs on the fixed code; step 8's port (D134 (1), D136; 20 Nov) adds src/solver/household.js, the
+  // household plan the app solves a couple with, so the code moves again: re-pinned with that note (Full 506 on 89cd5995 failed
+  // here alone, the pin left at 71fb4271c681)
+  check('(7d) the solver\'s code id 9f9857213b75 (D115\'s, then D130 (1)\'s fix, then step 8\'s port)', !!cid && cid.hash === '9f9857213b75', cid ? cid.hash : 'none');
 }
 
 // 8. the twin (PRESCRIPTIVE-PLAN.md step 3)

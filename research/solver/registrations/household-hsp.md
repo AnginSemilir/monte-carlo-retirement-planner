@@ -1,13 +1,12 @@
 # Registration: the household plan priced at the pensions' split (HSPA) against today's couples' default (D129 (3), D130 (2); STEP8.md)
 
-DRAFT (19 Nov), after the first design review (`reviews/2026-11-19-household-hsp-design.md`: FAIL, three BLOCKING and
-seven MINOR). BLOCKING 1 and 3 are ruled (D130 (2) and (3), 19 Nov). Step 8 is registered on the arm that passed the arm
-read (`HOUSEHOLD-ARM.md`, EXPLORATORY: step 8's own rule on 56 units), and that arm is HSPA (`results-household-arm.txt`;
-its reviewer PASS). The household table keeps the candidate's tie-break above the cap. The panel, the pilot and the sizing
-are taken again on the code with the ISA allowance fixed (675090f5; D130 (1)), so Paths, Budget and the pilot's figures
-wait on them. Its other fields still in `<...>` wait on the seed's reservation at the second design review (D130 (4)), the
-launch's stamp and the second design review. The launcher's check refuses it until each is
-filled. Then the design review again, then the maintainer before launch (D129 (3)). Read once, by
+COMPLETE (19 Nov), its launch's stamp filled by hand at the launch commit (D132). The first design review
+(`reviews/2026-11-19-household-hsp-design.md`) was FAIL, with three BLOCKING and seven MINOR. BLOCKING 1 and 3 were ruled
+(D130 (2) and (3), 19 Nov). Step 8 is registered on the arm that passed the arm read (`HOUSEHOLD-ARM.md`, EXPLORATORY: step
+8's own rule on 56 units), and that arm is HSPA (`results-household-arm.txt`; its reviewer PASS). The household table
+keeps the candidate's tie-break above the cap. The panel, the pilot and the sizing were taken again on the code with the
+ISA allowance fixed (675090f5; D130 (1)). The second design review was PASS with four MINOR, each answered before the
+launch commit (`STEP8.md`). The seed is reserved (D131). Next comes the maintainer, before launch (D129 (3)). Read once, by
 `research/solver/reduce-household-hsp.mjs`, after its gate. Launched only as
 `PREDICTION=research/solver/registrations/household-hsp.md research/solver/run-from-snapshot.sh bash research/solver/batch-household-hsp.sh`,
 from a git worktree at the launch commit, where every relaunch under `RESUME=1` and the read also run. After the pilot is
@@ -49,7 +48,7 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
   - Reserves landed beside, unused: S033, S353F and S359F.
   - Landed again on the fixed code 71fb4271c681 (D130 (1); `results/household-hsp-land.log`): the same couples and units,
     every target, arm A's survival and pick the same as on 603eeb595679.
-- **Seed:** 7024 `<reserved in check-prediction.mjs for household-hsp*.md by the maintainer's unlock, named in its commit>`. As a whole number it appears nowhere before in the repository; the batch names it on a line the launcher's seed check reads; the pilot runs on 7002.
+- **Seed:** 7024, reserved in `check-prediction.mjs` for `household-hsp*.md` by the maintainer's unlock of 19 Nov (D130 (4), D131; the file named in its commit). As a whole number it appears nowhere before in the repository; the batch names it on a line the launcher's seed check reads; the pilot runs on 7002.
 - **Paths:** 16,000 for every unit (`household-hsp-paths.json`; `results-household-hsp-sizing.txt`). D34's size for each unit's HSPA-against-K2 comparison at the pilot's discordance, its upper 95% bound, is the floor of 16,000 on all 15 pilot units (that bound at most 3.43%), and at 16,000 a true 1-point loss reads as harm at least 90% of the time up to a discordance of 10.50%. The cap is D61's 19,000. A comparison whose 1-point rate at its realised discordance falls below 0.90 is read there and named with its rate (D34 (4), as D61 and D96 (2) ruled).
 - **Primary metric:** survival scored by the engine (`audit-phase4.mjs runPath`, held to `E.runTrial` on the first 200 paths of every arm), paired on the same paths of the held-out seed across the arms.
   - Beside it: spending delivered, the pot left and lifetime tax.
@@ -68,12 +67,15 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
   - **The pot's ruling (D116, M1):** where HSPA keeps more paths and delivers no less spending, a smaller pot left is not a
     harm. It is recorded, capped at the two people's estate caps and in pounds a path beside the spending, and is not a bar.
     It is read pooled and, beside it, by unit (`m1ByUnit`). A unit where HSPA keeps more paths but spends less on the paths
-    both keep, beyond noise, is named with its pot; M1's condition is not met there. It is not a bar.
+    both keep, beyond noise, is named with its pot and its spending over all paths beside that on the paths both keep; M1's
+    condition is not met there. It is not a bar to the rule, but under a PASS each unit it names goes to the maintainer with
+    the read before the default changes (the second design review, MINOR 2; the read's outcome line names them).
   - **Against APP, beside the rule:** HSPA and K2 against APP, pooled and by unit. D34's harm flags against APP each send
     their unit to investigation and do not block on their own (D34 (3)).
 - **Outcomes:** PASS makes HSPA the couples' default by a build and the reviewer on the change of default; FAIL keeps today's default; a flagged unit stops the default
   - **PASS:** HSPA becomes the couples' default, in the commit of the D-line naming this run, with the reviewer on the
-    change of default. That is a build:
+    change of default. Where M1 names a unit, the read goes to the maintainer first, with those units, and the default
+    changes only on the maintainer's word. That is a build:
     - the household plan's construction, its table and its move put into the app's solve of a couple (`src/`);
     - the port shown identical to the tested arm, path for path, as D99 and D109's changes of default were;
     - the decided-defaults block and the test that pins it, to `main` on B1's gate.
@@ -97,7 +99,7 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
 - **The guard** (D128) is read at the launch commit. Its key is with the maintainer (D129 (4)); were it re-keyed before the
   launch, each unit's guard is read again and the panel landed again where it changes.
 - **The gate:** first the launch logs' stamps against the registration's git blob (`fair-gate.mjs requireFairLogs`), then
-  `reduce-household-hsp.mjs gate`. Each refusal has its planted case (`--planted`, 27). It requires:
+  `reduce-household-hsp.mjs gate`. Each refusal has its planted case (`--planted`: 27 on built units; and the settings lines' and the household line's re-checks, 6, on a real pilot record's lines, each fault refused by its own check). It requires:
   - every unit of the panel with its three arms, and each unit's own launch log, naming it, with its done line;
   - one code, audit, seed, prediction, estate weight, points and Node version;
   - every unit at its registered paths, every array one a path;
@@ -115,17 +117,20 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
   - Were each pilot change the truth, D34 at 16,000 would flag S273-45 (`-0.30`, 3 of 1,000 paths discordant) with chance
     0.145 and S351F-own (`-0.20`) with 0.018; every other unit at most 0.001. Under HSP the pilot on the code before gave
     S273-sppart 0.901 (BLOCKING 1's direction); under HSPA it is `-0.10`, its chance nought.
-  - Its gate fair (`reduce-household-hsp.mjs --pilot`). It ran 19 Nov 15:05 to 15:53 UK, audit a11dd70ee278: stopped once by
-    its task's 30-minute limit with 12 units done, the other three resumed under `RESUME=1` from their saved parts
-    (`results/household-hsp-pilot-3.log`, `-4.log`). The pilots before, on HSP and the code before the fix, are kept aside
-    unread or superseded (`STEP8.md`).
-- **Budget:** 58.2 core-hours; on four cores, longest first, 14.7 hours; the longest unit 3.81 hours (`results-household-hsp-sizing.txt`)
+  - Its gate fair (`reduce-household-hsp.mjs --pilot`). It ran on the final files 19 Nov 19:10 to 19:53 UK, audit
+    7fa755346a65, nothing beside it (`results/household-hsp-pilot-5.log`). Its arrays are the same in every stored figure
+    on every path as the run on HSPA before the second round's edits (15:05 to 15:53 UK, audit a11dd70ee278, kept aside),
+    which moved no unit's run. The pilots on HSP and the code before the fix are kept aside, unread or superseded
+    (`STEP8.md`).
+  - Beside it, the preflight (the second round's MINOR 1; `results-household-hsp-preflight.txt`): the 25 units the pilot
+    did not run, each through every check before any path at 45 points and two paths of seed 7002, none refused.
+- **Budget:** 54.5 core-hours; on four cores in the batch's own order, the panel's, 14.8 hours (longest first 13.8); the longest unit 3.48 hours (`results-household-hsp-sizing.txt`)
   - It counts the 200 checked paths of each arm and one relaunch of the longest unit.
-  - It is measured from the pilot's units on this machine (D21, an Intel Xeon at 2.10GHz), four at a time and three for the
-    resumed units, with nothing else running; the load at the units' chunks was 3.1 to 4.5 on four cores. The sizing before
-    (HSP on the code before the fix, the pilot of 19 Nov 03:29 UK) gave 44.3 core-hours: K2's path on the same units ran
-    about a quarter slower in this pilot (S025-own `91.4` ms against `71.7`), the cause not measured.
+  - It is measured from the pilot's units on this machine (D21, an Intel Xeon at 2.10GHz), four at a time, with nothing
+    else running. The sizing on HSP and the code before the fix (the pilot of 19 Nov 03:29 UK) gave 44.3 core-hours: K2's
+    path on the same units ran slower in the pilots on HSPA (S025-own `88.7` ms a path against `71.7`), the cause not
+    measured.
   - The run passes the task's 12-hour limit once: that window is relaunched under `RESUME=1`, each unit done kept and each
     unfinished one resumed from its saved chunks.
-- **The launch:** `<the stamp: code 71fb4271c681 audit <audit-household-hsp.mjs stampFilesHash> at the launch commit>`
-- **Design review:** `<the reviewer's second round: research/solver/reviews/2026-11-19-household-hsp-design-2.md>` (the first round: `reviews/2026-11-19-household-hsp-design.md`, FAIL)
+- **The launch:** the stamp `code 71fb4271c681 audit 4cc4d37c0c19`, at the launch commit (filled by hand there: `check-prediction.mjs` does not read this field, the second design review's MINOR 4); launched on the maintainer's word (D132)
+- **Design review:** research/solver/reviews/2026-11-19-household-hsp-design-3.md (the third look, at the second round's answers: PASS, two MINOR; the second round: `reviews/2026-11-19-household-hsp-design-2.md`, PASS, four MINOR, each answered (`STEP8.md`); the first round: `reviews/2026-11-19-household-hsp-design.md`, FAIL)

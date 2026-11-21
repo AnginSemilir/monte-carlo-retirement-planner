@@ -10,7 +10,7 @@
 import { prepareForSolve, aimsOptions, dialSettings, withAims, APP_CANDIDATE, APP_POINTS, APP_DIAL_VARIANT } from './solverSettings.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 
-export const PLANT = { rule: '' };   // research/tests/solve-key.test.mjs only: 'raw' keys the plan's aims, locks and view as stored; couple-solve-client.test.mjs: 'agenull' writes a partner's age of null into every key without one; cache-key.test.mjs: 'nod73' leaves `coarse` and `sweepCashIsaTo` out of the candidate the key names
+export const PLANT = { rule: '' };   // research/tests/solve-key.test.mjs only: 'raw' keys the plan's aims, locks and view as stored; couple-solve-client.test.mjs: 'agenull' writes a partner's age of null into every key without one; cache-key.test.mjs: 'nod73' leaves `coarse` and `sweepCashIsaTo` out of the candidate the key names; household-client.test.mjs: 'bandsunkeyed' leaves a household table's band scaling out of its key
 
 const canonical = v => {
   if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
@@ -23,7 +23,10 @@ const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, 
  * what the solver aims for (Phase 8); lambda is the dial's unless given, as solveForApp takes it. */
 // `ageWith` (Part D, D5.1): one person's table in a couple is solved with their partner's age today (solveForApp, B3a's age
 // weights), so it names the solve too; a single's key has none (canonical leaves an undefined field out), so is unchanged
-export async function solveKey(E, plan, { lambda = undefined, points = APP_POINTS, research = null, variant = APP_DIAL_VARIANT, ageWith = undefined } = {}, code = '') {
+// `bands` (step 8's port, research/solver/HSP-PORT.md): the household plan's table is solved inside its band scaling
+// (src/solver/household.js bandsAt), which moves the table and not the plan, so it names the solve too; any other table has
+// none (canonical leaves an undefined field out), so its key is unchanged
+export async function solveKey(E, plan, { lambda = undefined, points = APP_POINTS, research = null, variant = APP_DIAL_VARIANT, ageWith = undefined, bands = undefined } = {}, code = '') {
   // the plan as the solver reads it (Phase 11): its aims and locks with their defaults filled in, so a plan that has never
   // had them and one that carries the defaults are one solve (the quick start's plan, then the dial's base or a choice made
   // and taken back), and the view of whose money (a couple's display) left out
@@ -33,7 +36,7 @@ export async function solveKey(E, plan, { lambda = undefined, points = APP_POINT
   if (PLANT.rule === 'speedunkeyed' && p.solver && 'speed' in p.solver) { p.solver = { ...p.solver }; delete p.solver.speed; }
   // a dial position above 1 adds its variant and its lock to the base (step L2); position 1's key is as before
   // step U's plant 'keyguard' (research/ui-harnesses/solver-planner-ui.cjs, check 7): the key made to read the guardrails
-  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ageWith: ageWith === undefined && PLANT.rule === 'agenull' ? null : ageWith, ...dialSettings(p, variant) }, code });
+  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ageWith: ageWith === undefined && PLANT.rule === 'agenull' ? null : ageWith, ...dialSettings(p, variant), bands: PLANT.rule === 'bandsunkeyed' || !bands ? undefined : bands }, code });
   return hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)));
 }
 export { canonical };

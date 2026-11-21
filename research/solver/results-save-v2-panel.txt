@@ -1,0 +1,45 @@
+THE SAVINGS SPLIT'S v2, THE PANEL (SAVE-V2.md; D133): 40 single households who work and save, from the 63 no run has taken the split on; landed on code 71fb4271c681, arm A at 85 +/- 1% on 1000 paths of seed 7005; the scan of the day 330 ids (hash 6df97f992c27)
+
+THE YOUNGER COHORT (retiring at 52): 10; untouched 0
+  S300F  place  0  target 11800 (library 32500)  arm A 85.2%  Bracket Fill Basic  15 working years to choose  touched
+  S302F  place  1  target 15700 (library 62500)  arm A 84.1%  Bracket Fill  15 working years to choose  touched
+  S312F  place  2  target 16000 (library 30000)  arm A 85.8%  Bracket Fill  15 working years to choose  touched
+  S318F  place  3  target 61000 (library 130000)  arm A 84.7%  Bracket Fill Basic, lump sum  15 working years to choose  touched
+  S324F  place  4  target 15500 (library 29000)  arm A 85.7%  ISA First  15 working years to choose  touched
+  S330F  place  5  target 60500 (library 121000)  arm A 84.5%  Bracket Fill Basic  15 working years to choose  touched
+  S336F  place  6  target 16300 (library 30500)  arm A 84.6%  Bracket Fill, lump sum  15 working years to choose  touched
+  S342F  place  7  target 56100 (library 132500)  arm A 84.5%  Bracket Fill Basic  15 working years to choose  touched
+  S348F  place  8  target 15800 (library 26500)  arm A 85.7%  Bracket Fill, lump sum  15 working years to choose  touched
+  S354F  place  9  target 47600 (library 108500)  arm A 85.8%  Bracket Fill Basic  15 working years to choose  touched
+
+THE LIBRARY COHORT: 30; untouched 2
+  S180   place  0  target 14500 (library 7000)  arm A 85.9%  Bracket Fill, lump sum  5 working years to choose  touched
+  S182   place  1  target 15500 (library 13000)  arm A 84.6%  Bracket Fill, lump sum  5 working years to choose  touched
+  S186   place  2  target 51300 (library 39000)  arm A 84.0%  Bracket Fill Basic, lump sum  5 working years to choose  touched
+  S192   place  3  target 14900 (library 7000)  arm A 84.2%  Bracket Fill Basic  5 working years to choose  touched
+  S196   place  4  target 28200 (library 25000)  arm A 86.0%  Bracket Fill, lump sum  5 working years to choose  touched
+  S198   place  5  target 56300 (library 37500)  arm A 84.8%  ISA First  5 working years to choose  touched
+  S202   place  6  target 116400 (library 133000)  arm A 85.5%  Bracket Fill Basic  5 working years to choose  touched
+  S208   place  7  target 29200 (library 24500)  arm A 84.8%  Bracket Fill, lump sum  5 working years to choose  touched
+  S212   place  8  target 48600 (library 67500)  arm A 84.7%  Bracket Fill Basic  5 working years to choose  touched
+  S214   place  9  target 105300 (library 129500)  arm A 85.2%  ISA First, lump sum  5 working years to choose  touched
+  S218   place 10  target 16300 (library 13000)  arm A 84.8%  Windfall to ISA  5 working years to choose  touched
+  S222   place 11  target 52300 (library 38000)  arm A 84.7%  Bracket Fill Basic, lump sum  5 working years to choose  touched
+  S226   place 12  target 116900 (library 133500)  arm A 85.5%  Bracket Fill Basic, lump sum  5 working years to choose  touched
+  S230   place 13  target 16500 (library 12000)  arm A 85.3%  Bracket Fill (harvest off)  5 working years to choose  touched
+  S234   place 14  target 44900 (library 35000)  arm A 84.8%  Windfall to ISA  5 working years to choose  touched
+  S238   place 15  target 116300 (library 124000)  arm A 85.8%  Bracket Fill Basic, lump sum  5 working years to choose  touched
+  S242   place 16  target 21400 (library 31000)  arm A 85.8%  Bracket Fill, lump sum  15 working years to choose  touched
+  S248   place 17  target 58300 (library 128500)  arm A 85.3%  Bracket Fill Basic  15 working years to choose  touched
+  S250   place 18  target 126300 (library 260500)  arm A 85.0%  Windfall to ISA  15 working years to choose  touched
+  S254   place 19  target 21600 (library 30000)  arm A 85.2%  Bracket Fill, lump sum  15 working years to choose  untouched
+  S258   place 20  target 72500 (library 72500)  arm A 85.7%  ISA First  15 working years to choose  touched
+  S264   place 21  target 20000 (library 14500)  arm A 84.9%  Bracket Fill Basic, lump sum  15 working years to choose  touched
+  S266   place 22  target 23200 (library 29000)  arm A 85.0%  Bracket Fill, lump sum  15 working years to choose  untouched
+  S270   place 23  target 73400 (library 69000)  arm A 85.4%  Bracket Fill Basic  15 working years to choose  touched
+  S276   place 24  target 20700 (library 15000)  arm A 84.4%  Bracket Fill Basic, lump sum  15 working years to choose  touched
+  S280   place 25  target 36800 (library 47000)  arm A 85.6%  Bracket Fill Basic, lump sum  15 working years to choose  touched
+  S282   place 26  target 68500 (library 73000)  arm A 85.8%  Bracket Fill Basic, lump sum  15 working years to choose  touched
+  S286   place 27  target 147300 (library 248000)  arm A 85.4%  Bracket Fill Basic  15 working years to choose  touched
+  S292   place 28  target 35100 (library 41500)  arm A 85.0%  Bracket Fill, lump sum  15 working years to choose  touched
+  S296   place 29  target 60600 (library 107500)  arm A 86.0%  Bracket Fill Basic  15 working years to choose  touched

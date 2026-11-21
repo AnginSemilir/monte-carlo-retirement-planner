@@ -51,6 +51,13 @@ export function makespan(secs, cores = CORES) {
   for (const s of [...secs].sort((a, b) => b - a)) { const i = load.indexOf(Math.min(...load)); load[i] += s; }
   return Math.max(...load);
 }
+/* the same in the order given: each unit started on the first core free, as the batch's xargs -P starts its units in the
+   panel's order (the second design review, its budget note: 15.93 hours in that order against 14.7 longest first) */
+export function inOrderSpan(secs, cores = CORES) {
+  const load = new Array(cores).fill(0);
+  for (const s of secs) { const i = load.indexOf(Math.min(...load)); load[i] += s; }
+  return Math.max(...load);
+}
 
 function planted() {
   const cases = [];
@@ -63,6 +70,7 @@ function planted() {
   { const s = sizeOf(arr(1000, 30), arr(1000, 0)), a = flagChance(s, -1, 16000), b = flagChance(s, +0.5, 16000);
     cases.push(['D34\'s chance at 16,000 paths: a true loss of a point at 3% discordance flagged at least 90% of the time; a gain at most 5%', `${a.chance >= 0.9} ${b.chance <= 0.05}`, 'true true']); }
   cases.push(['four cores, longest first: 10, 9, 8 and 7 hours, then 6 onto the 7: the last ends at 13', `${makespan([10, 9, 8, 7, 6])}`, '13']);
+  cases.push(['four cores in the order given: 6, 7, 8, 9, then 10 onto the 6: the last ends at 16', `${inOrderSpan([6, 7, 8, 9, 10])}`, '16']);
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
@@ -92,7 +100,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`what the pilot shows, at the registered ${N} paths (each unit's pilot change were it the truth; EXPLORATORY, deciding nothing):`);
   const byShape = {};
   for (const u of pu) { const r = U[u.id], ch = sv(r.arms.HSPA) - sv(r.arms.K2), fc = flagChance(sizes[u.id], ch, N); (byShape[u.variant] = byShape[u.variant] || []).push(ch); console.log(`  ${u.id.padEnd(13)} ${(ch >= 0 ? '+' : '') + ch.toFixed(2)} points; D34's threshold at ${N} ${fc.t.toFixed(3)}; the chance it is flagged ${fc.chance.toFixed(3)}`); }
-  console.log(`  by shape, the mean change over the pilot's couples: ${Object.entries(byShape).map(([v, xs]) => `${v} ${(xs.reduce((t, x) => t + x, 0) / xs.length >= 0 ? '+' : '') + (xs.reduce((t, x) => t + x, 0) / xs.length).toFixed(2)}`).join(', ')}; the panel's 45 and gap8 units are shapes HSPA has not run before (the pilot holds ${pu.filter(u => u.variant === '45' || u.variant === 'gap8').length} of the panel's ${panel.filter(u => u.variant === '45' || u.variant === 'gap8').length})`);
+  console.log(`  by shape, the mean change over the pilot's couples: ${Object.entries(byShape).map(([v, xs]) => `${v} ${(xs.reduce((t, x) => t + x, 0) / xs.length >= 0 ? '+' : '') + (xs.reduce((t, x) => t + x, 0) / xs.length).toFixed(2)}`).join(', ')}; the panel's 45 units are a shape HSPA has not run before (the pilot holds ${pu.filter(u => u.variant === '45').length} of the panel's ${panel.filter(u => u.variant === '45').length}; the arm read ran gap8 on four of step 5's shapes)`);
   console.log(`the run: every unit at ${N} paths (the largest of the pilot's sizes, at most D61's ${RUN_MAX}); at ${N} a true 1-point loss reads as harm at least 90% of the time up to a discordance (its upper bound) of ${(100 * lim).toFixed(2)}%${past.length ? `; past it: ${past.map(([id]) => id).join(', ')}, read at ${N} and named with their rate (D34 (4))` : ''}`);
   const pilotCouples = [...new Set(pu.map(u => u.couple))].map(c => ({ couple: c, years: yearsOf(pu.find(u => u.couple === c)) }));
   const unitRows = panel.map(u => {
@@ -100,9 +108,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const from = pu.find(x => x.couple === near.couple && x.variant === u.variant) || pu.find(x => x.variant === u.variant);
     return { id: u.id, years: y, from: from.id, secs: unitSecs(U[from.id], N, y / yearsOf(from)) };
   });
-  const all0 = unitRows.map(r => r.secs), longest = Math.max(...all0), all = [...all0, longest], total = all.reduce((s, x) => s + x, 0), span = makespan(all);
-  console.log(`the budget (D21: measured from the pilot's units on this machine), over ${panel.length} units and the longest once more for a relaunch: ${(total / 3600).toFixed(1)} core-hours; on ${CORES} cores longest first ${(span / 3600).toFixed(1)} hours; the longest unit ${(longest / 3600).toFixed(2)} hours`);
+  const all0 = unitRows.map(r => r.secs), longest = Math.max(...all0), all = [...all0, longest], total = all.reduce((s, x) => s + x, 0), span = makespan(all), ordered = inOrderSpan(all);
+  console.log(`the budget (D21: measured from the pilot's units on this machine), over ${panel.length} units and the longest once more for a relaunch: ${(total / 3600).toFixed(1)} core-hours; on ${CORES} cores in the batch's own order (the panel's) ${(ordered / 3600).toFixed(1)} hours, longest first ${(span / 3600).toFixed(1)}; the longest unit ${(longest / 3600).toFixed(2)} hours`);
   for (const u of pu) { const r = U[u.id]; console.log(`  pilot ${u.id.padEnd(13)} the solves K2 ${Math.round(r.arms.K2.solveSecs)} s and HSPA ${Math.round(r.arms.HSPA.solveSecs)} s; a path APP ${(r.arms.APP.cpuUs / 1e3 / r.N).toFixed(1)} ms, K2 ${(r.arms.K2.cpuUs / 1e3 / r.N).toFixed(1)} ms, HSPA ${(r.arms.HSPA.cpuUs / 1e3 / r.N).toFixed(1)} ms; beside ${Math.round(r.beside.secs)} s; the load at its chunks ${r.arms.K2.chunks.map(c => c.load[0].toFixed(1)).join(', ')}`); }
-  writeFileSync(PATHS_FILE, JSON.stringify({ built: new Date().toISOString(), pilot: { seed: PILOT_SEED, n: PILOT_N, code: codes[0], units: pu.map(u => u.id), sizes }, N, coreHours: +(total / 3600).toFixed(1), hours: +(span / 3600).toFixed(1), paths: Object.fromEntries(panel.map(u => [u.id, N])) }, null, 1) + '\n');
+  writeFileSync(PATHS_FILE, JSON.stringify({ built: new Date().toISOString(), pilot: { seed: PILOT_SEED, n: PILOT_N, code: codes[0], units: pu.map(u => u.id), sizes }, N, coreHours: +(total / 3600).toFixed(1), hours: +(ordered / 3600).toFixed(1), hoursLongestFirst: +(span / 3600).toFixed(1), paths: Object.fromEntries(panel.map(u => [u.id, N])) }, null, 1) + '\n');
   console.log(`written: household-hsp-paths.json (${panel.length} units at ${N})`);
 }

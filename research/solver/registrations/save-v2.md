@@ -1,0 +1,133 @@
+# Registration: the savings split against the candidate as it stands, for working singles who save (D130 (7); SAVE-V2.md)
+
+DRAFT (19 Nov, filled 20 Nov), written while step 8 ran, as D130 (7) orders. Not run. Its design is `SAVE-V2.md`. Its
+panel's source and the three choices in it were ruled on 19 Nov (D133). The panel is landed and the pilot and its sizing
+are in (20 Nov). Its seed is reserved and the launch given (D135, 20 Nov); `check-prediction.mjs` reads it complete. Its design review (20 Nov) PASSED with nine MINORs, answered here and in the code, two of them put to the
+maintainer (`reviews/2026-11-20-save-v2-design.md`). After that review only Paths, Budget, part 3's operating
+characteristic, Seed and Design review changed, from the pilot and the sizing taken again on the final files. The final look
+(20 Nov) PASSED with two MINORs, each answered before the launch commit within what it covers: the read's FAIL branch and
+the launch's stamp (`reviews/2026-11-20-save-v2-design-2.md`). Anything else goes back to the reviewer.
+- **The launch's conditions** (each met; the seed and the maintainer's word on 20 Nov, D135):
+  - the preflight complete with no household refused (MET, 20 Nov 11:31 UK, `results-save-v2-preflight.txt`: all 36,
+    none refused, none exiting with an error): every check before any path in all four arms, then two paths of seed 7002,
+    on the 36 households outside the pilot (from 20 Nov 08:59 UK). Its first eight units ran on audit
+    17ca54eedf37, the rest on the files as edited for the design review's answers. Those edits touch the pilot's places,
+    the run's records, the read and the sizing, and none of the checks before any path or what they import; from unit 22
+    on, its households are those outside the new pilot, so S238 is checked there and S270 (the new pilot's) is not. It
+    runs again if those checks or anything they import change;
+  - the pilot taken again on the final files after the preflight has finished, with nothing else running (D21), and the
+    sizing from it (MET, 20 Nov 12:04 UK);
+  - the seed reserved by the maintainer's unlock, and the maintainer's word (MET, 20 Nov, D135: "Unlock enforcement,
+    launch").
+Read once, by `research/solver/reduce-save-v2.mjs`, after its gate. Its machinery (the panel `save-v2-panel.mjs`, the audit
+`audit-save-v2.mjs`, the read, the sizing `size-save-v2.mjs` and the batch `batch-save-v2.sh`) is built, each script's
+`--planted` passing. Run so far, all EXPLORATORY: the landing (seed 7005), the pilot (seed 7002) and the preflight.
+Launched only as
+`PREDICTION=research/solver/registrations/save-v2.md research/solver/run-from-snapshot.sh bash research/solver/batch-save-v2.sh`,
+from a git worktree at the launch commit, where every relaunch under `RESUME=1` and the read also run.
+- **The launch's stamp** (the final look's finding 2): the audit stamp the launcher computes at the launch commit, not the
+  pilot's `f0a49255366e`. On the files as committed with the final look's answers it is `ffc59974f036`. Of the 60 stamped
+  files, exactly two differ from the pilot's (9039562a):
+  - `save-v2-paths.json`, which the sizing wrote from the pilot after the pilot had run (the pilot reads no paths file);
+  - the read, `reduce-save-v2.mjs`, whose FAIL branch now prints the Outcomes' one exception, with a planted case each
+    way (the final look's finding 1, a change that review covers; nothing the pilot or the sizing computes reads it).
+
+  So the pilot's own gate and the sizing's refuse at the launch's stamp; their figures reproduce on 9039562a's files.
+
+- **Question:** Does the candidate with the savings split give working singles who save into a pension or an ISA better outcomes than the candidate as it stands (survival first, then spending), with no harm to any household?
+  - The savings split (`SAVINGS-SPLIT.md`; `saveSplit: true`, a research option, off): in each working year the solver
+    puts the year's saving pension first, ISA first, or as the plan has it.
+  - The factorial behind it (`results-save.txt`; EXPLORATORY, seed 7002; `reports/2026-11-19-save-read.md`) read A GAIN
+    AND A HARM:
+    - survival `+0.398` points (se `0.0270`, by path `0.0345`), up on 14 households beyond noise and down on none;
+    - spending up on 23 households and down on S308F (`-0.250%` of its lifetime spending).
+  - Two things it left open, which this test closes:
+    - It ran on anchors, where the split's shortlists are drawn from a menu three times as long as the candidate's. That
+      approximation is unmeasured.
+    - The engine's ISA defect, fixed since (675090f5, D130 (1)), reached one household of it (S310F), in both arms.
+- **A limitation bearing on this test (the design review's MINOR 3; D134 (3): run as is):** the engine relieves salary sacrifice of employee
+  NIC in every year, where the law caps that relief at £2,000 a year from April 2029 (not modelled, and said so in the app:
+  D112 (M6)).
+  - Both arms share it, so the comparison is fair within the model.
+  - It favours the pension first, one of the split's two answers. Above the cap in the main band the engine credits
+    about 11% more pension per net pound than the law gives, and about 3% more at the higher rate.
+  - 30 of the 40 households are employees. The read prints beside the rule the share of the employees' working-year
+    decisions from 2029 that CANDS takes the pension first.
+  - The maintainer ruled to run as is (D134 (3)); modelling the cap is queued as its own engine change for every plan.
+- **Arms:** CANDD 3a344e9f7ec6, CANDS 3f7b0397f544 (`audit-save-v2.mjs` `configOf`, as `candidate.mjs` `hashOf` hashes the candidate), each scored by the engine on the same paths of the held-out seed, at 45 points and the estate weight 0.02
+  - **CANDD:** the candidate 17ff82379838 on the whole menu (its `coarse` key taken out).
+  - **CANDS:** the same with `saveSplit: true`.
+  - **Beside, deciding nothing in the rule (D133 (3)):** CANDDA 17ff82379838 (the candidate itself) and CANDSA bf1cac401c13, the same two on
+    anchors, the menu the candidate ships with (`coarseWhereFits`), on each household's first `4,000` paths. A household
+    flagged there by D34's rule comes back to the maintainer before any change of default (D133 (3)), and so do a household
+    failing part 3's household clause there and the pair if its pooled survival interval there lies wholly below nought
+    (D134 (2)); none of it decides the rule.
+- **Households:** the panel `save-v2-panel.json` (`results-save-v2-panel.txt`): 40 single households who work and save into a pension or an ISA, from the 63 no run has taken the split on (D133 (1) and (2); `results-save-v2-pool.txt`)
+  - Landed 20 Nov on code 71fb4271c681, none passed over: the younger cohort's 10 (S300F, S302F, S312F, S318F, S324F,
+    S330F, S336F, S342F, S348F, S354F) and the library's first 30 (S180, S182, S186, S192, S196, S198, S202, S208, S212,
+    S214, S218, S222, S226, S230, S234, S238, S242, S248, S250, S254, S258, S264, S266, S270, S276, S280, S282, S286,
+    S292, S296). Arm A from 84.0% to 86.0%. Every household has working years to choose: 15 for the younger cohort, 5 or
+    15 for the library's.
+  - Untouched: 2 (S254 and S266). The scan of the day was taken with this study's own records left out
+    (`save-v2-orders.json`: 330 ids, hash 6df97f992c27; the whole scan 335, hash 1037d4931dbc).
+  - The pool leaves out the factorial's 27 and `save-split.test.mjs`'s households. It is held out for this question, not
+    from every run: 58 of the 63 were touched by other runs (S224, S248 and S330 helped tune the candidate both arms share),
+    and only 5 are untouched. A panel held out from every run cannot be drawn from the library (`SAVE-V2.md`).
+  - The younger cohort's 10 (44 or under, retiring at 52), walked first; 30 of the library cohort's 53 (older than 44,
+    retiring at their plan's age) taken evenly in library order, the rest as reserves, an older household filling any
+    younger place that does not land.
+  - Each landed so arm A survives 85 +/- 1% on 1,000 paths of seed 7005 (Phase 4's procedure, D35). Each household's status
+    (untouched, or touched by another run) is recorded in the panel.
+- **Seed:** 7025, held out: reserved in `check-prediction.mjs` for `save-v2*.md` under the maintainer's unlock of 20 Nov (D135), that edit alone, named in its commit
+- **Paths:** 16,000 for every household on the whole menu, and the anchors pair on each household's first 4,000 (`save-v2-paths.json`; `results-save-v2-sizing.txt`)
+  - D34's size for each household's comparison at the pilot's discordance (its upper 95% bound, never below `D_MIN`) is
+    the floor of 16,000 on all four pilot households. The pilot on the final files (20 Nov 11:33 to 12:04 UK, audit
+    f0a49255366e; seed 7002, 1,000 paths, all four arms) took the younger cohort's places 0 and 5 (S300F, S330F) and the
+    library's places 0 and 23 (S180, five working years; S270, fifteen: the design review's MINOR 5); that bound is at
+    most 2.59%.
+  - At 16,000 a true 1-point loss reads as harm at least 90% of the time up to a discordance of 10.50%. The cap is D61's
+    19,000. A comparison whose 1-point rate at its realised discordance falls below 0.90 is read there and named with its
+    rate (D34 (4)).
+- **Primary metric:** survival scored by the engine (`runPath`, held to `E.runTrial` on the first 200 paths of each arm), paired on the same paths of the held-out seed.
+  - Recorded beside it on every path: lifetime spending delivered, the pot left and lifetime tax.
+  - Each household's working-year choices (D130 (7)), on `runPolicy`'s first 1,000 paths beside the engine: at each
+    working-year decision, the save choice (the plan's, pension first, ISA first) and each wrapper's tier.
+  - The pots at the top of the first retired year.
+  - Each year's spending level on every path (as the factorial kept it), and each arm's estate cap.
+  - Beside the rule, deciding nothing: the cohorts apart; the pot left by household, its mean, its median and capped at the
+    estate cap; the spending level by retired year of any household part 1 flags or part 3 fails.
+- **Decision rule:** CANDS against CANDD over the panel; it passes if all three hold
+  1. **no harm:** no household flagged by D34's harm rule, compared in whole paths (`reduce-share-rules.mjs harmExact`);
+  2. **a gain:** the pooled survival change, its 95% interval by path (`reduce-phase4.mjs survivalItem`), lower end
+     above 0;
+  3. **spending:** no household's lifetime spending delivered lower beyond noise (a seeded sign-flip test of the mean,
+     Holm at 5%, as the factorial read it) by more than `0.1%` (D133 (4)), and the pooled change's point
+     estimate (the households weighted equally, each in percent of its own CANDD mean) not below -0.05%.
+  - S308F's harm in the factorial, `-0.250%`, would fail part 3: a household whose spending the split cuts is a harm,
+    however the panel gains.
+  - Part 3's bar is read on the point estimate, so a true loss of exactly 0.1% fails about half the time. The sizing
+    prints the chance a true loss of 0.05, 0.08, 0.1, 0.12 and 0.25% fails part 3 at each pilot household's paired noise
+    and at S308F's in the factorial (`results-save-v2-sizing.txt`, part 3's operating characteristic):
+    - at the pilot's households' noise (a paired se of 0.0075% to 0.0152% at 16,000 paths), a true loss of 0.12% fails
+      part 3 with chance 0.906 to 0.996, of 0.10% with 0.500, of 0.08% with 0.004 to 0.094, and of 0.05% with at most 0.001;
+    - at the factorial's S308F's noise (0.0281%), 0.12% fails it with chance 0.762, 0.08% with 0.238, 0.05% with 0.038;
+      its own `-0.250%` fails it always.
+- **Outcomes:** PASS makes the split part of the candidate for singles who work and save, a change of default; FAIL closes it; a flagged household stops the change
+  - **PASS:** `saveSplit: true` joins the candidate for singles who work and save, in the commit of the D-line naming
+    this run, with the reviewer on the change of default before it is committed, to `main` on B1's gate.
+    - The same commit keeps a couple's solves off the split, with its test and plant: a couple's person-solves take the
+      candidate's settings (`src/solverApp.js`), and nothing yet keeps the split out of them.
+    - What a PASS reaches untested, said in the D-line, by inference only: the dial's locked positions 3, 6 and 10,
+      consent to change risk withdrawn (one tier pair, on the whole menu), the speed mode, the 'lower' estate aim, and the
+      years from 2029 for a salary-sacrificing employee (above).
+  - **FAIL:** the split stays off and is closed as measured, with one exception: a FAIL on part 2 alone, parts 1 and 3
+    holding and the pooled lifetime spending up beyond noise (its interval by path above nought), comes back to the
+    maintainer as the trade it is (survival not shown up, spending up), not closed. The read prints it so, with the
+    anchors' items the PASS line names (the final look's finding 1).
+  - **The gate refusing:** no outcome. The read goes back to the maintainer with the gate's lines, and no result of seed
+    7025 read.
+  - **A household flagged:** no change of default, whatever the pooled gain; the household goes to investigation (D34 (3)).
+  - A couple's plan does not take the split (`SAVINGS-SPLIT.md` scope); a test of it for couples would be its own.
+- **Budget:** 46.5 core-hours over the 40 households and the longest once more for a relaunch; 12.3 hours on four cores in the batch's order; the longest household 1.28 hours (`results-save-v2-sizing.txt`)
+  - Measured from the pilot on the final files on this machine, 20 Nov 11:33 to 12:04 UK, with nothing else running (D21).
+- **Design review:** research/solver/reviews/2026-11-20-save-v2-design-2.md (the final look, at the answers and the files as they would launch: PASS, two MINOR, each answered before the launch commit: the read's FAIL branch prints the exception, its plant failing exactly the new case; the launch's stamp above). The first look: `reviews/2026-11-20-save-v2-design.md`, PASS, nine MINOR, seven answered in the code and here and two ruled by the maintainer (D134 (2), (3))

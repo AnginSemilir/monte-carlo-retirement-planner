@@ -43,6 +43,34 @@ below this section says "the beta", read it as history. The order from here:
    - `solve.js` refuses the windfall split beside the savings split, so those tests would otherwise fail outright.
    - Without the re-base, `save-split`'s "option unset" arm would become the option on.
    - Say if you would rather they waited for the unlock.
+4. **The deep review** (`reviews/2026-11-21-deep-save-v2.md`) finds the PASS sound for what it tested. Two of its items bear
+   on the change of default.
+   - **ISA first for an employee moves the employer's money** (its section 4, item 1).
+     - The app asks for the pension contribution gross, "including tax relief and employer amounts" (`src/App.jsx`). The
+       split's budget prices all of it as the employee's own sacrifice.
+     - So ISA first puts the net cost of the employer's part into the ISA. In law that is stopping a workplace pension and
+       forfeiting the employer's money.
+     - On the panel ISA first is 17% or more of the decisions on six younger employees, who carry 22% of the gain. The cost
+       of holding it back is not measured.
+     - The app's own contribution strategies build the same budget, so this is inherited, not new. The split would make it
+       the solver's default and this year's action on the page.
+     - **Its recommendation, which the agent shares:** until the plan records the employer's part, an employee's split
+       offers the plan's own saving and the pension first. ISA first stays for the self-employed. This is a change to the
+       split's routes, with its test and plant. The other way is that you take the trade, with words saying what ISA first
+       means.
+   - **The leading cause of the employees' 87% of the gain** is the price the engine puts on an employee's pension pound:
+     salary sacrifice relieved of employee NIC, uncapped and for every employee. Only the split's arm reads that price.
+   - **Its one test** (EXPLORATORY, its rule committed first): the 30 employees' plans priced on income tax relief alone,
+     the split on anchors, with an identity arm and a control, reading K, the share of the gain left at that price.
+     - **K at least 0.85:** the default goes ahead as the PASS has it.
+     - **K from 0.33 to 0.85:** the default goes with the law's price in the split's routes (D134 (3)'s cap brought
+       forward).
+     - **K under 0.33:** the default is held for employees and comes back to you.
+     - **Its seed is yours.** Seed 7025's first 4,000 paths, the registered arms' own, cost about 5.5 core-hours. That is
+       D110's form, run directly as a tracked task, since the launcher refuses a reserved seed outside its registration.
+       Otherwise seed 7002, with the two arms beside it, costs about 13 core-hours. The build is half a day.
+   - **The agent recommends** running the test before the change is committed, on seed 7025 (cheaper, and paired with the
+     registered arms), and holding back ISA first for an employee as above. The time (item 1) goes with it as (C).
 
 **OPEN (20 Nov, evening), found while porting step 8; nothing decided, for your word:**
 1. **The speed mode reaches the household plan's table, unmeasured.** The opt-in "Beta - speed mode" (D97 (3)) hands a

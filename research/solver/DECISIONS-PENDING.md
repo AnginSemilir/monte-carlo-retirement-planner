@@ -11,6 +11,21 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (21 Nov, night), from test K's read (D137 (4)), for your word: does the app ask how an employee pays into their
+pension?**
+- **Where it comes from.** Test K (EXPLORATORY; `results-save-k.txt`, `reports/2026-11-21-save-k-read.md`) read THE CAUSE
+  HOLDS IN SIZE. By D137 (4), the change of default prices the split's routes at the law's price for a salary sacrificer:
+  employee NIC relief on the first £2,000 a year alone from April 2029, in full before (`src/App.jsx` `SAVE_NIC_CAP`).
+- **What it leaves.** An employee who pays in by net pay or relief at source is relieved of income tax only, in every year.
+  That is K's price. At it, the panel's 30 employees keep `0.726` of the split's gain, and the basic-rate employees `0.580`.
+  The app cannot tell the two kinds of employee apart, so it prices every employee as a sacrificer.
+- **The ways on:**
+  - **(A)** Ask it: one question beside the employment status ("salary sacrifice", "net pay or relief at source", "not
+    sure"), the split pricing each employee by their own route. The app's own contribution strategies could read it too.
+  - **(B)** Leave it: every employee priced as a sacrificer, the D-line saying so.
+- **The agent recommends (A), with the work on the screens:** "salary sacrifice" the default answer, as the app assumes
+  today. Until then, (B) stands, said in the change's D-line.
+
 **RULED (21 Nov, evening, D137): the savings split's change of default, built and not committed.** The maintainer: "Unlock
 enforcement. Go ahead with your recommendations": (C) for the time, the speed work right after the change; the unlock for
 `candidate.test.mjs`'s pins, the three joining tests taking their solves without the split; the deep review's test K on

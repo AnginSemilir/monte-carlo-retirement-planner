@@ -2,8 +2,8 @@
 
 DRAFT, written while step 8's arm read runs, and not run. D130 (7) places the test after step 8, on the fixed engine and
 the whole menu, with each household's working-year choices recorded with their tiers, and has its registration drafted
-while step 8 runs. The choices marked **for the maintainer** are open; everything else follows a design already used
-(Phase 4, the couples' tests, step 8).
+while step 8 runs. Its three open choices, and the panel's source, were ruled on 19 Nov (D133), each as the agent
+recommended; everything else follows a design already used (Phase 4, the couples' tests, step 8).
 
 ## Why
 
@@ -28,23 +28,31 @@ candidate as it stands (survival first, then spending), with no harm to any hous
 Each scored by the engine on the same paths of the held-out seed, at 45 points and the estate weight `0.02`:
 - **CANDD:** the candidate as it stands (17ff82379838), on the whole menu.
 - **CANDS:** the same with `saveSplit: true` (`SAVINGS-SPLIT.md`), on the whole menu.
-- **For the maintainer, beside or in the rule:** the same two on anchors, the menu the candidate ships with
-  (`coarseWhereFits`).
-  - On the whole menu the test measures the split itself.
-  - What would ship is the split on anchors.
-  - The agent's recommendation: the whole menu decides, as D130 (7) says. The pair on anchors runs beside on the first
-    `4,000` paths, and a household harmed there by D34's rule comes back before any change of default.
+- **Beside, deciding nothing in the rule (D133 (3)):** the same two on anchors, the menu the candidate ships with
+  (`coarseWhereFits`), CANDDA and CANDSA, on each household's first `4,000` paths.
+  - On the whole menu the test measures the split itself; what would ship is the split on anchors.
+  - A household flagged on anchors by D34's rule (at its `4,000` paths) comes back to the maintainer before any change of
+    default.
 
 ## Households
 
-- **Who:** single households who work and save into a pension or an ISA, none touched by any earlier run
-  (`held-out.mjs` `touchedAll` on the day).
-  - Half from the library, retiring at their plan's age.
-  - Half from the younger cohort, retiring at 52 before their pensions open: where the factorial put the saving ISA first,
-    and where S308F's harm lay.
+- **The pool, as it stands** (`results-save-v2-pool.txt`, EXPLORATORY, no path run; the scan frozen for step 8 on 19 Nov):
+  the library holds 90 single households who work and save into a pension or an ISA. 27 were the factorial's panel, 58
+  were touched by other runs, and 5 are untouched: S216 (aged 55) and S254, S266, S274 and S298 (aged 45). None of the
+  younger cohort is untouched. So a panel held out from every run, half of it younger, cannot be drawn.
+- **Who (D133 (1)):** the 63 single savers no run has taken the split on: the factorial's 27 left out, and
+  `save-split.test.mjs`'s households (S026, S090, S188, S204, S244, S260; the four that save are among the 27).
+  - Held out for this question: no run has measured the split on any of them.
+  - Not held out from every run: 58 of them were touched by other runs, and S224, S248 and S330 among them helped tune
+    the candidate itself, which both arms share.
+  - The younger cohort (44 or under, retiring at 52 before their pensions open, where the factorial put the saving ISA
+    first and where S308F's harm lay): its 10 in the pool.
+  - The library cohort (older than 44, retiring at their plan's age): 53 in the pool.
+- **How many (D133 (2)):** 40. The younger cohort's 10, and 30 of the 53 older taken evenly in library order, the rest in
+  library order as reserves. The younger cohort is walked first; an older household fills any younger place that does not
+  land (Phase 4's rule).
 - **Landing:** each landed so arm A survives 85 +/- 1% on `1,000` paths of seed 7005 (Phase 4's procedure, D35). The arms
   compare the candidate with itself, so the landing only places each household where survival can move both ways.
-- **How many:** for the maintainer. Phase 4 took 40; the sizing below gives the cost.
 
 ## Recorded
 
@@ -54,7 +62,7 @@ Each scored by the engine on the same paths of the held-out seed, at 45 points a
 - the pots at the top of the first retired year;
 - each arm held to `E.runTrial` on its first `200` paths, and `runPolicy` beside the engine.
 
-## The rule (for the design review; its numbers for the maintainer)
+## The rule (its bar ruled, D133 (4))
 
 CANDS against CANDD over the panel. It passes if all three hold:
 1. **no harm:** no household flagged by D34's harm rule on survival, compared in whole paths (`harmExact`);
@@ -80,6 +88,77 @@ split cuts is a harm, however the panel gains.
 - **Budget:** the factorial took `7.45` core-hours for 27 households at `4,000` paths on anchors. On the whole menu the
   split's solve costs about three times as much in its working years. The pilot measures it, and the budget is given before
   launch.
+
+## The machinery (built 19 Nov, night, while step 8 runs; nothing of it run beyond its planted checks and a smoke)
+
+- **The panel**, `save-v2-panel.mjs` (`--planted`, 12 checks):
+  - `freeze` takes the pool, the scan of the day and the two orders once, into `save-v2-orders.json`. The scan decides
+    nothing here: each household's status (untouched, or touched by another run) is recorded for the registration to state.
+  - The scan leaves out this study's own records (`results-save-v2-*.txt`), as Phase 4 left out its own. It is
+    `phase4-panel.mjs` `touched()` itself, which stays as Phase 4 stamped it, run on a view of the folder made of symbolic
+    links (`scanWithout`). The whole scan's count and hash are recorded beside it.
+  - Why, found at the first freeze (20 Nov, before dawn; not committed, nothing read from it but the orders' list): the scan
+    reads every top-level results file, so the pool's own count (`results-save-v2-pool.txt`), which ran nothing but names
+    the 5 untouched households, made them read as touched. Taken again with the view: the same pool, orders and
+    households a run took the split on, with exactly those 5 untouched and nothing else changed (`save-v2-orders.json`).
+  - The pattern search over the earlier freezes (each study's own top-level results files against its orders' first
+    commit): none was committed before its orders, except D4's pilot and sizing files, which went in with them in one
+    commit. The pilot's couples were run, so they were touched in fact. And the earlier panels leave a touched household
+    out, so a household wrongly counted there could only have been kept out of a panel, never let into one.
+  - `land` is Phase 4's procedure (`phase4-panel.mjs` `landTarget`). A household landed with no working year to choose is
+    passed over.
+  - `combine` walks the younger cohort first, then the library's to 40 (the planted walk: a younger household not landed
+    gives its place to the next older one).
+- **The audit**, `audit-save-v2.mjs` (`--planted`, 13 checks): the four arms, one solve held at a time, each with its checks
+  before any path; each arm held to `E.runTrial` on its first 200 paths; `runPolicy` beside the engine on its first `1,000`,
+  recording each working year's save and tier pair and the pots at the top of the first retired year; chunks of `1,000`
+  paths, resumed after a restart; no outcome in a log under the registration.
+- **The read**, `reduce-save-v2.mjs` (`--planted`, 13 checks): the stamps, the gate (31 planted refusals), the rule and
+  the report, an anchors flag named in the outcome under a PASS.
+- **The sizing**, `size-save-v2.mjs` (`--planted`, 5 checks), and **the batch**, `batch-save-v2.sh` (`registered`, `pilot`,
+  `preflight`, `RESUME=1`).
+- **The pilot:** four households, the younger cohort's places 0 and 5 and the library's places 0 and 23 (the first pilot
+  took place 15; place 23 since the design review, for a library household with fifteen working years). Seed 7002, `1,000`
+  paths, all four arms, one household a core. **The preflight:** the other 36, each through every check before any path,
+  then two paths.
+- **Found while building it, for the design reviewer: the stamp's reading of a shell script.**
+  - The stamp follows a batch script's inline `node -e` import as though it were a module beside the script. So three
+    earlier audits name a file that does not exist in their stamps: stage C's (`audit-couples-share.mjs`), the share rules'
+    (`audit-share-rules.mjs`) and step 8's (`audit-household-hsp.mjs`).
+  - Each hashes that name and the word `missing` the same way every time, so no stamp, result or resume check is affected.
+  - Those audits are frozen (two read, one running), so they are left as they are.
+  - This audit reads a shell script only for the solver scripts it names. Its planted check (no file in the stamp missing
+    but the run's own data) fails with that line taken out.
+
+## The design review's answers (20 Nov; `reviews/2026-11-20-save-v2-design.md`, PASS, nine MINORs)
+
+- **1, the preflight:** a condition of launch in the registration, run again if the audit's checks or their imports change.
+- **4, part 3's operating characteristic:** the sizing prints it at each pilot household's paired noise and at S308F's in
+  the factorial (`size-save-v2.mjs` `part3Rate`, `spendSe`); the read's planted cases gain an S308F-sized harm caught among
+  forty; the plants (`SIZE_SV2_PLANT=noholm`, and a copy of the read without the bar) fail exactly their checks.
+- **5, the pilot:** the library's place 23 for 15, a household with fifteen working years.
+- **6, a PASS's reach:** the PASS line commits the change of default to a guard keeping a couple's solves off the split,
+  and lists what it reaches untested.
+- **7, beside the rule:** the audit keeps each year's spending level on every path and each arm's estate cap; the read
+  prints the cohorts apart, the pot left by household (mean, median, capped) and the levels of any household named.
+- **8, the Outcomes:** a gate refusal gives no outcome; a FAIL on part 2 alone with spending up beyond noise comes back to
+  the maintainer; only Paths, Budget, part 3's rates, Seed and Design review change after the review.
+- **9, the gate:** each paired arm's settings line held to its pair's, byte for byte, with two planted refusals; and the
+  levels, the estate cap and each household's employment and base year required, each with its planted refusal.
+- **2 and 3, the maintainer's:** whether a spending harm on anchors comes back before a change of default (D133 (3) covers
+  D34's flags alone); whether to model the cap on salary sacrifice's NIC relief from April 2029 before the run. Meanwhile
+  the read prints, beside the rule, the share of the employees' working-year decisions from 2029 that take the pension
+  first, and the registration says which way the limitation leans. Ruled (D134 (2), (3)): both carried into the read and
+  the registration.
+
+## The final look's answers (20 Nov; `reviews/2026-11-20-save-v2-design-2.md`, PASS, two MINORs)
+
+- **1, the exception the read did not print:** the read's FAIL branch prints the Outcomes' one exception (part 2 alone
+  failing, parts 1 and 3 holding, the pooled lifetime spending's interval by path above nought: back to the maintainer as
+  the trade, not closed), with the anchors' items the PASS line names; a planted case each way (spending up beyond noise,
+  and level). A copy of the read with the exception dropped fails exactly the first of them (1 of 18).
+- **2, the launch's stamp:** the registration gives the stamp the launcher computes at the launch commit and names the two
+  stamped files that differ from the pilot's, `save-v2-paths.json` and the read.
 
 ## Box
 

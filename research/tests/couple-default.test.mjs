@@ -8,9 +8,10 @@
  *   1. the decided-defaults block's `couples` entry is the code's: the switch on (src/couplesSwitch.js COUPLES), the couples'
  *      share rule (src/solverSettings.js APP_COUPLE), the band (COUPLE_BAND), the elder's limit (ELDER_UP_TO), the elder
  *      entered first (ELDER_FIRST), the swap of a couple whose elder is entered second (SWAP_ELDER, D104 (1)), the couples'
- *      joint move (APP_COUPLE's tieJoint, tieLook and holdPast, D108: TIE-C2's LOOKHOLD) and the age gap past which a couple
- *      with other taxable income keeps the app's rules (DB_GAP_UP_TO, D128); a block without the entry, with another rule,
- *      without the joint move or without the gap, fails it;
+ *      joint move (APP_COUPLE's tieJoint, tieLook and holdPast, D108: TIE-C2's LOOKHOLD), the age gap past which a couple
+ *      with other taxable income keeps the app's rules (DB_GAP_UP_TO, D128) and the household plan's form (APP_COUPLE's
+ *      household, D134 (1) and D135: step 8's HSPA, 'pensionsPA'); a block without the entry, with another rule, without the
+ *      joint move, without the gap or without the household, fails it;
  *   2. the guard (coupleSolverOn): over the library's 210 couples, each re-held at twelve shares of its first person's from 5%
  *      to 95% (every wrapper alike), with their ages as entered, swapped (the first person the younger), the same, and the
  *      partner's age left blank, on exactly where the first person holds 40% to 60% of the pots, or the first person is the
@@ -19,17 +20,26 @@
  *      (`swap`) exactly where it is on and its elder is entered second; its `why` 'uneven' everywhere else, and 'off' with the
  *      switch off;
  *   3. the page's solve of a couple (src/solverClient.js startSolve, its workers in-process stand-ins that record what each is
- *      asked): a couple held 90/10 is cut and assembled on the pots' share, each person's plan cut on 90% and 10% of the
- *      household's spending, the job's record naming 'pots' and 0.9; a rule the caller names ('half') is kept; and the
- *      solver's own default stays the half share (src/solverCouple.js couplePlans unasked), the app's default living in the
- *      app's settings as the candidate's do; and the couple is assembled with the couples' joint move (D108: appJoint, the
- *      job's record naming it), a named share rule keeping it and a joint move the caller names (none) kept (the parts that
- *      assemble the couple too, in a split solve: couple-split.test.mjs check 1);
+ *      asked): by default (D134 (1), D135) a couple is solved as one household: its plan cut at the couples' default form
+ *      ('household-plan', 'pensionsPA'), its one table solved in the slot 'household' inside the cut's bands, and the
+ *      household assembled with the setting the default names (the form and the even split, which move its move, and the
+ *      top three, the tie-break and the hold, passed as step 8's arm passed them), the job's record naming the form, the
+ *      cut's k and the even split, no person's table solved and no couple assembled (the household's route itself, its
+ *      parts, its store and its read-back: household-client.test.mjs); today's
+ *      route under the option that names it, `household: null`: a couple held 90/10 is cut and assembled on the pots' share,
+ *      each person's plan cut on 90% and 10% of the household's spending, the job's record naming 'pots' and 0.9; a rule the
+ *      caller names ('half') is kept; and the solver's own default stays the half share (src/solverCouple.js couplePlans
+ *      unasked), the app's default living in the app's settings as the candidate's do; and the couple is assembled with the
+ *      couples' joint move (D108: appJoint, the job's record naming it), a named share rule keeping it and a joint move the
+ *      caller names (none) kept (the parts that assemble the couple too, in a split solve: couple-split.test.mjs check 1);
  *   4. what the page tells a user about couples follows the switches (the reviewer on D99, finding 1): the solver's coverage
  *      list (src/solverApproximations.js, the coverage card and the documentation) says which couples it plans for and that any
  *      other keeps the app's rules, with couples on: the older partner holding up to 90% with the swap on, the older partner
  *      entered first with it off, and either way not a couple more than three years apart with other taxable income (D128,
- *      the words held to DB_GAP_UP_TO); with couples off (the rollback), the line before D99; eight lines each way;
+ *      the words held to DB_GAP_UP_TO); with the household default (APP_COUPLE's household, D135), how it plans a couple,
+ *      one plan for the money the two hold and each of them planned apart where one plan cannot hold their plan
+ *      (src/solverApproximations.js HOUSEHOLD_SENTENCE), in both lines with couples on; with couples off (the rollback), the
+ *      line before D99; eight lines each way;
  *   5. a couple's cut gives each person what the couple's own run reads (the reviewer on D99, finding 4): over 30 of the
  *      library's couples, with each person's age, each retirement age or the plan's end age left blank, the ages as text, or
  *      the end age at the first person's age, each person's plan (src/solverCouple.js couplePlans) has the age today, the
@@ -40,9 +50,10 @@
  *      older, the guard 'ages' exactly where the engine's own ages put the partner past 120 by the plan's end, and every
  *      couple the guard runs cut to the couple's horizon for both people; the reviewer's two cases among them;
  *   7. the client reads back the joint move each assembly of the couple carries (the reviewer on D109's change of default,
- *      MINOR 1: a worker dropping it was caught nowhere): a stand-in worker that assembles the couple without the joint move
- *      asked for, replying its record as coupleMeta would, has the job refused with the client's reason; one that keeps it
- *      solves (the page's own worker under the plant 'workernotie': solver-planner-ui.cjs check 19);
+ *      MINOR 1: a worker dropping it was caught nowhere): on today's route (`household: null`, check 3's option), a stand-in
+ *      worker that assembles the couple without the joint move asked for, replying its record as coupleMeta would, has the
+ *      job refused with the client's reason; one that keeps it solves (the page's own worker under the plant 'workernotie':
+ *      solver-planner-ui.cjs check 19; the household's setting read back the same way: household-client.test.mjs check 4);
  *   8. a couple more than three years apart with other taxable income keeps the app's rules (D128; step 5's shapes, research/
  *      solver/results-shapes-beside.txt, EXPLORATORY: the couples' default below the app's rules on three couples 8 or 12
  *      years apart with a DB pension, entered as other taxable income): over 30 of the library's couples, the partner's age
@@ -71,25 +82,28 @@
  * age cap since the reviewer on D128, MINOR 2), 'nojointcheck'
  * (src/solverClient.js: each assembly's joint move not read back, as before: check 7), 'nogapguard' (src/couplesSwitch.js:
  * a couple more than three years apart with other taxable income run, as before D128: check 8), 'nogapline'
- * (src/solverApproximations.js: the coverage line without those couples, as before D128: check 4). Check 1's planted blocks
- * run in every run.
+ * (src/solverApproximations.js: the coverage line without those couples, as before D128: check 4), 'nohousehold'
+ * (src/solverClient.js: a couple solved on today's route though the couples' default names the household plan, as before
+ * D135: check 3), 'nohouseline' (src/solverApproximations.js: the coverage line without how a couple is planned, as before
+ * D135: check 4). Check 1's planted blocks run in every run.
  *   node research/tests/couple-default.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { COUPLES, COUPLE_BAND, ELDER_UP_TO, ELDER_FIRST, SWAP_ELDER, DB_GAP_UP_TO, coupleSolverOn, elderOf, horizonFits, PLANT as SWITCH_PLANT } from '../../src/couplesSwitch.js';
 import { APP_COUPLE, appJoint, jointKey } from '../../src/solverSettings.js';
-import { couplePlans, PLANT as COUPLE_PLANT } from '../../src/solverCouple.js';
-import { solverApproximations, COUPLES_LINE, PLANT as WORDS_PLANT } from '../../src/solverApproximations.js';
+import { couplePlans, householdCut, PLANT as COUPLE_PLANT } from '../../src/solverCouple.js';
+import { solverApproximations, COUPLES_LINE, HOUSEHOLD_SENTENCE, PLANT as WORDS_PLANT } from '../../src/solverApproximations.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['firstnotelder', ['2', '8']], ['eldereither', ['2']], ['halfdefault', ['3']], ['notie', ['3', '7']], ['oldcouples', ['4']], ['rawages', ['5']], ['noagecap', ['6', '8']], ['nojointcheck', ['7']], ['nogapguard', ['8']], ['nogapline', ['4']]]) {
+  for (const [plant, want] of [['firstnotelder', ['2', '8']], ['eldereither', ['2']], ['halfdefault', ['3']], ['notie', ['3', '7']], ['oldcouples', ['4']], ['rawages', ['5']], ['noagecap', ['6', '8']], ['nojointcheck', ['7']], ['nogapguard', ['8']], ['nogapline', ['4']], ['nohousehold', ['3']], ['nohouseline', ['4']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, COUPLE_DEFAULT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
@@ -100,7 +114,7 @@ if (process.argv.includes('--planted')) {
 }
 const PLANTED = process.env.COUPLE_DEFAULT_PLANT || '';
 if (PLANTED === 'firstnotelder' || PLANTED === 'eldereither' || PLANTED === 'noagecap' || PLANTED === 'nogapguard') SWITCH_PLANT.rule = PLANTED;
-if (PLANTED === 'oldcouples' || PLANTED === 'nogapline') WORDS_PLANT.rule = PLANTED;
+if (PLANTED === 'oldcouples' || PLANTED === 'nogapline' || PLANTED === 'nohouseline') WORDS_PLANT.rule = PLANTED;
 if (PLANTED === 'rawages') COUPLE_PLANT.rule = PLANTED;
 
 let pass = 0, fail = 0;
@@ -108,15 +122,16 @@ const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS
 
 // 1. the decided-defaults block's couples entry against the code
 { const blockOf = text => { const m = /<!-- decided-defaults([\s\S]*?)-->/.exec(text); return m ? JSON.parse(m[1]) : null; };
-  const code = { on: COUPLES, shareRule: APP_COUPLE.shareRule, band: [...COUPLE_BAND], elderUpTo: ELDER_UP_TO, elderFirst: ELDER_FIRST, swapElder: SWAP_ELDER, tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast, dbGapUpTo: DB_GAP_UP_TO };
+  const code = { on: COUPLES, shareRule: APP_COUPLE.shareRule, band: [...COUPLE_BAND], elderUpTo: ELDER_UP_TO, elderFirst: ELDER_FIRST, swapElder: SWAP_ELDER, tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast, dbGapUpTo: DB_GAP_UP_TO, household: APP_COUPLE.household };
   const agrees = D => !!(D && D.couples) && JSON.stringify(D.couples) === JSON.stringify(code);
   const D = blockOf(readFileSync(join(HERE, '../solver/STATE.md'), 'utf8'));
   const without = D ? { ...D } : null; if (without) delete without.couples;
   const half = D ? { ...D, couples: { ...D.couples, shareRule: 'half' } } : null;
   const noTie = D && D.couples ? { ...D, couples: Object.fromEntries(Object.entries(D.couples).filter(([k]) => !['tieJoint', 'tieLook', 'holdPast'].includes(k))) } : null;
   const noGap = D && D.couples ? { ...D, couples: Object.fromEntries(Object.entries(D.couples).filter(([k]) => k !== 'dbGapUpTo')) } : null;
-  ok('1. the decided-defaults block\'s couples entry is the code\'s (the switch, the share rule, the band, the elder\'s limit, the elder entered first, the swap, the joint move, the age gap with other taxable income); planted, a block without it, with the half share, without the joint move or without the gap fails',
-    agrees(D) && !agrees(without) && !agrees(half) && !agrees(noTie) && !agrees(noGap) && APP_COUPLE.tieJoint === 1e-4 && APP_COUPLE.tieLook === true && APP_COUPLE.holdPast === 2 && DB_GAP_UP_TO === 3,
+  const noHouse = D && D.couples ? { ...D, couples: Object.fromEntries(Object.entries(D.couples).filter(([k]) => k !== 'household')) } : null;
+  ok('1. the decided-defaults block\'s couples entry is the code\'s (the switch, the share rule, the band, the elder\'s limit, the elder entered first, the swap, the joint move, the age gap with other taxable income, the household plan\'s form); planted, a block without it, with the half share, without the joint move, without the gap or without the household fails',
+    agrees(D) && !agrees(without) && !agrees(half) && !agrees(noTie) && !agrees(noGap) && !agrees(noHouse) && APP_COUPLE.tieJoint === 1e-4 && APP_COUPLE.tieLook === true && APP_COUPLE.holdPast === 2 && DB_GAP_UP_TO === 3 && APP_COUPLE.household === 'pensionsPA',
     `the block ${JSON.stringify(D && D.couples)}; the code ${JSON.stringify(code)}`); }
 
 // 2. the guard over the library's couples, re-held, under four arrangements of their ages
@@ -169,7 +184,11 @@ let refused = null;   // check 7, below: the client's read-back of each assembly
       const { id, kind } = data;
       try {
         if (kind === 'couple-plans') { const cut = couplePlans(E, data.plan, { shareRule: data.shareRule }); asked.push({ kind, shareRule: data.shareRule, share: cut.share, spend: [cut.plans.self.spending.targetSpend, cut.plans.part.spending.targetSpend] }); this.reply({ id, ...cut }); return; }
-        if (kind === 'solve') { asked.push({ kind, slot: data.slot || null }); this.reply({ id: 0, done: true, meta: {}, secs: 0, restored: false }); return; }
+        if (kind === 'solve') { asked.push({ kind, slot: data.slot || null, bands: data.bands ? JSON.stringify(data.bands) : null }); this.reply({ id: 0, done: true, meta: {}, secs: 0, restored: false }); return; }
+        // the household's route (D135): the cut as the worker makes it (householdCut), and the household's record as the worker's
+        // (householdMeta: the setting the assembly was made with, here the one asked, and the cut's k)
+        if (kind === 'household-plan') { const hc = householdCut(E, M, data.plan, data.form); this.k = hc.bands.k; asked.push({ kind, form: data.form }); this.reply({ id, ...hc }); return; }
+        if (kind === 'household') { asked.push({ kind, setting: JSON.stringify({ form: data.form, split: data.split, topK: data.topK, tieJoint: data.tieJoint, holdPast: data.holdPast }) }); this.reply({ id, done: true, meta: { household: true, setting: { form: data.form, split: 'even', topK: data.topK, tieJoint: data.tieJoint, holdPast: data.holdPast }, k: this.k, split: 'even' } }); return; }
         // the couple's record as the worker's (coupleMeta: the joint move it was assembled with); one that drops it (check 7)
         if (kind === 'couple') { asked.push({ kind, shareRule: data.shareRule, joint: JSON.stringify(data.joint === undefined ? 'unset' : data.joint) }); this.reply({ id, done: true, meta: { joint: dropJoint ? {} : JSON.parse(jointKey(data.joint)) } }); return; }
         throw new Error(`no '${kind}' here`);
@@ -178,27 +197,34 @@ let refused = null;   // check 7, below: the client's read-back of each assembly
   }
   globalThis.Worker = StandIn;
   const C = await import('../../src/solverClient.js');
-  if (PLANTED === 'halfdefault' || PLANTED === 'notie' || PLANTED === 'nojointcheck') C.PLANT.rule = PLANTED;
+  if (PLANTED === 'halfdefault' || PLANTED === 'notie' || PLANTED === 'nojointcheck' || PLANTED === 'nohousehold') C.PLANT.rule = PLANTED;
   const c = couples.find(x => x.id === 'S069') || couples[0], p90 = reheld(c.plan, 0.9);
   const run = async couple => { asked.length = 0; const job = C.startSolve(p90, { parts: 1, couple }); const d = await job.done; job.close(); return { d, asked: asked.slice() }; };
-  const byDefault = await run({ engine: E }), named = await run({ engine: E, shareRule: 'half' }), noJoint = await run({ engine: E, joint: null });
-  const cut = byDefault.asked.find(a => a.kind === 'couple-plans'), joined = byDefault.asked.find(a => a.kind === 'couple');
+  // by default the household (D135); today's route under `household: null`, the option that names it
+  const byDefault = await run({ engine: E }), today = await run({ engine: E, household: null }), named = await run({ engine: E, shareRule: 'half', household: null }), noJoint = await run({ engine: E, joint: null, household: null });
+  const wantCut = householdCut(E, M, p90, 'pensionsPA'), hp = byDefault.asked.find(a => a.kind === 'household-plan'), hSolves = byDefault.asked.filter(a => a.kind === 'solve'), hAsm = byDefault.asked.find(a => a.kind === 'household');
+  const wantSetting = JSON.stringify({ form: 'pensionsPA', split: 'even', topK: 3, tieJoint: 1e-4, holdPast: 2 }), hRec = byDefault.d.couple || {};
+  const houseOk = !!hp && hp.form === 'pensionsPA' && hSolves.length === 1 && hSolves[0].slot === 'household' && hSolves[0].bands === JSON.stringify(wantCut.bands) && !!hAsm && hAsm.setting === wantSetting
+    && !byDefault.asked.some(a => a.kind === 'couple-plans' || a.kind === 'couple') && hRec.household === 'pensionsPA' && hRec.k === wantCut.bands.k && hRec.split === 'even'
+    && ![today, named, noJoint].some(r => r.asked.some(a => a.kind === 'household-plan' || a.kind === 'household'));
+  const cut = today.asked.find(a => a.kind === 'couple-plans'), joined = today.asked.find(a => a.kind === 'couple');
   const target = Number(E.normalizePlan(p90).spending.targetSpend);
   const spendOk = !!cut && Math.abs(cut.spend[0] - 0.9 * target) < 1 && Math.abs(cut.spend[1] - 0.1 * target) < 1;
   const cutH = named.asked.find(a => a.kind === 'couple-plans'), joinedH = named.asked.find(a => a.kind === 'couple');
   const research = couplePlans(E, p90), want = JSON.stringify(appJoint()), jN = noJoint.asked.find(a => a.kind === 'couple');
-  const jointOk = !!joined && joined.joint === want && JSON.stringify(byDefault.d.couple.joint) === want && !!joinedH && joinedH.joint === want
+  const jointOk = !!joined && joined.joint === want && JSON.stringify(today.d.couple.joint) === want && !!joinedH && joinedH.joint === want
     && !!jN && jN.joint === 'null' && noJoint.d.couple.joint === null && want === JSON.stringify({ tieJoint: 1e-4, tieLook: true, holdPast: 2 });
-  ok('3. the page solves a couple on the pots\' share: held 90/10, cut and assembled on \'pots\', each person on 90% and 10% of the spending, the record naming it; a named \'half\' kept; the solver\'s own default the half share; the couple assembled with the couples\' joint move (D108), the record naming it, a caller\'s own (none) kept',
-    !!cut && cut.shareRule === 'pots' && !!joined && joined.shareRule === 'pots' && spendOk && byDefault.d.couple.shareRule === 'pots' && Math.abs(byDefault.d.couple.share - 0.9) < 1e-9
+  ok('3. the page solves a couple as one household by default (D135): the plan cut at \'pensionsPA\', its one table solved in the slot \'household\' inside the cut\'s bands, the household assembled with the default\'s setting (its form and the even split), the record naming the form, the cut\'s k and the even split, no person\'s table and no couple; today\'s route under `household: null`: held 90/10, cut and assembled on \'pots\', each person on 90% and 10% of the spending, the record naming it; a named \'half\' kept; the solver\'s own default the half share; the couple assembled with the couples\' joint move (D108), the record naming it, a caller\'s own (none) kept',
+    houseOk && !!cut && cut.shareRule === 'pots' && !!joined && joined.shareRule === 'pots' && spendOk && today.d.couple.shareRule === 'pots' && Math.abs(today.d.couple.share - 0.9) < 1e-9
       && !!cutH && cutH.shareRule === 'half' && !!joinedH && joinedH.shareRule === 'half' && named.d.couple.shareRule === 'half' && named.d.couple.share === 0.5
       && research.shareRule === 'half' && research.share === 0.5 && jointOk,
-    `${c.id} held 90/10, target ${target}: asked to cut on ${cut && cut.shareRule} (each person's spending ${cut ? cut.spend.map(x => Math.round(x)).join(' and ') : '-'}), to assemble on ${joined && joined.shareRule}, the record ${byDefault.d.couple.shareRule} at ${byDefault.d.couple.share}; named 'half': ${cutH && cutH.shareRule}, ${joinedH && joinedH.shareRule}, ${named.d.couple.shareRule} at ${named.d.couple.share}; couplePlans unasked: ${research.shareRule} at ${research.share}; the joint move asked ${joined && joined.joint}, recorded ${JSON.stringify(byDefault.d.couple.joint)}, with 'half' ${joinedH && joinedH.joint}, none named ${jN && jN.joint}`);
-  // 7's runs: a stand-in worker that assembles the couple without the joint move asked for, and one that keeps it
+    `${c.id} held 90/10, target ${target}: by default asked to cut the household at ${hp ? hp.form : '-'}, ${hSolves.length} table${hSolves.length === 1 ? '' : 's'} solved (slot ${hSolves.map(a => a.slot).join(', ') || '-'}; inside the cut's bands ${hSolves.length === 1 && hSolves[0].bands === JSON.stringify(wantCut.bands)}), assembled with ${hAsm ? hAsm.setting : '-'}, the record ${hRec.household || '-'} at k ${hRec.k}, split ${hRec.split || '-'}; today's route asked to cut on ${cut && cut.shareRule} (each person's spending ${cut ? cut.spend.map(x => Math.round(x)).join(' and ') : '-'}), to assemble on ${joined && joined.shareRule}, the record ${today.d.couple.shareRule} at ${today.d.couple.share}; named 'half': ${cutH && cutH.shareRule}, ${joinedH && joinedH.shareRule}, ${named.d.couple.shareRule} at ${named.d.couple.share}; couplePlans unasked: ${research.shareRule} at ${research.share}; the joint move asked ${joined && joined.joint}, recorded ${JSON.stringify(byDefault.d.couple.joint)}, with 'half' ${joinedH && joinedH.joint}, none named ${jN && jN.joint}`);
+  // 7's runs, on today's route (`household: null`): a stand-in worker that assembles the couple without the joint move asked
+  // for, and one that keeps it
   dropJoint = true; let why = '';
-  try { await run({ engine: E }); } catch (e) { why = e.message; }
+  try { await run({ engine: E, household: null }); } catch (e) { why = e.message; }
   dropJoint = false;
-  let kept = true; try { await run({ engine: E }); } catch (e) { kept = false; }
+  let kept = true; try { await run({ engine: E, household: null }); } catch (e) { kept = false; }
   refused = { why, kept }; }
 
 // 4. the words the page shows about couples follow the switch
@@ -208,9 +234,13 @@ let refused = null;   // check 7, below: the client's read-back of each assembly
   // D128: the couples more than DB_GAP_UP_TO years apart with other taxable income named, in words held to the code's gap
   const gapWords = { 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six' }[DB_GAP_UP_TO];
   const gapSaid = l => !!gapWords && new RegExp(`except a couple more than ${gapWords} years apart in age who have other taxable income, such as a DB \\(final salary\\) pension or an annuity\\. Any other`).test(l);
-  const says = (l, entered) => !!l && /40% to 60%/.test(l) && /older partner/.test(l) && entered === /entered first/.test(l) && new RegExp(`${Math.round(100 * ELDER_UP_TO)}%`).test(l) && /Any other couple's plan keeps the app's own rules/.test(l) && gapSaid(l);
-  ok(`4. the coverage list says which couples the solver plans for and that any other keeps the app's rules (couples on: the older partner ${SWAP_ELDER ? 'either way, the swap on' : 'entered first'}, not a couple more than ${gapWords} years apart with other taxable income); the elder entered first with the swap off; the line before D99 with couples off; eight lines each way`,
-    COUPLES && on.length === 8 && off.length === 8 && first.length === 8 && says(lineOn, !SWAP_ELDER) && says(lineFirst, true) && lineOn === (SWAP_ELDER ? COUPLES_LINE.on : COUPLES_LINE.onFirst) && lineFirst === COUPLES_LINE.onFirst && lineOff === COUPLES_LINE.off && !on.includes(COUPLES_LINE.off),
+  // D135: with the household default, how the solver plans a couple, at the line's end; without it, not said
+  const houseSaid = l => (APP_COUPLE.household ? l.endsWith(HOUSEHOLD_SENTENCE) : !l.includes(HOUSEHOLD_SENTENCE));
+  const sentenceOk = [/^ For a couple, /, /one plan for the money you hold between you/, /how your pensions are split/, /simulating each of you with your own tax/, /plans each of you separately/].every(r => r.test(HOUSEHOLD_SENTENCE));
+  const says = (l, entered) => !!l && /40% to 60%/.test(l) && /older partner/.test(l) && entered === /entered first/.test(l) && new RegExp(`${Math.round(100 * ELDER_UP_TO)}%`).test(l) && /Any other couple's plan keeps the app's own rules/.test(l) && gapSaid(l) && houseSaid(l);
+  ok(`4. the coverage list says which couples the solver plans for and that any other keeps the app's rules (couples on: the older partner ${SWAP_ELDER ? 'either way, the swap on' : 'entered first'}, not a couple more than ${gapWords} years apart with other taxable income${APP_COUPLE.household ? ', and how it plans a couple, one plan for the money the two hold (D135)' : ''}); the elder entered first with the swap off; the line before D99 with couples off; eight lines each way`,
+    COUPLES && on.length === 8 && off.length === 8 && first.length === 8 && says(lineOn, !SWAP_ELDER) && says(lineFirst, true) && lineOn === (SWAP_ELDER ? COUPLES_LINE.on : COUPLES_LINE.onFirst) && lineFirst === COUPLES_LINE.onFirst && lineOff === COUPLES_LINE.off && !on.includes(COUPLES_LINE.off)
+      && !!lineOff && !lineOff.includes(HOUSEHOLD_SENTENCE.trim()) && sentenceOk && APP_COUPLE.household === 'pensionsPA',
     `on: "${lineOn}"; the swap off: "${lineFirst}"; off: "${lineOff}"`); }
 
 // 5. a couple's cut against the couple's own context, whatever is left blank
@@ -261,7 +291,7 @@ let refused = null;   // check 7, below: the client's read-back of each assembly
 
 // 7. the client reads back each assembly's joint move (the reviewer on D109's change, MINOR 1): a couple assembled without the
 // joint move asked for is refused with the client's reason; the same couple assembled with it solves
-ok('7. a couple whose worker assembled it without the joint move asked for is refused by the client; assembled with it, it solves',
+ok('7. on today\'s route (`household: null`), a couple whose worker assembled it without the joint move asked for is refused by the client; assembled with it, it solves',
   !!refused && /the couple was assembled by the owner with the joint move \{\}, not the \{"tieJoint":0\.0001,"tieLook":true,"holdPast":2\} asked for/.test(refused.why) && refused.kept,
   `dropped: ${refused && refused.why ? refused.why : 'not refused'}; kept: ${refused && refused.kept ? 'solved' : 'refused'}`);
 

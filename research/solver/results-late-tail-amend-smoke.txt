@@ -1,0 +1,8 @@
+THE LATE TAIL, AMENDMENT 1: ITS SMOKE AND ITS PLANT (EXPLORATORY; 20 Nov, 16:18 to 16:23 UK; no result)
+The first run's machinery at its launch commit 180432fe in a scratch worktree, all ten units at 6 points and 30 paths (LT_PTS=6 LT_N=30); then CEIL run again on the amended files (f3094f1b, audit 5bbb8c62b042), each unit held to that run (LT_ARMS=CEIL LT_FIRST); then the read (reduce-late-tail.mjs --ceil --smoke); then CEIL run again on S273-own and S357F-db with the planted recorder (LT_PLANT=recorderdrop), which check 5 must refuse. The lines below are the scripts' own output, unedited:
+THE GATE: fair; one code 71fb4271c681, audit 57cc9f06eafb (APP, K2, HSPA, L and R; CEIL on 5bbb8c62b042, amendment 1, its checks passed and the first run's arms held to their contexts without the recorder), seed 7002, 6 points; every unit's six arms at its paths, its checks passed
+reduce exit 0
+plant S273-own exit 3
+audit-late-tail: S273-own CEIL: the recorded arm differs from the same arm without the recorder (survived at path 1)
+plant S357F-db exit 3
+audit-late-tail: S357F-db CEIL: the recorded arm differs from the same arm without the recorder (failYear at path 13)

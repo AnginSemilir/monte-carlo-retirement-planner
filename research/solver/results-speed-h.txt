@@ -1,0 +1,11 @@
+THE SPEED MODE ON THE HOUSEHOLD PLAN (EXPLORATORY; SPEED-H.md): 12 couples as one household at pensionsPA, code 9f9857213b75, audit 23744283ca8d, seed 7002, 4000 paths, 45 points; the gate: fair (every unit in both arms; one code, audit, seed, count of paths and points; each arm's speed mode as named; the household's table the same in both arms; each at pensionsPA, the even split)
+
+The households (12), SPEED against WHOLE:
+  1. pooled survival -0.008 (-0.030 to +0.013) points; its lower end above -0.1: HOLDS
+  2. no unit wholly below -0.3: none: HOLDS
+  3. pooled spending delivered -0.0082%; within 0.05% either way: HOLDS
+  4. the mean pot left -0.008% pooled (not lower by more than 0.5%), the capped pot -0.034% (not lower by more than 0.1%): HOLDS
+  a path's time SPEED over WHOLE, the median x0.63 (x0.38 to x0.80)
+  by unit: S031 -0.025 (0 saved, 1 lost), spending -0.004%, pot +0.01%, tax -0.19%, x0.38; S047 -0.050 (7 saved, 9 lost), spending -0.069%, pot -0.21%, tax +10.04%, x0.47; S063 +0.000 (0 saved, 0 lost), spending +0.001%, pot +0.04%, tax +0.10%, x0.46; S097 +0.000 (0 saved, 0 lost), spending -0.001%, pot +0.01%, tax +0.00%, x0.53; S115 -0.050 (0 saved, 2 lost), spending -0.000%, pot -0.01%, tax -0.05%, x0.39; S133 +0.000 (0 saved, 0 lost), spending +0.000%, pot -0.00%, tax +0.00%, x0.60; S301F +0.000 (0 saved, 0 lost), spending +0.000%, pot -0.00%, tax +0.00%, x0.72; S305F +0.000 (0 saved, 0 lost), spending +0.001%, pot +0.00%, tax -0.05%, x0.67; S307F +0.025 (2 saved, 1 lost), spending +0.000%, pot -0.02%, tax -0.01%, x0.63; S319F +0.000 (0 saved, 0 lost), spending -0.000%, pot +0.00%, tax -0.02%, x0.64; S321F +0.025 (1 saved, 0 lost), spending +0.003%, pot -0.00%, tax -0.12%, x0.65; S325F -0.025 (0 saved, 1 lost), spending +0.000%, pot +0.08%, tax +0.17%, x0.80
+
+SPEED-H OUTCOME: HOLDS

@@ -11,6 +11,110 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (20 Nov, evening), found while porting step 8; nothing decided, for your word:**
+1. **The speed mode reaches the household plan's table, unmeasured.** The opt-in "Beta - speed mode" (D97 (3)) hands a
+   solve the chooser's shortlist, and since the household default (D135) a couple's one table takes it as a single's does.
+   Its couples' warning ("usually only a little faster, spent a little less, ... about 5 in 1,000") was measured on
+   today's two-table route (SPEED-B). On a household nothing was measured: on S025-own at light settings, 185 of 200
+   paths end differently with it on (EXPLORATORY scratch, not kept). Options:
+   - leave it, the warning saying couples are less tested;
+   - measure it on the household (an EXPLORATORY read like SPEED-B's couples);
+   - or keep the speed mode off for couples.
+
+   The agent recommends measuring it before the next batch merges, and meanwhile leaving the warning as it stands. The
+   reviewer on the change of default agrees (`reviews/2026-11-20-default-household.md`, finding 5). The measure is ready:
+   `SPEED-H.md`, its rule committed, on SPEED-B's twelve couples, EXPLORATORY.
+
+   **Read (20 Nov, 22:04 UK): HOLDS** (`results-speed-h.txt`, beside it `results-speed-h-beside.txt`;
+   `reports/2026-11-20-speed-h-read.md`; the reviewer at the read PASS, four MINOR answered,
+   `reviews/2026-11-20-read-speed-h.md`). On the household the speed mode loses nothing beyond item 7's bars:
+   - pooled survival `-0.008` points (`-0.030` to `+0.013`);
+   - spending `-0.0082%`;
+   - the capped pot `-0.034%`, the part nearest its bar.
+
+   S047 carries nearly all of the spending and capped pot. Without it they are `+0.0006%` and `+0.003%`; S047's own capped
+   pot is `-0.442%`.
+
+   The largest loss on a unit, `-0.050` points, is a point estimate. Every unit's interval stays above the warning's 5 in
+   1,000, and S047's reaches lowest, to `-0.273`.
+
+   The twelve are of one shape: 60/40, three years apart, each with its own minimum pot. A path and its solve take the median
+   `x0.72` of the time, a guide (WHOLE was timed first, which flatters SPEED by a few percent). Beside it, SPEED-B on today's
+   route, the same twelve couples: LOSES on spending (`-0.0683%`), at `x0.82` by the same measure.
+
+   The couples' warning's figures ("about 5 in 1,000") are SPEED-B's, and today's route is still what a couple the household
+   plan refuses takes. Whether to keep its words or change them is yours. The agent recommends keeping them as they stand:
+   they err towards caution, and twelve couples of one shape on one seed is a narrow read.
+2. **FIXED (D136's fix round): under the speed mode a couple's shown decisions were made on the shortlist, on either route.** This year's actions,
+   the next years and the rows (`src/solverCouple.js`) run the couple's policy as it is. D90's guard, that a decision the
+   pages show is made on the whole menu (`src/solverStrategy.js` `shownPolicy`, `research/tests/shortlist-shown.test.mjs`),
+   wraps only a single's views. This predates the port, and is a defect by D90's words. The agent proposes to fix it with a
+   test of its class (a couple's and a household's shown decisions the whole menu's under the speed mode, the paths that
+   count keeping the shortlist) after the reviewer's verdict on the change of default, in the same batch.
+
+**RULED (D135, 20 Nov, evening: "Unlock enforcement, launch"): the two items below. Seed 7025 reserved and the savings split's v2
+launched as registered; the late tail's rule taking the build on, the unlock covering `couple-default.test.mjs` for step 8's
+change of default.**
+1. **The late tail, read twice: by the rule, step 8's build goes on to `main`** (D134 (1); `results-late-tail.txt`,
+   `results-late-tail-2.txt`, `reports/2026-11-20-late-tail-read.md`; the reviewer again PASS, three MINORs answered,
+   `reviews/2026-11-20-read-late-tail-2.md`).
+   - **The first read** printed THE GROWTH with CEIL NEAR K2, which would have stopped the build. The reviewer FAILED it:
+     its CEIL arm ran through a recorder that dropped the tiers held, so CEIL's chooser weighed no switch charge (the
+     engine still charged each switch)
+     (confirmed; no other wrapper of a chooser in the research or the app drops it).
+   - **The fix and the second read:** the recorder fixed with a check of its class (amendment 1); CEIL run again alone on
+     the ten units, each held to the first run, whose other arms the fault did not touch. Second read, by the same rule:
+     THE GROWTH. CEIL restores `-21.1%` of D, not `87.4%`, so by the rule's measure the table does not read the couple as
+     safer than it is. The read does not test the deep review's other sign of a gap: HSPA's forecast above what it
+     delivers on four of S273's units, by `0.52` to `0.82` points (`reviews/2026-11-20-deep-household-hsp.md`, item 4).
+     THE GROWTH is a lead, not a shown cause: R, which explains it, keeps fewer paths than HSPA on every unit.
+   - **What the rule decides:** the build goes on to `main` on B1's gate, this read reported. Left: the words, the default
+     and its pin (`couple-default.test.mjs`, which needs your unlock), the identity at 45 points, the reviewer on the change
+     of default, and the gate.
+   - **The trade, beside the rule:** on the seven units below nought HSPA keeps `28` paths fewer than K2 in `28,000` and
+     ends the worst tenth `£52,873` a path lower; step 8's registered read has HSPA ahead over 40 held-out units, pooled
+     `+0.762` points. A wish to hold couples to survival more strictly than singles would be yours to ask for, not a
+     build (`LATE-TAIL.md`'s words).
+2. **The savings split's v2 is ready to launch** (`registrations/save-v2.md`; the design review PASS on its final look,
+   `reviews/2026-11-20-save-v2-design-2.md`). It waits on your typed unlock to reserve seed 7025 for `save-v2*.md` in
+   `check-prediction.mjs`, that edit alone, and your word to launch: about `12.3` hours on four cores.
+
+**RULED (D134, 20 Nov, morning: "Go, test beside", "Yes, come back", "Run as is"): the three decisions below, each as the
+agent recommended.**
+1. **Step 8 read PASS, and M1 names one unit, so the couples' default waits for your word** (`results-household-hsp.txt`,
+   `reports/2026-11-20-household-hsp-read.md`; the reviewer at the read PASS, three MINORs answered; the deep review
+   `reviews/2026-11-20-deep-household-hsp.md`).
+   - **The rule, HSPA against K2 on 40 held-out units:** no unit flagged by D34; pooled survival `+0.762` (`+0.718` to
+     `+0.807`); spending on the paths both keep `+1.7223%`.
+   - **M1's unit, S273-90:** `81` more paths kept, but `-0.1665%` spending on the paths both keep and a capped pot
+     `-1.034%`.
+   - **Beside:** three units lose survival beyond noise but under D34's threshold (`-0.200` to `-0.281`, each interval
+     reaching past a quarter point); S357F gains nothing pooled; the near-even shape gains nothing beyond noise; HSPA's
+     paths about three times as fast as K2's.
+   - **The deep review's leading cause, a lead:** the household table's thinner late cushion, the paths it loses failing
+     late. **Its one test,** about a day: whether that is the table's own trade (the default then a word on that trade)
+     or the table reading the couple as safer than it is (design B before the default).
+   - **The agent's recommendation:** go, the build begun now (the household plan in the app's solve of a couple, shown
+     identical to the tested arm path for path, the reviewer on the change of default), the deep review's test run beside
+     it, and nothing to `main` before the test reads: if it shows the table over-reading the couple, the build stops there
+     and comes back. The other ways: the test first and then the word; or hold, today's default staying.
+2. **The savings split's v2, the design review's MINOR 2: a spending harm on anchors** (`reviews/2026-11-20-save-v2-design.md`).
+   Anchors is the menu that ships, and the factorial's S308F harm was seen there, but under a PASS only D34's survival flags on
+   anchors come back to you (D133 (3)). **The agent's recommendation:** under a PASS, each household failing part 3's
+   household clause on anchors, and the pair on anchors if its pooled survival interval lies wholly below nought, also comes
+   back to you before any change of default, deciding nothing in the rule. The other way: the registration says plainly that
+   a spending harm on anchors does not stop the change.
+3. **The savings split's v2, the design review's MINOR 3: the 2029 cap on salary sacrifice's NIC relief.** The engine leaves
+   it uncapped (stated, not modelled: D112 (M6)), which favours the pension first, one of the split's two answers (about 11%
+   more pension a net pound above the cap in the main band); 30 of the 40 households are employees. **The agent's
+   recommendation:** run as is, the read printing beside the rule the share of the employees' decisions from 2029 that take
+   the pension first (built), the limitation and its direction in the registration (written), and modelling the cap queued as
+   its own engine change for every plan, not this test's. The other way: model the cap before the run, which changes the
+   engine and so the landing, the pilot and the preflight.
+- **Also yours, when ready:** seed 7025's reservation for `save-v2*.md` needs your typed "unlock enforcement" (an answer in a
+  question dialog does not open the hook). The launch comes after the preflight, the pilot on the final files and the
+  reviewer's look at the answers.
+
 **RULED (D130, 19 Nov, morning: "Proceed"): the agent's seven recommendations after D129's queue, in this order.**
 1. **The engine's ISA defect, fixed first:** a dated deposit or staged drip into an ISA counted against that year's
    subscription, in the engine, the exact model and the forward run, with a test of its class shown failing; sized on the
@@ -20,7 +124,8 @@ below this section says "the beta", read it as history. The order from here:
      parting the forward run from the engine; the fast tier green, no figure pinned in it moving, so no unlock was needed.
    - **Sized** (`results-isa-allowance-sizing.txt`, EXPLORATORY): no library plan as entered holds such a deposit; under
      Windfall to ISA, 68 of 210 plans run differently on some path, each within one path of `1,000` on survival.
-   - The code id moves from `603eeb595679` to `71fb4271c681`. Next: `main` with the next batch. Step 8's panel is landed
+   - The code id moves from `603eeb595679` to `71fb4271c681`. **On `main`** with the ninth batch (pull request 20, b2ba847b,
+     19 Nov). Step 8's panel is landed
      again after the arm read (item 2), whose outcome names the arm the panel's refusals follow.
 2. **Step 8 held; HSP and HSP with the personal allowance at `k`** read by step 8's own rule on the lead test's 28 units and
    step 5's 28 shapes (EXPLORATORY, seed 7002, the fixed code), its rule committed first. Step 8 is registered on the arm
@@ -41,20 +146,40 @@ below this section says "the beta", read it as history. The order from here:
      second round, seed 7024's unlock with it (item 4), and the registration to you before launch.
    - **Done (9c1dc08d):** the machinery switched to HSPA (its planted checks pass); the panel landed again on code
      71fb4271c681, the same eight couples and 40 units with every target and arm A's survival unchanged. The pilot on the
-     fixed code runs (19 Nov from 15:05 UK), then the sizing fills Paths, Budget and the pilot's figures.
+     fixed code ran (19 Nov 15:05 to 15:53 UK), and its sizing filled Paths and the pilot's figures (90f0757b).
+   - **The design review's second round: PASS, four MINOR** (`reviews/2026-11-19-household-hsp-design-2.md`), each answered
+     before the launch commit (`STEP8.md`): the 25 units the pilot did not run go through every check before any path (a
+     preflight, two paths of seed 7002); under a PASS each unit M1 names goes to you with the read before the default
+     changes; the gate's re-checks gain planted cases on a real record; the launch stamp is filled by hand. The edits move
+     the audit's stamp, so the pilot runs again on the final files and the Budget is taken from it.
+   - **Seed 7024 reserved** under your unlock (D131, 744eee1a). Done since: the preflight (the 25 units, none refused), the
+     pilot again on the final files (its arrays the same as before the edits), the Budget (54.5 core-hours, about 14.8
+     hours on four cores, one relaunch at the 12-hour limit), and the reviewer's third look at the second round's answers,
+     PASS, two MINOR (`reviews/2026-11-19-household-hsp-design-3.md`: the Design review line fixed; eight of the gate's
+     refusals without a planted case, each correct by inspection, left as they are before the launch on its advice).
+     `registrations/household-hsp.md` is complete but for the launch stamp, filled by hand at the launch commit.
+   - **Ruled (D132, "Yes"):** launched as registered on seed 7024 through the launcher from a worktree at the launch commit
+     (its stamp `code 71fb4271c681 audit 4cc4d37c0c19`), about 15 hours, relaunched under `RESUME=1` at the 12-hour limit;
+     read once by its rule. The savings split's v2 registration is drafted meanwhile (item 7).
 3. **D80 lifted for the household table alone** (its tie-break kept).
 4. **Seed 7024** reserved when the registration goes to its second design review.
-5. **The guard kept as built**, so D129 (5)'s words on the couples card go with the next batch.
+5. **The guard kept as built**, so D129 (5)'s words on the couples card go with the next batch: **on `main`** with the
+   ninth (pull request 20, b2ba847b, 19 Nov).
    - **IN** (`src/PlannerCards.jsx`): the words, and the planner harness's check 19 reading them, with its plant `gapwords`
      (the words before), to fail at the next gate.
 6. **The windfall split closed**, no v2.
 7. **The savings split's v2**, a registered test, after step 8; its registration drafted while step 8 runs.
-   - **Its design drafted** (`SAVE-V2.md`, DRAFT, not run). Three choices are yours, each with the agent's
-     recommendation: the pair on anchors (the menu that would ship) beside the whole menu, a harm there coming back before
-     any change of default; how many households (Phase 4 took 40); and the spending bar in the rule (no household's
-     lifetime spending lower beyond noise by more than `0.1%`, which S308F's `-0.250%` would fail). Its seed, 7025 by the
-     next free number, needs your unlock of `check-prediction.mjs` by name when the registration goes to its design
-     review.
+   - **Its design drafted** (`SAVE-V2.md`, DRAFT, not run), and its registration drafted while step 8 runs
+     (`registrations/save-v2.md`, DRAFT).
+   - **RULED (D133, 19 Nov, night), each as the agent recommended:** the library has no held-out pool of single savers
+     (of its 90, 27 were the factorial's, 58 touched by other runs, 5 untouched and none of them younger:
+     `results-save-v2-pool.txt`), so v2 draws on the 63 no run has taken the split on, held out for this question and
+     not from every run; 40 of them (the younger cohort's 10 and 30 of the 53 older); the pair on anchors beside on each
+     household's first `4,000` paths, a household flagged there coming back before any change of default; the spending
+     bar `0.1%`.
+   - **Next:** its machinery built while step 8 runs (nothing heavy run); the panel, the pilot and the sizing when the
+     cores are free; seed 7025's reservation, your unlock of `check-prediction.mjs` by name, asked for when the
+     registration goes to its design review.
 - **Unlocks:** "Proceed" does not open the hook; each protected edit or moved pin in a fast-tier test is asked for by name.
 
 **RULED (D129, 18 Nov, evening: "Go ahead. Add the windfall and savings tests to the end"): the agent's seven

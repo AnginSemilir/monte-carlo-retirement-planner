@@ -1,0 +1,59 @@
+STEP 8: THE READ (STEP8.md; research/solver/registrations/household-hsp.md): 40 units from /home/user/hsp-launch/research/solver/results/household-hsp-run
+THE GATE: fair; one code 71fb4271c681, audit 4cc4d37c0c19, seed 7024, 45 points; every unit's three arms at their configurations, the guard on, at its registered paths
+
+THE RULE, HSPA against K2 (paired by path):
+  1. no unit flagged by D34's harm rule: none: HOLDS
+  2. pooled survival +0.762 (+0.718 to +0.807) over 40 units, by path, its lower end above 0: HOLDS (beside, cells summed as if independent: +0.762 (+0.742 to +0.782))
+  3. pooled spending on the paths both keep +1.7223 (+1.7106 to +1.7340)% of K2's, the units weighted equally, by path; its point not lower than -0.05%: HOLDS
+OUTCOME: PASS: HSPA becomes the couples' default, in the commit of the D-line naming this run, with the reviewer on the change of default (STEP8.md); first, the 1 unit M1 names below (S273-90) go to the maintainer with this read
+
+BESIDE THE RULE, deciding nothing:
+  comparisons whose 1-point rate at their realised discordance falls below 0.9 (D34 (4)): none
+  HSPA against APP: pooled survival +11.605 (+11.292 to +11.917); spending on the paths both keep +6.0976 (+6.0339 to +6.1613)%; flagged by D34 (for investigation, D34 (3)): none
+  K2 against APP: pooled survival +10.842 (+10.549 to +11.135); spending on the paths both keep +4.3231 (+4.2655 to +4.3808)%; flagged by D34 (for investigation, D34 (3)): none
+  the pot capped at the two people's estate caps, HSPA against K2: -3.630% the mean of the units' (-£30,732 a path); the pot left, the mean a unit: APP £34,653,072, K2 £7,519,884, HSPA £9,091,528
+  M1 by unit (D116): the units where HSPA keeps more paths but spends less on the paths both keep beyond noise: S273-90 (net +81 paths, spending on the paths both keep -0.1665% se 0.0074 and over all paths -0.0256%, the capped pot -1.034% -£64,271 a path)
+  lifetime tax, the mean a unit: APP £286,090, K2 £381,330, HSPA £352,402
+  the rollout beside the engine on K2's first paths: 0 paths differ of 20000
+  by unit (k; survival APP / K2 / HSPA; HSPA less K2; D34 against K2: net loss in paths and threshold; spending on the paths both keep and the capped pot, HSPA against K2; the forecasts K2 / HSPA):
+    S025-45       k 1.818; 86.46% / 99.69% / 99.49%; -0.200 (-0.251 to -0.122) (7 saved, 39 lost); net 32 against 61; spending +3.8125% (se 0.0194), the capped pot -10.237%; 99.11% / 99.68%
+    S025-90       k 1.111; 85.69% / 98.15% / 99.63%; +1.481 (+1.417 to +1.503) (239 saved, 2 lost); net -237 against 67; spending +4.0694% (se 0.0290), the capped pot -0.053%; 71.07% / 99.56%
+    S025-db       k 1.667; 85.22% / 99.38% / 99.99%; +0.619 (+0.573 to +0.619) (99 saved, 0 lost); net -99 against 61; spending +8.0797% (se 0.0258), the capped pot -15.678%; 4.09% / 100.00%
+    S025-gap8     k 1.667; 85.34% / 97.88% / 99.44%; +1.563 (+1.465 to +1.623) (259 saved, 9 lost); net -250 against 69; spending +2.9515% (se 0.0260), the capped pot -4.902%; 97.97% / 99.38%
+    S025-own      k 1.667; 85.30% / 99.23% / 99.36%; +0.125 (+0.011 to +0.229) (49 saved, 29 lost); net -20 against 61; spending +4.5077% (se 0.0261), the capped pot -11.522%; 89.70% / 99.63%
+    S027-45       k 1.818; 85.54% / 98.79% / 98.85%; +0.063 (-0.028 to +0.145) (29 saved, 19 lost); net -10 against 61; spending +1.3377% (se 0.0122), the capped pot -7.617%; 97.63% / 99.03%
+    S027-90       k 1.111; 85.89% / 98.45% / 99.08%; +0.625 (+0.538 to +0.677) (107 saved, 7 lost); net -100 against 61; spending +1.1861% (se 0.0155), the capped pot +0.272%; 87.44% / 98.21%
+    S027-db       k 1.667; 85.51% / 97.67% / 99.49%; +1.813 (+1.718 to +1.869) (298 saved, 8 lost); net -290 against 70; spending +6.0649% (se 0.0265), the capped pot -12.342%; 33.09% / 99.44%
+    S027-gap8     k 1.667; 85.64% / 94.90% / 97.44%; +2.538 (+2.455 to +2.580) (411 saved, 5 lost); net -406 against 75; spending +1.6069% (se 0.0166), the capped pot -5.960%; 94.06% / 98.14%
+    S027-own      k 1.667; 86.11% / 98.10% / 98.88%; +0.775 (+0.680 to +0.835) (133 saved, 9 lost); net -124 against 61; spending +4.0006% (se 0.0178), the capped pot -14.208%; 85.83% / 98.96%
+    S193-45       k 1.818; 85.11% / 98.79% / 98.85%; +0.056 (-0.047 to +0.154) (36 saved, 27 lost); net -9 against 61; spending +1.2164% (se 0.0111), the capped pot -4.473%; 96.42% / 99.02%
+    S193-90       k 1.111; 85.15% / 94.09% / 99.04%; +4.950 (+4.854 to +5.007) (800 saved, 8 lost); net -792 against 88; spending +1.6871% (se 0.0209), the capped pot -5.546%; 67.55% / 98.84%
+    S193-dbpart   k 1.667; 85.73% / 98.83% / 99.79%; +0.963 (+0.917 to +0.963) (154 saved, 0 lost); net -154 against 62; spending +5.7125% (se 0.0240), the capped pot -7.989%; 85.52% / 99.82%
+    S193-gap8     k 1.667; 86.17% / 98.67% / 99.03%; +0.356 (+0.246 to +0.443) (75 saved, 18 lost); net -57 against 61; spending +1.7061% (se 0.0123), the capped pot -5.217%; 94.51% / 99.15%
+    S193-own      k 1.667; 85.08% / 98.26% / 98.86%; +0.594 (+0.473 to +0.687) (115 saved, 20 lost); net -95 against 61; spending +1.7708% (se 0.0156), the capped pot -5.916%; 91.08% / 99.02%
+    S273-45       k 1.818; 85.14% / 93.63% / 93.70%; +0.075 (-0.058 to +0.204) (60 saved, 48 lost); net -12 against 61; spending +0.3985% (se 0.0068), the capped pot -1.125%; 89.51% / 94.32%
+    S273-90       k 1.111; 84.79% / 93.04% / 93.55%; +0.506 (+0.356 to +0.638) (122 saved, 41 lost); net -81 against 63; spending -0.1665% (se 0.0074), the capped pot -1.034%; 88.46% / 93.43%
+    S273-gap8     k 1.667; 85.45% / 93.88% / 94.15%; +0.269 (+0.129 to +0.396) (84 saved, 41 lost); net -43 against 61; spending +0.4896% (se 0.0088), the capped pot -1.059%; 91.52% / 94.67%
+    S273-own      k 1.667; 85.11% / 93.62% / 93.60%; -0.019 (-0.161 to +0.125) (62 saved, 65 lost); net 3 against 61; spending +0.6331% (se 0.0094), the capped pot -1.071%; 88.25% / 94.25%
+    S273-sppart   k 1.667; 84.74% / 93.31% / 93.20%; -0.106 (-0.260 to +0.051) (68 saved, 85 lost); net 17 against 62; spending +0.5965% (se 0.0095), the capped pot -0.999%; 87.60% / 94.02%
+    S349F-45      k 1.818; 84.04% / 96.08% / 96.22%; +0.150 (+0.021 to +0.270) (63 saved, 39 lost); net -24 against 61; spending +0.9614% (se 0.0103), the capped pot -2.235%; 90.32% / 96.49%
+    S349F-90      k 1.111; 84.17% / 93.04% / 96.28%; +3.231 (+3.090 to +3.338) (541 saved, 24 lost); net -517 against 81; spending +1.7684% (se 0.0146), the capped pot -2.949%; 80.11% / 96.11%
+    S349F-db      k 1.667; 84.77% / 94.59% / 98.46%; +3.869 (+3.791 to +3.905) (623 saved, 4 lost); net -619 against 83; spending +4.7603% (se 0.0300), the capped pot -7.280%; 73.57% / 98.53%
+    S349F-gap8    k 1.667; 84.26% / 95.74% / 96.17%; +0.431 (+0.279 to +0.567) (114 saved, 45 lost); net -69 against 62; spending +1.0408% (se 0.0130), the capped pot -2.852%; 88.76% / 96.51%
+    S349F-own     k 1.667; 85.81% / 96.56% / 97.17%; +0.613 (+0.484 to +0.715) (122 saved, 24 lost); net -98 against 62; spending +1.1040% (se 0.0157), the capped pot -3.098%; 89.05% / 97.35%
+    S351F-45      k 1.818; 84.35% / 95.13% / 95.16%; +0.037 (-0.098 to +0.171) (59 saved, 53 lost); net -6 against 61; spending +0.3616% (se 0.0072), the capped pot -1.173%; 90.60% / 95.46%
+    S351F-90      k 1.111; 85.55% / 94.51% / 95.75%; +1.238 (+1.078 to +1.370) (236 saved, 38 lost); net -198 against 69; spending +0.9636% (se 0.0153), the capped pot -2.514%; 87.01% / 95.05%
+    S351F-dbpart  k 1.667; 85.15% / 96.09% / 96.66%; +0.563 (+0.437 to +0.662) (113 saved, 23 lost); net -90 against 61; spending +0.8817% (se 0.0111), the capped pot -2.983%; 90.53% / 96.58%
+    S351F-gap8    k 1.667; 84.14% / 95.40% / 95.55%; +0.150 (+0.009 to +0.284) (73 saved, 49 lost); net -24 against 61; spending +1.1668% (se 0.0126), the capped pot +1.080%; 90.27% / 95.99%
+    S351F-own     k 1.667; 84.69% / 94.74% / 95.20%; +0.456 (+0.306 to +0.589) (115 saved, 42 lost); net -73 against 62; spending +0.6236% (se 0.0124), the capped pot +0.478%; 85.84% / 95.33%
+    S355F-45      k 1.818; 84.74% / 94.57% / 94.76%; +0.188 (+0.060 to +0.303) (65 saved, 35 lost); net -30 against 61; spending +0.3532% (se 0.0057), the capped pot -0.809%; 90.18% / 94.73%
+    S355F-90      k 1.111; 84.36% / 93.57% / 94.74%; +1.169 (+1.030 to +1.278) (213 saved, 26 lost); net -187 against 67; spending +0.6279% (se 0.0101), the capped pot -1.945%; 88.80% / 93.98%
+    S355F-gap8    k 1.667; 84.26% / 94.91% / 95.29%; +0.375 (+0.241 to +0.490) (92 saved, 32 lost); net -60 against 61; spending +0.2820% (se 0.0104), the capped pot -0.564%; 90.44% / 95.47%
+    S355F-own     k 1.667; 84.71% / 94.16% / 94.62%; +0.463 (+0.309 to +0.599) (119 saved, 45 lost); net -74 against 63; spending +0.0981% (se 0.0108), the capped pot -1.044%; 85.84% / 94.59%
+    S355F-sppart  k 1.667; 85.58% / 94.44% / 95.17%; +0.738 (+0.615 to +0.831) (138 saved, 20 lost); net -118 against 62; spending +0.1763% (se 0.0125), the capped pot -0.689%; 86.48% / 95.17%
+    S357F-45      k 1.818; 84.76% / 95.11% / 95.02%; -0.094 (-0.186 to +0.008) (23 saved, 38 lost); net 15 against 61; spending +0.2694% (se 0.0036), the capped pot -0.519%; 90.84% / 95.27%
+    S357F-90      k 1.111; 85.30% / 94.97% / 95.39%; +0.419 (+0.306 to +0.506) (85 saved, 18 lost); net -67 against 61; spending +0.4229% (se 0.0077), the capped pot -0.906%; 91.93% / 95.34%
+    S357F-db      k 1.667; 84.59% / 95.04% / 95.01%; -0.031 (-0.165 to +0.104) (54 saved, 59 lost); net 5 against 61; spending +0.5414% (se 0.0100), the capped pot +0.679%; 88.86% / 95.04%
+    S357F-gap8    k 1.667; 84.63% / 95.17% / 94.95%; -0.225 (-0.329 to -0.106) (27 saved, 63 lost); net 36 against 61; spending +0.2937% (se 0.0058), the capped pot -0.702%; 91.48% / 95.23%
+    S357F-own     k 1.667; 84.66% / 95.22% / 94.94%; -0.281 (-0.401 to -0.147) (36 saved, 81 lost); net 45 against 61; spending +0.5343% (se 0.0088), the capped pot +1.519%; 89.73% / 95.08%
+  the time a path (CPU, the mean a unit): APP 0.5 ms, K2 159.5 ms, HSPA 50.5 ms; the solve, the median a unit: K2 122 s, HSPA 58 s

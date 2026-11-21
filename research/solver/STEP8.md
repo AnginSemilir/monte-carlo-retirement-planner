@@ -198,6 +198,50 @@ D80 lifted for the household table; the seed reserved at the second round; the I
 3. **The seed:** 7024 reserved in `check-prediction.mjs`, a protected file: an unlock.
 4. **The ISA defect:** if it is fixed first (the maintainer's ruling pending), the panel is landed again, about an hour.
 
+## The design review's second round (`reviews/2026-11-19-household-hsp-design-2.md`: PASS, four MINOR)
+
+The switch to HSPA is complete and consistent, BLOCKING 1's answer holds as a design, and the registration is complete but
+for the seed, the launch stamp and this review. Each MINOR is answered before the launch commit:
+1. **25 of the 40 units had never been through the audit's checks before any path.** A refusal under the registration would
+   end its unit and so refuse the whole run on the held-out seed. The audit and the batch gain a `preflight` mode: each
+   unit the pilot did not run goes through every check before any path at 45 points, then two paths of the pilot's seed
+   (EXPLORATORY, no outcome, nothing of 7024; `results/household-hsp-preflight`).
+2. **Under a PASS, a unit M1 names did not reach the maintainer.** Under a PASS each unit M1 names now goes to the
+   maintainer with the read before the default changes. The read's outcome line names them, and each one's spending over
+   all paths is printed beside its spending on the paths both keep. `reduce-household-hsp.mjs` `report` is a function now,
+   with a planted case: a PASS with such a unit names it, and without it does not.
+3. **The gate's re-checks of the settings lines and the household line had no planted case.** Six planted faults on a real
+   pilot record's lines (S025-own, 19 Nov) are each refused by their own check and nothing else. Each of two mutants, one
+   with the settings re-check removed and one with the line re-check removed, fails that case.
+4. **`check-prediction.mjs` does not read "The launch".** The launch stamp is filled by hand at the launch commit, as the
+   share rules' registration's was.
+
+Also from the round: the audit's header and the sizing's line on shapes were stale and are corrected. The sizing prints the
+batch's own order beside longest first (the reviewer's figure: 15.93 hours against 14.7), with a planted case. The edits
+move the audit's stamp, so the pilot runs again on the final files before the sizing is taken.
+
+Done before the launch commit:
+- the preflight (`results-household-hsp-preflight.txt`): the 25 units, none refused;
+- the pilot again on the final files (19 Nov 19:10 to 19:53 UK, audit 7fa755346a65, its gate fair): its arrays the same in
+  every stored figure on every path as the run before the edits;
+- the sizing (`results-household-hsp-sizing.txt`): every unit at 16,000 paths; the budget 54.5 core-hours, 14.8 hours on
+  four cores in the batch's own order, the longest unit 3.48 hours.
+
+Because the answers changed the registration's Outcomes and its gate after the pilot was read, they go back to the reviewer
+for a check of exactly those answers (`reviews/2026-11-19-household-hsp-design-3.md`), as the registration's own rule asks.
+
+**The third look** (`reviews/2026-11-19-household-hsp-design-3.md`): PASS, two MINOR. Each of the four answers does what the
+second round asked and nothing else in the design moved; the re-run pilot equals the run before the edits (0 of 465 arrays
+and fields differ), and the sizing recomputes as the registration states.
+1. **The Design review line named the second round's file first**, the one `check-prediction.mjs` reads: it now names this
+   look's (a field the registration lets change after the pilot).
+2. **Eight of the gate's refusals have no planted case:** an extra unit; more than one prediction, Node version or seed; a
+   unit off the given seed, estate weight or points; the audit stamp not these files'. Removing any one leaves `--planted`
+   at ALL PASS, so the registration's "each refusal has its planted case" is too broad there. Each is present and correct
+   by inspection, and the audit-stamp refusal fired live on the pilot (the sizing rewrites `household-hsp-paths.json`, one
+   of the stamp's files, after the pilot runs). The reviewer advises no change before the launch: the read is frozen at the
+   launch commit, and the sentence is outside the fields the registration lets change. It is said here for the maintainer.
+
 ## Box
 
 A day to build, land, pilot and size (from 19 Nov 01:00 UK). Then the design reviewer, then the maintainer before launch.

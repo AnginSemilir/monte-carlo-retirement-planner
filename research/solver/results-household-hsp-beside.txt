@@ -1,0 +1,84 @@
+STEP 8, BESIDE THE READ (written after the read, deciding nothing): 40 units of 16000 paths from /home/user/hsp-launch/research/solver/results/household-hsp-run
+  the read's pooled survival change, HSPA against K2, recomputed here: +0.762 (+0.718 to +0.807); spending on the paths both keep +1.7223 (+1.7106 to +1.7340)%
+
+A. THE POOLED SURVIVAL CHANGE WITHOUT PART OF THE PANEL (HSPA against K2, by path)
+  without its largest unit (S193-90, +4.950): +0.655 (+0.613 to +0.698) over 39 units
+  without S025's 5 units: +0.769 (+0.723 to +0.814)
+  without S027's 5 units: +0.705 (+0.661 to +0.749)
+  without S193's 5 units: +0.674 (+0.629 to +0.719)
+  without S273's 5 units: +0.851 (+0.801 to +0.900)
+  without S349's 5 units: +0.634 (+0.593 to +0.676)
+  without S351's 5 units: +0.802 (+0.756 to +0.847)
+  without S355's 5 units: +0.788 (+0.742 to +0.834)
+  without S357's 5 units: +0.878 (+0.828 to +0.927)
+
+B. BY BASE COUPLE AND BY SHAPE (HSPA against K2, each group pooled by path)
+  S025        5 units: survival +0.718 (+0.631 to +0.804); spending on the paths both keep +4.6842 (+4.6430 to +4.7253)%; units below nought 1
+  S027        5 units: survival +1.163 (+1.061 to +1.264); spending on the paths both keep +2.8392 (+2.8151 to +2.8634)%; units below nought 0
+  S193        5 units: survival +1.384 (+1.280 to +1.487); spending on the paths both keep +2.4186 (+2.3975 to +2.4397)%; units below nought 0
+  S273        5 units: survival +0.145 (+0.065 to +0.225); spending on the paths both keep +0.3902 (+0.3783 to +0.4022)%; units below nought 2
+  S349        5 units: survival +1.659 (+1.536 to +1.781); spending on the paths both keep +1.9270 (+1.9020 to +1.9520)%; units below nought 0
+  S351        5 units: survival +0.489 (+0.407 to +0.571); spending on the paths both keep +0.7995 (+0.7824 to +0.8165)%; units below nought 0
+  S355        5 units: survival +0.586 (+0.498 to +0.675); spending on the paths both keep +0.3075 (+0.2934 to +0.3216)%; units below nought 0
+  S357        5 units: survival -0.043 (-0.104 to +0.019); spending on the paths both keep +0.4123 (+0.4013 to +0.4234)%; units below nought 4
+  shape 45    8 units: survival +0.034 (-0.005 to +0.074); spending on the paths both keep +1.0889 (+1.0800 to +1.0977)%; units below nought 2
+  shape 90    8 units: survival +1.702 (+1.600 to +1.805); spending on the paths both keep +1.3199 (+1.3052 to +1.3345)%; units below nought 0
+  shape db    4 units: survival +1.567 (+1.456 to +1.678); spending on the paths both keep +4.8616 (+4.8309 to +4.8923)%; units below nought 1
+  shape gap8  8 units: survival +0.682 (+0.620 to +0.744); spending on the paths both keep +1.1921 (+1.1790 to +1.2053)%; units below nought 1
+  shape own   8 units: survival +0.341 (+0.288 to +0.393); spending on the paths both keep +1.6590 (+1.6443 to +1.6737)%; units below nought 2
+  shape dbpart  2 units: survival +0.762 (+0.657 to +0.868); spending on the paths both keep +3.2971 (+3.2692 to +3.3251)%; units below nought 0
+  shape sppart  2 units: survival +0.316 (+0.208 to +0.424); spending on the paths both keep +0.3864 (+0.3708 to +0.4020)%; units below nought 1
+
+C. THE UNITS BY THEIR CHANGE'S INTERVAL (HSPA against K2)
+  wholly above nought 29, across nought 8, wholly below nought 3
+  wholly below: S025-45       -0.200 (-0.251 to -0.122) (7 saved, 39 lost); D34: net loss 32 paths against its threshold 61, not flagged
+  wholly below: S357F-gap8    -0.225 (-0.329 to -0.106) (27 saved, 63 lost); D34: net loss 36 paths against its threshold 61, not flagged
+  wholly below: S357F-own     -0.281 (-0.401 to -0.147) (36 saved, 81 lost); D34: net loss 45 paths against its threshold 61, not flagged
+  across, below nought at its point: S273-own      -0.019 (-0.161 to +0.125) (62 saved, 65 lost); D34: net loss 3 against 61
+  across, below nought at its point: S273-sppart   -0.106 (-0.260 to +0.051) (68 saved, 85 lost); D34: net loss 17 against 62
+  across, below nought at its point: S357F-45      -0.094 (-0.186 to +0.008) (23 saved, 38 lost); D34: net loss 15 against 61
+  across, below nought at its point: S357F-db      -0.031 (-0.165 to +0.104) (54 saved, 59 lost); D34: net loss 5 against 61
+
+D. EACH TABLE'S FORECAST AT THE START LESS THE SURVIVAL THE ENGINE DELIVERS, IN POINTS
+  K2  : the mean -10.909, the mean size 10.913; within one point on 3 of 40 units; from -95.286 (S025-db) to +0.085 (S025-gap8)
+  HSPA: the mean +0.099, the mean size 0.258; within one point on 40 of 40 units; from -0.863 (S027-90) to +0.820 (S273-sppart)
+
+E. LIFETIME TAX, HSPA AGAINST K2, THE MEAN A PATH
+  lower under HSPA on 26 of 40 units; the units' mean change -29.691%, from -99.945% to +30.347%
+  higher under HSPA: S027-db       K2 £84,428, HSPA £85,957 (+1.811%)
+  higher under HSPA: S027-gap8     K2 £4,271, HSPA £5,428 (+27.085%)
+  higher under HSPA: S027-own      K2 £7,016, HSPA £7,572 (+7.937%)
+  higher under HSPA: S273-45       K2 £943,012, HSPA £986,942 (+4.658%)
+  higher under HSPA: S273-gap8     K2 £993,742, HSPA £1,025,852 (+3.231%)
+  higher under HSPA: S273-own      K2 £941,314, HSPA £991,595 (+5.342%)
+  higher under HSPA: S273-sppart   K2 £920,041, HSPA £985,808 (+7.148%)
+  higher under HSPA: S351F-gap8    K2 £116,406, HSPA £134,385 (+15.445%)
+  higher under HSPA: S351F-own     K2 £109,238, HSPA £122,106 (+11.780%)
+  higher under HSPA: S357F-45      K2 £1,231,761, HSPA £1,288,447 (+4.602%)
+  higher under HSPA: S357F-90      K2 £1,342,891, HSPA £1,494,767 (+11.310%)
+  higher under HSPA: S357F-db      K2 £1,081,271, HSPA £1,409,402 (+30.347%)
+  higher under HSPA: S357F-gap8    K2 £1,172,873, HSPA £1,383,425 (+17.952%)
+  higher under HSPA: S357F-own     K2 £1,015,712, HSPA £1,308,946 (+28.870%)
+
+F. THE POT CAPPED AT THE TWO PEOPLE'S ESTATE CAPS, HSPA AGAINST K2 (the mean a path; the read's cappedOf)
+  lower under HSPA on 35 of 40 units; the units' mean -3.630% (-£30,732 a path)
+  not lower under HSPA: S027-90       +0.272% (£1,828 a path)
+  not lower under HSPA: S351F-gap8    +1.080% (£14,234 a path)
+  not lower under HSPA: S351F-own     +0.478% (£6,152 a path)
+  not lower under HSPA: S357F-db      +0.679% (£47,837 a path)
+  not lower under HSPA: S357F-own     +1.519% (£107,136 a path)
+
+G. THE UNITS WHERE HSPA KEEPS FEWER PATHS AT ITS POINT: SURVIVAL, THE CAPPED POT AND LIFETIME TAX (HSPA against K2)
+  below nought at its point: 7 units; the capped pot lower on 5, lifetime tax higher on 6
+  S025-45       survival -0.200 (-0.251 to -0.122) (wholly below nought), its interval reaching past -0.25; the capped pot -10.237%; lifetime tax -68.003%
+  S273-own      survival -0.019 (-0.161 to +0.125); the capped pot -1.071%; lifetime tax +5.342%
+  S273-sppart   survival -0.106 (-0.260 to +0.051), its interval reaching past -0.25; the capped pot -0.999%; lifetime tax +7.148%
+  S357F-45      survival -0.094 (-0.186 to +0.008); the capped pot -0.519%; lifetime tax +4.602%
+  S357F-db      survival -0.031 (-0.165 to +0.104); the capped pot +0.679%; lifetime tax +30.347%
+  S357F-gap8    survival -0.225 (-0.329 to -0.106) (wholly below nought), its interval reaching past -0.25; the capped pot -0.702%; lifetime tax +17.952%
+  S357F-own     survival -0.281 (-0.401 to -0.147) (wholly below nought), its interval reaching past -0.25, its point past -0.25; the capped pot +1.519%; lifetime tax +28.870%
+
+H. THE POT LEFT UNCAPPED, HSPA AGAINST K2, BY UNIT (the mean a path, and the median a path)
+  the mean a path higher under HSPA on 27 of 40 units; the median a path lower under HSPA on 31 of 40
+  the units' mean of the mean a path: K2 £7,519,884, HSPA £9,091,528; the units' mean of the median a path: K2 £3,931,008, HSPA £3,945,339
+  S273-90: the mean a path +3.834% (K2 £16,705,385, HSPA £17,345,936); the median a path -3.034% (K2 £9,169,528, HSPA £8,891,344); the capped pot -1.034%

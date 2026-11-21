@@ -103,8 +103,17 @@ export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.sol
  * end on the median path (`tieLook`); and a person whose wealth is more than `holdPast` times the top of their table's wealth
  * axis never stepping down in risk (src/solver/couple.js lookPick, holdMove). Off in the solver's own code, as the share rule
  * is; the page's couple is assembled with them (appJoint: src/solverClient.js, src/solverCouple.js assembleCouple).
+ * And since D134 (1) and D135 (20 Nov; step 8, research/solver/registrations/household-hsp.md, read once: PASS,
+ * results-household-hsp.txt; the late tail's second read, THE GROWTH, results-late-tail-2.txt): a couple the guard hands to
+ * the solver is solved as one household (`household`, its form: the plan cut by src/solver/household.js householdPlanFor at
+ * 'pensionsPA', the bands, the tax-free cash cap and the personal allowance k times one person's, k from the pensions' split;
+ * its one table solved as a single's inside those bands; its move the table's own, its tie-break the candidate's above the
+ * estate cap, both people taking it at the even split; the joint move's tie-break and hold are passed to its assembly as
+ * step 8's arm passed them and do not reach that move), not as two tables through the joint move (src/solverClient.js
+ * startSolve's household route; research/solver/HSP-PORT.md). The share rule, the joint move and `tieLook` stay for today's
+ * route, which a caller still names with `household: null`, and which a couple the household plan refuses takes.
  */
-export const APP_COUPLE = Object.freeze({ shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2 });
+export const APP_COUPLE = Object.freeze({ shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2, household: 'pensionsPA' });
 /* the joint move's options of the couples' default, as assembleCouple takes them */
 export const appJoint = () => ({ tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast });
 /* the joint move's options as a couple's record names them (src/solverCouple.js coupleMeta), and one key for comparing what a
@@ -209,6 +218,16 @@ export function lockedPlan(E, plan) {
   return { plan: p, riskAbove: binds ? false : undefined };
 }
 
+/* whether a couple's partner's own ceilings (`tierCeilingPart`) hold their wrappers otherwise than the first person's would,
+   wrapper by wrapper, as lockedPlan reads them (without them the partner takes the first person's `tierCeiling`). The limits
+   card writes them the first time either person's ceiling moves and keeps them set back to free (App.jsx
+   normalizeSolverLocks), so their presence alone says nothing (the reviewer on D135's change of default, finding 3) */
+export function partCeilingsDiffer(plan) {
+  const L = plan && plan.solver && plan.solver.locks;
+  if (!L || !L.tierCeilingPart) return false;
+  const real = c => (!!c && RISK.includes(c) ? c : null), tc = L.tierCeiling || {}, tp = L.tierCeilingPart;
+  return ['pen', 'isa'].some(w => real(tp[w]) !== real(tc[w]));
+}
 /* the solver's spending floor where the plan sets none, as a share of the target (B2, D51): every test of the candidate set it */
 export const APP_FLOOR = 0.8;
 /*

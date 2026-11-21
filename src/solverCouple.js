@@ -13,7 +13,7 @@
  */
 import { shareBy, SHARE_RULES, singlePlanFor, solveCouple, chooseJoint, rankFor, ownerState } from './solver/couple.js';
 import { vecOf } from './solver/grid.js';
-import { solvedContext, runPath, partsOf, retireYearOf, firstSweep, joinSkipRuns, shownPolicy } from './solverStrategy.js';
+import { solvedContext, yourContext, lifeOf, runPath, partsOf, retireYearOf, firstSweep, joinSkipRuns, shownPolicy } from './solverStrategy.js';
 import { wholeMenu, PRODUCT_DEFAULTS } from './solver/solve.js';
 import { prepareForSolve, JOINT_KEYS, partCeilingsDiffer } from './solverSettings.js';
 import { appPlan } from './solverApp.js';
@@ -310,7 +310,10 @@ export function coupleAheadOf(E, cp, plan, runs, { years = 10 } = {}) {
     if (rows[t]) Object.assign(rows[t], { spend: row.targetSpend > 0 ? row.targetSpend : 0, pot: Math.max(0, row.totalCombined), swept: { toGia: row.sweptToGia || 0, fromGia: row.sweptFromGia || 0, toIsa: row.sweptToIsa || 0 } });
   }
   // the typical run: where the counted runs took the shortlist, the whole menu's own run of the path the rows are shown on
-  return { couple: true, path: k, rows, typical: shortlisted(cp) && PLANT.rule !== 'noshown' ? Array.from(runPath(E, { ...sc, policyOverride: shown }, zs).level) : Array.from(runs.solved[k].level) };
+  const onShown = shortlisted(cp) && PLANT.rule !== 'noshown';
+  return { couple: true, path: k, rows, typical: onShown ? Array.from(runPath(E, { ...sc, policyOverride: shown }, zs).level) : Array.from(runs.solved[k].level),
+    // the typical run's whole life, both arms (the UI pass of 20 Nov; src/solverStrategy.js lifeOf), on the moves the rows show
+    life: lifeOf(E, onShown ? { ...sc, policyOverride: shown } : sc, yourContext(E, plan), zs) };
 }
 /* one market's run of the solved couple year by year, each year's joint move taken apart (a single's rowsOf) */
 export function coupleRowsOf(E, cp, market) {

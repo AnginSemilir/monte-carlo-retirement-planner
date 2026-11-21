@@ -1,4 +1,5 @@
-the code: code-stamp:32cb96c8ddc3b6eb; the classic planner's mode
+== the batches' pause was already set: left in place when this run exits ==
+the code: code-stamp:07db8b86e2aef6a9; the classic planner's mode
 == build, the site as it ships ==
    ok
 == serve on :4173 ==
@@ -38,3 +39,5 @@ inheritance            optional  not run: SHOW_INHERITANCE is off
    commit it merges (--engine runs them here too)
 
 ALL REQUIRED GREEN
+
+== the batches' pause was already set: left in place when this run exits ==

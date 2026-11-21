@@ -36,8 +36,23 @@ below this section says "the beta", read it as history. The order from here:
    re-based on it.
    - The classifier refused the edit as a re-pin of a test's expected value, and the agent has not worked around it.
    - The exact edit is kept as `research/solver/drafts/d137-candidate-test.py`, a script that applies it.
-   - Any figure pinned in the fast tier that the split moves will be added here by name, with its working, once the fast
-     tier has run on the build.
+   - **The fast tier on the build** (`results-d137-fast-pins.txt`): 73 of 77 pass, `chooser-share` among them (see item 5).
+     `check-state` fails only on STATE.md's printed candidate line, which the change's commit takes. Three tests of the
+     joining list fail, each on a working saver the split now reaches:
+     - `windfall-relief.test.mjs` check 6 (pinned under D83's unlock): S210 with its deposit removed, 14c9a95ebb1b8c49 to
+       5c3195f474943629; S210 with its deposit typed into the taxable account, 70e557bd71a3d75b to 11666732d554a51f. S116,
+       retired, is unchanged.
+     - `chooser-tie.test.mjs` check 1: S328F's paths with the option off, against the code before the option,
+       f2fe4e1e6d872dc3 to 41612ebb2cf51a77.
+     - `chooser-shortlist.test.mjs` check 1, the same S328F digest; checks 2 to 5 have nothing to test, since the split
+       leaves the shortlist idle on S328F (item 1).
+   - **The working:** each of the three, run on the build with the split taken out of its solves, passes whole with every
+     figure as pinned. So the split alone moves them.
+   - **The agent proposes** that each of the three takes its solves without the split, every pinned figure the same, as
+     `save-split`, `windfall-split` and `isa-allowance` now do. These tests check another option's identity, and the
+     split's own effect is tested by `save-default.test.mjs`. The other way is to re-pin the three figures to the new
+     digests; `chooser-shortlist`'s checks 2 to 5 would still need the split out. The unlock asked for covers whichever you
+     choose, named in the commit.
 3. **Done without an unlock, to say so:** three tests of the full tier now solve on the candidate before D137, so every
    figure they pin stays the same: `save-split`, `windfall-split` and `isa-allowance`. None is protected.
    - `solve.js` refuses the windfall split beside the savings split, so those tests would otherwise fail outright.
@@ -71,6 +86,26 @@ below this section says "the beta", read it as history. The order from here:
        Otherwise seed 7002, with the two arms beside it, costs about 13 core-hours. The build is half a day.
    - **The agent recommends** running the test before the change is committed, on seed 7025 (cheaper, and paired with the
      registered arms), and holding back ISA first for an employee as above. The time (item 1) goes with it as (C).
+5. **A defect the fast tier found on the build, fixed with a test of its class** (CHECKLIST 7; `results-d137-fast-pins.txt`).
+   - **What it was.** Under the split, the chooser scores each market world's table. In a year where the copies are left
+     out, the year's shared flows (`src/solver/solve.js` `decisionFlows`) are taken for the year's moves alone, but each
+     world's table did not carry the solve's moves a year. So the worlds scored the copies from flows left over from an
+     earlier decision, and the chooser's argmax, over every move, could pick one on them. `movesAt`'s own comment meant those
+     copies to be unchoosable there; the mask reached the solve, not its worlds.
+   - **How it showed.** `chooser-share.test.mjs` (protected) on S224 under the split: the shared flows and `scoreMoves`
+     parted at move 800, a copy, in year 5.
+   - **The fix** (in the build): each world's table carries the solve's moves a year (set on `r.worlds` at the solve's
+     finish), and `movesAt` also gives the moves it makes unchoosable a tax of nought, so both scorers agree on every move.
+     A solve with no split's copies is untouched (`movesAt` returns at once). `chooser-share` passes on the build.
+   - **Its test:** `save-default.test.mjs` check 6, on S188 under the split: every world carries the moves a year; with the
+     share check on, the two scorers agree at all 820 decisions of 20 paths; no decision picks a copy in a year it is left
+     out. Its plant `nattables`, the worlds left without it, fails exactly check 6.
+   - **Its reach, measured as far as it goes.** A probe (EXPLORATORY, seed 7002, light settings; S188 and S224, 100 paths
+     each) found the stale copies never won: no copy picked in such a year at any of 8,200 decisions, and the decisions and
+     outcomes the same with the shared flows on and off. So it is not shown to have changed a decision.
+     - Whether it changed any decision in the registered run cannot be read from its records, which keep the save only in
+       the working years.
+     - The windfall split's copies, research and closed, had the same defect; the fix covers both.
 
 **OPEN (20 Nov, evening), found while porting step 8; nothing decided, for your word:**
 1. **The speed mode reaches the household plan's table, unmeasured.** The opt-in "Beta - speed mode" (D97 (3)) hands a

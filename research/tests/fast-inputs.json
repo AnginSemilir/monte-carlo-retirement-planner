@@ -3986,6 +3986,7 @@
    "research/solver/results-covflow.txt",
    "research/solver/results-curve-dial.txt",
    "research/solver/results-curve-pay.txt",
+   "research/solver/results-d137-fast-pins.txt",
    "research/solver/results-d4b-plan-check.txt",
    "research/solver/results-d73-digests.txt",
    "research/solver/results-d73-fulltier.txt",

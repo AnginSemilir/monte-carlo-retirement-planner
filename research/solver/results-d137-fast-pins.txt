@@ -1,0 +1,33 @@
+THE SAVINGS SPLIT'S CHANGE OF DEFAULT (D137, built and not committed, in its worktree): THE FAST TIER ON THE BUILD, AND THE PINS IT MOVES
+the build: saveSplit true in the candidate (bf1cac401c13), couples off it, the page's words, the chooser's worlds carrying the moves a year (src/solver/solve.js), the e3pcls pin re-taken (9863ae413b16d2a4); 21 Nov 11:41 UTC
+
+1. node research/tests/run-all.mjs fast -j 4 on the build:
+run-all fast: 77 files found, 77 run, 73 passed, FAILED: check-state.test.mjs (1), windfall-relief.test.mjs (1), chooser-shortlist.test.mjs (1), chooser-tie.test.mjs (1)
+   check-state.test.mjs fails only on STATE.md's printed block "candidate", which state.mjs --write takes in the change's commit
+
+2. the three tests that fail, each alone on the build, their failing checks whole:
+  windfall-relief.test.mjs:
+    FAIL  6  no route into a pension from the household's money: S116, and S210 with its deposit removed and typed into the taxable account, every table as on item 3's code, bit for bit; S210 as entered, its 2033 route to the pound  -- S116 e6548bee07f4aec4 (item 3's e6548bee07f4aec4); S210, its deposit removed 5c3195f474943629 (item 3's 14c9a95ebb1b8c49); S210, its deposit typed into the taxable account 11666732d554a51f (item 3's 70e557bd71a3d75b); S210's 2033 route: pen £3600.00, other £168120.00
+  chooser-tie.test.mjs:
+      FAIL 1. the option off (the margin nought): S328F's paths the code before the option's, bit for bit; the solve carries the cap and a margin of nought   outcomes 41612ebb2cf51a77 against f2fe4e1e6d872dc3; the cap £1800000, four times the opening £450000
+  chooser-shortlist.test.mjs:
+      FAIL 1. the option unset: the paths the code before it's, bit for bit; set: every table the same, the record names it, another width refused   outcomes 41612ebb2cf51a77 against f2fe4e1e6d872dc3; tables 482e543dd47d5484 against 482e543dd47d5484; refused: chooserShortlist structure: 'order' (the only widt
+      FAIL 2. the list is a shortlist (shorter than the menu); where no listed move can be afforded the whole menu is scored, and the choice there is the whole menu's own   of 2400 moves, NaN listed a decision; fell back at 0 of 0 decisions; in the replay 0 of 0 fallbacks choose as the whole menu
+      FAIL 3. planted, the list emptied: every decision falls back, and every path is the whole menu's, bit for bit   0 of 0 decisions fell back; 0 of 200 paths differ
+      FAIL 4. the replay along the whole menu's path: planted, the cells' stored moves left out of the list, more decisions give up over 0.01 points of score than unplanted   3600 decisions: the shortlist differs at 0, giving up over 0.01 points at 0; planted, at 0 and 0
+      FAIL 5. the slice, with the tie-break above the cap on: the shortlist differs from the whole menu at no decision above the cap, and the slice acts; planted, the slice left out, it differs above the cap   3600 decisions, 921 above the cap, the slice at 0; differing above the cap 0 (in all 0); planted, 0 (in all 0)
+
+3. the same three on the build with the split taken out of their solves (research: { saveSplit: undefined }, a temporary copy of each, not committed), each run whole:
+    windfall-relief exit 0
+    chooser-shortlist exit 0
+    chooser-tie exit 0
+  windfall-relief: 7 checks passing, 0 failing
+  chooser-tie: 8 checks passing, 0 failing
+  chooser-shortlist: 6 checks passing, 0 failing
+  so the split alone moves each figure above: every pinned figure is the one pinned before with the split out
+
+4. the defect the fast tier found on the build (chooser-share.test.mjs, protected, S224 CAND under the split, the share check parting at a copy in a year the copies are left out): fixed; chooser-share.test.mjs passes on the build (one of the 73 above); the new test's check 6 is its class:
+PASS  6. the worlds under the split  -- S188 (55 s): 3 worlds, each carrying the solve's moves a year; the copies left out in 36 of 41 years; with the share check on, every move's score, tax and estate agree at 820 decisions of 20 paths; a copy picked in a year it is left out at 0
+  plant 'nosavepart': the checks that fail: 5; wanted exactly 5: yes
+  plant 'nattables': the checks that fail: 6; wanted exactly 6: yes
+  planted exit 0

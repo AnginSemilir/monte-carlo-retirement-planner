@@ -11,7 +11,12 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**OPEN (21 Nov, morning): the savings split's change of default (D137), built and not committed; for your word:**
+**RULED (21 Nov, evening, D137): the savings split's change of default, built and not committed.** The maintainer: "Unlock
+enforcement. Go ahead with your recommendations": (C) for the time, the speed work right after the change; the unlock for
+`candidate.test.mjs`'s pins, the three joining tests taking their solves without the split; the deep review's test K on
+seed 7025's first 4,000 paths before the change is committed (D110's form); ISA first held back for an employee, with its
+test and plant. The change is D138's, once K has read and the reviewer on the change of default has passed it. The items
+as they were put, kept as history:
 1. **The time and the speed mode for a working saver** (the reviewer at the read, MINOR 1;
    `results-save-v2-beside.txt` section A).
    - **The cost.** With the split, a working saver's path takes about twice as long on anchors, the menu the app solves on:

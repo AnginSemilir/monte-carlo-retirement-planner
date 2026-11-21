@@ -1,0 +1,103 @@
+THE SAVINGS SPLIT'S v2: THE READ (SAVE-V2.md; research/solver/registrations/save-v2.md): 40 households from /home/user/sv2-launch/research/solver/results/save-v2-run
+THE GATE: fair; one code 71fb4271c681, audit ffc59974f036, seed 7025, 45 points; every household's four arms at their configurations and menus, at its registered paths
+
+THE RULE, CANDS against CANDD on the whole menu (paired by path; D133):
+  1. no household flagged by D34's harm rule: none: HOLDS
+  2. pooled survival +0.495 (+0.465 to +0.526) over 40 households, by path, its lower end above 0: HOLDS
+  3. no household's lifetime spending lower beyond noise (Holm at 5%) by more than 0.1%: none; the pooled change +0.4226 (+0.4173 to +0.4280)%, the households weighted equally, its point not lower than -0.05%: HOLDS
+OUTCOME: PASS: saveSplit joins the candidate for singles who work and save, in the commit of the D-line naming this run, with the reviewer on the change of default (SAVE-V2.md)
+
+BESIDE THE RULE, deciding nothing:
+  the pair on anchors, CANDSA against CANDDA on the first 4000 paths: pooled survival +0.487 (+0.427 to +0.548); flagged by D34: none; lifetime spending pooled +0.4257 (+0.4148 to +0.4366)%, lower beyond noise by more than 0.1%: none
+  CANDDA against CANDD, the menu on anchors against the whole, on the first 4000 paths: pooled survival +0.000 (-0.009 to +0.009); lifetime spending -0.0015 (-0.0024 to -0.0006)%; D34 flags none
+  CANDSA against CANDS, the menu on anchors against the whole, on the first 4000 paths: pooled survival +0.004 (-0.006 to +0.013); lifetime spending +0.0005 (-0.0006 to +0.0015)%; D34 flags none
+  comparisons whose 1-point rate at their realised discordance falls below 0.9 (D34 (4)): none
+  spending on the paths both keep, CANDS against CANDD: +0.3182 (+0.3159 to +0.3205)%, weighted by pounds
+  the pot left, the mean a household: CANDD £4,856,020, CANDS £4,748,370; lifetime tax: CANDD £148,998, CANDS £175,058
+  the younger cohort (10), CANDS against CANDD: pooled survival +0.698 (+0.637 to +0.759); lifetime spending +0.5914 (+0.5825 to +0.6002)%
+  the library's cohort (30), CANDS against CANDD: pooled survival +0.428 (+0.394 to +0.462); lifetime spending +0.3664 (+0.3606 to +0.3722)%
+  the employees' working-year decisions from 2029 (the NIC relief on salary sacrifice not capped there, D112 (M6)): CANDS takes the pension first in 77.5% of 260000, over 30 households
+  runPolicy beside the engine on each arm's first paths: 0 paths differ in survival of 160000
+  by household (cohort, status; survival CANDD / CANDS; CANDS less CANDD; D34: net loss in paths and threshold; lifetime spending and Holm; on anchors CANDSA less CANDDA; the saves CANDS takes in the working years, the plan's / the pension first / the ISA first; its mean tier pair there; the pots at the top of the first retired year, CANDS less CANDD):
+    S180   lib  touched   98.89% / 99.06%; +0.163 (+0.086 to +0.213) (33 saved, 7 lost); net -26 against 61; spending +0.4879% (Holm loss 1.00e+0); anchors +0.125; saves 0 / 100 / 0%; tiers 2.99/2.99; pots pension £16,814, ISA -£11,873, taxable £0
+    S182   lib  touched   98.44% / 98.58%; +0.131 (+0.043 to +0.202) (34 saved, 13 lost); net -21 against 61; spending +0.4973% (Holm loss 1.00e+0); anchors +0.075; saves 0 / 100 / 0%; tiers 3.00/3.00; pots pension £16,888, ISA -£11,863, taxable £0
+    S186   lib  touched   97.53% / 97.73%; +0.206 (+0.117 to +0.272) (44 saved, 11 lost); net -33 against 61; spending +0.3534% (Holm loss 1.00e+0); anchors +0.250; saves 0 / 100 / 0%; tiers 3.00/3.00; pots pension £47,915, ISA -£27,022, taxable £0
+    S192   lib  touched   97.11% / 97.44%; +0.331 (+0.234 to +0.401) (65 saved, 12 lost); net -53 against 61; spending +0.5414% (Holm loss 1.00e+0); anchors +0.500; saves 0 / 100 / 0%; tiers 2.00/2.00; pots pension £17,446, ISA -£12,193, taxable £0
+    S196   lib  touched   96.94% / 97.03%; +0.087 (+0.018 to +0.138) (21 saved, 7 lost); net -14 against 61; spending +0.1661% (Holm loss 1.00e+0); anchors -0.050; saves 0 / 100 / 0%; tiers 2.00/2.00; pots pension £21,320, ISA -£16,525, taxable £0
+    S198   lib  touched   96.29% / 96.44%; +0.156 (+0.070 to +0.221) (36 saved, 11 lost); net -25 against 61; spending +0.2601% (Holm loss 1.00e+0); anchors +0.225; saves 0 / 100 / 0%; tiers 2.00/2.00; pots pension £49,365, ISA -£27,792, taxable -£2
+    S202   lib  touched   95.97% / 96.21%; +0.244 (+0.138 to +0.329) (57 saved, 18 lost); net -39 against 61; spending +0.4351% (Holm loss 1.00e+0); anchors +0.075; saves 0 / 100 / 0%; tiers 2.00/2.00; pots pension £131,207, ISA -£51,194, taxable -£3,954
+    S208   lib  touched   95.51% / 95.75%; +0.244 (+0.130 to +0.340) (62 saved, 23 lost); net -39 against 61; spending +0.0797% (Holm loss 1.00e+0); anchors +0.300; saves 0 / 100 / 0%; tiers 3.00/3.00; pots pension £20,653, ISA -£16,022, taxable £973
+    S212   lib  touched   94.15% / 94.41%; +0.263 (+0.151 to +0.355) (63 saved, 21 lost); net -42 against 61; spending +0.3289% (Holm loss 1.00e+0); anchors +0.275; saves 0 / 100 / 0%; tiers 2.00/2.00; pots pension £51,127, ISA -£27,795, taxable £0
+    S214   lib  touched   94.20% / 94.59%; +0.394 (+0.288 to +0.473) (78 saved, 15 lost); net -63 against 61; spending +0.3017% (Holm loss 1.00e+0); anchors +0.325; saves 0 / 100 / 0%; tiers 2.00/2.00; pots pension £131,207, ISA -£51,104, taxable -£20,500
+    S218   lib  touched   97.61% / 97.79%; +0.181 (+0.089 to +0.253) (42 saved, 13 lost); net -29 against 61; spending +0.4340% (Holm loss 1.00e+0); anchors +0.100; saves 0 / 100 / 0%; tiers 2.01/2.01; pots pension £17,450, ISA -£12,204, taxable £0
+    S222   lib  touched   95.82% / 95.92%; +0.100 (+0.006 to +0.182) (34 saved, 18 lost); net -16 against 61; spending +0.2617% (Holm loss 1.00e+0); anchors +0.000; saves 0 / 100 / 0%; tiers 2.00/2.00; pots pension £49,365, ISA -£27,793, taxable £0
+    S226   lib  touched   96.00% / 96.28%; +0.275 (+0.197 to +0.322) (50 saved, 6 lost); net -44 against 61; spending +0.2945% (Holm loss 1.00e+0); anchors +0.150; saves 0 / 100 / 0%; tiers 2.00/2.00; pots pension £131,207, ISA -£51,110, taxable -£6,455
+    S230   lib  touched   97.36% / 97.68%; +0.319 (+0.247 to +0.355) (55 saved, 4 lost); net -51 against 61; spending +0.4815% (Holm loss 1.00e+0); anchors +0.350; saves 0 / 100 / 0%; tiers 2.00/2.00; pots pension £17,460, ISA -£12,193, taxable £0
+    S234   lib  touched   96.49% / 96.64%; +0.150 (+0.053 to +0.231) (41 saved, 17 lost); net -24 against 61; spending +0.3350% (Holm loss 1.00e+0); anchors +0.150; saves 0 / 100 / 0%; tiers 3.00/3.00; pots pension £47,915, ISA -£27,022, taxable £0
+    S238   lib  touched   96.41% / 96.62%; +0.206 (+0.117 to +0.272) (44 saved, 11 lost); net -33 against 61; spending +0.3333% (Holm loss 1.00e+0); anchors +0.150; saves 0 / 100 / 0%; tiers 2.00/2.00; pots pension £131,207, ISA -£51,104, taxable -£13,633
+    S242   lib  touched   96.60% / 97.26%; +0.656 (+0.537 to +0.747) (124 saved, 19 lost); net -105 against 61; spending +0.2573% (Holm loss 1.00e+0); anchors +0.625; saves 7 / 93 / 0%; tiers 3.00/3.00; pots pension £46,641, ISA -£52,273, taxable £0
+    S248   lib  touched   96.26% / 96.84%; +0.581 (+0.465 to +0.669) (111 saved, 18 lost); net -93 against 61; spending +0.4454% (Holm loss 1.00e+0); anchors +0.575; saves 0 / 100 / 0%; tiers 3.00/3.00; pots pension £226,261, ISA -£118,253, taxable £0
+    S250   lib  touched   96.31% / 96.59%; +0.287 (+0.173 to +0.383) (68 saved, 22 lost); net -46 against 61; spending +0.3395% (Holm loss 1.00e+0); anchors +0.275; saves 0 / 100 / 0%; tiers 3.00/3.00; pots pension £511,503, ISA -£219,189, taxable -£10,250
+    S254   lib  untouched 94.86% / 95.58%; +0.725 (+0.627 to +0.789) (126 saved, 10 lost); net -116 against 61; spending +0.8226% (Holm loss 1.00e+0); anchors +0.925; saves 7 / 93 / 0%; tiers 2.00/2.00; pots pension £79,030, ISA -£52,319, taxable £0
+    S258   lib  touched   94.78% / 95.39%; +0.619 (+0.511 to +0.696) (113 saved, 14 lost); net -99 against 61; spending +0.5369% (Holm loss 1.00e+0); anchors +0.625; saves 7 / 93 / 0%; tiers 2.00/2.00; pots pension £220,225, ISA -£118,397, taxable £127
+    S264   lib  touched   94.29% / 95.56%; +1.275 (+1.165 to +1.350) (217 saved, 13 lost); net -204 against 67; spending +0.4713% (Holm loss 1.00e+0); anchors +1.375; saves 0 / 100 / 0%; tiers 2.47/2.47; pots pension £62,992, ISA -£57,021, taxable £75
+    S266   lib  untouched 93.85% / 95.21%; +1.356 (+1.228 to +1.451) (237 saved, 20 lost); net -217 against 68; spending +0.3994% (Holm loss 1.00e+0); anchors +1.475; saves 7 / 93 / 0%; tiers 2.18/2.18; pots pension £69,584, ISA -£51,566, taxable £0
+    S270   lib  touched   93.28% / 94.18%; +0.906 (+0.804 to +0.974) (156 saved, 11 lost); net -145 against 63; spending +0.7746% (Holm loss 1.00e+0); anchors +0.850; saves 7 / 93 / 0%; tiers 2.33/2.33; pots pension £171,919, ISA -£129,985, taxable £382
+    S276   lib  touched   95.47% / 96.51%; +1.038 (+0.929 to +1.112) (179 saved, 13 lost); net -166 against 64; spending +0.3007% (Holm loss 1.00e+0); anchors +1.025; saves 0 / 100 / 0%; tiers 2.07/2.07; pots pension £78,354, ISA -£54,349, taxable £0
+    S280   lib  touched   95.11% / 95.43%; +0.319 (+0.175 to +0.448) (93 saved, 42 lost); net -51 against 61; spending -0.0887% (Holm loss 2.00e-3); anchors +0.275; saves 13 / 87 / 0%; tiers 2.03/2.03; pots pension £101,374, ISA -£74,667, taxable £2,709
+    S282   lib  touched   94.59% / 95.35%; +0.756 (+0.633 to +0.850) (141 saved, 20 lost); net -121 against 63; spending +0.3372% (Holm loss 1.00e+0); anchors +0.725; saves 7 / 93 / 0%; tiers 2.09/2.09; pots pension £199,048, ISA -£125,627, taxable £114
+    S286   lib  touched   94.42% / 94.78%; +0.356 (+0.235 to +0.456) (81 saved, 24 lost); net -57 against 61; spending +0.1053% (Holm loss 1.00e+0); anchors +0.300; saves 7 / 92 / 1%; tiers 2.00/2.00; pots pension £501,983, ISA -£212,732, taxable -£29,485
+    S292   lib  touched   95.78% / 95.89%; +0.106 (+0.008 to +0.193) (37 saved, 20 lost); net -17 against 61; spending +0.1939% (Holm loss 1.00e+0); anchors +0.000; saves 13 / 87 / 0%; tiers 2.00/2.00; pots pension £103,135, ISA -£74,493, taxable £10,153
+    S296   lib  touched   96.19% / 96.59%; +0.406 (+0.316 to +0.466) (74 saved, 9 lost); net -65 against 61; spending +0.5050% (Holm loss 1.00e+0); anchors +0.475; saves 0 / 100 / 0%; tiers 2.00/2.00; pots pension £242,807, ISA -£126,725, taxable £0
+    S300F  fire touched   98.11% / 99.83%; +1.712 (+1.611 to +1.777) (284 saved, 10 lost); net -274 against 70; spending +1.9321% (Holm loss 1.00e+0); anchors +1.625; saves 0 / 0 / 100%; tiers 2.97/2.97; pots pension -£108,373, ISA £56,991, taxable £0
+    S302F  fire touched   96.98% / 97.26%; +0.275 (+0.129 to +0.409) (90 saved, 46 lost); net -44 against 61; spending +1.0482% (Holm loss 1.00e+0); anchors +0.225; saves 0 / 0 / 99%; tiers 2.97/2.97; pots pension -£140,719, ISA £51,669, taxable £0
+    S312F  fire touched   95.68% / 96.19%; +0.512 (+0.420 to +0.573) (91 saved, 9 lost); net -82 against 61; spending +0.3288% (Holm loss 1.00e+0); anchors +0.450; saves 11 / 62 / 27%; tiers 2.00/2.00; pots pension £18,015, ISA -£11,152, taxable £0
+    S318F  fire touched   94.47% / 94.90%; +0.425 (+0.319 to +0.504) (83 saved, 15 lost); net -68 against 61; spending +0.4669% (Holm loss 1.00e+0); anchors +0.550; saves 0 / 98 / 2%; tiers 1.99/1.99; pots pension £171,863, ISA -£95,580, taxable £3,459
+    S324F  fire touched   94.69% / 95.81%; +1.125 (+1.022 to +1.193) (191 saved, 11 lost); net -180 against 65; spending +0.4529% (Holm loss 1.00e+0); anchors +1.300; saves 8 / 75 / 17%; tiers 2.43/2.43; pots pension £25,704, ISA -£24,875, taxable £453
+    S330F  fire touched   93.08% / 94.04%; +0.969 (+0.863 to +1.040) (167 saved, 12 lost); net -155 against 64; spending +0.5578% (Holm loss 1.00e+0); anchors +0.800; saves 0 / 99 / 1%; tiers 2.21/2.21; pots pension £143,337, ISA -£107,258, taxable £5,084
+    S336F  fire touched   95.59% / 95.61%; +0.019 (-0.101 to +0.137) (45 saved, 42 lost); net -3 against 61; spending +0.0534% (Holm loss 1.00e+0); anchors +0.125; saves 3 / 23 / 75%; tiers 2.00/2.00; pots pension -£57,767, ISA £38,899, taxable -£127
+    S342F  fire touched   94.69% / 95.29%; +0.606 (+0.494 to +0.689) (113 saved, 16 lost); net -97 against 61; spending +0.3090% (Holm loss 1.00e+0); anchors +0.525; saves 8 / 83 / 9%; tiers 2.17/2.17; pots pension £98,281, ISA -£88,185, taxable £3,386
+    S348F  fire touched   96.13% / 96.77%; +0.637 (+0.520 to +0.726) (120 saved, 18 lost); net -102 against 61; spending +0.2194% (Holm loss 1.00e+0); anchors +0.775; saves 17 / 49 / 34%; tiers 2.19/2.19; pots pension £7,473, ISA £3,129, taxable £84
+    S354F  fire touched   95.79% / 96.49%; +0.700 (+0.609 to +0.756) (120 saved, 8 lost); net -112 against 61; spending +0.5449% (Holm loss 1.00e+0); anchors +0.600; saves 0 / 99 / 1%; tiers 2.33/2.33; pots pension £139,728, ISA -£105,286, taxable £5,010
+  the pot left by household, CANDS against CANDD (the mean a path; the median a path; capped at the estate cap):
+    S180   the mean +3.901% (£21,275 a path); the median +6.988%; capped +2.262%
+    S182   the mean +3.181% (£18,693 a path); the median +5.500%; capped +1.960%
+    S186   the mean +1.301% (£36,481 a path); the median +4.890%; capped +1.357%
+    S192   the mean +6.328% (£31,235 a path); the median +7.658%; capped +3.065%
+    S196   the mean +2.556% (£29,754 a path); the median +3.493%; capped +1.623%
+    S198   the mean +4.950% (£134,267 a path); the median +7.422%; capped +2.716%
+    S202   the mean +5.810% (£445,150 a path); the median +7.357%; capped +2.870%
+    S208   the mean +1.513% (£17,116 a path); the median +3.677%; capped +1.322%
+    S212   the mean +4.800% (£141,552 a path); the median +5.986%; capped +2.326%
+    S214   the mean +3.753% (£351,616 a path); the median +3.818%; capped +1.373%
+    S218   the mean +3.697% (£20,317 a path); the median +6.267%; capped +2.232%
+    S222   the mean +3.595% (£124,659 a path); the median +4.145%; capped +1.277%
+    S226   the mean +4.819% (£399,356 a path); the median +8.210%; capped +2.520%
+    S230   the mean +4.323% (£22,611 a path); the median +7.111%; capped +2.480%
+    S234   the mean +2.253% (£71,139 a path); the median +4.474%; capped +1.629%
+    S238   the mean +3.351% (£268,325 a path); the median +5.155%; capped +1.873%
+    S242   the mean -13.902% (-£169,975 a path); the median -3.087%; capped +0.106%
+    S248   the mean +2.447% (£116,903 a path); the median +2.593%; capped +2.253%
+    S250   the mean +2.919% (£377,936 a path); the median +2.240%; capped +1.698%
+    S254   the mean +18.549% (£255,974 a path); the median +12.154%; capped +3.834%
+    S258   the mean +9.601% (£650,289 a path); the median +5.430%; capped +2.537%
+    S264   the mean -19.423% (-£313,735 a path); the median +1.602%; capped +2.174%
+    S266   the mean +0.025% (£396 a path); the median +2.554%; capped +1.681%
+    S270   the mean -20.798% (-£1,521,321 a path); the median -0.392%; capped +1.210%
+    S276   the mean +15.572% (£229,537 a path); the median +7.861%; capped +2.716%
+    S280   the mean +5.333% (£199,497 a path); the median +1.482%; capped -0.145%
+    S282   the mean -3.639% (-£298,955 a path); the median -0.291%; capped +0.358%
+    S286   the mean +7.785% (£1,578,224 a path); the median +5.796%; capped +1.508%
+    S292   the mean +10.358% (£378,504 a path); the median +7.012%; capped +1.879%
+    S296   the mean +12.813% (£891,261 a path); the median +8.006%; capped +3.165%
+    S300F  the mean -12.758% (-£258,007 a path); the median -10.704%; capped -4.046%
+    S302F  the mean -34.650% (-£700,338 a path); the median -25.026%; capped -6.054%
+    S312F  the mean +3.309% (£65,480 a path); the median +3.735%; capped +1.388%
+    S318F  the mean +9.545% (£952,502 a path); the median +6.400%; capped +1.910%
+    S324F  the mean -13.054% (-£290,346 a path); the median -2.293%; capped +1.216%
+    S330F  the mean -25.038% (-£2,930,915 a path); the median -7.753%; capped -0.346%
+    S336F  the mean -12.785% (-£294,909 a path); the median -9.851%; capped -2.049%
+    S342F  the mean -27.228% (-£3,350,460 a path); the median -7.904%; capped +0.358%
+    S348F  the mean +23.418% (£432,977 a path); the median +2.945%; capped +0.998%
+    S354F  the mean -19.510% (-£2,440,069 a path); the median -13.416%; capped -0.645%
+  the time a path (CPU, the mean a household): CANDD 46.9 ms, CANDS 96.1 ms, CANDDA 47.0 ms, CANDSA 97.1 ms; the solve, the median a household: CANDD 307 s, CANDS 396 s, CANDDA 44 s, CANDSA 50 s

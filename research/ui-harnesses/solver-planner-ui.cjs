@@ -42,7 +42,8 @@
  *  11  a failure (the worker planted to fail every question): the failure card, "Try again", the classic link, your current
  *      approach's figures under it, its money chart named as yours alone (there is no solved plan), the levers still usable;
  *  12  the phone: the four places each 44px or more; no horizontal scroll on any place; nothing solved and no solver chunk
- *      fetched until "Solve my plan"; the six slides by the step bar and by swipe; the levers sheet opened and shut with Escape;
+ *      fetched until "Solve my plan"; the seven slides by the step bar and by swipe (six until the UI pass's phone round of
+ *      21 Nov gave how the money is invested and the run pot by pot a slide each); the levers sheet opened and shut with Escape;
  *      a change in it makes the plan stale (data-solve-key unchanged until asked), and the worker is asked nothing until
  *      "Solve again";
  *  13  the quick start: an empty plan shows it; "Work out my plan" waits for the four readiness fields; filled, it builds
@@ -658,7 +659,7 @@ const firstDiff = (a, b, at = '') => {
       await p.evaluate(() => { const el = document.querySelector('[data-deck-slide]'); const r = el.getBoundingClientRect(), y = r.top + 40; const ev = (t, x) => el.dispatchEvent(new PointerEvent(t, { bubbles: true, clientX: x, clientY: y, pointerId: 7, pointerType: 'touch' })); ev('pointerdown', 300); ev('pointerup', 100); });
       await p.waitForTimeout(300);
       const at4 = await p.$('[data-deck-slide="4"]');
-      ok(12, 'the six slides, by the step bar and by swipe', done && steps === 6 && !!at3 && !!at4, `${steps} steps; slide 3 ${!!at3}; swiped to 4 ${!!at4}`);
+      ok(12, 'the seven slides, by the step bar and by swipe', done && steps === 7 && !!at3 && !!at4, `${steps} steps; slide 3 ${!!at3}; swiped to 4 ${!!at4}`);
       await p.click('[data-deck-step="1"]').catch(() => {});
       await p.click('[data-open-levers]').catch(() => {});
       const opened = !!(await p.$('[data-levers-sheet="open"]'));

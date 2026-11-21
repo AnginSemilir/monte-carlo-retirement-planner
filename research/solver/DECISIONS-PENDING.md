@@ -11,6 +11,39 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (21 Nov, morning): the savings split's change of default (D137), built and not committed; for your word:**
+1. **The time and the speed mode for a working saver** (the reviewer at the read, MINOR 1;
+   `results-save-v2-beside.txt` section A).
+   - **The cost.** With the split, a working saver's path takes about twice as long on anchors, the menu the app solves on:
+     each arm's CPU a path, the median `x2.10` (`x1.84` to `x2.31`). The solve takes the median `x1.10`. So the page's
+     figures for a plan still saving take about twice as long. Gate 5 does not move, since its four households are all
+     retired.
+   - **The speed mode does nothing for them.** A menu with the split's copies sets `r.nAt`, which takes P1's memo and the
+     chooser's shortlist off in every year (`src/solver/solve.js` `decisionRepeats`, the chooser's `shortMask`). The speed
+     mode is the shortlist alone, so its "faster" would not hold for a working saver.
+   - **The ways on:**
+     - **(A)** Take the change as registered now, with the time cost.
+     - **(B)** Exact speed work first: P1's memo, and the shortlist, kept in the years where the copies are left out, each
+       with its identity test. Then the change, the time measured again. Box: half a day to a day.
+     - **(C)** Both: the change now as in (A), and (B) queued right after it as its own change.
+
+     In (A) and (C), the speed mode's words are yours to change for a plan still saving, or to keep.
+   - **The agent recommends (C).** The registered PASS makes the change. You took the same kind of trade for a couple's path
+     (D109). The memo is most of the loss: a five-working-year plan scores three times the moves in 5 of 41 years, which
+     alone would cost about `x1.25`, and it costs `x1.90`.
+2. **An unlock, asked for by name, before the change's commit:** `research/tests/candidate.test.mjs`'s pins. The candidate
+   moves from 17ff82379838 to bf1cac401c13; the new check pins `BEFORE_D137_OPTS` at 17ff82379838, and D90's check is
+   re-based on it.
+   - The classifier refused the edit as a re-pin of a test's expected value, and the agent has not worked around it.
+   - The exact edit is kept as `research/solver/drafts/d137-candidate-test.py`, a script that applies it.
+   - Any figure pinned in the fast tier that the split moves will be added here by name, with its working, once the fast
+     tier has run on the build.
+3. **Done without an unlock, to say so:** three tests of the full tier now solve on the candidate before D137, so every
+   figure they pin stays the same: `save-split`, `windfall-split` and `isa-allowance`. None is protected.
+   - `solve.js` refuses the windfall split beside the savings split, so those tests would otherwise fail outright.
+   - Without the re-base, `save-split`'s "option unset" arm would become the option on.
+   - Say if you would rather they waited for the unlock.
+
 **OPEN (20 Nov, evening), found while porting step 8; nothing decided, for your word:**
 1. **The speed mode reaches the household plan's table, unmeasured.** The opt-in "Beta - speed mode" (D97 (3)) hands a
    solve the chooser's shortlist, and since the household default (D135) a couple's one table takes it as a single's does.

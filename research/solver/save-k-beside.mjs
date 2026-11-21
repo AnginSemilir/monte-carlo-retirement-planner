@@ -40,7 +40,7 @@ console.log(`TEST K, BESIDE THE READ (written after the read, deciding nothing):
     const pen = panel[id].plan.accounts.find(x => x.id === 'pen_self'), c = pen ? Number(pen.contrib) : NaN;
     if (Number.isFinite(c)) { lo = Math.min(lo, c); hi = Math.max(hi, c); }
   }
-  console.log(`\nA. The working years with a saving to place from ${FROM}: ${from} of ${years} (${(100 * from / years).toFixed(1)}%); each plan's own pension saving in its first working year from £${Math.round(lo)} to £${Math.round(hi)}, every one above the £${CAP} a year the cap relieves of NIC`);
+  console.log(`\nA. The working years with a saving to place from ${FROM}: ${from} of ${years} (${(100 * from / years).toFixed(1)}%), and ${years - from} before it; each plan's own pension saving in its first working year (the whole pension figure, the employer's part included) from £${Math.round(lo)} to £${Math.round(hi)}, every one above the £${CAP} a year the cap relieves of NIC`);
 }
 
 // B. K by working years, and each group's share of the registered gain

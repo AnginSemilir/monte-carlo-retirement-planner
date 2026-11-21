@@ -16,9 +16,19 @@ pension?**
 - **Where it comes from.** Test K (EXPLORATORY; `results-save-k.txt`, `reports/2026-11-21-save-k-read.md`) read THE CAUSE
   HOLDS IN SIZE. By D137 (4), the change of default prices the split's routes at the law's price for a salary sacrificer:
   employee NIC relief on the first £2,000 a year alone from April 2029, in full before (`src/App.jsx` `SAVE_NIC_CAP`).
-- **What it leaves.** An employee who pays in by net pay or relief at source is relieved of income tax only, in every year.
-  That is K's price. At it, the panel's 30 employees keep `0.726` of the split's gain, and the basic-rate employees `0.580`.
-  The app cannot tell the two kinds of employee apart, so it prices every employee as a sacrificer.
+- **What it leaves** (corrected on the reviewer's second look at K's read, finding 1, `reviews/2026-11-21-read-save-k-2.md`;
+  that FAIL stands after one fix, so this entry and K's write-up are yours, D81 (F)).
+  - An employee who pays in by net pay or relief at source is relieved of income tax only, in every year. The app cannot
+    tell the two kinds of employee apart, so it prices every employee as a sacrificer.
+  - As the app prices it (the whole pension figure taken as the employee's own sacrifice), from April 2029 an employee's
+    pension first is K's on all 30 of the panel's employees: in `260` of their `260` working years from 2029, to the
+    penny (the change's identity, `results-save-default-identity.txt` part 2, in the change's build).
+  - So the question decides the routes of 2026 to 2028 alone: `90` of the 30 employees' `350` working years with a
+    saving to place (`results-save-k-beside.txt` A). Nothing measures them.
+  - K (`0.726`; the 13 basic-rate employees outside the three `0.580`) is the share of the gain at K's price against the
+    engine's uncapped price, in every year, with the ISA first offered. It is not the change's arm.
+  - In law the cap counts the employee's own sacrifice, which the app does not record: its pension figure includes the
+    employer's part.
 - **The ways on:**
   - **(A)** Ask it: one question beside the employment status ("salary sacrifice", "net pay or relief at source", "not
     sure"), the split pricing each employee by their own route. The app's own contribution strategies could read it too.

@@ -1,6 +1,6 @@
 TEST K, BESIDE THE READ (written after the read, deciding nothing): the 30 employees, 4000 paths of seed 7025; the units' tree /home/user/sv2-launch
 
-A. The working years with a saving to place from 2029: 260 of 350 (74.3%); each plan's own pension saving in its first working year from £3540 to £10200, every one above the £2000 a year the cap relieves of NIC
+A. The working years with a saving to place from 2029: 260 of 350 (74.3%), and 90 before it; each plan's own pension saving in its first working year (the whole pension figure, the employer's part included) from £3540 to £10200, every one above the £2000 a year the cap relieves of NIC
 
 B. K by working years (post hoc, a lead and not a result), its 95% interval by the delta method, and each group's share of the registered gain over the 30:
   fifteen working years (20, 20 of them working from 2029): K 0.698 (0.648 to 0.748); 88.4% of the registered gain

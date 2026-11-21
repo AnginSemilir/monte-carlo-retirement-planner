@@ -5,7 +5,9 @@ its rule `SAVE-K.md`, committed before any unit ran (d56a2910). Run directly as 
 launch worktree at a83cd90b (code 71fb4271c681), 21 Nov 18:17 to 20:26 UK: 31 units, none stopped, none exiting with an
 error. Read once by `reduce-save-k.mjs`; its output whole is `results-save-k.txt`. Beside it, written after the read and deciding
 nothing, `results-save-k-beside.txt` (`save-k-beside.mjs`), printing every figure below that the read does not. Corrected on
-the reviewer at the read's three findings (`reviews/2026-11-21-read-save-k.md`).
+the reviewer at the read's three findings (`reviews/2026-11-21-read-save-k.md`), then on its second look's three
+(`reviews/2026-11-21-read-save-k-2.md`), unreviewed: that FAIL stands after one fix, so this write-up is the maintainer's
+(D81 (F)); the read and its outcome stand in both rounds.
 
 ## The gate
 
@@ -61,14 +63,18 @@ unmeasured. Part of each pooled figure rests on the route the change removes:
   - The law relieves a salary sacrificer of employee NIC in full until April 2029, and on the first £2,000 a year of the
     sacrifice after.
   - Every one of the 30 plans pays more than that into the pension: from £3,540 to £10,200 in its first working year
-    (`results-save-k-beside.txt` A). So under the cap, a further pound of sacrifice from April 2029 is priced as K priced
-    it, and the pension first's route is K's to the penny. The change's identity holds this on the 30 employees' plans,
-    in `260` of their `260` working years from 2029 (`results-save-default-identity.txt` part 2, committed with the
-    change).
-  - From 2029 lie `260` of the 30 employees' `350` working years with a saving to place (`74.3%`; A).
-  - With the ISA first held back for an employee, a sacrificer's split under the law differs from K's only in 2026 to
-    2028. Only in those years does it also differ from a non-sacrificer's. On these plans, that is all the question of how an
-    employee pays in decides.
+    (`results-save-k-beside.txt` A). As the app prices it, the whole pension figure (the employer's part included) is the
+    employee's own sacrifice. So under the cap, a further pound of sacrifice from April 2029 is priced as K priced it, and
+    the pension first's route is K's to the penny. The change's identity holds this on the 30 employees' plans, in `260` of
+    their `260` working years from 2029 (`results-save-default-identity.txt` part 2, in the change's build, uncommitted at
+    this write-up).
+  - From 2029 lie `260` of the 30 employees' `350` working years with a saving to place (`74.3%`), and `90` before it (A).
+  - With the ISA first held back for an employee, a sacrificer's split as the app prices it differs from K's only in 2026
+    to 2028. Only in those years does it also differ from a non-sacrificer's. On these plans, that is all the question of
+    how an employee pays in decides, asked or not.
+  - In law the cap counts the employee's own sacrifice, which the app does not record (the reviewer's second look, finding
+    2). Where an employee's own sacrifice is under £2,000 a year, the law relieves part of the moved saving of NIC after
+    2029 too, so the law's routes differ from K's then as well.
   - Post hoc, a lead and not a result (B): the 20 employees with fifteen working years carry `88.4%` of the registered gain,
     their K `0.698` (`0.648` to `0.748`); the ten with five carry `11.6%`, their K `0.939` (`0.785` to `1.093`).
 - **The registered read's guards at K's price** (the reviewer at the read, finding 3; `results-save-k-beside.txt` C, post

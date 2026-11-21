@@ -13,7 +13,7 @@
  */
 import { shareBy, SHARE_RULES, singlePlanFor, solveCouple, chooseJoint, rankFor, ownerState } from './solver/couple.js';
 import { vecOf } from './solver/grid.js';
-import { solvedContext, runPath, partsOf, retireYearOf, firstSweep, joinSkipRuns } from './solverStrategy.js';
+import { solvedContext, yourContext, lifeOf, runPath, partsOf, retireYearOf, firstSweep, joinSkipRuns } from './solverStrategy.js';
 import { prepareForSolve, JOINT_KEYS } from './solverSettings.js';
 import { appPlan } from './solverApp.js';
 
@@ -214,7 +214,7 @@ export function coupleAheadOf(E, cp, plan, runs, { years = 10 } = {}) {
     const row = E.stepYear(ctx, state, t, { z: zs[t], zPath });
     if (rows[t]) Object.assign(rows[t], { spend: row.targetSpend > 0 ? row.targetSpend : 0, pot: Math.max(0, row.totalCombined), swept: { toGia: row.sweptToGia || 0, fromGia: row.sweptFromGia || 0, toIsa: row.sweptToIsa || 0 } });
   }
-  return { couple: true, path: k, rows, typical: Array.from(runs.solved[k].level) };
+  return { couple: true, path: k, rows, typical: Array.from(runs.solved[k].level), life: lifeOf(E, sc, yourContext(E, plan), zs) };
 }
 /* one market's run of the solved couple year by year, each year's joint move taken apart (a single's rowsOf) */
 export function coupleRowsOf(E, cp, market) {

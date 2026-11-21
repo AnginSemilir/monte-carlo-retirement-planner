@@ -34,6 +34,8 @@
  *                                                       the parts' shares of the next paths, joined in path order first
  *   actions   { id, plan, seed, n }                     this year's move, part by part, each with the survival cost of skipping
  *                                                       it on n paired paths (the plan's own runs reused): { id, actions }
+ *   history   { id, years }                             the solved plan's verdict on each historical start year: { id, history:
+ *                                                       [{ y, ok, failYear }] }
  *   ahead     { id, plan, seed, years, upto }           the next years' moves on the median path of the strategy's first upto paths
  *                                                       (every path held when upto is 0; step U picks over the first step's):
  *                                                       { id, ahead }
@@ -182,6 +184,13 @@ self.onmessage = async ({ data }) => {
       const a = strategyAnswer(E, solved, runs, data);
       runs = a.held;
       self.postMessage({ id, strategy: a.strategy });
+      return;
+    }
+    // every start year of history at once (the new planner's UI pass, 20 Nov): the solved plan's verdict on each, by calendar
+    // year so a couple solved on its mirror reads the same (src/PlannerMore.jsx HistoryStrip)
+    if (kind === 'history') {
+      const of = isCouple(solved) ? coupleRowsOf : rowsOf;
+      self.postMessage({ id, history: data.years.map(y => { const v = of(E, solved, { historical: true, startYear: y }).verdict; return { y, ok: !!v.survived, failYear: v.failYear }; }) });
       return;
     }
     // a couple's questions about its moves (Part D, D5.3): each year's joint move taken apart for each person

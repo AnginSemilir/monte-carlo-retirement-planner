@@ -3669,6 +3669,7 @@
    "research/solver/couples-share-paths.json",
    "research/solver/drafts",
    "research/solver/drafts/d137-candidate-test.py",
+   "research/solver/drafts/d138-build.patch",
    "research/solver/drafts/d138-candidate-test.py",
    "research/solver/e3pcls-pin.json",
    "research/solver/f2-design.md",

@@ -6,7 +6,9 @@ rule, on four couples step 8 used; its reviewer's FAIL (`reviews/2026-11-22-read
 them (`results-couples-open-addendum.txt`), and its second look's FAIL, standing after that fix
 (`reviews/2026-11-22-read-couples-open-rehearsal-2.md`: today's two-table route measured below the app's rules on six couples
 that no unit reads), by the maintainer's ruling D141 (`COUPLES-OPEN.md` amendment 2): this test reads the household route's
-classes alone. Here the rule runs on couples no run has used and a held-out seed. Read once, by
+classes alone. Its design review's FAIL (`reviews/2026-11-22-couples-open-design.md`) was answered in one fix (D81 (F)): G12R
+added, the paths uncapped, the pilot run again on the final files, and the findings below. Here the rule runs on couples no
+run has used and a held-out seed. Read once, by
 `research/solver/reduce-couples-open.mjs --registered` (with `REG=1`), after its gate. Launched only as
 `MODE=registered PREDICTION=research/solver/registrations/couples-open.md research/solver/run-from-snapshot.sh bash research/solver/batch-couples-open.sh`,
 from a git worktree at the launch commit, where every relaunch under `RESUME=1` and the read also run. After the pilot is
@@ -37,7 +39,7 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     - The plan handed to it is the household line's (`shapes-panel.mjs` `solverPlanOf`: arm A's policy). Its paths run on
       the page's own context for the solved couple (`src/solverStrategy.js` `solvedContext`: the solved plan's own MPAA
       ages), its configuration naming it (`ctx`); each arm's MPAA ages are recorded.
-- **Households:** the household route's 40 units of the panel `couples-open-registered-panel.json` (`results-couples-open-registered-panel.txt`; `audit-couples-open.mjs` `unitsOf` 'registered'): four couples, ten units each, every one kept off by today's guard for its class's reason and taken by the household plan; the panel's 24 units on today's route are landed and not run (D141)
+- **Households:** the household route's 44 units of the panel `couples-open-registered-panel.json` (`results-couples-open-registered-panel.txt`; `audit-couples-open.mjs` `unitsOf` 'registered'): four couples, eleven units each, every one kept off by today's guard for its class's reason and taken by the household plan; the panel's 24 units on today's route are landed and not run (D141)
   - **Couples:** the library's order (D4's) with every couple a run has touched left out (`held-out.mjs` `touchedAll` from
     the main tree on 22 Nov, with the couples the tests take by place, the household line's bases and step 8's couples:
     337 ids, `couples-open-orders.json`); four taken evenly: S037, S119, S199 and S279. The younger cohort has no couple
@@ -47,9 +49,11 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     - Y (Y75, Y90, Y100): the younger partner holding 75%, 90%, 100% of every wrapper;
     - E (E95, E100): the elder holding 95%, 100%;
     - S (S75): the two the same age, the first person holding 75%;
-    - G (G8, G12, G8Y75, G12P): 8 and 12 years apart with the elder's `£15,000` a year DB pension from the state pension
-      age, the library's own holding; 8 years apart with it, the younger holding 75%; 12 years apart with the partner's
-      (the younger's) DB pension instead, the library's own holding.
+    - G (G8, G12, G8Y75, G12P, G12R): 8 and 12 years apart with the elder's `£15,000` a year DB pension from the state
+      pension age, the library's own holding; 8 years apart with it, the younger holding 75%; 12 years apart with the
+      partner's (the younger's) DB pension instead; 12 years apart with the first person's `£15,000` a year of rent from
+      plan year 0 to the plan's end instead (G12R, added on the design review's BLOCKING 1: an income starting before the
+      state pension age, the case the guard test measured on today's route, `results-guard.txt`).
 - **Seed:** 7026, reserved in `check-prediction.mjs` for `couples-open*.md` under the maintainer's unlock (D140); the batch names it on a line the launcher's seed check reads; the pilot runs on 7002.
 - **Paths:** 19,000 for every unit (`couples-open-paths.json`, `results-couples-open-sizing.txt`): D34's size at each unit's pilot discordance, its upper 95% bound, from 17,000 to 25,000, the largest taken, at most D61's 19,000. At 19,000 a true 1-point loss reads as harm at least 90% of the time up to a discordance of `12.45%`; the 24 units past it (S037's ten, seven of S199's and seven of S279's, from `13.00%` to `16.09%`) are read at 19,000 and named at the read with their rate (D34 (4), as D61 applied it).
 - **Primary metric:** survival scored by the engine (`audit-phase4.mjs runPath`, held to `E.runTrial` on the first 200 paths of every arm), paired on the same paths of the held-out seed across the arms.
@@ -72,8 +76,10 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     as now; outside it, the app's rules, until the household plan takes its shape (`COUPLES-OPEN.md` step 4).
   - So the change of default reads the household plan's refusal in the guard before it lifts a reason. The guard has no
     imports, so the page's first load can ask it without the solver (`src/couplesSwitch.js`): the shape checks are written
-    there again and held equal to `householdPlanFor`'s refusals by a test over the library's couples and planted shapes, each
-    check with its plant.
+    there again, erring towards the app's rules, and held by a test over the library's couples and planted shapes, on the plan
+    the page hands the solver (its mirror where the elder is entered second, whose limits are swapped): no refusal missed,
+    each check with its plant. The client fails closed beside it (the design review's MINOR 6): a couple the household plan
+    refuses that today's guard keeps off is not solved on today's route but keeps the app's rules.
   - **Y opens:** a couple whose younger partner holds more than 60% runs the solver whatever the split.
   - **E opens:** the elder's ceiling `ELDER_UP_TO` lifts from 90% to all of it.
   - **S opens:** two people the same age run the solver whatever the split.
@@ -85,8 +91,14 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     - the app's route held to the tested arm path for path;
     - to `main` on B1's gate.
   - **What a pass reaches beyond the panel** is by inference, said in the D-line:
-    - splits between those tested;
-    - gaps other than 8 and 12 years, and incomes other than a DB pension of the elder's;
+    - splits between those tested, and the same age at holdings other than 75% (S reads 75/25 alone);
+    - gaps other than 8 and 12 years; incomes other than those read (the elder's DB pension from the state pension age, the
+      partner's, and the first person's rent from now); G with the elder holding more than 60% (G8Y75 reads the younger
+      holding 75%); Y at an age gap over three years without other income;
+    - a couple entered younger first (its mirror; every unit has the elder first);
+    - a couple with no minimum pot set (every unit sets one);
+    - a couple retiring before the pension access age of 58 (no registered couple does; 30 of the 83 held-out couples do):
+      the dress rehearsal's younger cohort (S351F and S357F, retiring at 52) read it, EXPLORATORY;
     - the younger cohort (the dress rehearsal and its addendum alone);
     - a shape `COUPLES-OPEN.md` step 4 later moves onto the household route, which takes these outcomes by inference;
     - the 'lower' estate aim, consent to change risk withdrawn, the dial's other positions and the speed mode.

@@ -138,3 +138,16 @@ The maintainer ruled between its two ways on (D141): "Household route only (Reco
 - **The registered run** is the 40 units on one read; about a third of amendment 1's 64-unit run.
 - The rehearsal's and the addendum's figures stand; their write-ups are corrected as the reviewer gave them, unreviewed
   (D81 (F)).
+
+## Amendment 3 (22 Nov, evening): the registration's design review
+
+The design review (`reviews/2026-11-22-couples-open-design.md`: FAIL, one BLOCKING and six MINOR) answered in one fix
+(D81 (F)), before launch:
+- **G at an income before the state pension age** (BLOCKING 1): G12R added to every couple, 12 years apart with the first
+  person's `£15,000` a year of rent from plan year 0, the case the guard test measured on today's route; G now reads five
+  units a couple and the registered test 44 units.
+- **The paths by D34 uncapped** (MINOR 2): every unit at the largest of the units' D34 sizes, D61's 19,000 (ruled for D4,
+  applied to stage C by D96 (2)) not taken here.
+- **The pilot run again** on the final files, the registered units alone, its spending and M1's names printed (MINOR 3).
+- **The inference list** widened (MINORs 4 and 5), **the client failing closed** beside the guard's reading (MINOR 6), and
+  **the registered mode and the gate** tightened, the launch stamp stated (MINOR 7).

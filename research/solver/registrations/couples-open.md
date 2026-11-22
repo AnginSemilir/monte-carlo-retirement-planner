@@ -52,7 +52,7 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     - RE (RE100): E100 with the partner's pension one profile safer;
     - RS (RS75): S75 with the partner's pension one profile safer;
     - RG (RG8, RG12P): G8 and G12P with the partner's pension one profile safer.
-- **Seed:** 7026, to be reserved in `check-prediction.mjs` for `couples-open*.md` by the maintainer's unlock (asked by name, `DECISIONS-PENDING.md`); the batch names it on a line the launcher's seed check reads; the pilot runs on 7002.
+- **Seed:** 7026, reserved in `check-prediction.mjs` for `couples-open*.md` under the maintainer's unlock (D140); the batch names it on a line the launcher's seed check reads; the pilot runs on 7002.
 - **Paths:** after the pilot: one N for every unit, D34's size at the pilot's discordance, its upper 95% bound, at most D61's 19,000 (`size-couples-open.mjs`, `couples-open-paths.json`).
 - **Primary metric:** survival scored by the engine (`audit-phase4.mjs runPath`, held to `E.runTrial` on the first 200 paths of every arm), paired on the same paths of the held-out seed across the arms.
   - Beside it: spending delivered, the pot left (and capped at the route's estate caps) and lifetime tax.

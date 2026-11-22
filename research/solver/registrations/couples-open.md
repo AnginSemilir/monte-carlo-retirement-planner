@@ -55,7 +55,7 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
       plan year 0 to the plan's end instead (G12R, added on the design review's BLOCKING 1: an income starting before the
       state pension age, the case the guard test measured on today's route, `results-guard.txt`).
 - **Seed:** 7026, reserved in `check-prediction.mjs` for `couples-open*.md` under the maintainer's unlock (D140); the batch names it on a line the launcher's seed check reads; the pilot runs on 7002.
-- **Paths:** 19,000 for every unit (`couples-open-paths.json`, `results-couples-open-sizing.txt`): D34's size at each unit's pilot discordance, its upper 95% bound, from 17,000 to 25,000, the largest taken, at most D61's 19,000. At 19,000 a true 1-point loss reads as harm at least 90% of the time up to a discordance of `12.45%`; the 24 units past it (S037's ten, seven of S199's and seven of S279's, from `13.00%` to `16.09%`) are read at 19,000 and named at the read with their rate (D34 (4), as D61 applied it).
+- **Paths:** 25,000 for every unit (`couples-open-paths.json`, `results-couples-open-sizing.txt`): D34's size at each unit's pilot discordance, its upper 95% bound, from 17,000 to 25,000, the largest taken, uncapped (the design review's MINOR 2: D61's 19,000 was ruled for D4 and applied to stage C by D96 (2), not to this test). At 25,000 a true 1-point loss reads as harm at least 90% of the time up to a discordance of `16.30%`, and no unit's upper bound is past it.
 - **Primary metric:** survival scored by the engine (`audit-phase4.mjs runPath`, held to `E.runTrial` on the first 200 paths of every arm), paired on the same paths of the held-out seed across the arms.
   - Beside it: spending delivered, the pot left (and capped at the route's estate caps) and lifetime tax.
 - **Decision rule:** ROUTE against APP, for each class (Y, E, S and G, each on the household route) on its own units; a class OPENS if all three hold, as the dress rehearsal's rule
@@ -116,7 +116,18 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
   - each unit off by the guard for its class's reason and on the panel's route, its class's route;
   - each arm at its configuration, ROUTE on the page's own context.
   - A part of a unit's run saved before a restart is taken up again only under the same stamp and the same tables.
-- **What the pilot shows** (`results-couples-open-sizing.txt`; the 40 household-route units read of its 64, 1,000 paths of seed 7002, EXPLORATORY): ROUTE against APP from `+8.90` to `+13.80` points on every unit, by class the mean Y `+10.94`, E `+11.11`, S `+10.53`, G `+11.23`; were each unit's pilot change the truth, D34 would flag it at 19,000 with chance `0.003` to `0.006`. Beside it, the dress rehearsal (every class passing, `results-couples-open-rehearsal.txt`) and its addendum (`results-couples-open-addendum.txt`).
-- **Budget:** `10.1` core-hours over the 40 units and the longest once more for a relaunch; about `2.7` hours on four cores in the batch's order (`results-couples-open-sizing.txt`, measured from the pilot on this machine, D21).
-- **The launch:** the agent launches once the design review passes (D140 (3)), seed 7026 reserved (D140 (1)); the stamp filled by hand at the launch commit.
+- **What the pilot shows** (`results-couples-open-sizing.txt`; the 44 registered units, 1,000 paths of seed 7002, run 22 Nov 19:02 to 19:29 UK on the final files, EXPLORATORY):
+  - ROUTE against APP from `+9.00` to `+13.80` points on every unit; by class the mean Y `+10.94`, E `+11.11`, S `+10.53`, G
+    `+11.27`. D34's chance of flagging a unit at 25,000 paths with no true change is at most `0.004`; at the pilot's gains it
+    is nought.
+  - M1, by the read's own rule, names 8 of S037's 11 units (S037 retired, 68/65): spending on the paths both keep from
+    `-0.4751%` to `-2.5403%` with far more paths kept. So the registered read most likely goes to the maintainer first,
+    with the units it names, before any change of default.
+  - G12R on S037, whose first person is at the state pension age now, is the same plan as G12 (its rent from now and the DB
+    pension from the state pension age the same `£15,000` a year from 68; one target, one pilot result), so the income
+    before the state pension age is read on the other three couples' G12R.
+  - Beside it, the dress rehearsal (every class passing, `results-couples-open-rehearsal.txt`) and its addendum
+    (`results-couples-open-addendum.txt`).
+- **Budget:** `14.8` core-hours over the 44 units and the longest once more for a relaunch; about `3.9` hours on four cores in the batch's order (`results-couples-open-sizing.txt`, measured from the pilot on this machine, D21).
+- **The launch:** the agent launches once the design review passes (D140 (3)), seed 7026 reserved (D140 (1)), its stamp `code 36e4d2a860b2 audit f9b56fb0b6a1` (`MODE=registered TODO_ONLY=1 PREDICTION_FILE=research/solver/registrations/couples-open.md bash research/solver/batch-couples-open.sh` prints it and the 44 units), the stamp the launch commit carries; a stamped file changed before launch changes it, and then this line with it.
 - **Design review:** to come (the `reviewer` agent, before launch).

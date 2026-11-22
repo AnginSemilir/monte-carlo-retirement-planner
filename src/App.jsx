@@ -13402,7 +13402,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
               <button type="button" data-crossover-planner aria-label="Open the classic planner" onClick={() => setPlanner('classic')} className="min-h-11 px-2 text-xs font-bold text-blue-700 cursor-pointer whitespace-nowrap">Classic</button>
             </header>
-            {solverRules && <Suspense fallback={null}><StatusStripCard solve={solve} isPhone asked={asked} simulating={planPhase.simulating} trials={planPhase.trials} place={activeTab} onAction={stripAction} /></Suspense>}
+            {/* on the solve's own condition: with no plan yet the strip's "Solve my plan" had nothing to solve (the reviewer on the
+                default, second round, MINOR 1) */}
+            {solveOn && <Suspense fallback={null}><StatusStripCard solve={solve} isPhone asked={asked} simulating={planPhase.simulating} trials={planPhase.trials} place={activeTab} onAction={stripAction} /></Suspense>}
           </div>
         )}
 

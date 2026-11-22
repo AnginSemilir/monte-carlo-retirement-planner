@@ -19,8 +19,8 @@ tests' hand-built moves.**
   Since D138 a working saver's move carries `save`, so on a working saver under the new default the engine runs the plan's
   own saving where the forward run runs the move's.
 - **Where it shows** (`results-d138-lockstep.txt`, in D138's build until its commit; EXPLORATORY). V2's state check in full (`state-check-full.test.mjs`, the
-  full tier) fails 3 of 14 on the build: S224 parts, 194 mismatched moves. The same test with its builder handing the engine
-  `windfall` and `save` (a copy, the protected file untouched) passes all 14, S224 in step to a billionth of a pound. The
+  full tier) fails 3 of 14 on the build: S224 parts (the pension £904,569 apart at the worst), 194 mismatched moves. The same test with its builder handing the engine
+  `windfall` and `save` (a copy, the protected file untouched) passes all 14, the pension in step to £1.9e-9 (S224) and no mismatched move. The
   fast tier's quick forms reach no working saver and pass. The `--full` forms of the other three are not in the full tier;
   two of them name S224.
 - **The same class as D73's `sweepIsa`**, answered then under D82's unlock. The same builder, unprotected, is fixed in

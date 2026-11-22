@@ -21,6 +21,13 @@
  *   node research/solver/audit-couples-open.mjs rehearsal part k/n     the dress rehearsal (seed 7002, CO_N paths, 4,000 unless set)
  *   node research/solver/audit-couples-open.mjs --planted              the checks on planted inputs
  *   CO_PTS the points (a smoke only); CO_N the paths; CO_ONLY a comma list of unit ids; CO_OUT the folder
+ * THE REGISTERED TEST (COUPLES-OPEN.md step 2; registrations/couples-open.md), on the registered panel (REG=1,
+ * couples-open-registered-panel.json):
+ *   REG=1 node research/solver/audit-couples-open.mjs pilot part k/n       the pilot: every unit, seed 7002, PILOT_N paths
+ *                                                                          (EXPLORATORY; its sizing, size-couples-open.mjs)
+ *   REG=1 node research/solver/audit-couples-open.mjs registered part k/n  the registered run: seed HELD, couples-open-paths.json's
+ *                                                                          paths, only under the registration through the
+ *                                                                          launcher, only on the code the panel was landed on
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -44,6 +51,9 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), REPO = join(HERE, '../..');
 export const SEED = 7002, W = 0.02, CHECK = 200, WARM = 3, CHUNK = 1000, N_DEFAULT = 4000;
+export const HELD = 7026, PILOT_N = 1000;
+export const REGISTRATION = 'research/solver/registrations/couples-open.md';
+export const PATHS_FILE = join(HERE, 'couples-open-paths.json');
 export const ARMS = ['APP', 'ROUTE'];
 export const orderOf = k => (k % 2 ? ['ROUTE', 'APP'] : ['APP', 'ROUTE']);
 export const partOf = (out, id, arm) => join(out, 'parts', `${id}-${arm}.json.gz`);
@@ -58,7 +68,9 @@ export const KEYS = { survived: Uint8Array, failYear: Int16Array, pot: Float64Ar
 /* the stamp: every file the run and its read take beyond the code (code-id.mjs codeFiles), following the imports of the audit,
    the read, the panel's script and the batch, and the panel itself */
 export const STAMP_ROOTS = ['research/solver/audit-couples-open.mjs', 'research/solver/reduce-couples-open.mjs', 'research/solver/couples-open-panel.mjs', 'research/solver/batch-couples-open.sh'];
-export const STAMP_DATA = ['research/solver/couples-open-panel.json'];
+export const STAMP_DATA = process.env.REG === '1'
+  ? ['research/solver/couples-open-registered-panel.json', 'research/solver/couples-open-orders.json', 'research/solver/couples-open-paths.json']
+  : ['research/solver/couples-open-panel.json'];
 export function stampFiles(root = REPO) {
   const code = new Set(codeFiles(root)), seen = new Set(STAMP_ROOTS), queue = [...STAMP_ROOTS], out = [...STAMP_ROOTS];
   while (queue.length) {
@@ -114,7 +126,7 @@ function planted() {
   const cases = [], panel = readOpenPanel();
   cases.push(['the two configurations differ', configOf('APP') !== configOf('ROUTE') ? 'two' : 'ONE', 'two']);
   cases.push(['the arms\' order alternates with the unit', [0, 1, 2, 3].map(k => orderOf(k)[0]).join(','), 'APP,ROUTE,APP,ROUTE']);
-  { const f = stampFiles(), need = ['research/solver/couples-open-panel.mjs', 'research/solver/couples-open-panel.json', 'research/solver/shapes-panel.mjs', 'src/solverApp.js', 'src/solverCouple.js', 'src/solverSettings.js', 'src/couplesSwitch.js'];
+  { const f = stampFiles(), need = ['research/solver/couples-open-panel.mjs', ...STAMP_DATA, 'research/solver/shapes-panel.mjs', 'src/solverApp.js', 'src/solverCouple.js', 'src/solverSettings.js', 'src/couplesSwitch.js'];
     cases.push(['the stamp holds the panel, its script, the app\'s route and the guard, and none of the code\'s own', `${need.every(x => f.includes(x))} ${f.some(x => x === 'research/engine.mjs' || x.startsWith('src/solver/'))}`, 'true false']); }
   { const U = { variant: 'Y75', label: 'ISA First', route: 'household' }, off = { on: false, why: 'uneven' }, hh = { route: 'household' };
     cases.push(['a clean unit: no problem', unitProblems(U, 'ISA First', off, hh).join(';'), '']);
@@ -134,18 +146,28 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (args[0] === '--planted') process.exit(planted() ? 1 : 0);
   const panel = readOpenPanel();
   if (args[0] === '--units') { panel.forEach((u, k) => console.log(`${k} ${u.id}`)); console.log(panel.length); process.exit(0); }
-  if (args[0] !== 'rehearsal') { console.error('audit-couples-open: rehearsal part k/n'); process.exit(2); }
+  const MODE = args[0], REGISTERED = MODE === 'registered', PILOT = MODE === 'pilot';
+  if (!['rehearsal', 'pilot', 'registered'].includes(MODE)) { console.error('audit-couples-open: rehearsal, pilot or registered part k/n'); process.exit(2); }
+  // the pilot and the registered run read the registered panel; the dress rehearsal its own
+  if ((REGISTERED || PILOT) !== (process.env.REG === '1')) { console.error(`audit-couples-open: ${MODE} runs ${REGISTERED || PILOT ? 'with' : 'without'} REG=1`); process.exit(2); }
+  if (REGISTERED && (process.env.CO_PTS || process.env.CO_N || process.env.CO_ONLY || process.env.CO_OUT)) { console.error('audit-couples-open: the registered run takes no limits'); process.exit(2); }
+  if (REGISTERED && process.env.PREDICTION_FILE !== REGISTRATION) { console.error(`audit-couples-open: the registered run runs only under ${REGISTRATION}, through the launcher (PREDICTION_FILE ${process.env.PREDICTION_FILE || 'unset'})`); process.exit(2); }
+  // the registered run only on the code the panel was landed on: a change of code means landing again, a new pilot and review
+  if (REGISTERED) { const pc = JSON.parse(readFileSync(join(HERE, 'couples-open-registered-panel.json'), 'utf8')).code, cc = codeId(); if (!cc || cc.hash !== pc) { console.error(`audit-couples-open: the code ${cc ? cc.hash : 'unknown'} is not the code the panel was landed on (${pc})`); process.exit(2); } }
+  const reg = REGISTERED ? JSON.parse(readFileSync(PATHS_FILE, 'utf8')) : null;
   const only = process.env.CO_ONLY ? new Set(process.env.CO_ONLY.split(',')) : null, units = panel.filter(u => !only || only.has(u.id));
   const at = args.indexOf('part'), [pk, pn] = at >= 0 ? args[at + 1].split('/').map(Number) : [NaN, NaN];
   if (!(pn === units.length && pk >= 0 && pk < pn)) { console.error(`audit-couples-open: part k/${units.length}`); process.exit(2); }
-  const pts = Number(process.env.CO_PTS) || APP_POINTS, U = units[pk], n = Number(process.env.CO_N) || N_DEFAULT, seed = SEED;
+  const pts = Number(process.env.CO_PTS) || APP_POINTS, U = units[pk], seed = REGISTERED ? HELD : SEED;
+  const n = REGISTERED ? reg.N : Number(process.env.CO_N) || (PILOT ? PILOT_N : N_DEFAULT);
+  if (REGISTERED && !(n > 0)) { console.error(`audit-couples-open: ${PATHS_FILE} gives no paths`); process.exit(2); }
   const smoke = pts !== APP_POINTS, light = smoke && pts <= 6 ? { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } : null;
-  const OUT = process.env.CO_OUT || join(HERE, 'results', 'couples-open-7002');
+  const OUT = process.env.CO_OUT || join(HERE, 'results', REGISTERED ? 'couples-open-run' : PILOT ? 'couples-open-pilot' : 'couples-open-7002');
   mkdirSync(join(OUT, 'parts'), { recursive: true });
   const cid = codeId(), STAMP = { code: cid ? cid.hash : 'unknown', audit: stampFilesHash(), prediction: process.env.PREDICTION_FILE || 'NOT-LAUNCHED', sha: process.env.PREDICTION_SHA || '-', node: process.version };
   console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);   // fair-gate.mjs LOG_STAMP
   const PROC = `${hostname()}:${process.pid}:${Date.now()}`, t0 = Date.now(), order = orderOf(pk);
-  console.log(`THE GUARD'S OWN UNITS (THE DRESS REHEARSAL, EXPLORATORY): unit ${pk}/${pn}: ${U.id} (class ${U.cls}, ${U.cohort}), target ${U.target}, seed ${seed}, ${n} paths, ${pts} points, estate weight ${W}; configs ${ARMS.map(x => `${x} ${configOf(x)}`).join(', ')}`);
+  console.log(`THE GUARD'S OWN UNITS (${REGISTERED ? 'THE REGISTERED TEST' : PILOT ? 'THE REGISTERED TEST\'S PILOT, EXPLORATORY' : 'THE DRESS REHEARSAL, EXPLORATORY'}): unit ${pk}/${pn}: ${U.id} (class ${U.cls}, ${U.cohort}), target ${U.target}, seed ${seed}, ${n} paths, ${pts} points, estate weight ${W}; configs ${ARMS.map(x => `${x} ${configOf(x)}`).join(', ')}`);
   const { a, hp } = solverPlanOf(U.plan, 'own'), guard = guardOf(U.plan), route = routeOf(hp);
   const before = unitProblems(U, a.label, guard, route);
   if (before.length) { console.error(`audit-couples-open: ${U.id}: ${before.join('; ')}`); process.exit(3); }
@@ -196,7 +218,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     if (bad) { console.error(`audit-couples-open: ${U.id} ${arm}: runPath differs from E.runTrial on ${bad} of the first ${Math.min(CHECK, n)} paths`); process.exit(3); }
     const cpuUs = chunks.reduce((t, x) => t + x.cpuUs, 0);
     arms[arm] = { ...o, cpuUs, wallMs: chunks.reduce((t, x) => t + x.wallMs, 0), chunks, place: order.indexOf(arm), solveSecs: solveSecs[arm], inputs: inputs[arm], ...Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) };
-    console.log(`${''.padEnd(8)} done ${arm}: config ${o.config}; engine ${(100 * A.survived.reduce((t, v) => t + v, 0) / n).toFixed(2)}% on ${n}; CPU ${(cpuUs / 1e6).toFixed(0)} s (${(cpuUs / 1e3 / n).toFixed(1)} ms a path)`);
+    // under the registration a log carries no outcome: its stamp, its settings, its timings and its done line
+    console.log(`${''.padEnd(8)} done ${arm}: config ${o.config}; ${REGISTERED ? '' : `engine ${(100 * A.survived.reduce((t, v) => t + v, 0) / n).toFixed(2)}% on ${n}; `}CPU ${(cpuUs / 1e6).toFixed(0)} s (${(cpuUs / 1e3 / n).toFixed(1)} ms a path)`);
   }
   if (js(await digest()) !== js(tablesBefore)) { console.error(`audit-couples-open: ${U.id}: the tables changed while the paths ran`); process.exit(3); }
   writeFileSync(join(OUT, fileOf(U.id)), gzipSync(js({ k: pk, id: U.id, couple: U.couple, cohort: U.cohort, variant: U.variant, cls: U.cls, target: U.target, label: a.label, seed, N: n, warm: WARM, pts, W, stamp: STAMP,

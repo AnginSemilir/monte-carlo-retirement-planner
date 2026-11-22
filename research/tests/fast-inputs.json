@@ -4768,6 +4768,7 @@
    "research/ui-harnesses/estate-optimiser-ui.cjs",
    "research/ui-harnesses/inheritance-ui.cjs",
    "research/ui-harnesses/lib",
+   "research/ui-harnesses/lib/classic-default.cjs",
    "research/ui-harnesses/lib/probes.cjs",
    "research/ui-harnesses/lib/reference.cjs",
    "research/ui-harnesses/load-perf-ui.cjs",

@@ -9,6 +9,7 @@
  * Run:  npm run build && npx serve -s dist -l 4173 && node production-build-ui.cjs 4173 [shotDir]
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const PORT = process.argv[2] || '4173';
 const SHOT = process.argv[3] || '';
 let fails = 0;

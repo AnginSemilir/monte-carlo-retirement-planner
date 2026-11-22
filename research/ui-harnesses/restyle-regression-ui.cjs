@@ -20,6 +20,7 @@
  * Run: node restyle-regression-ui.cjs [port] [shotDir]
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 // the contrast maths is shared with the phone harness so the two can never drift apart
 const { CONTRAST_PROBE } = require('./lib/probes.cjs');
 const PORT = process.argv[2] || '5173';
@@ -43,7 +44,7 @@ const TABS = [
   // the classic planner in both modes (step U): the app's rules
   ['Config & Assumptions', /Decumulation/i],
   ['Projection', /Run the projection/i],
-  // step U: with the switch on too, this harness sees the classic planner (rp_planner is 'classic' unless set), so the tournament
+  // step U: with the switch on too, this harness sees the classic planner (chosen: lib/classic-default.cjs, the new planner the default since 22 Nov 2026), so the tournament
   ['Strategy', /tournament/i],
   ['Historical Backtest', /1928|backtest/i],
   ['Audit Data Table', /audit|year-by-year|Age/i],

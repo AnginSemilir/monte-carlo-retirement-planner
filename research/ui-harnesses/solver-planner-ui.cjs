@@ -50,9 +50,10 @@
  *      the plan and solves; it asks each pot's annual contribution and the contribution's yearly increase, and the plan it
  *      builds carries them (D62, 8 Nov; before it, a pointer to You, Your money);
  *  14  the classic planner, the switch on, fetches none of the solver's chunks;
- *  15  the opt-in both ways (Phase 12 item 3; the readiness checklist's "switched on and off without losing a plan"): from the
- *      classic planner "Try the new planner (beta)" opens the new planner and "Classic planner" comes back, each time with
- *      the saved plan as it was and rp_planner as chosen, and a reload keeping the choice;
+ *  15  the new planner by default and the way across both ways (Phase 12 item 3; the readiness checklist's "switched on and
+ *      off without losing a plan"; the new planner the default since 22 Nov 2026): a visitor who has chosen nothing gets the
+ *      new planner; "Classic planner" goes across and a reload keeps it; "Try the new planner" comes back; each time with the
+ *      saved plan as it was and rp_planner as chosen (its plant 'classicdefault': an unset choice read as classic, as before);
  *  16  the rollback (B6: "one deploy turns it off for everyone"): a build with PLANNER_BETA false (vite.config.js
  *      solver-harness, PLANNER_BETA_OFF=1) shows a visitor who opted in the classic planner, with no opt-in;
  *  17  the rename pass (Phase 12 item 1): no tournament word ("tournament", "recommended policy", "bridge safety margin") and
@@ -100,7 +101,7 @@
  * nocouple (10), lockspart (10: You's Limits giving a couple the solver does not run the card for two, as f1b2b457 did),
  * failboth (11: the failure view's money chart drawn as both arms, the solved plan's named), phonesolve (12),
  * staleask (12), navtarget40 (12), noquickcontrib (13: the plan the quick start builds without the contributions it was given),
- * classicfetch (14), optinloses (15: the switch between the planners resets the plan), betaignored (16: the page reads
+ * classicfetch (14), optinloses (15: the switch between the planners resets the plan), classicdefault (15: an unset choice read as the classic planner), betaignored (16: the page reads
  * rp_planner whatever PLANNER_BETA says), tournamentdocs (17: the documentation keeps the tournament's sections in the new
  * planner), diagwhole (18: the diagnostic appends the solve's record whole), couplecard (19: an in-band couple shown the couples
  * card), coupleage (19: each person's table solved without their partner's age, which the couple's assembly refuses; since
@@ -139,8 +140,8 @@ const SPEED_SINGLE = 'Speed mode works out your figures faster by looking at few
 const SPEED_COUPLE = 'For couples, speed mode is less tested. It was usually only a little faster, it spent a little less, and for some couples it lowered the chance your money lasts by about 5 in 1,000. Use the full calculation for decisions.';
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback', 'workernotie', 'workersplit', 'nogapguard', 'gapwords'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19, workernotie: 19, workersplit: 19, nogapguard: 19, gapwords: 19 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'classicdefault', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback', 'workernotie', 'workersplit', 'nogapguard', 'gapwords'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, classicdefault: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19, workernotie: 19, workersplit: 19, nogapguard: 19, gapwords: 19 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -290,7 +291,8 @@ const firstDiff = (a, b, at = '') => {
     console.log(`the harness's build (the switch and PLANNER_BETA on, as the source has them${PLANTED.length ? `; planted: ${PLANTED.join(', ')}` : ''}) served: ${up}`);
 
     // ---------------------------------------------------------------- 14. the classic planner fetches no solver chunk
-    { const { p, errs, urls } = await open(b, planOf(FIX.main), { planner: null });
+    // (chosen: since 22 Nov 2026 a visitor who has chosen nothing gets the new planner, check 15)
+    { const { p, errs, urls } = await open(b, planOf(FIX.main), { planner: 'classic' });
       for (const t of ['Projection', 'Strategy', 'Config & Assumptions']) { await goPlace(p, t); }
       await p.waitForTimeout(1500);
       const got = urls.filter(u => /solverClient|solverWorker|PlannerPlan|SolverConfig|SolverFigures/.test(u));
@@ -581,25 +583,27 @@ const firstDiff = (a, b, at = '') => {
 
       await p.context().close(); }
 
-    // ---------------------------------------------------------------- 15. the opt-in both ways keeps the plan
+    // ---------------------------------------------------------------- 15. the new planner by default, and the way across both ways
+    // (22 Nov 2026, the maintainer's word: the new planner the default; before it a visitor who had chosen nothing got the classic)
     { const { p, errs } = await open(b, planOf(FIX.main), { planner: null });
-      await p.waitForSelector('[data-tabbar]', { timeout: 60000 }).catch(() => {});
+      await p.waitForSelector('[data-place], [data-tabbar]', { timeout: 60000 }).catch(() => {});
       const before = JSON.stringify(await saved(p)), pick = () => p.evaluate(() => localStorage.getItem('rp_planner'));
+      const isClassic = async () => { const tabs = await p.$$eval('[data-tabbar] button', bs => bs.map(x => x.textContent.trim())); return tabs.includes('Plan Inputs') && !(await p.$('[data-place]')); };
+      const fresh = { place: !!(await p.$('[data-place]')), classic: await isClassic(), pick: await pick() };
+      await p.click('[data-crossover-planner]').catch(() => {});
+      await p.waitForTimeout(800);
+      const back = { classic: await isClassic(), plan: JSON.stringify(await saved(p)) === before, pick: await pick() };
+      await p.reload({ waitUntil: 'networkidle' });
+      await p.waitForSelector('[data-tabbar]', { timeout: 60000 }).catch(() => {});
+      const kept = { classic: await isClassic(), plan: JSON.stringify(await saved(p)) === before };
       const tried = await p.$('[data-try-planner]');
       if (tried) await tried.click();
       await p.waitForSelector('[data-place]', { timeout: 60000 }).catch(() => {});
       const inNew = { place: !!(await p.$('[data-place]')), plan: JSON.stringify(await saved(p)) === before, pick: await pick() };
-      await p.click('[data-crossover-planner]').catch(() => {});
-      await p.waitForTimeout(800);
-      const tabs = await p.$$eval('[data-tabbar] button', bs => bs.map(x => x.textContent.trim()));
-      const back = { classic: tabs.includes('Plan Inputs') && !(await p.$('[data-place]')), plan: JSON.stringify(await saved(p)) === before, pick: await pick() };
-      await p.reload({ waitUntil: 'networkidle' });
-      const tabs2 = await p.$$eval('[data-tabbar] button', bs => bs.map(x => x.textContent.trim()));
-      const again = { classic: tabs2.includes('Plan Inputs') && !(await p.$('[data-place]')), plan: JSON.stringify(await saved(p)) === before };
-      ok(15, 'the opt-in both ways: "Try the new planner (beta)" opens the new planner and "Classic planner" comes back, the saved plan as it was each time, rp_planner as chosen, a reload keeping it',
-        !!tried && inNew.place && inNew.plan && inNew.pick === 'new' && back.classic && back.plan && back.pick === 'classic' && again.classic && again.plan,
-        `the button ${tried ? 'there' : 'missing'}; new planner ${JSON.stringify(inNew)}; back ${JSON.stringify(back)}; after a reload ${JSON.stringify(again)}`);
-      ok(15, 'the opt-in both ways: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+      ok(15, 'a visitor who has chosen nothing gets the new planner; "Classic planner" goes across and a reload keeps it; "Try the new planner" comes back; the saved plan as it was each time, rp_planner as chosen',
+        fresh.place && !fresh.classic && fresh.pick === null && back.classic && back.plan && back.pick === 'classic' && kept.classic && kept.plan && !!tried && inNew.place && inNew.plan && inNew.pick === 'new',
+        `fresh ${JSON.stringify(fresh)}; classic ${JSON.stringify(back)}; after a reload ${JSON.stringify(kept)}; the way back ${tried ? 'there' : 'missing'}, ${JSON.stringify(inNew)}`);
+      ok(15, 'the default and the way across: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
 
     // ---------------------------------------------------------------- 16. the rollback: PLANNER_BETA false

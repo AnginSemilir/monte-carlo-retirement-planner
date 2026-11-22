@@ -1,5 +1,6 @@
 // The Inheritance tab as a deck: three steps that ask, one that answers, and "See all" to undo it.
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const PORT = process.argv[2] || '5195';
 const plan = {
   demographics:{planningMode:'single',currentAgeSelf:68,retireAgeSelf:67,salarySelf:0,employmentSelf:'employed',statePensionAge:68,privatePensionAge:58,statePensionSelf:11976,terminalAge:95},

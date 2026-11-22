@@ -16,7 +16,7 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
  "raiseSurvival": true, "failureShortfall": true, "finalIntegral": true, "riskAboveDefault": "auto", "giaTiers": "refused", "bridgeRead": false, "e3": false, "e3Research": true, "pclsInterp": false, "pclsInterpResearch": true, "e3pcls": false, "e3pclsResearch": true,
  "candidate": {"bridgeRead": "reader", "tierState": true, "jointWorlds": true, "bequestWeight": 0.02, "bridgeStep": "exact", "switchCharge": 0.001, "switchMargin": 0, "e3": true, "pclsInterp": true, "e3pcls": true,
    "readerRef": "adaptive", "adaptiveLattice": {"na": 80, "nb": 21, "nz": 64, "foot": true, "stepAll": true}, "readerSplit": "rs", "tiersBelow": 3, "menuPlus": ["hr"], "tableDealing": false, "failDelivered": true, "sweepCashIsaTo": "isa", "coarse": {"w": 2, "a": 3, "b": 3, "g": 2, "c": 2, "src": "NT", "expand": "LRVOH", "climb": 3}, "tieAboveCap": 0.0001, "saveSplit": true, "saveIsaFirst": "selfEmployed", "tiers": "o60-blend"},
- "margins": {"high": 0.25, "low": 0.5, "pooled": 0.1, "highAt": 95, "rel": 0.1}, "marginRelFloor": "report-only", "couples": {"on": true, "shareRule": "pots", "band": [0.4, 0.6], "elderUpTo": 0.9, "elderFirst": true, "swapElder": true, "tieJoint": 0.0001, "tieLook": true, "holdPast": 2, "dbGapUpTo": 3, "household": "pensionsPA"}}
+ "margins": {"high": 0.25, "low": 0.5, "pooled": 0.1, "highAt": 95, "rel": 0.1}, "marginRelFloor": "report-only", "couples": {"on": true, "shareRule": "pots", "band": [0.4, 0.6], "elderUpTo": 0.9, "elderFirst": true, "swapElder": true, "tieJoint": 0.0001, "tieLook": true, "holdPast": 2, "dbGapUpTo": 3, "household": "pensionsPA", "saveSplit": false}}
 -->
 
 ## 3. Decisions in force

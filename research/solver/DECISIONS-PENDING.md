@@ -11,7 +11,7 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**OPEN (22 Nov, midday), for D139 (every couple on the solver, `COUPLES-OPEN.md`), for your word: three things asked now so
+**ANSWERED by D140 (22 Nov, afternoon): all three given; seed 7026 reserved (32db18ad). Was OPEN (22 Nov, midday), for D139 (every couple on the solver, `COUPLES-OPEN.md`), for your word: three things asked now so
 the registered test is not held up when the dress rehearsal reads.**
 1. An unlock by name for `research/solver/check-prediction.mjs`: seed 7026 reserved for `couples-open*.md`, that edit alone
    (the registered test's held-out seed).
@@ -55,7 +55,7 @@ EXPLORATORY, running now) shows harmed is left out of the registration and comes
 - **The agent recommends (A) now and (C) with D134 (3)'s change.** (B) would take a route away from such a saver even
   where it pays at the law's price, and no plan the app has been tested on sets the pass-through.
 
-**OPEN (22 Nov, early), found by the full tier on D138's build, for your word: an unlock, by name, for four protected
+**ANSWERED by D140 (22 Nov, afternoon: "Unlock enforcement and permission given for all"; the edits made as asked, each file named in its commit). Was OPEN (22 Nov, early), found by the full tier on D138's build, for your word: an unlock, by name, for four protected
 tests' hand-built moves.**
 - **What.** Four tests of the fast tier (protected) build the move they hand the engine by hand from the solver's action:
   `state-check.test.mjs` (V2's state check), `n4-menu.test.mjs`, `speed-port.test.mjs` and `tier-steps.test.mjs`. None
@@ -81,7 +81,7 @@ tests' hand-built moves.**
   on `state-check-full.test.mjs`. B1's gate needs both CI tiers green on the batch's release branch (D92), so batch 11
   waits for this unlock.
 
-**OPEN (21 Nov, night), from the reviewer on D138's change of default (MINOR 6, `reviews/2026-11-21-default-save-split.md`),
+**ANSWERED by D140 (22 Nov, afternoon: "Unlock enforcement and permission given for all"; the edits made as asked, each file named in its commit). Was OPEN (21 Nov, night), from the reviewer on D138's change of default (MINOR 6, `reviews/2026-11-21-default-save-split.md`),
 for your word: two unlocks, by name, for what D138 adds that no protected file records.**
 - **The couples' exclusion.** A couple's solves keep the savings split off on both of the page's routes (`src/solverApp.js`
   `solveForApp`, a solve with a partner's age). Only `save-default.test.mjs` check 4 pins it (the full tier, unprotected).

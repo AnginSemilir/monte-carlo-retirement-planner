@@ -11,6 +11,27 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (22 Nov, early), from the reviewer on D138's change of default (second look, finding 3,
+`reviews/2026-11-21-default-save-split-2.md`), for your word: the employer's NIC passed to the pension, a part of D137
+(4)'s price the split's routes do not carry.**
+- **What.** D137 (4) sent the change with "the law's price in the split's two routes". The deep review set that price for
+  a working single with no pass-through, as every plan of the panel is. Config's "Employer NIC passed to pension (%)"
+  (default nought) credits the employer's NIC saving into the pension on the whole sacrifice. From April 2029 the employer
+  saves NIC on the first £2,000 a year alone, so the cap should take the pass-through above it away too; D138's cap does
+  not (`SAVE_NIC_CAP`'s comment, (a)).
+- **Its size** (the reviewer's figures, by the app's own functions: a £30,000 salary, a sacrifice already past £2,000, from
+  April 2029): a further net pound buys £1.25 of pension with no pass-through under the cap, the law's price; with 100%
+  pass-through £1.4375 under the cap, 15% over the law's £1.25 (uncapped, £1.5972). So for such a plan the cap removes 46%
+  of the over-price.
+- **Who it reaches.** No plan of the library's 420, no panel and no test sets the pass-through.
+- **The ways on:**
+  - **(A)** Stated, as now: the D-line and the comment say the routes do not carry the law's price for such a plan.
+  - **(B)** No pension first from April 2029 where the pass-through is set, until the engine prices it (D134 (3)'s change).
+  - **(C)** Price the pass-through on the first £2,000 alone in the routes and in the engine's taxable pay together, as part
+    of D134 (3)'s engine change for every plan.
+- **The agent recommends (A) now and (C) with D134 (3)'s change.** (B) would take a route away from such a saver even
+  where it pays at the law's price, and no plan the app has been tested on sets the pass-through.
+
 **OPEN (22 Nov, early), found by the full tier on D138's build, for your word: an unlock, by name, for four protected
 tests' hand-built moves.**
 - **What.** Four tests of the fast tier (protected) build the move they hand the engine by hand from the solver's action:
@@ -26,10 +47,16 @@ tests' hand-built moves.**
 - **The same class as D73's `sweepIsa`**, answered then under D82's unlock. The same builder, unprotected, is fixed in
   D138's build: `gaps-sweep.test.mjs` (12 of its 60 cases had failed, on S224 and S330F; all 60 pass with the fix) and
   `allowance-both.test.mjs` (passing before and after).
-- **The ask:** the unlock for exactly those four files' builders, the two fields added as `bridge.js` has them, each file
-  named in its commit; no figure any of them pins moves (each run before and after).
-- **The agent recommends it.** Until then the full tier is red on `state-check-full.test.mjs`. B1's gate needs both CI
-  tiers green on the batch's release branch (D92), so batch 11 waits for this unlock.
+- **What D138 needs, and what is preventive** (corrected on the reviewer on D138's change of default, second look,
+  finding 2, `reviews/2026-11-21-default-save-split-2.md`). D138 reaches `state-check.test.mjs` alone: it is the only one of
+  the four that solves on the candidate. `n4-menu`, `speed-port` and `tier-steps` solve with fixed options that carry no
+  split in either form, so no move of theirs carries a save; their builders are the same class, and fixing them is
+  preventive.
+- **The ask:** the unlock for `state-check.test.mjs`'s builder, the two fields added as `bridge.js` has them, named in its
+  commit; and, by your choice, the same for the three preventive ones. No figure any of them pins moves.
+- **The agent recommends all four in one unlock**, so the class is closed where it sits. Until then the full tier is red
+  on `state-check-full.test.mjs`. B1's gate needs both CI tiers green on the batch's release branch (D92), so batch 11
+  waits for this unlock.
 
 **OPEN (21 Nov, night), from the reviewer on D138's change of default (MINOR 6, `reviews/2026-11-21-default-save-split.md`),
 for your word: two unlocks, by name, for what D138 adds that no protected file records.**

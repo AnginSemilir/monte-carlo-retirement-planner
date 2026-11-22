@@ -15,6 +15,18 @@
  *                   it and the app solves it on today's two-table route, the younger holding 75%: 'uneven';
  *   RWY75           the first person retired today and the partner still paid in the plan's first year (laterWorking), which
  *                   the household plan refuses too, so today's route, the younger holding 75%: 'uneven'.
+ * THE CLASSES BY ROUTE (22 Nov, after the rehearsal's read: its reviewer's BLOCKING 1, reviews/2026-11-22-read-couples-open-
+ * rehearsal.md; COUPLES-OPEN.md amendment 1). A class opens its reason on its own route alone: Y, E, S and G on the household
+ * route; on today's route, which the app takes where the household plan refuses the plan's shape, RY (RY75, RWY75, the
+ * rehearsal's R), RE, RS and RG. Five units added to every couple, each landed as the others:
+ *   G12P            12 years apart with the partner's (the younger's) £15,000 DB pension from the state pension age
+ *                   (withFeature 'dbpart'), the elder holding 60%: 'gapincome', the household route;
+ *   RE100           E100 with the partner's pension one profile safer: 'uneven', today's route;
+ *   RS75            S75 with the partner's pension one profile safer: 'uneven', today's route;
+ *   RG8             G8 with the partner's pension one profile safer: 'gapincome', today's route;
+ *   RG12P           G12P with the partner's pension one profile safer: 'gapincome', today's route.
+ * The dress rehearsal read its 44 units before these were added; the five are its addendum (ADDENDUM: land --only, the audit's
+ * addendum mode), read on their own by the same rule.
  * The first person is the elder in every library couple, so no unit is handed to the solver on its mirror.
  * Each unit's plan (unitPlan): the variant, then couple-panel.mjs planOf at the couple's cohort and target. Landed so arm A,
  * searched anew at each target, survives 85 +/- 1% on 1,000 paths of seed 7005 (phase4-panel.mjs landTarget, D4's procedure);
@@ -68,11 +80,20 @@ export const VARIANTS = Object.freeze({
   E95: { cls: 'E', hold: 0.95 }, E100: { cls: 'E', hold: 1 },
   S75: { cls: 'S', shape: 'even', hold: 0.75 },
   G8: { cls: 'G', shape: 'gap8', feature: 'db' }, G12: { cls: 'G', shape: 'gap12', feature: 'db' }, G8Y75: { cls: 'G', shape: 'gap8', feature: 'db', hold: 0.25 },
-  RY75: { cls: 'R', hold: 0.25, risks: true }, RWY75: { cls: 'R', hold: 0.25, working: true }
+  G12P: { cls: 'G', shape: 'gap12', feature: 'dbpart' },
+  RY75: { cls: 'RY', hold: 0.25, risks: true }, RWY75: { cls: 'RY', hold: 0.25, working: true },
+  RE100: { cls: 'RE', hold: 1, risks: true }, RS75: { cls: 'RS', shape: 'even', hold: 0.75, risks: true },
+  RG8: { cls: 'RG', shape: 'gap8', feature: 'db', risks: true }, RG12P: { cls: 'RG', shape: 'gap12', feature: 'dbpart', risks: true }
 });
-export const CLASSES = Object.freeze(['Y', 'E', 'S', 'G', 'R']);
-/* the guard's reason each variant is kept off for, and the route the app takes for it */
-export const WANT = Object.freeze(Object.fromEntries(Object.entries(VARIANTS).map(([v, V]) => [v, { why: v === 'G8' || v === 'G12' ? 'gapincome' : 'uneven', route: V.risks || V.working ? 'today' : 'household' }])));
+/* the classes, each on its own route: the household route's, then today's */
+export const CLASSES = Object.freeze(['Y', 'E', 'S', 'G', 'RY', 'RE', 'RS', 'RG']);
+export const ROUTE_OF_CLASS = Object.freeze({ Y: 'household', E: 'household', S: 'household', G: 'household', RY: 'today', RE: 'today', RS: 'today', RG: 'today' });
+/* the dress rehearsal's addendum: the units added after its read (COUPLES-OPEN.md amendment 1) */
+export const ADDENDUM = Object.freeze(['G12P', 'RE100', 'RS75', 'RG8', 'RG12P']);
+/* the guard's reason each variant is kept off for (an age gap with other taxable income where the holding is inside the
+   band and the elder's ceiling, the holding first otherwise), and the route the app takes for it */
+const GAP_REASON = ['G8', 'G12', 'G12P', 'RG8', 'RG12P'];
+export const WANT = Object.freeze(Object.fromEntries(Object.entries(VARIANTS).map(([v, V]) => [v, { why: GAP_REASON.includes(v) ? 'gapincome' : 'uneven', route: V.risks || V.working ? 'today' : 'household' }])));
 export const REG = process.env.REG === '1', N_REG = 4;
 export const ORDERS = join(HERE, 'couples-open-orders.json');
 export const PANEL = process.env.COUPLES_OPEN_PANEL || join(HERE, REG ? 'couples-open-registered-panel.json' : 'couples-open-panel.json');
@@ -100,7 +121,7 @@ export const PROFILES = Object.freeze(['High Risk', 'Medium/High Risk', 'Medium 
 /* the partner's pension one profile from the first person's: the next safer, or the next riskier from the safest */
 export function otherRisk(plan) {
   const p = JSON.parse(JSON.stringify(plan)), self = p.accounts.find(a => a.id === 'pen_self'), part = p.accounts.find(a => a.id === 'pen_part');
-  if (!self || !part) throw new Error('couples-open-panel: RY75 wants a pension each');
+  if (!self || !part) throw new Error('couples-open-panel: a refused shape by risk wants a pension each');
   const i = PROFILES.indexOf(self.risk);
   if (i < 0) throw new Error(`couples-open-panel: the first person's pension at '${self.risk}', not a profile`);
   part.risk = PROFILES[i + 1 < PROFILES.length ? i + 1 : i - 1];
@@ -169,7 +190,15 @@ function planted() {
     const p = variantPlan(h, v), d = p.demographics, db = (p.otherIncomes || []).filter(i => i.incomeType === 'otherTaxable' && i.owner === 'Myself');
     cases.push([`${v}: ${gap} years apart, the elder's DB pension of £15,000 a year`, `${E.num(d.currentAgeSelf, 0) - E.num(d.currentAgePart, 0)} ${db.length} ${db.map(i => i.amount).join(',')}`, `${gap} 1 15000`]);
   }
-  { const p = variantPlan(h, 'RY75'), r = id => p.accounts.find(a => a.id === id).risk; cases.push(['RY75: the partner\'s pension one profile safer than the first person\'s', `${r('pen_self')} | ${r('pen_part')}`, 'High Risk | Medium/High Risk']); }
+  for (const v of ['RY75', 'RE100', 'RS75', 'RG8', 'RG12P']) { const p = variantPlan(h, v), r = id => p.accounts.find(a => a.id === id).risk; cases.push([`${v}: the partner's pension one profile safer than the first person's`, `${r('pen_self')} | ${r('pen_part')}`, 'High Risk | Medium/High Risk']); }
+  for (const [v, gap] of [['G12P', 12], ['RG12P', 12]]) {
+    const p = variantPlan(h, v), d = p.demographics, db = (p.otherIncomes || []).filter(i => i.incomeType === 'otherTaxable' && i.owner === 'Partner');
+    cases.push([`${v}: ${gap} years apart, the partner's (the younger's) DB pension of £15,000 a year`, `${E.num(d.currentAgeSelf, 0) - E.num(d.currentAgePart, 0)} ${db.length} ${db.map(i => i.amount).join(',')}`, `${gap} 1 15000`]);
+  }
+  cases.push(['RE100: the elder holds every pound', firstShare(variantPlan(h, 'RE100')).toFixed(4), '1.0000']);
+  { const d = variantPlan(h, 'RS75').demographics; cases.push(['RS75: the two the same age, the first person holding 75%', `${E.num(d.currentAgeSelf, 0) - E.num(d.currentAgePart, 0)} ${firstShare(variantPlan(h, 'RS75')).toFixed(4)}`, '0 0.7500']); }
+  { const d = variantPlan(h, 'RG8'); cases.push(['RG8: 8 years apart with the elder\'s DB pension', `${E.num(d.demographics.currentAgeSelf, 0) - E.num(d.demographics.currentAgePart, 0)} ${(d.otherIncomes || []).filter(i => i.incomeType === 'otherTaxable' && i.owner === 'Myself').length}`, '8 1']); }
+  cases.push(['each class on one route, the variants\' routes their class\'s', Object.entries(VARIANTS).filter(([v, V]) => WANT[v].route !== ROUTE_OF_CLASS[V.cls]).map(([v]) => v).join(',') || 'all', 'all']);
   for (const cohort of ['lib', 'young']) {
     const g = cohort === 'lib' ? h : byId.S351, d = unitPlan(g, cohort, 'RWY75', 30000).demographics, a = E.num(d.currentAgeSelf, 0), b = E.num(d.currentAgePart, 0);
     cases.push([`RWY75 (${cohort}): the first person retired today, the partner paid and working two more years at least`, `${E.num(d.retireAgeSelf, 0) <= a} ${E.num(d.retireAgePart, 0) >= b + 2} ${E.num(d.salaryPart, 0) > 0}`, 'true true true']);
@@ -212,9 +241,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const byId = Object.fromEntries(couplesOf().map(h => [h.id, h]));
   if (mode === 'land') {
     const cid = process.argv[3], CS = couplesFor(), c = CS.find(x => x[0] === cid);
-    if (!c) { console.error(`couples-open-panel: land <one of ${CS.map(x => x[0]).join(', ')}>`); process.exit(2); }
-    const cohort = c[1], h = byId[baseOf(cid)], t0 = Date.now(), variants = {};
-    for (const v of Object.keys(VARIANTS)) {
+    if (!c) { console.error(`couples-open-panel: land <one of ${CS.map(x => x[0]).join(', ')}> [--only V1,V2]`); process.exit(2); }
+    // --only: land those variants alone into the couple's landing, the rest kept as landed, on the same code (the addendum)
+    const oi = process.argv.indexOf('--only'), only = oi > 0 ? process.argv[oi + 1].split(',') : null, f0 = join(OUT, `${cid}.json`);
+    if (only && only.some(v => !VARIANTS[v])) { console.error(`couples-open-panel: --only ${only.join(',')}: not every one a variant`); process.exit(2); }
+    const prev = only ? JSON.parse(readFileSync(f0, 'utf8')) : null;
+    if (prev && prev.code !== (codeId() || {}).hash) { console.error(`couples-open-panel: ${cid} was landed on ${prev.code}, not this code: land it whole`); process.exit(2); }
+    const cohort = c[1], h = byId[baseOf(cid)], t0 = Date.now(), variants = prev ? { ...prev.variants } : {};
+    for (const v of only || Object.keys(VARIANTS)) {
       let label = null;
       const survivalAt = T => { const a = armA(appPlan(unitPlan(h, cohort, v, T)), { tournament: false }); label = a.label; return E.monteCarlo(E.buildContext(E.resolveMpaa(a.planState)), { trials: LAND_PATHS, seed: LAND_SEED }).successRate; };
       const r = landTarget(survivalAt, E.num(h.plan.spending.targetSpend, 0)), last = r.steps[r.steps.length - 1];
@@ -226,7 +260,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     }
     mkdirSync(OUT, { recursive: true });
     const id = codeId(), head = execSync('git rev-parse --short=12 HEAD', { cwd: HERE }).toString().trim();
-    writeFileSync(join(OUT, `${cid}.json`), JSON.stringify({ couple: cid, base: h.id, cohort, name: h.name, libraryTarget: E.num(h.plan.spending.targetSpend, 0), variants, code: id ? id.hash : 'unknown', head, secs: (Date.now() - t0) / 1000 }, null, 1) + '\n');
+    writeFileSync(join(OUT, `${cid}.json`), JSON.stringify({ couple: cid, base: h.id, cohort, name: h.name, libraryTarget: E.num(h.plan.spending.targetSpend, 0), variants, code: id ? id.hash : 'unknown', head, secs: (prev ? prev.secs : 0) + (Date.now() - t0) / 1000, ...(only ? { added: [...((prev && prev.added) || []), { variants: only, head, at: new Date().toISOString() }] } : {}) }, null, 1) + '\n');
     console.log(`${cid} landed in ${Math.round((Date.now() - t0) / 1000)} s`);
   }
   if (mode === 'freeze') {

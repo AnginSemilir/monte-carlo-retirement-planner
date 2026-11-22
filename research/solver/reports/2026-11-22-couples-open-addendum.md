@@ -46,9 +46,18 @@ Each class passes all three parts of the rule, ROUTE against APP. Every figure b
 
 ## What it means for the registered test
 
-- **Every class can be registered** by amendment 1: none of the four shows harm, so none is left out. The registered test
-  reads Y, E, S and G on the household route and RY, RE, RS and RG on today's, on couples no run has used and the held-out
-  seed 7026.
+Corrected 22 Nov (evening) as the reviewer's second look gave it, unreviewed (D81 (F);
+`reviews/2026-11-22-read-couples-open-rehearsal-2.md`). The first draft said every class could be registered. That does not
+stand for RY, RE and RG:
+- Today's route was measured below the app's rules on six couples of their reasons (`results-household-arm.txt`:
+  S147-db@gap8 `78.83%` against `85.63%`, S147-db@gap12 `75.40%` against `86.35%`, S061-dbpart@gap12 `66.40%` against
+  `86.65%`, S061-dbpart@penB90 `76.75%` against `86.92%`, S061-dbpart@penA100 `85.03%` against `87.88%`;
+  `results-guard.txt`: S149@gap12 with rent from now, `-6.850` points). No unit here or in the registered panel reads them.
+- RG12P is S061-dbpart's own feature on other couples, and it is above the app's rules on all four. So the harm goes with
+  those couples, not with the feature, and this addendum cannot stand in for them. Nor does any unit here carry an income
+  starting before the state pension age, which is where the rent was harmful.
+- By the maintainer's ruling (D141), the registered test reads the household route's classes alone (Y, E, S and G), and a
+  couple whose plan's shape the household plan refuses keeps today's guard.
 - **The registered read names M1's units**, as here, with their spending over all paths and their pot.
 
 ## What it does not show

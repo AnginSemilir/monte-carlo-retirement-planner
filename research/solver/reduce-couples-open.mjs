@@ -29,11 +29,8 @@
  *   node research/solver/reduce-couples-open.mjs [dir] > research/solver/results-couples-open-rehearsal.txt
  *   node research/solver/reduce-couples-open.mjs --smoke [dir]       a smoke's gate and the rule's run, no figure printed
  *   REG=1 node research/solver/reduce-couples-open.mjs --pilot [dir]  the registered test's pilot: its gate alone, no figure
- *   REG=1 node research/solver/reduce-couples-open.mjs --registered --part household [dir] > research/solver/results-couples-open-household.txt
- *   REG=1 node research/solver/reduce-couples-open.mjs --registered --part today [dir] > research/solver/results-couples-open-today.txt
- *     the registered read in its two parts (registrations/couples-open.md, The read): each part's units alone, the household
- *     route's (Y, E, S, G; run first) or today's (RY, RE, RS, RG), each read once when its units are in; a part's read opens
- *     no record of the other's
+ *   REG=1 node research/solver/reduce-couples-open.mjs --registered [dir] > research/solver/results-couples-open.txt
+ *     the registered read (registrations/couples-open.md): the household route's classes Y, E, S and G alone (D141), read once
  *   node research/solver/reduce-couples-open.mjs --planted
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
@@ -45,7 +42,7 @@ import { harmExact } from './reduce-share-rules.mjs';
 import { cells } from './reduce-household.mjs';
 import { keptSpend } from './reduce-household-hsp.mjs';
 import { requireFairLogs } from './fair-gate.mjs';
-import { ARMS, KEYS, SEED, W, N_DEFAULT, HELD, PILOT_N, REGISTRATION, PATHS_FILE, ROUTE_CTX, PARTS, configOf, stampFilesHash, unitsOf } from './audit-couples-open.mjs';
+import { ARMS, KEYS, SEED, W, N_DEFAULT, HELD, PILOT_N, REGISTRATION, PATHS_FILE, ROUTE_CTX, configOf, stampFilesHash, unitsOf } from './audit-couples-open.mjs';
 import { CLASSES, WANT, ROUTE_OF_CLASS } from './couples-open-panel.mjs';
 import { APP_POINTS } from '../../src/solverSettings.js';
 
@@ -95,13 +92,6 @@ export function gate(units, want, { seed = SEED, n = N_DEFAULT, pts = APP_POINTS
     }
   }
   return P;
-}
-/* the registered read's part: the ids of its route's units and their launch logs (case<k>, k the unit's place in the
-   registered order, audit-couples-open.mjs unitsOf), so a part's read opens no record and no log of the other's */
-export function partOf(regOrder, part) {
-  const ids = new Set(), logs = new Set();
-  regOrder.forEach((u, k) => { if (u.route === part) { ids.add(u.id); logs.add(`case${k}.txt`); } });
-  return { ids, logs };
 }
 /* ROUTE against APP over a class's units: each unit's harm (D34, in whole paths) and change; the class's pooled change and
    spending on the paths both keep, both by path */
@@ -191,9 +181,9 @@ function planted() {
     cases.push(['part 3 at its bar: -0.06% on the paths both keep stays, -0.04% opens', `${R6.S.C.kept.d.toFixed(3)} ${R6.S.outcome} ${R4.S.C.kept.d.toFixed(3)} ${R4.S.outcome}`, '-0.060 STAYS -0.040 OPENS']); }
   { const R = rule([unit('a', 0, 'Y', base, gain), unit('g', 1, 'G', base, harm), unit('r', 2, 'RY', base, gain), unit('rg', 3, 'RG', base, harm), unit('re', 4, 'RE', base, gain)]);
     cases.push(['each class read on its own units and route', `${R.Y.outcome} ${R.G.outcome} ${R.RY.outcome} ${R.RG.outcome} ${R.RE.outcome}`, 'OPENS STAYS OPENS STAYS OPENS']); }
-  // the registered read's two parts: each its own route's units and logs, none of the other's
-  { const order = [{ id: 'a', route: 'household' }, { id: 'b', route: 'today' }, { id: 'c', route: 'household' }], h = partOf(order, 'household'), t = partOf(order, 'today');
-    cases.push(['the registered read\'s parts: each its own units and launch logs alone', `${[...h.ids]} ${[...h.logs]} | ${[...t.ids]} ${[...t.logs]}`, 'a,c case0.txt,case2.txt | b case1.txt']); }
+  // the registered read's units (D141): the household route's alone, as the registered run runs them (unitsOf 'registered')
+  { const order = [{ id: 'a', route: 'household' }, { id: 'b', route: 'today' }, { id: 'c', route: 'household' }];
+    cases.push(['the registered read takes the household route\'s units alone', unitsOf(order, 'registered').map(u => u.id).join(','), 'a,c']); }
   // spending over all paths, beside: a unit delivering 1% less on every path is named below beyond noise
   { const r = report([unit('a', 0, 'Y', base, gain, { deliveredDrop: 1 }), unit('b', 1, 'Y', base, gain)]).out.find(l => l.startsWith('SPENDING OVER ALL PATHS'));
     cases.push(['spending over all paths: a unit 1% below on every path named, one level not', /: a -1\.0000 /.test(r) && !/ b [-+]/.test(r) ? 'a' : r.slice(0, 120), 'a']); }
@@ -240,22 +230,18 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
   if (args.includes('--planted')) process.exit(planted() ? 1 : 0);
   const PILOT = args.includes('--pilot'), REGISTERED = args.includes('--registered'), ADD = args.includes('--addendum');
-  const pi = args.indexOf('--part'), PART = pi >= 0 ? args[pi + 1] : null;
-  if (REGISTERED !== !!PART || (PART && !PARTS.includes(PART))) { console.error(`reduce-couples-open: the registered read takes --part ${PARTS.join(' or ')}, and only it`); process.exit(2); }
   // the pilot and the registered read take the registered panel (REG=1, so the stamp's data files are its)
   if ((PILOT || REGISTERED) !== (process.env.REG === '1')) { console.error(`reduce-couples-open: ${PILOT ? '--pilot' : REGISTERED ? '--registered' : 'the dress rehearsal'} reads ${PILOT || REGISTERED ? 'with' : 'without'} REG=1`); process.exit(2); }
   const seed = REGISTERED ? HELD : SEED;
-  const DIR = args.find((a, i) => !a.startsWith('--') && args[i - 1] !== '--part') || join(HERE, 'results', REGISTERED ? 'couples-open-run' : PILOT ? 'couples-open-pilot' : ADD ? `couples-open-${SEED}-add` : `couples-open-${SEED}`);
+  const DIR = args.find(a => !a.startsWith('--')) || join(HERE, 'results', REGISTERED ? 'couples-open-run' : PILOT ? 'couples-open-pilot' : ADD ? `couples-open-${SEED}-add` : `couples-open-${SEED}`);
   if (!existsSync(DIR)) { console.error(`reduce-couples-open: no ${DIR}`); process.exit(2); }
   const { readOpenPanel } = await import('./couples-open-panel.mjs');
-  // the registered read's part: its route's units alone, no record and no log of the other part opened
-  const order = unitsOf(readOpenPanel(), ADD ? 'addendum' : REGISTERED ? 'registered' : ''), P0 = PART ? partOf(order, PART) : null;
-  const panel = order.filter(u => !P0 || P0.ids.has(u.id)).map(u => ({ id: u.id, route: u.route }));
-  const smoke = args.includes('--smoke'), units = loadDir(DIR, P0 ? P0.ids : null).sort((a, b) => a.k - b.k);
+  const panel = unitsOf(readOpenPanel(), ADD ? 'addendum' : REGISTERED ? 'registered' : '').map(u => ({ id: u.id, route: u.route }));
+  const smoke = args.includes('--smoke'), units = loadDir(DIR).sort((a, b) => a.k - b.k);
   const want = smoke ? panel.filter(w => units.some(u => u.id === w.id)) : panel;
-  const logs = Object.fromEntries(readdirSync(DIR).filter(x => /^case\d+\.txt$/.test(x) && (!P0 || P0.logs.has(x))).map(x => [x, readFileSync(join(DIR, x), 'utf8')]));
+  const logs = Object.fromEntries(readdirSync(DIR).filter(x => /^case\d+\.txt$/.test(x)).map(x => [x, readFileSync(join(DIR, x), 'utf8')]));
   const n = REGISTERED ? JSON.parse(readFileSync(PATHS_FILE, 'utf8')).N : PILOT ? PILOT_N : N_DEFAULT;
-  console.log(`THE GUARD'S OWN UNITS, ${REGISTERED ? `THE REGISTERED TEST (${REGISTRATION}), ITS ${PART === 'household' ? 'HOUSEHOLD ROUTE\'S' : 'TODAY\'S ROUTE\'S'} PART` : PILOT ? 'THE REGISTERED TEST\'S PILOT (EXPLORATORY; its gate alone)' : ADD ? 'THE DRESS REHEARSAL\'S ADDENDUM (EXPLORATORY; COUPLES-OPEN.md amendment 1: the five units added to every couple after the rehearsal\'s read)' : 'THE DRESS REHEARSAL (EXPLORATORY; COUPLES-OPEN.md step 1)'}: ${units.length} units from ${DIR.replace(/.*research\/solver\//, '')}, seed ${seed}${smoke ? ', a smoke' : ''}`);
+  console.log(`THE GUARD'S OWN UNITS, ${REGISTERED ? `THE REGISTERED TEST (${REGISTRATION}; the household route's classes, D141)` : PILOT ? 'THE REGISTERED TEST\'S PILOT (EXPLORATORY; its gate alone)' : ADD ? 'THE DRESS REHEARSAL\'S ADDENDUM (EXPLORATORY; COUPLES-OPEN.md amendment 1: the five units added to every couple after the rehearsal\'s read)' : 'THE DRESS REHEARSAL (EXPLORATORY; COUPLES-OPEN.md step 1)'}: ${units.length} units from ${DIR.replace(/.*research\/solver\//, '')}, seed ${seed}${smoke ? ', a smoke' : ''}`);
   if (smoke && units.some(u => u.N === n && u.pts === APP_POINTS)) { console.log('a smoke at the read\'s own count of paths and points: refused (read it without --smoke)'); process.exit(1); }
   // the fair-test gate on the launch logs (CHECKLIST 3): under the registration every log stamped by the launcher with the
   // registration's git blob; an exploratory run's with PREDICTION none; a smoke, not launched, has none; the pilot runs directly

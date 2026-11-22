@@ -11,6 +11,8 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**ANSWERED by D141 (22 Nov, evening): "Household route only (Recommended)".** The reviewer's second look at the couples dress rehearsal's read (FAIL standing after one fix, D81 (F); `reviews/2026-11-22-read-couples-open-rehearsal-2.md`): today's two-table route measured below the app's rules on six couples of RY's, RE's and RG's reasons that no unit reads. The registered test reads Y, E, S and G on the household route alone; a couple whose plan's shape the household plan refuses keeps today's guard until the household plan takes its shape (`COUPLES-OPEN.md` amendment 2).
+
 **ANSWERED by D140 (22 Nov, afternoon): all three given; seed 7026 reserved (32db18ad). Was OPEN (22 Nov, midday), for D139 (every couple on the solver, `COUPLES-OPEN.md`), for your word: three things asked now so
 the registered test is not held up when the dress rehearsal reads.**
 1. An unlock by name for `research/solver/check-prediction.mjs`: seed 7026 reserved for `couples-open*.md`, that edit alone

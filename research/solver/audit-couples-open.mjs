@@ -30,9 +30,10 @@
  * couples-open-registered-panel.json):
  *   REG=1 node research/solver/audit-couples-open.mjs pilot part k/n       the pilot: every unit, seed 7002, PILOT_N paths
  *                                                                          (EXPLORATORY; its sizing, size-couples-open.mjs)
- *   REG=1 node research/solver/audit-couples-open.mjs registered part k/n  the registered run: seed HELD, couples-open-paths.json's
- *                                                                          paths, only under the registration through the
- *                                                                          launcher, only on the code the panel was landed on
+ *   REG=1 node research/solver/audit-couples-open.mjs registered part k/n  the registered run: the household route's units alone
+ *                                                                          (D141), seed HELD, couples-open-paths.json's paths,
+ *                                                                          only under the registration through the launcher,
+ *                                                                          only on the code the panel was landed on
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -62,11 +63,11 @@ export const REGISTRATION = 'research/solver/registrations/couples-open.md';
 export const PATHS_FILE = join(HERE, 'couples-open-paths.json');
 export const ARMS = ['APP', 'ROUTE'];
 /* the units a mode runs, in the order the batch runs them: the addendum the rehearsal panel's ADDENDUM variants alone; the
-   registered run every unit, the household route's first and today's after (each in the panel's order), so its two parts are
-   read as each comes in (registrations/couples-open.md, The read); every other mode its panel's every unit in its order */
-export const PARTS = Object.freeze(['household', 'today']);
+   registered run the household route's units alone, in the panel's order (D141, 22 Nov: the registered test reads Y, E, S and
+   G on the household route; today's route's classes are not registered); every other mode its panel's every unit */
+export const REGISTERED_ROUTE = 'household';
 export const unitsOf = (panel, mode) => (mode === 'addendum' ? panel.filter(u => ADDENDUM.includes(u.variant))
-  : mode === 'registered' ? PARTS.flatMap(r => panel.filter(u => u.route === r)) : panel);
+  : mode === 'registered' ? panel.filter(u => u.route === REGISTERED_ROUTE) : panel);
 export const ROUTE_CTX = 'solvedContext';
 /* ROUTE's engine context: the page's own for the solved couple (src/solverStrategy.js solvedContext); the plant 'armages' puts
    arm A's MPAA ages (ages) on the solved plan first, the rehearsal's way */
@@ -154,8 +155,8 @@ function planted() {
     cases.push(['the guard off for another reason', unitProblems({ ...U, variant: 'G8' }, 'ISA First', off, hh).join(';'), 'the app\'s guard keeps the unit off for \'uneven\', not its class\'s \'gapincome\'']);
     cases.push(['the route not the panel\'s', unitProblems(U, 'ISA First', off, { route: 'today' }).join(';'), 'the route \'today\', not the panel\'s \'household\'']); }
   cases.push(['the panel: 64 units, 24 on today\'s route, each class on one route', `${panel.length} ${panel.filter(u => u.route === 'today').length} ${[...new Set(panel.map(u => u.cls))].join(',')}`, `64 24 ${CLASSES.join(',')}`]);
-  { const reg = unitsOf(panel, 'registered'), cut = reg.findIndex(u => u.route === 'today');
-    cases.push(['the registered order: every unit once, the household route\'s first, then today\'s', `${reg.length} ${new Set(reg.map(u => u.id)).size} ${cut} ${reg.slice(cut).every(u => u.route === 'today')}`, `64 64 40 true`]); }
+  { const reg = unitsOf(panel, 'registered');
+    cases.push(['the registered run (D141): the household route\'s 40 units, each once, none of today\'s route, each class Y, E, S or G', `${reg.length} ${new Set(reg.map(u => u.id)).size} ${reg.every(u => u.route === 'household')} ${[...new Set(reg.map(u => u.cls))].join(',')}`, '40 40 true Y,E,S,G']); }
   cases.push(['the addendum: the rehearsal panel\'s five new units a couple', `${unitsOf(panel, 'addendum').length} ${[...new Set(unitsOf(panel, 'addendum').map(u => u.variant))].sort().join(',')}`, `20 ${[...ADDENDUM].sort().join(',')}`]);
   // ROUTE's context is the page's own (the rehearsal read's reviewer, MINOR 2): on a unit where arm A's MPAA ages and the solved
   // plan's own differ (S357F-Y90 on the rehearsal panel, S279-RY75 on the registered), solved at light settings, ROUTE's context

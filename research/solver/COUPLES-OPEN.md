@@ -115,3 +115,26 @@ test, `results-guard.txt`).
   that shape as the code stands.
 - **Its time:** the registered panel 64 units (40 on the household route, 24 on today's); the pilot again on all 64 (its audit's
   stamp changed), the run's paths and budget from it; the addendum about half an hour on four cores.
+
+## Amendment 2 (22 Nov, evening): the household route alone (D141)
+
+The reviewer's second look at the rehearsal's read (`reviews/2026-11-22-read-couples-open-rehearsal-2.md`: FAIL, standing
+after amendment 1's fix, D81 (F)) found that amendment 1 answered its BLOCKING 1 only in part. Today's two-table route was
+measured below the app's rules on six couples of RY's, RE's and RG's reasons (`results-household-arm.txt`: S147-db@gap8,
+S147-db@gap12, S061-dbpart@gap12, S061-dbpart@penB90, S061-dbpart@penA100; `results-guard.txt`: S149@gap12 with rent from
+now). Each is kept off by today's guard, and no unit of any panel reads them, so a pass of RY, RE or RG could open today's
+route for couples like them while a measured harm stands. The addendum's own RG12P, S061-dbpart's feature on other couples,
+was above the app's rules on all four, so the harm goes with those couples, not with the feature.
+
+The maintainer ruled between its two ways on (D141): "Household route only (Recommended)".
+- **The registered test reads Y, E, S and G on the household route alone**, the registered panel's 40 household-route
+  units; the 24 units on today's route are landed and not run.
+- **A couple whose plan's shape the household plan refuses keeps today's guard** in every outcome (inside it, today's route
+  as now; outside it, the app's rules) until the household plan takes its shape: step 4, three shapes, comes next; the other
+  three (`REFUSALS.md`) need the household plan to hold more than one risk or salary path.
+- **The change of default reads the household plan's refusal in the guard** (its shape checks written again in
+  `src/couplesSwitch.js`, which has no imports, held equal to `householdPlanFor`'s by a test), so a class that opens lifts its
+  reason only where the household plan takes the couple.
+- **The registered run** is the 40 units on one read; about a third of amendment 1's 64-unit run.
+- The rehearsal's and the addendum's figures stand; their write-ups are corrected as the reviewer gave them, unreviewed
+  (D81 (F)).

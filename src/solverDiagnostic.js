@@ -69,6 +69,6 @@ export function diagnosticFields({ solve = null, plan = null, points = null, pat
 export function diagnosticText(input = {}) {
   const lines = diagnosticFields(input).map(([k, v]) => `${k}: ${v}`);
   if (PLANNER_PLANT.has('diagwhole') || DIAG_PLANT.rule === 'whole') lines.push(`record: ${JSON.stringify(input.solve)}`);
-  return ['The new planner (beta): details for a bug report. No amounts are included.', ...lines].join('\n');
+  return ['The new planner: details for a bug report. No amounts are included.', ...lines].join('\n');
 }
 export const DIAG_PLANT = { rule: '' };   // research/tests/solver-diagnostic.test.mjs only: 'whole' appends the record whole; 'partany' names a partner's ceilings on any plan

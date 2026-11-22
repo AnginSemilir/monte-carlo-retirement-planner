@@ -7212,9 +7212,13 @@ const SOLVER_OPTS = null;
  * check 15, its plant 'classicdefault' (an unset choice read as classic, as before)
  */
 export const PLANNER_KEY = 'rp_planner';
+// the choice made this visit, for a browser whose storage throws: the shell and the page then read the same planner (the
+// reviewer on the default, MINOR 3), though it is not kept past a reload there
+let plannerChosen = null;
+export const rememberPlanner = v => { plannerChosen = v; };
 const readPlanner = () => {
   const unset = PLANNER_PLANT.has('classicdefault') ? 'classic' : 'new';
-  try { const v = localStorage.getItem(PLANNER_KEY); return v === 'classic' || v === 'new' ? v : unset; } catch (e) { return unset; }
+  try { const v = localStorage.getItem(PLANNER_KEY); return v === 'classic' || v === 'new' ? v : plannerChosen || unset; } catch (e) { return plannerChosen || unset; }
 };
 const plannerOn = planner => SOLVER && BETA_ON && planner === 'new';
 // the switch and its settings, for the Simple page's answers from the solver (src/Simple.jsx; Part C Phase 10, item 5): on only
@@ -8717,6 +8721,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const setPlanner = useCallback(p => {
     if (PLANNER_PLANT.has('optinloses')) setPlan(E.normalizePlan(null));   // the plant (check 15 only): the switch loses the plan
     safeStorageSet(PLANNER_KEY, p);
+    rememberPlanner(p);
     setPlannerState(p);
     setActiveTabRaw(t => (plannerOn(p) ? (PLACE_OF[t] || t) : (CLASSIC_OF[t] || t)));
     if (onPlanner) onPlanner(p);
@@ -8754,7 +8759,18 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const [askedPlan, setAskedPlan] = useState(null);
   const asked = !isPhone || askedPlan === plan;
   const askSolve = useCallback(() => setAskedPlan(plan), [plan]);
-  const solve = useSolverState(plan, solverRules, E, SOLVER_OPTS, solverRules && !asked && !PLANNER_PLANT.has('phonesolve'));
+  // enough has been entered for the rest of the app to say something meaningful
+  const planStarted = E.num(plan?.spending?.targetSpend, 0) > 0
+    || (plan?.accounts || []).some(a => E.num(a.balance, 0) > 0 || E.num(a.contrib, 0) > 0);
+  /*
+   * NO SOLVE BEFORE THERE IS A PLAN (22 Nov 2026, the reviewer on the new planner as the default, BLOCKING 1). An empty plan
+   * shows the quick start; solving it meant every fresh visitor's first minute went on a solve of nothing, thrown away when the
+   * quick start handed over a plan, and on GitHub Pages the isolation's one reload, which loses what was typed into the quick
+   * start. So the solver, its chunk and the isolation wait for a plan. research/ui-harnesses/solver-planner-ui.cjs check 13, its
+   * plant 'blanksolve' (the empty plan solved, as before)
+   */
+  const solveOn = solverRules && (planStarted || PLANNER_PLANT.has('blanksolve'));
+  const solve = useSolverState(plan, solveOn, E, SOLVER_OPTS, solveOn && !asked && !PLANNER_PLANT.has('phonesolve'));
   // the cards' cost lines read this device's last solve (src/solveStatus.js timings)
   useEffect(() => {
     if (solve.solveState === 'solved' && solve.solveMeta && !solve.solveMeta.error) {
@@ -11217,9 +11233,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   };
 
   const displayedAccounts = isCouple ? (plan?.accounts || []) : (plan?.accounts || []).filter(a => a.owner === 'Myself');
-  // enough has been entered for the rest of the app to say something meaningful
-  const planStarted = E.num(plan?.spending?.targetSpend, 0) > 0
-    || (plan?.accounts || []).some(a => E.num(a.balance, 0) > 0 || E.num(a.contrib, 0) > 0);
   /*
    * A tab is text with a rule under the current one, not a pill in a tray.
    *

@@ -5,8 +5,10 @@
  * frozen scan the research has taken (each *.json in research/solver with a `touched` list and a `built` time) is read against
  * the main tree's results as they stood at its freeze: the ids named by a results file last written before the freeze (its
  * name, and its contents as phase4-panel.mjs touched() reads them), each such id the freeze's touched list lacks printed, with
- * whether the freeze's own record names it beyond that list (an order or a panel taking it). A file written before a freeze
- * and rewritten after it is not counted, so the search can miss, never invent.
+ * whether the freeze's own record names it beyond that list (an order taking it). A file written before a freeze and
+ * rewritten after it is not counted, so the search can miss, never invent. Only a scan that keeps its ids can be read so: a
+ * panel's file keeps the count and hash of the scan its order froze, and is built after its own landings, which name its
+ * couples, so each panel is listed as read through its order.
  *   node research/solver/held-out-pattern.mjs > research/solver/results-held-out-pattern.txt     (from the main tree)
  */
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -36,9 +38,10 @@ const walk = d => {
   }
 };
 walk(RES);
-const freezes = readdirSync(HERE).filter(f => f.endsWith('.json')).map(f => { try { return [f, JSON.parse(readFileSync(join(HERE, f), 'utf8'))]; } catch { return null; } })
+const all = readdirSync(HERE).filter(f => f.endsWith('.json')).map(f => { try { return [f, JSON.parse(readFileSync(join(HERE, f), 'utf8'))]; } catch { return null; } })
   .filter(x => x && x[1] && x[1].touched && x[1].built).sort((a, b) => Date.parse(a[1].built) - Date.parse(b[1].built));
-console.log(`THE PATTERN SEARCH: a held-out scan taken without its results (EXPLORATORY; CHECKLIST 7): ${files.length} results files read; ${freezes.length} frozen scans`);
+const freezes = all.filter(([, j]) => Array.isArray(j.touched.ids)), panels = all.filter(([, j]) => !Array.isArray(j.touched.ids));
+console.log(`THE PATTERN SEARCH: a held-out scan taken without its results (EXPLORATORY; CHECKLIST 7): ${files.length} results files read; ${freezes.length} frozen scans keeping their ids; read through their orders, the panels ${panels.map(([f, j]) => `${f} (its scan's count ${j.touched.count}, hash ${j.touched.hash})`).join(', ')}`);
 let bad = 0;
 for (const [f, j] of freezes) {
   const at = Date.parse(j.built), seen = new Set(j.touched.ids || []), before = files.filter(x => x.mtime < at);

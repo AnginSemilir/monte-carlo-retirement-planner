@@ -23,6 +23,9 @@
  * its level or tier pair) fails check 4; 'anywhere' (the cap test dropped) fails checks 3 and 4. --plants runs each and
  * reads which checks fail.
  *   node research/tests/chooser-tie.test.mjs [--plants] [--record]
+ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit`, with `saveIsaFirst`), which reaches a working
+ * saver's solve here: this test's solves take the candidate without it (NO_SPLIT), so it checks what it checked before and
+ * every figure it pins is the same; the split's own effect is save-default.test.mjs's.
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -57,10 +60,11 @@ CHOOSER.tiePlant = process.env.CHOOSER_TIE_PLANT || '';
 let passed = 0, failed = 0;
 const ok = (n, label, c, detail = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'} ${n}. ${label}${detail ? '   ' + detail : ''}`); if (c) passed++; else failed++; };
 const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, SEED = 99004, NP = 200, MARGIN = 1e-4;
+const NO_SPLIT = Object.freeze({ saveSplit: undefined, saveIsaFirst: undefined });   // D138: the candidate without the savings split
 const lib = buildScenarios(), planOf = id => { const h = readPanel().find(x => x.id === id); return h ? h.plan : E.normalizePlan(lib.find(s => s.id === id).plan); };
 // 13 Nov 2026 (D95): the candidate now carries the margin, so the app's solve with nothing passed has the option on. "Off"
 // here is the margin handed in as nought, which the chooser reads as no tie-break; check 7 holds the app's own solve
-const solve = (id, research = {}) => solveForApp(E, M, planOf(id), { points: 4, research: { ...LIGHT, tieAboveCap: 0, ...research } });
+const solve = (id, research = {}) => solveForApp(E, M, planOf(id), { points: 4, research: { ...LIGHT, ...NO_SPLIT, tieAboveCap: 0, ...research } });
 const setTie = (r, m) => { for (const x of [r, ...(r.worlds || [])]) { if (m === undefined) delete x.tieAboveCap; else x.tieAboveCap = m; } };
 // every path's outcome under the solved plan as it stands: survival, the pot left, lifetime tax, spending delivered, each year's level
 const run = (r, paths) => { const sc = solvedContext(E, r); return paths.map(zs => { const o = runPath(E, sc, zs); return [o.survived, o.terminalPot, o.lifetimeTax, o.delivered, o.failT, ...o.level]; }); };
@@ -132,7 +136,7 @@ ok(1, 'the option off (the margin nought): S328F\'s paths the code before the op
 // ---- 5. a couple ----
 {
   const plan = appPlan(E, prepareForSolve(E, lib.find(s => s.id === 'S007').plan));
-  const cpOf = research => solveCouple(E, M, plan, { solveOne: (p, o) => solveForApp(E, M, p, { points: 4, research: { ...LIGHT, ...research }, ageWith: o.partnerAge0 }) });
+  const cpOf = research => solveCouple(E, M, plan, { solveOne: (p, o) => solveForApp(E, M, p, { points: 4, research: { ...LIGHT, ...NO_SPLIT, ...research }, ageWith: o.partnerAge0 }) });
   const off = cpOf({ tieAboveCap: 0 }), on = cpOf({ tieAboveCap: MARGIN }), zsAll = E.pathsForSeed(SEED, 40, off.m.ctx.totalYears);
   const paths = cp => zsAll.map(zs => { const trace = []; const o = runCouplePolicy(cp, Float64Array.from(zs), trace); return [o.survived, o.terminal, o.lifetimeTax, ...trace.flatMap(j => [j.ia, j.ib, j.split, j.spendLevel, j.score])]; });
   const pOff = paths(off), pOn = paths(on);
@@ -149,7 +153,7 @@ ok(1, 'the option off (the margin nought): S328F\'s paths the code before the op
 }
 // ---- 7. the app's own solve (D95, 13 Nov): nothing passed, the candidate's margin ----
 {
-  const D = solveForApp(E, M, planOf('S328F'), { points: 4, research: { ...LIGHT } });
+  const D = solveForApp(E, M, planOf('S328F'), { points: 4, research: { ...LIGHT, ...NO_SPLIT } });
   setTie(A, MARGIN); const on = run(A, pathsA); setTie(A, undefined);
   const own = run(D, pathsA);
   ok(7, 'the app\'s solve with nothing passed carries the candidate\'s margin, and its paths are the option\'s, bit for bit', D.tieAboveCap === MARGIN && D.meta.tieAboveCap === MARGIN && hashOf(own) === hashOf(on) && hashOf(own) !== dOff,
@@ -161,7 +165,7 @@ ok(1, 'the option off (the margin nought): S328F\'s paths the code before the op
 // app solves it with nothing passed: the rule holds decision by decision, and no path's survival changes with it
 {
   const p3 = { ...planOf('S328F'), solver: { aims: { cuts: 3, estate: 'standard', raises: 'capped', riskConsent: true } } };
-  const L = solveForApp(E, M, p3, { points: 4, research: { ...LIGHT } }), pathsL = E.pathsForSeed(SEED, 100, solvedContext(E, L).totalYears);
+  const L = solveForApp(E, M, p3, { points: 4, research: { ...LIGHT, ...NO_SPLIT } }), pathsL = E.pathsForSeed(SEED, 100, solvedContext(E, L).totalYears);
   const on = run(L, pathsL), q = replay(L, pathsL.slice(0, 50)); setTie(L, undefined); const off = run(L, pathsL); setTie(L, MARGIN);
   ok(8, 'a locked dial position (3, the app\'s solve): it carries the margin; wherever the choice differs, at the best move\'s level and tier pair, above the cap, with no more tax that year; no path\'s survival changes', !!L.lockTiers && L.tieAboveCap === MARGIN && q.differ > 0 && q.level === 0 && q.pair === 0 && q.atOrBelow === 0 && q.moreTax === 0 && on.every((x, k) => x[0] === off[k][0]),
     `locked ${!!L.lockTiers}, the margin ${L.tieAboveCap}; ${q.decisions} decisions (${q.above} above the cap), a different move at ${q.differ}: at another level ${q.level}, at another tier pair ${q.pair}, at or below the cap ${q.atOrBelow}, with more tax ${q.moreTax}; ${differ(on, off)} of 100 paths differ, ${on.filter((x, k) => x[0] !== off[k][0]).length} in survival`);

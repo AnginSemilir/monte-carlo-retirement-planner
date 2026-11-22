@@ -94,10 +94,14 @@ const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light set
   // 675090f5). S090's own pick, Windfall to ISA, puts £20,000 of its Auto deposit into its ISA in plan year 4, which now counts against that year's
   // allowance, so the year's own flows into the ISA read only the room it leaves; S328F's pins hold. On the code before the fix (9d2b0a75) this test
   // passes on the figures before, and on the fix S090's two alone move: results-isa-allowance-pins.txt
+  // S328F's two again on 21 Nov (before: S328F e5 79d3eb8d19e0c7b5..., S328F loop 9a7e04cf0a63e599...): the savings split joined the candidate for
+  // singles who work and save (D138), and S328F is self-employed with fifteen working years, so it takes both of the split's
+  // copies (2,400 moves); with saveSplit and saveIsaFirst left out each solve gives the figure before, and S090's two, with
+  // no year to choose, hold (results-d138-fulltier.txt, printed by research/solver/d138-fulltier.mjs)
   'S090 e5': 'bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac',
   'S090 loop': 'e82ad3e7329ba50b78e0a7d9445e5a7203885c163558f4f03d825a662abab144',
-  'S328F e5': '79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb',
-  'S328F loop': '9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa'
+  'S328F e5': '0070499cc265bf15a2703ab5d540167892ed991a36f43040aba934bfb5ef70b9',
+  'S328F loop': '18a7fcf425645e2e4834abd56f8ec45be7b35f454fe6aeff3f520c33ceea091f'
 };
 const { tablesOf, digestOf } = await import(pathToFileURL(resolve(ROOT, 'src/solverDigest.js')).href);
 const { createHash } = await import('node:crypto');

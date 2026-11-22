@@ -1,0 +1,23 @@
+D138: the full tier's pinned figures the savings split moves, and the working (d138-fulltier.mjs; code fccd7bfdf0ef)
+the candidate 06bc8f910b3f (before D138 17ff82379838); its keys since D138: saveSplit true, saveIsaFirst "selfEmployed"
+each solve at 4 points on its test's light reference lattice, as the test makes it; "both keys out": saveSplit and saveIsaFirst left out of the candidate
+
+couple-tables.test.mjs check 6 | S116, its tables | before e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3 | both keys out e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3 (= before) | now e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3 (the same)
+couple-tables.test.mjs check 6 | S116, its runs | before ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b | both keys out ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b (= before) | now ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b (the same)
+couple-tables.test.mjs check 6 | S116, its reads | before 6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4 | both keys out 6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4 (= before) | now 6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4 (the same)
+  the menu: 800 moves with both keys out, 800 now
+couple-tables.test.mjs check 6 | S224, its tables | before 401e8096847fdb5dad24c210243bd0f5dbc7273fceb9bc67a75f1895c4097be6 | both keys out 401e8096847fdb5dad24c210243bd0f5dbc7273fceb9bc67a75f1895c4097be6 (= before) | now 6f9b367a1be20ce42822ac1a8c3dd0348c6545d0a1cc1d00cd663588ea1c88b1 (moved)
+couple-tables.test.mjs check 6 | S224, its runs | before 3c707d8249ba094d485daa7a66c854c62f52e84af6d396b13446d99177abc1dc | both keys out 3c707d8249ba094d485daa7a66c854c62f52e84af6d396b13446d99177abc1dc (= before) | now b302153a11ef1baa9e44574ee10676bc79f711c9efc98e0a23bd43a9fa960d7c (moved)
+couple-tables.test.mjs check 6 | S224, its reads | before 1f82d4ce3e21994044775a93665f786c7e50d92f494ddaceff21aeb915ba10b2 | both keys out 1f82d4ce3e21994044775a93665f786c7e50d92f494ddaceff21aeb915ba10b2 (= before) | now 8fc9cb32870d68a97d6369a60b5b4a5871fb2d2f31d35af8019b6e5ce3c69524 (moved)
+  the menu: 800 moves with both keys out, 1600 now
+lock-tiers.test.mjs check 1b (S090 e5) | S090, its tables and 40 forward runs, the candidate's settings | before bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac | both keys out bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac (= before) | now bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac (the same)
+  the menu: 800 moves with both keys out, 800 now
+lock-tiers.test.mjs check 1b (S090 loop) | S090, its tables and 40 forward runs, the layer loop (tsOnce: false) | before e82ad3e7329ba50b78e0a7d9445e5a7203885c163558f4f03d825a662abab144 | both keys out e82ad3e7329ba50b78e0a7d9445e5a7203885c163558f4f03d825a662abab144 (= before) | now e82ad3e7329ba50b78e0a7d9445e5a7203885c163558f4f03d825a662abab144 (the same)
+  the menu: 800 moves with both keys out, 800 now
+lock-tiers.test.mjs check 1b (S328F e5) | S328F, its tables and 40 forward runs, the candidate's settings | before 79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb | both keys out 79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb (= before) | now 0070499cc265bf15a2703ab5d540167892ed991a36f43040aba934bfb5ef70b9 (moved)
+  the menu: 800 moves with both keys out, 2400 now
+lock-tiers.test.mjs check 1b (S328F loop) | S328F, its tables and 40 forward runs, the layer loop (tsOnce: false) | before 9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa | both keys out 9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa (= before) | now 18a7fcf425645e2e4834abd56f8ec45be7b35f454fe6aeff3f520c33ceea091f (moved)
+  the menu: 800 moves with both keys out, 2400 now
+couple-solve-client.test.mjs check 6 | the library's 210 singles' stored-solve keys, their digest | before 6825f36b3e1a20ff | both keys out 6825f36b3e1a20ff (= before) | now 9c3e304722255a5e (moved)
+
+VERDICT: with both keys out each of the 11 figures is the figure pinned before, so the change moves them by the split's two keys alone; as the candidate now is, 6 move (couple-tables.test.mjs check 6: S224, its tables; couple-tables.test.mjs check 6: S224, its runs; couple-tables.test.mjs check 6: S224, its reads; lock-tiers.test.mjs check 1b (S328F e5): S328F, its tables and 40 forward runs, the candidate's settings; lock-tiers.test.mjs check 1b (S328F loop): S328F, its tables and 40 forward runs, the layer loop (tsOnce: false); couple-solve-client.test.mjs check 6: the library's 210 singles' stored-solve keys, their digest) and the rest are the same.

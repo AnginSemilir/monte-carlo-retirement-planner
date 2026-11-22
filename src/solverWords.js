@@ -71,7 +71,12 @@ export const PART_WORDS = {
   draw: v => (v === 'any' ? 'Take what you need from your pension first' : `Take from your pension first, ${DRAW[v] || v}`),
   harvest: v => `Move pension money into your ISA, up to ${WRAP[v] || v}`,
   tierPen: k => `Move your pension ${steps(k)} lower in risk`,
-  tierIsa: k => `Move your ISA ${steps(k)} lower in risk`
+  tierIsa: k => `Move your ISA ${steps(k)} lower in risk`,
+  // D138: the savings split's choice in a working year, at the net cost of the plan's own pension and ISA saving that year
+  // (src/App.jsx saveSplitRoutes; SAVINGS-SPLIT.md): 1 the pension first, grossed up within its allowance, then the ISA; 2 the
+  // ISA first, then the pension. Worded without "this year" so the next years' rows can end it ", each year"
+  save: v => (v === 1 ? 'Pay your saving into your pension first, then your ISA (the same cost to you as your planned saving, with the pension\'s tax relief added)'
+    : v === 2 ? 'Pay your saving into your ISA first, then your pension (the same cost to you as your planned saving)' : `save ${v}`)
 };
 /* the year's sweep (the engine's 7d; the review of 9 Nov, item 5, part 1), to the pound: null in a year it moves nothing */
 export function sweepWords(sw, { fmt }) {
@@ -108,6 +113,7 @@ const tierWords = (what, was, now) => (now === was && WORDS_PLANT.rule !== 'tier
           : `Move your ${what} ${steps(Math.abs(now - was))} further down in risk (${now} below the risk you chose)`);
 export function aheadWords(row, { fmt }, prev = null) {
   const p = row.parts, lines = [];
+  if (p.save) lines.push(PART_WORDS.save(p.save));
   if (p.draw !== 'none') lines.push(PART_WORDS.draw(p.draw));
   if (p.harvest) lines.push(PART_WORDS.harvest(p.harvest));
   const sw = sweepWords(row.swept, { fmt });
@@ -140,6 +146,7 @@ export function ledgerWords(p, spending, row = null) {
   if (!p) return null;
   const w = [];
   if (spending) w.push(`spend ${pct(100 * p.level)}`);
+  if (p.save) w.push(p.save === 1 ? 'saving: pension first' : p.save === 2 ? 'saving: ISA first' : `save ${p.save}`);
   if (p.draw !== 'none') w.push(p.draw === 'any' ? 'pension first' : `pension first, to ${SHORT_DRAW[p.draw] || p.draw}`);
   if (p.harvest) w.push(`pension to ISA, to ${SHORT_WRAP[p.harvest] || p.harvest}`);
   if (p.tierPen) w.push(`pension ${steps(p.tierPen)} safer`);

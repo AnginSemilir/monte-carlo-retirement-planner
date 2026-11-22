@@ -19,7 +19,15 @@ export const APP_CANDIDATE = Object.freeze({
   menuPlus: Object.freeze(['hr']), tableDealing: false, failDelivered: true, sweepCashIsaTo: 'isa', coarse: APP_COARSE,
   // D90 (1), 13 Nov: above the estate cap, among the moves at the best move's level and tier pair within a hundredth of a
   // point of score, the one that pays the least tax this year (the review of 11 Nov, item 13; results-tie-a.txt)
-  tieAboveCap: 1e-4
+  tieAboveCap: 1e-4,
+  // D138, 21 Nov: the savings split (the savings split's v2 read once, PASS, results-save-v2.txt): in a working year with a
+  // saving to place, the year's net saving into the pension first or the ISA first, besides the plan's own contributions,
+  // the solver choosing (src/solver/solve.js saveOn: it acts only where some working year has a choice). A couple's solves
+  // keep it off (src/solverApp.js solveForApp: a solve with a partner's age), untested on couples
+  saveSplit: true,
+  // D138 (D137 (4)): the ISA first held back for an employee, whose pension figure counts the employer's part, which the split
+  // would move as the employee's own (src/solver/solve.js saveOn); the self-employed keep it
+  saveIsaFirst: 'selfEmployed'
 });
 /* the tiers' real returns at the medians of their blends (O60, D13) */
 export const APP_TIER_REALS = Object.freeze({ 'High Risk': 4.97, 'Medium/High Risk': 4.65, 'Medium Risk': 4.18, 'Medium/Low Risk': 3.55, 'Low Risk': 2.76 });

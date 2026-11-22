@@ -24,6 +24,12 @@
  *      moves differ from the whole menu's; read through shownPolicy they are the whole menu's.
  * Beside the checks, not deciding: whether the first year's move the counted paths take is the move the page shows.
  *   node research/tests/shortlist-shown.test.mjs
+ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit`, with `saveIsaFirst`). S328F works and saves, so
+ * under it its solve sets the moves a year (`r.nAt`), and the chooser takes no shortlist where `r.nAt` is set (solve.js,
+ * CHOOSER.mask): the guard would have nothing to guard on it, and its plants nothing to catch (the reviewer on D138's change
+ * of default, finding 1). This test's solves take the candidate without the split (NO_SPLIT), so it tests the guard as before;
+ * a pass says nothing of a working saver under the default, whose every year is on the whole menu until the speed work
+ * D137 (1) puts next keys the shortlist on the year's own count of moves.
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -36,7 +42,8 @@ import { readPanel } from '../solver/phase4-panel.mjs';
 
 let passed = 0, failed = 0;
 const ok = (n, label, c, detail = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'} ${n}. ${label}${detail ? '   ' + detail : ''}`); if (c) passed++; else failed++; };
-const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, SEED = 99004, NRUN = 60, NFIT = 30, MARGIN = 1e-4;
+// D138: the candidate without the savings split (NO_SPLIT, as the header says)
+const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true }, saveSplit: undefined, saveIsaFirst: undefined }, SEED = 99004, NRUN = 60, NFIT = 30, MARGIN = 1e-4;
 const STARTS = [1929, 1937, 1946, 1955, 1962, 1966, 1969, 1973, 1982, 1990];
 const ID = 'S328F', plan = readPanel().find(x => x.id === ID).plan;
 // the chooser's switches on a solved plan, as the solve's options would set them (chooser-shortlist.test.mjs's own)

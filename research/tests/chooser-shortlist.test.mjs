@@ -22,6 +22,9 @@
  *   6. --full only, the known answer: S116 at 45 points, 1,000 paths of seed 99001, survival within 0.5 points of the whole
  *      menu's.
  *   node research/tests/chooser-shortlist.test.mjs [--full]
+ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit`, with `saveIsaFirst`), which reaches a working
+ * saver's solve here: this test's solves take the candidate without it (NO_SPLIT), so it checks what it checked before and
+ * every figure it pins is the same; the split's own effect is save-default.test.mjs's.
  */
 import { createHash } from 'node:crypto';
 import * as E from '../engine.mjs';
@@ -40,7 +43,8 @@ const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: t
 const lib = buildScenarios(), planOf = id => { const h = readPanel().find(x => x.id === id); return h ? h.plan : E.normalizePlan(lib.find(s => s.id === id).plan); };
 // 13 Nov 2026 (D95): the candidate now carries the tie-break's margin; these checks are of the shortlist against the whole
 // menu without it, so the margin is handed in as nought unless a check sets it (the slice's checks do)
-const solve = (id, research = {}, points = 4) => solveForApp(E, M, planOf(id), { points, research: points <= 6 ? { ...LIGHT, tieAboveCap: 0, ...research } : { tieAboveCap: 0, ...research } });
+const NO_SPLIT = Object.freeze({ saveSplit: undefined, saveIsaFirst: undefined });   // D138: the candidate without the savings split
+const solve = (id, research = {}, points = 4) => solveForApp(E, M, planOf(id), { points, research: points <= 6 ? { ...LIGHT, ...NO_SPLIT, tieAboveCap: 0, ...research } : { ...NO_SPLIT, tieAboveCap: 0, ...research } });
 // the chooser's switches on a solved plan, as the solve's options would set them
 const set = (r, width, tie) => { if (width) r.chooserShortlist = width; else delete r.chooserShortlist; for (const x of [r, ...(r.worlds || [])]) { if (tie) x.tieAboveCap = tie; else delete x.tieAboveCap; } };
 const resetStats = () => { for (const k of Object.keys(SHORTLIST.stats)) SHORTLIST.stats[k] = 0; };

@@ -39,6 +39,9 @@ export const KNOCK = { memo: true, plant: '' };
    isa-allowance.test.mjs and gaps-sweep's ISA case only: the year's own flows read the room without them, as before */
 export const ISA = { plant: '' };
 export const N4 = { plant: '' };
+// the savings split's live years read over the routes the menu offers (D138); `plant` 'anyyear' reads each year over both
+// routes, whatever is offered (save-default.test.mjs check 10)
+export const SAVE_YEAR = { plant: '' };
 const CATS = ['pen', 'isa', 'other', 'cash'];
 
 /* Net income of a gross figure, as segments between the engine's own breakpoints. */
@@ -226,6 +229,9 @@ export function compile(m, actions) {
     pay: new Float64Array(T + 1), paySave: [null, 1, 2].map(v => v && new Float64Array(T + 1))
   };
   const saveOn = !!(actions && actions.some(a => a.save) && ctx.saveSplitAt);
+  // the saves the menu offers (an employee under the hold, the pension first alone): a working year's copies are live only
+  // where one of them differs from the plan (saveSplitRoutes' `differs`, D138); where none does they flow as their base
+  const offeredSaves = saveOn ? [...new Set(actions.filter(a => a.save).map(a => a.save))] : [];
   for (let t = 0; t <= T; t++) {
     const age = ctx.ageSelf0 + t, year = ctx.baseYear + t;
     yr.frac[t] = t === 0 ? ctx.yf : 1;
@@ -249,7 +255,7 @@ export function compile(m, actions) {
     // move short of the plan lands and refunds in proportion (the engine's 1.5)
     (ctx.stagedTransfers.get(year) || []).forEach(x => { const c = catOfId[x.toId]; if (c && x.fromId === idOf.other && x.uplift) { const i = CATS.indexOf(c); yr.dripLand[i][t] += x.amount * x.uplift; if (x.refundPer > 0 && x.refundId === idOf.cash) yr.dripRefund[i][t] += x.amount * x.refundPer; } });
     if (yr.working[t]) CATS.forEach((c, i) => { const a = acc[idOf[c]]; if (a) yr.con[i][t] = E.contribAtYear(a, t); });
-    const sv = saveOn && yr.working[t] ? ctx.saveSplitAt(t) : null;
+    const sv0 = saveOn && yr.working[t] ? ctx.saveSplitAt(t) : null, sv = sv0 && (!sv0.differs || (SAVE_YEAR.plant === 'anyyear' ? sv0.differs.some(Boolean) : offeredSaves.some(v => sv0.differs[v]))) ? sv0 : null;
     if (sv) { yr.saveYear[t] = 1; for (let v = 1; v <= 2; v++) CATS.forEach((c, i) => { const id = idOf[c]; yr.saveCon[v][i][t] = acc[id] ? (id in sv.variants[v] ? sv.variants[v][id] : yr.con[i][t]) : 0; }); }
     if (yr.working[t] && o.salary > 0) {
       const salary = E.salaryAtYear(o, t);

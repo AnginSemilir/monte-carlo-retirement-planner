@@ -10,7 +10,7 @@
 import { prepareForSolve, aimsOptions, dialSettings, withAims, APP_CANDIDATE, APP_POINTS, APP_DIAL_VARIANT } from './solverSettings.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 
-export const PLANT = { rule: '' };   // research/tests/solve-key.test.mjs only: 'raw' keys the plan's aims, locks and view as stored; couple-solve-client.test.mjs: 'agenull' writes a partner's age of null into every key without one; cache-key.test.mjs: 'nod73' leaves `coarse` and `sweepCashIsaTo` out of the candidate the key names; household-client.test.mjs: 'bandsunkeyed' leaves a household table's band scaling out of its key
+export const PLANT = { rule: '' };   // research/tests/solve-key.test.mjs only: 'raw' keys the plan's aims, locks and view as stored; couple-solve-client.test.mjs: 'agenull' writes a partner's age of null into every key without one; cache-key.test.mjs: 'nod73' leaves `coarse` and `sweepCashIsaTo` out of the candidate the key names; household-client.test.mjs: 'bandsunkeyed' leaves a household table's band scaling out of its key; research/solver/d138-fulltier.mjs: 'nod138' leaves `saveSplit` and `saveIsaFirst` out of the candidate the key names (the keys before D138)
 
 const canonical = v => {
   if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
@@ -36,7 +36,7 @@ export async function solveKey(E, plan, { lambda = undefined, points = APP_POINT
   if (PLANT.rule === 'speedunkeyed' && p.solver && 'speed' in p.solver) { p.solver = { ...p.solver }; delete p.solver.speed; }
   // a dial position above 1 adds its variant and its lock to the base (step L2); position 1's key is as before
   // step U's plant 'keyguard' (research/ui-harnesses/solver-planner-ui.cjs, check 7): the key made to read the guardrails
-  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ageWith: ageWith === undefined && PLANT.rule === 'agenull' ? null : ageWith, ...dialSettings(p, variant), bands: PLANT.rule === 'bandsunkeyed' || !bands ? undefined : bands }, code });
+  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : PLANT.rule === 'nod138' ? { ...APP_CANDIDATE, saveSplit: undefined, saveIsaFirst: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ageWith: ageWith === undefined && PLANT.rule === 'agenull' ? null : ageWith, ...dialSettings(p, variant), bands: PLANT.rule === 'bandsunkeyed' || !bands ? undefined : bands }, code });
   return hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)));
 }
 export { canonical };

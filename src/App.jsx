@@ -1404,7 +1404,24 @@ function taxBreakpoints(p) {
  */
 function passThroughFactor(p, selfEmployed = false) { return selfEmployed ? 1 : 1 + p.erNic * p.erPass; }
 
-function calculateMarginalRelief(salaryInput, sacrificeInput, cfg, selfEmployed = false) {
+/*
+ * THE CAP ON SALARY SACRIFICE'S NIC RELIEF (D138; D137 (4) and test K, research/solver/results-save-k.txt): from April 2029
+ * an employee's salary sacrifice is relieved of employee NIC on its first £2,000 a year alone, the rest relieved of income tax
+ * only. The app holds the £2,000 constant in real terms, as it holds a threshold the law fixes in cash. Only the savings
+ * split's routes take it (saveSplitRoutes, an employee's moved saving from 2029): a plan's own contributions are not priced
+ * while working, and the app's contribution strategies keep the relief uncapped. `nicCap` below is the cap in pounds of
+ * sacrifice (Infinity, the default, is no cap, by the same code as before it). SAVE_NIC_CAP.on false (research only)
+ * prices the split's routes without it, as the split's v2 registered them. What it leaves (the reviewer on D138's change of
+ * default, MINOR 4): (a) the employer's NIC passed to the pension (Config's pass-through) is still credited on the whole
+ * sacrifice, where from April 2029 the employer saves NIC on its first £2,000 alone; pricing it here alone would part the
+ * routes' sacrifice from the engine's taxable pay (taxablePayOf takes a contribution over the whole pass-through factor in
+ * every year), and the cap for a plan's own contributions is queued as its own engine change (D134 (3)); (b) the cap counts
+ * the whole pension figure, the employer's part included, as the employee's own sacrifice, which the plan does not record,
+ * so where the employee's own sacrifice is under £2,000 it binds earlier than the law's; (c) a blank salary takes the
+ * assumed rate, uncapped.
+ */
+const SAVE_NIC_CAP = { from: 2029, amount: 2000, on: true };
+function calculateMarginalRelief(salaryInput, sacrificeInput, cfg, selfEmployed = false, nicCap = Infinity) {
   const p = taxParams(cfg);
   const sacrifice = Math.max(0, num(sacrificeInput, 0));
   const passFactor = passThroughFactor(p, selfEmployed);
@@ -1417,16 +1434,19 @@ function calculateMarginalRelief(salaryInput, sacrificeInput, cfg, selfEmployed 
     return { netCost: sacrifice - taxSaved, taxSaved, reliefRate: assumedRate * 100, pensionCredit: sacrifice * passFactor, sacrifice, assumed: true };
   }
   const g = Math.min(sacrifice, salary);
+  // an employee's NIC relief on the first nicCap of the sacrifice alone, where the cap binds (SAVE_NIC_CAP); below it, as before
   const taxSaved = selfEmployed
     ? incomeTax(salary, p) - incomeTax(salary - g, p)
-    : calculateUKTaxAndNIC(salary, p) - calculateUKTaxAndNIC(salary - g, p);
+    : g > nicCap
+      ? (incomeTax(salary, p) - incomeTax(salary - g, p)) + (nicFor(salary, p) - nicFor(salary - Math.max(0, nicCap), p))
+      : calculateUKTaxAndNIC(salary, p) - calculateUKTaxAndNIC(salary - g, p);
   return { netCost: g - taxSaved, taxSaved, reliefRate: g > 0 ? (taxSaved / g) * 100 : 0, pensionCredit: g * passFactor, sacrifice: g, capped: g < sacrifice };
 }
 // Net take-home cost of a pension contribution (the amount landing in the pension, incl. employer pass-through).
-function netCostOfPensionContrib(contrib, salaryInput, cfg, selfEmployed = false) {
+function netCostOfPensionContrib(contrib, salaryInput, cfg, selfEmployed = false, nicCap = Infinity) {
   const p = taxParams(cfg);
   const passFactor = passThroughFactor(p, selfEmployed);
-  return calculateMarginalRelief(salaryInput, Math.max(0, num(contrib, 0)) / passFactor, cfg, selfEmployed).netCost;
+  return calculateMarginalRelief(salaryInput, Math.max(0, num(contrib, 0)) / passFactor, cfg, selfEmployed, nicCap).netCost;
 }
 /*
  * The pay income tax is charged on (the review of 9 Nov, item 3, D66): the salary less what is given up to the pension, as
@@ -1439,7 +1459,7 @@ function taxablePayOf(pay, penContrib, cfg, selfEmployed = false) {
   return Math.max(0, g - Math.min(Math.max(0, num(penContrib, 0)) / passThroughFactor(taxParams(cfg), selfEmployed), g));
 }
 // Pension credit obtainable for a given net take-home cost (inverse of the above), capped at maxCredit.
-function grossUpNet(netAmount, salaryInput, cfg, maxCredit = Infinity, selfEmployed = false) {
+function grossUpNet(netAmount, salaryInput, cfg, maxCredit = Infinity, selfEmployed = false, nicCap = Infinity) {
   const net = Math.max(0, num(netAmount, 0));
   if (net <= 0) return 0;
   const p = taxParams(cfg);
@@ -1451,11 +1471,11 @@ function grossUpNet(netAmount, salaryInput, cfg, maxCredit = Infinity, selfEmplo
   } else {
     // netCost(sacrifice) is increasing; bisection on sacrifice in [0, salary]
     let lo = 0, hi = salary;
-    if (calculateMarginalRelief(salary, hi, p, selfEmployed).netCost <= net) credit = hi * passFactor;
+    if (calculateMarginalRelief(salary, hi, p, selfEmployed, nicCap).netCost <= net) credit = hi * passFactor;
     else {
       for (let i = 0; i < 48; i++) {
         const mid = (lo + hi) / 2;
-        if (calculateMarginalRelief(salary, mid, p, selfEmployed).netCost < net) lo = mid; else hi = mid;
+        if (calculateMarginalRelief(salary, mid, p, selfEmployed, nicCap).netCost < net) lo = mid; else hi = mid;
       }
       credit = ((lo + hi) / 2) * passFactor;
     }
@@ -3557,7 +3577,7 @@ function saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, tota
   const at = t => {
     if (!(t >= 0 && t <= totalYears)) return null;
     const v1 = {}, v2 = {}, rooms = [];
-    let any = false;
+    let any = false, d1 = false, d2 = false;
     for (const o of owners) {
       if ((o.age0 + t) >= o.retireAge) continue;
       const ids = o.ids, pa = acc[ids.pen], ia = acc[ids.isa], ga = acc[ids.other], ca = acc[ids.cash];
@@ -3565,7 +3585,9 @@ function saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, tota
       const plan = { [ids.pen]: P0, [ids.isa]: I0, [ids.other]: G0, [ids.cash]: C0 };
       const put = (v, amts) => { for (const id of Object.keys(amts)) if (acc[id]) v[id] = amts[id]; };
       const salary = salaryAtYear(o, t), se = !!o.selfEmployed;
-      const netOf = g => (g > 0 ? netCostOfPensionContrib(g, salary, P, se) : 0);
+      // D138: from April 2029 an employee's sacrifice is relieved of NIC on its first £2,000 a year alone (SAVE_NIC_CAP)
+      const nicCap = !se && SAVE_NIC_CAP.on && baseYear + t >= SAVE_NIC_CAP.from ? SAVE_NIC_CAP.amount : Infinity;
+      const netOf = g => (g > 0 ? netCostOfPensionContrib(g, salary, P, se, nicCap) : 0);
       const budget = netOf(P0) + I0;
       // nothing to move, or no taxable account to take what fits neither wrapper: the plan's own contributions
       if (!(budget > 0) || !ga) { put(v1, plan); put(v2, plan); continue; }
@@ -3576,7 +3598,7 @@ function saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, tota
       const cashIsa = o.cashIsaContrib > 0 ? Math.min(o.cashIsaContrib, P.cashIsaCapAt(o.age0 + t, baseYear + t)) : 0;
       const penRoom = pa ? Math.max(P0, cap - claim('pen')) : 0;
       const isaRoom = ia ? Math.max(I0, P.isaAllowance - claim('isa') - cashIsa) : 0;
-      const grossOf = n => (n > 0 && penRoom > 0 ? grossUpNet(n, salary, P, penRoom, se) : 0);
+      const grossOf = n => (n > 0 && penRoom > 0 ? grossUpNet(n, salary, P, penRoom, se, nicCap) : 0);
       // what the gross-up leaves: under half a penny is the bisection's residue, not money
       const rest = x => (x > 0.005 ? x : 0);
       const pen1 = grossOf(budget), left1 = rest(budget - netOf(pen1)), isa1 = Math.min(left1, isaRoom);
@@ -3587,9 +3609,14 @@ function saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, tota
       const s2 = snap({ [ids.pen]: pen2, [ids.isa]: isa2, [ids.other]: G0 + left2, [ids.cash]: C0 });
       put(v1, s1); put(v2, s2);
       if (s1 !== plan || s2 !== plan) any = true;
+      // which routes differ from the plan this year (D138): the solver offers a year's copies only where a route it offers
+      // does (src/solver/solve.js saveOn, src/solver/fast.js the live years); a pension-only saver's pension first, or one
+      // whose pension saving fills its room, is the plan's own
+      if (s1 !== plan) d1 = true;
+      if (s2 !== plan) d2 = true;
       rooms.push({ owner: o.key, budget, pen: penRoom, isa: isaRoom });
     }
-    return any ? { variants: [null, v1, v2], owners: rooms } : null;
+    return any ? { variants: [null, v1, v2], owners: rooms, differs: [false, d1, d2] } : null;
   };
   return t => { if (!memo.has(t)) memo.set(t, at(t)); return memo.get(t); };
 }
@@ -7164,7 +7191,7 @@ const E = { pensionCeiling, niceStep, gridWindow, spendRow, frontierSpend, num, 
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { GUARDRAILS, planHasKnownCost, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan, N4_PEN, N4_HARVEST, N4_RAW, E };
+export { GUARDRAILS, planHasKnownCost, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan, N4_PEN, N4_HARVEST, N4_RAW, SAVE_NIC_CAP, E };
 
 
 /*
@@ -12647,7 +12674,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </CollapsibleCard>
 
             <CollapsibleCard title="UK Income Tax, National Insurance & Pension Allowances"
-              subtitle="Defaults are 2026/27 (frozen to April 2031), and all thresholds are held constant in real terms. Not modelled: the higher tax rates on savings income from April 2027 (22%, 42% and 47%) and the £2,000 cap on National Insurance relief for salary sacrifice from April 2029; and because the thresholds are held in real terms where the law freezes them in cash, tax before April 2031 may be a little higher than shown.">
+              subtitle="Defaults are 2026/27 (frozen to April 2031), and all thresholds are held constant in real terms. Not modelled: the higher tax rates on savings income from April 2027 (22%, 42% and 47%), and the £2,000 cap on National Insurance relief for salary sacrifice from April 2029, except on an employee's own National Insurance where the solver chooses where a year's saving goes; and because the thresholds are held in real terms where the law freezes them in cash, tax before April 2031 may be a little higher than shown.">
               {withRegion && ctlRegion()}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
                 {[

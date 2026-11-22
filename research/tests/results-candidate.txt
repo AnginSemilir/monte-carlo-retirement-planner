@@ -1,11 +1,13 @@
-PASS  the candidate: decided {"bridgeRead":"reader","tierState":true,"jointWorlds":true,"bequestWeight":0.02,"bridgeStep":"exact","switchCharge":0.001,"switchMargin":0,"e3":true,"pclsInterp":true,"e3pcls":true,"readerRef":"adaptive","adaptiveLattice":{"na":80,"nb":21,"nz":64,"foot":true,"stepAll":true},"readerSplit":"rs","tiersBelow":3,"menuPlus":["hr"],"tableDealing":false,"failDelivered":true,"sweepCashIsaTo":"isa","coarse":{"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3},"tieAboveCap":0.0001,"tiers":"o60-blend"}, code {"bridgeRead":"reader","tierState":true,"jointWorlds":true,"bequestWeight":0.02,"bridgeStep":"exact","switchCharge":0.001,"switchMargin":0,"e3":true,"pclsInterp":true,"e3pcls":true,"readerRef":"adaptive","adaptiveLattice":{"na":80,"nb":21,"nz":64,"foot":true,"stepAll":true},"readerSplit":"rs","tiersBelow":3,"menuPlus":["hr"],"tableDealing":false,"failDelivered":true,"sweepCashIsaTo":"isa","coarse":{"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3},"tieAboveCap":0.0001,"tiers":"o60-blend"}
+PASS  the candidate: decided {"bridgeRead":"reader","tierState":true,"jointWorlds":true,"bequestWeight":0.02,"bridgeStep":"exact","switchCharge":0.001,"switchMargin":0,"e3":true,"pclsInterp":true,"e3pcls":true,"readerRef":"adaptive","adaptiveLattice":{"na":80,"nb":21,"nz":64,"foot":true,"stepAll":true},"readerSplit":"rs","tiersBelow":3,"menuPlus":["hr"],"tableDealing":false,"failDelivered":true,"sweepCashIsaTo":"isa","coarse":{"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3},"tieAboveCap":0.0001,"saveSplit":true,"saveIsaFirst":"selfEmployed","tiers":"o60-blend"}, code {"bridgeRead":"reader","tierState":true,"jointWorlds":true,"bequestWeight":0.02,"bridgeStep":"exact","switchCharge":0.001,"switchMargin":0,"e3":true,"pclsInterp":true,"e3pcls":true,"readerRef":"adaptive","adaptiveLattice":{"na":80,"nb":21,"nz":64,"foot":true,"stepAll":true},"readerSplit":"rs","tiersBelow":3,"menuPlus":["hr"],"tableDealing":false,"failDelivered":true,"sweepCashIsaTo":"isa","coarse":{"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3},"tieAboveCap":0.0001,"saveSplit":true,"saveIsaFirst":"selfEmployed","tiers":"o60-blend"}
 PASS  planted: a decided value the code does not carry fails the comparison
 PASS  planted: a code value the block does not carry fails it
 PASS  planted: a key missing from the block fails it
 PASS  planted: a block without "candidate" fails it
 PASS  CANDIDATE_OPTS and RESEARCH_OPTS are frozen
-PASS  the candidate before D90's tie-break reproduces its hash af001697ce1b (af001697ce1b); the candidate 17ff82379838 adds tieAboveCap at 1e-4 (D85's margin)
-PASS  planted: another margin, or the margin written out as nought on the candidate before it, moves the hash; the candidate before it with the margin added is the candidate
+PASS  the candidate before D138 reproduces its hash 17ff82379838 (17ff82379838); the candidate 06bc8f910b3f adds saveSplit, saveIsaFirst; with the split alone, the registered CANDSA's bf1cac401c13 (bf1cac401c13)
+PASS  planted: the split written out as off on the candidate before it, the hold or the split given another value, each moves the hash; the candidate before it with the two keys added is the candidate
+PASS  the candidate before D90's tie-break reproduces its hash af001697ce1b (af001697ce1b); the candidate after it (17ff82379838) adds tieAboveCap at 1e-4 (D85's margin)
+PASS  planted: another margin, or the margin written out as nought on the candidate before it, moves the hash; the candidate before it with the margin added is the candidate before D138
 PASS  the candidate before D73 reproduces its hash d71f65ae871e (d71f65ae871e); the candidate after it (af001697ce1b) adds sweepCashIsaTo, coarse and thins the bridge reference's lattice
 PASS  planted: the sweep sent elsewhere, a round fewer on the shortlists, or the sweep added to the candidate before D73 moves the hash
 PASS  7u-F's candidate reproduces its registered hash e65e5e99ba49 (e65e5e99ba49); the candidate before D73 adds tiersBelow, menuPlus, tableDealing, failDelivered
@@ -53,7 +55,7 @@ PASS  a destructuring of RESEARCH_OPTS is not flagged
 PASS  planted: an earlier Object.assign source that is a call result is flagged
 PASS  planted: a carried computed key before the spread is flagged
 PASS  planted: a spread call result before the spread is flagged
-PASS  the scan finds the research scripts and tests (709): a scan that ran on nothing is an error
+PASS  the scan finds the research scripts and tests (856): a scan that ran on nothing is an error
 PASS  no research script sets a candidate key before spreading RESEARCH_OPTS or CANDIDATE_OPTS
 
-=========== 57 passed, 0 failed ===========
+=========== 59 passed, 0 failed ===========

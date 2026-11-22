@@ -27,6 +27,9 @@
  * option solves; check 1b's pins are re-taken on the candidate as it is (the working: results-d73-fulltier.txt); check 3's
  * replayed move carries `sweepIsa` as the table's own does (bridge.js tablePolicy); and check 5, an identity of the skip, is
  * read with `coarse` taken out on both sides (a shortlist is drawn from the menu, so it differs with the copies in it).
+ * Since D138 (21 Nov; the savings split's v2 read, PASS) the candidate carries `saveSplit: true`: this code's solves take the
+ * candidate before it (candidate.mjs BEFORE_D138_OPTS) as their base, so "the option unset" is still the option unset and the
+ * option on is the candidate as it is; every figure the same.
  *   node research/tests/save-split.test.mjs [--base <root of the code before the option>] [--only 2]   (--only 2: the gross-up alone, no solves; not a record)
  */
 import { resolve, join, dirname } from 'node:path';
@@ -123,7 +126,7 @@ const runsOf = (Sx, r, paths) => paths.map(zs => JSON.stringify(Sx.runPolicy(r, 
 const runDiff = (ra, rb) => ra.findIndex((x, i) => x !== rb[i]);
 const flat = (o, pre = '', out = {}) => { for (const [k, x] of Object.entries(o || {})) { if (k === 'ms') continue; if (x && typeof x === 'object' && !Array.isArray(x)) flat(x, `${pre}${k}.`, out); else out[`${pre}${k}`] = JSON.stringify(x); } return out; };
 const metaDiff = (a, b) => { const fa = flat(a.meta), fb = flat(b.meta); return [...new Set([...Object.keys(fa), ...Object.keys(fb)])].filter(k => fa[k] !== fb[k]).sort(); };
-const solve = (Cx, Ex, Mx, plan, o = {}, base) => Cx.solveCandidate(Ex, Mx, structuredClone(plan), { ...light, ...o }, base);
+const solve = (Cx, Ex, Mx, plan, o = {}, base = Cx.BEFORE_D138_OPTS || Cx.CANDIDATE_OPTS) => Cx.solveCandidate(Ex, Mx, structuredClone(plan), { ...light, ...o }, base);
 // the whole menu named by the arm itself (check 5): the candidate's `coarse` left out of a solve that could take it
 const WHOLE = { coarse: undefined };
 const pathsFor = (r, n, seed = 99001) => E.pathsForSeed(seed, n, r.m.ctx.totalYears).map(z => Float64Array.from(z));

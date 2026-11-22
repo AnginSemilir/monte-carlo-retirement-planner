@@ -12,6 +12,12 @@
  *      world's memo and the outcomes are the same again.
  * Planted (CHOOSER.plant 'oncerep'): each repeat scored at the next repeat's first move; the check throws.
  *   node research/tests/chooser-once.test.mjs
+ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit`, with `saveIsaFirst`). S224 works and saves, so
+ * under it its solve sets the moves a year (`r.nAt`), and the repeats are not found once a decision where `r.nAt` is set
+ * (solve.js decisionRepeats): every decision would fall back to each world's memo, and the plant 'oncerep' would have
+ * nothing to catch (the reviewer on D138's change of default, finding 1). The CAND arm takes the candidate without the split
+ * (NO_SPLIT), so it tests P1's memo as before; a pass says nothing of a working saver under the default, whose every
+ * decision falls back until the speed work D137 (1) puts next keys P1's memo on the year's own count of moves.
  */
 import { createHash } from 'node:crypto';
 import * as E from '../engine.mjs';
@@ -30,7 +36,8 @@ const all = buildScenarios();
 const planOf = id => { const h = all.find(s => s.id === id).plan; return E.resolveMpaa(E.normalizePlan({ ...h, config: { ...h.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.spending, floorSpend: Math.round(0.8 * E.num(h.spending.targetSpend, 0)) } })); };
 const ARMS = {
   SHIP: plan => solvePlan(E, M, candidatePlan(E, plan), { lambda: LAMBDA, points: 6, bequestWeight: 0.02 }),
-  CAND: plan => solveCandidate(E, M, plan, { lambda: LAMBDA, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true } })
+  // D138: the candidate without the savings split (NO_SPLIT, as the header says)
+  CAND: plan => solveCandidate(E, M, plan, { lambda: LAMBDA, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true }, saveSplit: undefined, saveIsaFirst: undefined })
 };
 const thrown = f => { try { f(); return null; } catch (e) { return e.message; } };
 const runAll = (ctx, paths) => {

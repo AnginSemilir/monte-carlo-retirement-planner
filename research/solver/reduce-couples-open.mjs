@@ -74,6 +74,8 @@ export function gate(units, want, { seed = SEED, n = N_DEFAULT, pts = APP_POINTS
     if (u.W !== W) P.push(`${u.id}: estate weight ${u.W}, not ${W}`);
     if (!u.guard || u.guard.on || u.guard.why !== (WANT[u.variant] || {}).why) P.push(`${u.id}: the guard ${u.guard ? (u.guard.on ? 'on' : `off for '${u.guard.why}'`) : 'unrecorded'}, not off for its class's '${(WANT[u.variant] || {}).why}'`);
     if (w && u.route !== w.route) P.push(`${u.id}: the route '${u.route}', not the panel's '${w.route}'`);
+    // each record's class and variant the panel's (the registration's design review, MINOR 7)
+    if (w && w.cls !== undefined && (u.cls !== w.cls || u.variant !== w.variant)) P.push(`${u.id}: class ${u.cls} and variant ${u.variant}, not the panel's ${w.cls} and ${w.variant}`);
     if (u.routeCtx !== ROUTE_CTX) P.push(`${u.id}: ROUTE's context '${u.routeCtx}', not the page's ('${ROUTE_CTX}')`);
     if (u.cls && ROUTE_OF_CLASS[u.cls] !== u.route) P.push(`${u.id}: class ${u.cls} on the route '${u.route}', not its class's '${ROUTE_OF_CLASS[u.cls]}'`);
     for (const arm of ARMS) {
@@ -190,7 +192,7 @@ function planted() {
   { const M = m1ByUnit([unit('a', 0, 'Y', base, gain, { deliveredDrop: 1 }), unit('b', 1, 'Y', base, gain)]);
     cases.push(['M1 by unit: a unit keeping more paths but spending 1% less on the paths both keep is named, one spending the same is not', M.filter(x => x.named).map(x => x.id).join(','), 'a']); }
   // the gate: every refusal on its planted fault
-  { const want = [{ id: 'a', route: 'household' }, { id: 'b', route: 'household' }];
+  { const want = [{ id: 'a', route: 'household', cls: 'Y', variant: 'Y75' }, { id: 'b', route: 'household', cls: 'Y', variant: 'Y75' }];
     const ok = () => { const us = [unit('a', 0, 'Y', base, gain), unit('b', 1, 'Y', base, gain)]; for (const u of us) for (const a of ARMS) u.arms[a].config = configOf(a); return us; };
     const log = (u, done = true) => `stamp: code c audit a prediction NOT-LAUNCHED sha -\nTHE GUARD'S OWN UNITS: unit ${u.k}/2: ${u.id} (class Y)\n${done ? `        done unit ${u.k} secs 1\n` : ''}`;
     const clean = gate(ok(), want, { n, audit: 'a', logs: { 'case0.txt': log({ id: 'a', k: 0 }), 'case1.txt': log({ id: 'b', k: 1 }) } });
@@ -212,7 +214,8 @@ function planted() {
       ['a unit not of the read', us => [...us, { ...us[0], id: 'z', k: 2 }], /z: not a unit of the read/],
       ['an arm missing', us => { delete us[0].arms.ROUTE; return us; }, /a ROUTE: missing/],
       ['ROUTE run on another context than the page\'s', us => { us[0].routeCtx = 'armA'; return us; }, /ROUTE's context 'armA'/],
-      ['a class on another route than its own', us => { us[0].route = 'today'; us[0].cls = 'Y'; return us; }, /class Y on the route 'today'/]
+      ['a class on another route than its own', us => { us[0].route = 'today'; us[0].cls = 'Y'; return us; }, /class Y on the route 'today'/],
+      ['a record\'s class or variant not the panel\'s', us => { us[0].variant = 'Y90'; return us; }, /a: class Y and variant Y90, not the panel's Y and Y75/]
     ];
     const missed = faults.filter(([, f, re]) => !gate(f(ok()), want, { n, audit: 'a', logs: null }).some(x => re.test(x))).map(([nm]) => nm);
     const auditOther = gate(ok(), want, { n, audit: 'zz', logs: null }).some(x => /an audit stamp not this read's files' \(zz\)/.test(x));
@@ -236,7 +239,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const DIR = args.find(a => !a.startsWith('--')) || join(HERE, 'results', REGISTERED ? 'couples-open-run' : PILOT ? 'couples-open-pilot' : ADD ? `couples-open-${SEED}-add` : `couples-open-${SEED}`);
   if (!existsSync(DIR)) { console.error(`reduce-couples-open: no ${DIR}`); process.exit(2); }
   const { readOpenPanel } = await import('./couples-open-panel.mjs');
-  const panel = unitsOf(readOpenPanel(), ADD ? 'addendum' : REGISTERED ? 'registered' : '').map(u => ({ id: u.id, route: u.route }));
+  const panel = unitsOf(readOpenPanel(), ADD ? 'addendum' : REGISTERED ? 'registered' : PILOT ? 'pilot' : '').map(u => ({ id: u.id, route: u.route, cls: u.cls, variant: u.variant }));
   const smoke = args.includes('--smoke'), units = loadDir(DIR).sort((a, b) => a.k - b.k);
   const want = smoke ? panel.filter(w => units.some(u => u.id === w.id)) : panel;
   const logs = Object.fromEntries(readdirSync(DIR).filter(x => /^case\d+\.txt$/.test(x)).map(x => [x, readFileSync(join(DIR, x), 'utf8')]));

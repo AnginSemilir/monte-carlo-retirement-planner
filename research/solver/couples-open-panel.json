@@ -1,5 +1,5 @@
 {
- "built": "2026-11-22T15:43:00.798Z",
+ "built": "2026-11-22T18:58:49.357Z",
  "code": "36e4d2a860b2",
  "couples": [
   {
@@ -113,6 +113,17 @@
      "target": 25900,
      "survival": 85.7,
      "label": "ISA First, lump sum",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "household"
+    },
+    {
+     "id": "S025-G12R",
+     "variant": "G12R",
+     "cls": "G",
+     "target": 33600,
+     "survival": 85.3,
+     "label": "Bracket Fill Basic",
      "why": "gapincome",
      "share": 0.6,
      "route": "household"
@@ -295,6 +306,17 @@
      "cls": "G",
      "target": 191300,
      "survival": 84.2,
+     "label": "Bracket Fill Basic",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "household"
+    },
+    {
+     "id": "S273-G12R",
+     "variant": "G12R",
+     "cls": "G",
+     "target": 192600,
+     "survival": 85.7,
      "label": "Bracket Fill Basic",
      "why": "gapincome",
      "share": 0.6,
@@ -484,6 +506,17 @@
      "route": "household"
     },
     {
+     "id": "S351F-G12R",
+     "variant": "G12R",
+     "cls": "G",
+     "target": 62600,
+     "survival": 84.2,
+     "label": "Bracket Fill Basic",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "household"
+    },
+    {
      "id": "S351F-RY75",
      "variant": "RY75",
      "cls": "RY",
@@ -661,6 +694,17 @@
      "cls": "G",
      "target": 131300,
      "survival": 84.89999999999999,
+     "label": "Bracket Fill Basic",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "household"
+    },
+    {
+     "id": "S357F-G12R",
+     "variant": "G12R",
+     "cls": "G",
+     "target": 139500,
+     "survival": 85.3,
      "label": "Bracket Fill Basic",
      "why": "gapincome",
      "share": 0.6,

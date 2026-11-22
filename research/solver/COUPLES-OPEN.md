@@ -80,3 +80,38 @@ and its registration names this as the next step ("the guard is looked at again 
   about four hours on four cores, its read an hour.
 - The registered test: its panel and pilot half a day, its run about fifteen hours, its read and reviews half a day.
 - The change of default and the gate: half a day. Track 4 beside it: about a day.
+
+## Amendment 1 (22 Nov, afternoon): the classes by route
+
+Made after the dress rehearsal's read (every class passing, `results-couples-open-rehearsal.txt`) and its reviewer's FAIL
+(`reviews/2026-11-22-read-couples-open-rehearsal.md`), answered in one fix (D81 (F)), before the registered test's design
+review. Its BLOCKING 1: today's two-table route, which the app takes wherever the household plan refuses a plan's shape, was
+read only by class R and at one holding (the younger 75%), while a class's pass would lift its reason on both routes; and
+today's route is where `gapincome`'s own evidence was measured (step 5's shapes, `results-shapes-beside.txt`; the guard
+test, `results-guard.txt`).
+
+- **Each class opens its reason on its own route alone.** The household route: Y, E, S and G, as step 1 has them. Today's
+  route: RY (step 1's R, its two units), RE, RS and RG. The change of default reads the household plan's refusal (its shape
+  checks, `householdPlanFor`'s) before it lifts a reason, so a couple on today's route runs the solver outside today's guard
+  only where a today's-route class opened for its reason, and keeps the app's rules otherwise.
+- **Five units added to every couple**, both panels, each landed as the others on the same code (`couples-open-panel.mjs
+  land --only`):
+  - `G12P`: 12 years apart with the partner's (the younger's) `£15,000` a year DB pension, the elder holding 60%: G's reach
+    to a partner's income, the case step 5's S061-dbpart read;
+  - `RE100`, `RS75`, `RG8` and `RG12P`: E100, S75, G8 and G12P with the partner's pension one risk profile safer, which the
+    household plan refuses (`REFUSALS.md`), so today's route.
+- **The dress rehearsal's addendum**: the five on its four couples, 20 units, EXPLORATORY on the same 4,000 paths of seed 7002 a
+  unit, read on their own by step 2's rule (`results-couples-open-addendum.txt`), before the registered test's design review.
+  A class the addendum shows harmed is not registered: it goes to the maintainer with its units and keeps the app's rules.
+- **ROUTE on the page's own context** (MINOR 2): ROUTE's paths run on `src/solverStrategy.js` `solvedContext` for the solved
+  couple, the solved plan's own MPAA ages, where the rehearsal took arm A's (the two differ on 1 of its 44 units, where the
+  reviewer found no path changed, and on 13 of the registered panel's); its configuration names it (`ctx`).
+- **Spending over all paths** (MINOR 4): printed beside the rule for every unit and class with its interval, the units below
+  beyond noise named; not a bar. Lifetime tax in pounds a path beside its percentage (MINOR 3).
+- **The planted checks** (MINOR 5): part 2 on a gain within noise, part 3 at its bar, and each of the gate's refusals.
+- **Step 4's order** (MINOR 6): the registered test runs on the code its panel was landed on (36e4d2a860b2), before step 4.
+  Step 4 lands after the read as its own change of default, with the reviewer: a shape it moves from today's route onto the
+  household's takes the household route's classes' outcomes by inference, said in its D-line; RWY75 reads today's route for
+  that shape as the code stands.
+- **Its time:** the registered panel 64 units (40 on the household route, 24 on today's); the pilot again on all 64 (its audit's
+  stamp changed), the run's paths and budget from it; the addendum about half an hour on four cores.

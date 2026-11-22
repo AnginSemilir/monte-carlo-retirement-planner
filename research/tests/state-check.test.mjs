@@ -64,7 +64,10 @@ const moveOf = (r, ai, code) => {
   return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
     // cgtSale and sweepIsa as tablePolicy carries them (bridge.js): without sweepIsa the engine swept the cash ISA money to the taxable
     // account while the forward run swept it to the ISA, once D73 made 'isa' the candidate's (the unlock of 11 Nov, D82)
-    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
+    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}),
+    // windfall and save as tablePolicy carries them (bridge.js): without save the engine ran the plan's own saving where the
+    // forward run ran the move's, once D138 put the savings split in the candidate (the unlock of 22 Nov, D140)
+    ...(a.windfall ? { windfall: a.windfall } : {}), ...(a.save ? { save: a.save } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
     tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
 };
 const MONEY = [0, 1, 2, 4, 6, 11, 12, 13];

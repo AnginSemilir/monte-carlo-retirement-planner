@@ -8,6 +8,7 @@
  *   node research/solver/held-out.mjs [ref]     the ids the review branch adds to touched(), and the count
  */
 import { execFileSync } from 'node:child_process';
+import { existsSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { touched } from './phase4-panel.mjs';
@@ -31,8 +32,21 @@ export function reviewIds(files) {
   for (const [p, t] of files) { idsIn(p).forEach(id => S.add(id)); idsIn(t).forEach(id => S.add(id)); }
   return S;
 }
+/* The runs' own records live in research/solver/results, which git does not track: a tree without them (a worktree, a fresh
+   clone) scans without every id only they name, and calls a used household held out. On 22 Nov a freeze run in a worktree
+   took S033 (landed as a reserve of step 8's panel, named only in results/household-hsp-land) as untouched; caught before any
+   unit was landed on it. So a tree with no results is refused, never scanned (held-out.test.mjs check 4). The plant
+   'noresults' scans it as before. */
+export const PLANT = { rule: '' };
+export function resultsProblem(root = HERE) {
+  const res = join(root, 'results');
+  if (PLANT.rule === 'noresults') return null;
+  return existsSync(res) && readdirSync(res).length ? null : `held-out: no results at ${res}: the runs' records live in the main tree's research/solver/results (a worktree or a fresh clone has none); refusing to scan without them`;
+}
 /* touched() and the review branch together: the scan any later panel takes */
 export function touchedAll({ root = HERE, files = null, ref = REVIEW_REF } = {}) {
+  const p = resultsProblem(root);
+  if (p) throw new Error(p);
   const S = touched(root);
   for (const id of reviewIds(files || reviewFiles(ref))) S.add(id);
   return S;

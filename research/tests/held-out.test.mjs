@@ -6,15 +6,26 @@
  *   2. a review branch that cannot be read is refused, never skipped;
  *   3. on the real review branch (origin/review/external-2026-10-21, fetched): every id it names is in the scan, S368 (the
  *      review's N1 assessment, 26 Oct) among them, and the ids it adds to touched() alone are listed (Phase 4's own results
- *      name S368 now, so touched() alone has it since 28 Oct).
+ *      name S368 now, so touched() alone has it since 28 Oct);
+ *   4. a tree with no results (research/solver/results, which git does not track) is refused, never scanned: on 22 Nov a
+ *      freeze run in a worktree took S033, a reserve of step 8's named only in its results, as untouched. Planted
+ *      ('noresults', held-out.mjs PLANT): the tree scanned as before, finding fewer ids than a tree with its results.
+ * Where this tree has no results (CI's checkout), checks 1 and 3, which read the review branch's half of the scan, run with
+ * the results' half as touched() finds it here (the plant 'noresults'), said in their lines; check 4 runs everywhere.
  *   node research/tests/held-out.test.mjs
  */
 import { touched } from '../solver/phase4-panel.mjs';
-import { touchedAll, reviewFiles, reviewIds } from '../solver/held-out.mjs';
+import { touchedAll, reviewFiles, reviewIds, resultsProblem, PLANT } from '../solver/held-out.mjs';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let n = 0, failed = 0;
 const ok = (c, msg) => { if (c) { n++; console.log(`PASS  ${msg}`); } else { failed++; console.log(`FAIL  ${msg}`); } };
+// a tree with no results (CI's checkout): checks 1 and 3 read the review branch's half alone, said in their lines
+const noResults = resultsProblem() !== null, here = noResults ? ' (this tree has no results: the results\' half as touched() finds it here)' : '';
+if (noResults) PLANT.rule = 'noresults';
 const base = touched();
 // an untouched library id to plant: the first single household touched() leaves out
 const fresh = buildScenarios().map(s => s.id).filter(id => !base.has(id));
@@ -23,7 +34,7 @@ ok(a && b, `two untouched library ids to plant (${a}, ${b}; ${fresh.length} unto
 
 // 1. the planted case
 { const S = touchedAll({ files: [['research/reviews/2099-01-01/N9.md', `the assessment ran ${a} at its library target`], [`research/reviews/2099-01-01/${b}-trace.txt`, 'nothing']] });
-  ok(!base.has(a) && S.has(a), `the planted case: ${a}, named in a review file's contents, is in the scan (touched() alone: ${base.has(a) ? 'in' : 'out'})`);
+  ok(!base.has(a) && S.has(a), `the planted case: ${a}, named in a review file's contents, is in the scan (touched() alone: ${base.has(a) ? 'in' : 'out'})${here}`);
   ok(!base.has(b) && S.has(b), `the planted case: ${b}, named in a review file's name, is in the scan`);
   ok([...base].every(id => S.has(id)), 'everything touched() finds stays in the scan'); }
 
@@ -38,6 +49,18 @@ ok(a && b, `two untouched library ids to plant (${a}, ${b}; ${fresh.length} unto
     const S = touchedAll({ files }), named = reviewIds(files), added = [...named].filter(id => !base.has(id)).sort();
     ok(S.has('S368') && [...named].every(id => S.has(id)), `the real review branch (${files.length} files, ${named.size} ids named): every one in the scan, S368 among them; added to touched() alone: ${added.join(', ') || 'none'}`);
   } }
+
+// 4. a tree with no results is refused, never scanned; planted, it is scanned as before and finds fewer ids
+{ const was = PLANT.rule, tmp = mkdtempSync(join(tmpdir(), 'held-out-'));
+  let err = null, S2 = null, err2 = null;
+  PLANT.rule = '';
+  try { touchedAll({ root: tmp, files: [] }); } catch (e) { err = e.message; }
+  PLANT.rule = 'noresults';
+  try { S2 = touchedAll({ root: tmp, files: [] }); } catch (e) { err2 = e.message; }
+  PLANT.rule = was;
+  rmSync(tmp, { recursive: true, force: true });
+  ok(err && /no results at/.test(err), `a tree with no results is refused: ${err ? err.split(':').slice(0, 2).join(':') : 'NOT REFUSED'}`);
+  ok(!err2 && S2 && S2.size < base.size, `planted ('noresults'): that tree scanned as before 22 Nov, ${S2 ? S2.size : '?'} ids where this tree's touched() finds ${base.size}${here}`); }
 
 console.log(failed ? `FAILED: ${failed} of ${n + failed} checks` : `ALL PASS: ${n} checks`);
 process.exit(failed ? 1 : 0);

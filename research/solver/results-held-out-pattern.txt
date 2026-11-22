@@ -1,0 +1,8 @@
+THE PATTERN SEARCH: a held-out scan taken without its results (EXPLORATORY; CHECKLIST 7): 1916 results files read; 6 frozen scans keeping their ids; read through their orders, the panels phase4-panel.json (its scan's count 177, hash 12aee8a47ec0), couples-panel.json (its scan's count 238, hash d639ac997267), couples-panel-d4b.json (its scan's count 238, hash d639ac997267), couples-share-panel.json (its scan's count 295, hash af1a9e309651), share-rules-panel.json (its scan's count 310, hash 40836a8ffa0a), household-hsp-panel.json (its scan's count 318, hash acedff4811b5)
+phase4-orders.json (frozen 2026-10-27T07:03:11.647Z, 177 touched): results files written before it 0, the ids they name 0; named there but not in its touched list: none
+couples-orders.json (frozen 2026-11-07T14:58:25.142Z, 238 touched): results files written before it 0, the ids they name 0; named there but not in its touched list: none
+couples-share-orders.json (frozen 2026-11-13T20:19:42.864Z, 295 touched): results files written before it 94, the ids they name 50; named there but not in its touched list: none
+share-rules-orders.json (frozen 2026-11-15T10:49:11.542Z, 310 touched): results files written before it 580, the ids they name 83; named there but not in its touched list: none
+household-hsp-orders.json (frozen 2026-11-19T00:49:25.436Z, 318 touched): results files written before it 1111, the ids they name 97; named there but not in its touched list: none
+couples-open-orders.json (frozen 2026-11-22T11:42:13.278Z, 337 touched): results files written before it 1894, the ids they name 154; named there but not in its touched list: none
+NONE: no frozen scan took a household the results named before it was taken

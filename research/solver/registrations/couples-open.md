@@ -3,8 +3,9 @@
 DRAFT (22 Nov). Its dress rehearsal (EXPLORATORY, seed 7002, `results-couples-open-rehearsal.txt`) passed every class by this
 rule, on four couples step 8 used; its reviewer's FAIL (`reviews/2026-11-22-read-couples-open-rehearsal.md`) was answered by
 `COUPLES-OPEN.md` amendment 1: each class on its own route, five units added to every couple, and the rehearsal's addendum on
-them (`results-couples-open-addendum.txt`). Here the same rule runs on couples no run has used and a held-out seed. Read once, by
-`research/solver/reduce-couples-open.mjs --registered` (with `REG=1`), after its gate. Launched only as
+them (`results-couples-open-addendum.txt`). Here the same rule runs on couples no run has used and a held-out seed. Read in two parts, each once
+when its units are in, by `research/solver/reduce-couples-open.mjs --registered --part household|today` (with `REG=1`), after
+its gate (The read, below). Launched only as
 `MODE=registered PREDICTION=research/solver/registrations/couples-open.md research/solver/run-from-snapshot.sh bash research/solver/batch-couples-open.sh`,
 from a git worktree at the launch commit, where every relaunch under `RESUME=1` and the read also run. After the pilot is
 read, only Paths, Budget, The launch, What the pilot shows and Design review change; anything else goes back to the reviewer.
@@ -70,7 +71,9 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     maintainer with the read before the default changes.
 - **Outcomes:** each class that OPENS lifts its part of the guard on its own route by a change of default; each that STAYS keeps the app's rules for its reason on its route and goes to the maintainer; a flagged unit holds its class
   - The change of default reads the household plan's refusal (its shape checks, `householdPlanFor`'s) in the guard, so each
-    reason lifts on the route its class read and on no other.
+    reason lifts on the route its class read and on no other. The guard has no imports, so the page's first load can ask
+    it without the solver (`src/couplesSwitch.js`): the shape checks are written there again and held equal to
+    `householdPlanFor`'s refusals by a test over the library's couples and the panel's shapes, each check with its plant.
   - **Y opens:** a couple the household plan takes, whose younger partner holds more than 60%, runs the solver whatever the
     split. **RY opens:** the same for a couple whose shape it refuses.
   - **E opens:** for a couple the household plan takes, the elder's ceiling `ELDER_UP_TO` lifts from 90% to all of it.
@@ -99,6 +102,14 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
     (36e4d2a860b2), before `COUPLES-OPEN.md` step 4. Step 4 lands after this read as its own change of default with the
     reviewer: a shape it moves from today's route onto the household's takes the household route's outcomes for its reason
     by inference, said in its D-line.
+- **The read:** in two parts, each read once by the decision rule when its units are in. The batch runs the household
+  route's 40 units first, then today's 24 (`audit-couples-open.mjs` `unitsOf`).
+  - **Part 1, the household route:** classes Y, E, S and G (`--part household`).
+  - **Part 2, today's route:** classes RY, RE, RS and RG (`--part today`).
+  - A part's read opens no record and no launch log of the other's (`reduce-couples-open.mjs` `partOf`, with its planted
+    check). Each class has its own rule, so reading one part first changes nothing in the other's.
+  - Each part's outcome goes to its own change of default, on its own route. So the household route's classes, the most
+    couples, can open while today's route's units still run.
 - **The gate:** first the launch logs' stamps against the registration's git blob (`fair-gate.mjs requireFairLogs`), then `reduce-couples-open.mjs gate` (`--planted`: each refusal on its planted fault)
   - every unit of the panel with both arms, and each unit's own launch log, naming it, with its done line;
   - one code, audit, seed and Node version;

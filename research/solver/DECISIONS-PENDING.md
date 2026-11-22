@@ -11,6 +11,26 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (22 Nov, early), found by the full tier on D138's build, for your word: an unlock, by name, for four protected
+tests' hand-built moves.**
+- **What.** Four tests of the fast tier (protected) build the move they hand the engine by hand from the solver's action:
+  `state-check.test.mjs` (V2's state check), `n4-menu.test.mjs`, `speed-port.test.mjs` and `tier-steps.test.mjs`. None
+  hands the engine the move's `windfall` or `save`, as the engine's own policy does (`src/solver/bridge.js` `withTable`).
+  Since D138 a working saver's move carries `save`, so on a working saver under the new default the engine runs the plan's
+  own saving where the forward run runs the move's.
+- **Where it shows** (`results-d138-lockstep.txt`, in D138's build until its commit; EXPLORATORY). V2's state check in full (`state-check-full.test.mjs`, the
+  full tier) fails 3 of 14 on the build: S224 parts, 194 mismatched moves. The same test with its builder handing the engine
+  `windfall` and `save` (a copy, the protected file untouched) passes all 14, S224 in step to a billionth of a pound. The
+  fast tier's quick forms reach no working saver and pass. The `--full` forms of the other three are not in the full tier;
+  two of them name S224.
+- **The same class as D73's `sweepIsa`**, answered then under D82's unlock. The same builder, unprotected, is fixed in
+  D138's build: `gaps-sweep.test.mjs` (12 of its 60 cases had failed, on S224 and S330F; all 60 pass with the fix) and
+  `allowance-both.test.mjs` (passing before and after).
+- **The ask:** the unlock for exactly those four files' builders, the two fields added as `bridge.js` has them, each file
+  named in its commit; no figure any of them pins moves (each run before and after).
+- **The agent recommends it.** Until then the full tier is red on `state-check-full.test.mjs`. B1's gate needs both CI
+  tiers green on the batch's release branch (D92), so batch 11 waits for this unlock.
+
 **OPEN (21 Nov, night), from the reviewer on D138's change of default (MINOR 6, `reviews/2026-11-21-default-save-split.md`),
 for your word: two unlocks, by name, for what D138 adds that no protected file records.**
 - **The couples' exclusion.** A couple's solves keep the savings split off on both of the page's routes (`src/solverApp.js`

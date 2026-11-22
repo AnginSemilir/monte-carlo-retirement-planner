@@ -11,6 +11,19 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (22 Nov, midday), for D139 (every couple on the solver, `COUPLES-OPEN.md`), for your word: three things asked now so
+the registered test is not held up when the dress rehearsal reads.**
+1. An unlock by name for `research/solver/check-prediction.mjs`: seed 7026 reserved for `couples-open*.md`, that edit alone
+   (the registered test's held-out seed).
+2. An unlock by name for `research/tests/couple-default.test.mjs`: the guard's change for each class the registered read
+   passes (its checks on the band, the elder's ceiling, the same-age rule and `DB_GAP_UP_TO`, as the classes pass), made
+   only after that read and the reviewer on the change of default.
+3. Whether the agent launches the registered test itself once its design review passes, as D96, D107, D132 and D135 each
+   launched one after its design review on your word; otherwise the launch waits for it.
+
+The agent's recommendation: yes to all three (1 and 2 need the words "unlock enforcement"). Meanwhile the dress rehearsal
+runs (EXPLORATORY, seed 7002) and the registered panel is frozen and landed; nothing of a held-out seed is read.
+
 **OPEN (22 Nov, early), from the reviewer on D138's change of default (second look, finding 3,
 `reviews/2026-11-21-default-save-split-2.md`), for your word: the employer's NIC passed to the pension, a part of D137
 (4)'s price the split's routes do not carry.**

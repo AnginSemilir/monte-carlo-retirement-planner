@@ -12,10 +12,14 @@
  *        oldfail    the sweep's old exports check failed                 line 6
  *        isofail    the isolation harness failed in the new mode         lines 1 and 7
  *   (Safari and Firefox are not a line since D60.)
+ *   3. line 5's record read from STATE.md and its history files (HISTORY-*.md), each case in a directory of its own (--state):
+ *        moved      the record in the history file alone, as STATE.md's finished work was moved on 21 Nov   every line PASS
+ *                   (on the code before 22 Nov's fix line 5 failed: it read STATE.md alone; CI's full tier on a6b34b2d)
+ *        norecord   the record in neither                                                       line 5 FAIL, exit 1
  *   node research/tests/launch-ready.test.mjs
  */
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -48,11 +52,14 @@ const PLANTS = {
   oldfail: [{ 'results-library-sweep.txt': sweep(3) }, [6]],
   isofail: [{ 'results-gate-new.txt': gate('new', 'solver-isolation') }, [1, 7]]
 };
-const run = files => {
+const run = (files, records = null) => {
   const dir = mkdtempSync(join(tmpdir(), 'launch-ready-'));
   for (const [f, body] of Object.entries(files)) if (body !== null) writeFileSync(join(dir, f), body);
+  // records: line 5's STATE.md and history files, in a directory of their own (unset: the repository's own)
+  const sdir = join(dir, 'state'), extra = records ? ['--state', sdir] : [];
+  if (records) { mkdirSync(sdir); for (const [f, body] of Object.entries(records)) writeFileSync(join(sdir, f), body); }
   let out = '', code = 0;
-  try { out = execFileSync(process.execPath, [join(ROOT, 'research/solver/launch-ready.mjs'), '--dir', dir, '--stamp', STAMP], { encoding: 'utf8' }); } catch (e) { out = e.stdout || ''; code = e.status; }
+  try { out = execFileSync(process.execPath, [join(ROOT, 'research/solver/launch-ready.mjs'), '--dir', dir, '--stamp', STAMP, ...extra], { encoding: 'utf8' }); } catch (e) { out = e.stdout || ''; code = e.status; }
   rmSync(dir, { recursive: true, force: true });
   return { code, fails: out.split('\n').filter(l => l.startsWith('FAIL  ')).map(l => Number(/^FAIL {2}(\d+)\./.exec(l)[1])), out };
 };
@@ -63,5 +70,11 @@ for (const [name, [patch, want]] of Object.entries(PLANTS)) {
   const r = run({ ...CLEAN, ...patch });
   ok(2, `planted '${name}': exactly lines ${want.join(', ')} FAIL, exit 1`, r.code === 1 && JSON.stringify(r.fails) === JSON.stringify(want), `failing ${r.fails.join(', ') || 'none'}`);
 }
+// 3. line 5's record, STATE.md and its history files
+{ const rec = '- L4 read (the levers), L5 read (the costs): by R1 B3a ships at 3, 6 and 10; by R3 no cell loses survival.\n';
+  const moved = run(CLEAN, { 'STATE.md': '# The solver research: where it stands\n', 'HISTORY-2026-11.md': `# Moved verbatim\n${rec}` });
+  ok(3, 'moved: the record in the history file alone, every line PASS, exit 0', moved.code === 0 && moved.fails.length === 0, `failing ${moved.fails.join(', ') || 'none'}`);
+  const none = run(CLEAN, { 'STATE.md': '# The solver research: where it stands\n', 'HISTORY-2026-11.md': '# Moved verbatim\n' });
+  ok(3, 'planted \'norecord\': the record in neither, exactly line 5 FAIL, exit 1', none.code === 1 && JSON.stringify(none.fails) === '[5]', `failing ${none.fails.join(', ') || 'none'}`); }
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

@@ -18,17 +18,19 @@
  *   8. the opt-in switched on and off without losing a plan (the gate's solver-planner pass, whose check 15 it is).
  * The launch plan's line on a solve in Safari and in Firefox is not here: the maintainer excluded it (D60, 6 Nov: "exclude
  * safari and firefox checks").
- *   node research/solver/launch-ready.mjs [--dir <results dir>] [--stamp <stamp>]     (the two options for its own test only)
+ * Line 5's record is STATE.md's together with its history files (HISTORY-*.md beside it): finished work moved out of STATE.md
+ * verbatim (21 Nov, at the maintainer's word) stays the record of it.
+ *   node research/solver/launch-ready.mjs [--dir <results dir>] [--stamp <stamp>] [--state <dir>]     (the options for its own test only)
  * Exit 0 only when every line is PASS.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stamp as stampOf, stampAt } from './launch-stamp.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = join(HERE, '../..');
 const args = process.argv.slice(2), opt = k => (args.includes(k) ? args[args.indexOf(k) + 1] : null);
-const DIR = opt('--dir') || HERE, STAMP = opt('--stamp') || stampOf(ROOT);
+const DIR = opt('--dir') || HERE, STAMP = opt('--stamp') || stampOf(ROOT), SDIR = opt('--state') || HERE;
 const read = f => (existsSync(join(DIR, f)) ? readFileSync(join(DIR, f), 'utf8') : null);
 const stampIn = t => (t && (/the code: (code-stamp:[0-9a-f]{16})/.exec(t) || [])[1]) || null;
 const lines = [];
@@ -64,9 +66,11 @@ line(4, 'the library sweep: every single, and a sample with every lever off its 
 // 5. L4 and L5
 { const lev = read('results-levers.txt'), cost = read('results-costs.txt');
   const rev = f => existsSync(join(HERE, 'reviews', f)) && /\bPASS\b/.test(readFileSync(join(HERE, 'reviews', f), 'utf8'));
-  const state = existsSync(join(HERE, 'STATE.md')) ? readFileSync(join(HERE, 'STATE.md'), 'utf8') : '';
+  // the record: STATE.md and its history files, finished work moved out of it verbatim (HISTORY-*.md)
+  const recs = existsSync(SDIR) ? ['STATE.md', ...readdirSync(SDIR).filter(f => /^HISTORY-[\w.-]+\.md$/.test(f)).sort()] : [];
+  const state = recs.filter(f => existsSync(join(SDIR, f))).map(f => readFileSync(join(SDIR, f), 'utf8')).join('\n');
   const ok = !!lev && !!cost && rev('2026-11-02-read-L4.md') && rev('2026-11-01-read-L5.md') && /L4 read/.test(state) && /L5 read/.test(state) && /by R1 B3a ships/.test(state) && /by R3 no cell loses survival/.test(state);
-  line(5, 'L4 and L5 read, R1 to R3 applied, the reads sent to the maintainer', ok, ok ? 'results-levers.txt, results-costs.txt, their reviews PASS, STATE.md records R1 to R3 and the reports' : 'a read, its review or its record missing'); }
+  line(5, 'L4 and L5 read, R1 to R3 applied, the reads sent to the maintainer', ok, ok ? 'results-levers.txt, results-costs.txt, their reviews PASS, STATE.md or its history records R1 to R3 and the reports' : 'a read, its review or its record missing'); }
 
 line(6, 'old exports import', !swWhy && /^ {2}ok {3}3\. /m.test(sw), swWhy || ((sw.match(/^ {2}(ok {2}|FAIL) 3\. .*$/m) || [''])[0].slice(0, 80)));
 

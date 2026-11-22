@@ -22,10 +22,22 @@
  * src/solverCouple.js householdCut at 'pensionsPA', on the plan as the solvers are handed it, shapes-panel.mjs solverPlanOf;
  * 'household' where it takes the plan, 'today' where householdPlanFor refuses the plan's shape, as src/solverClient.js falls
  * back).
- *   node research/solver/couples-open-panel.mjs land <couple>        one couple's ten units (results/couples-open-land/)
+ *   node research/solver/couples-open-panel.mjs land <couple>        one couple's eleven units (results/couples-open-land/)
  *   node research/solver/couples-open-panel.mjs combine              couples-open-panel.json from the four landings
  *   node research/solver/couples-open-panel.mjs summary > research/solver/results-couples-open-panel.txt
  *   node research/solver/couples-open-panel.mjs --planted            the checks on planted inputs
+ * THE REGISTERED TEST'S PANEL (COUPLES-OPEN.md step 2), the same eleven units on couples no run has used, with REG=1:
+ *   node research/solver/couples-open-panel.mjs freeze               the scan and the order, taken once (couples-open-orders.json):
+ *                                                                    held-out.mjs touchedAll on the day, with the couples the tests
+ *                                                                    take by place, the household line's bases and step 8's couples;
+ *                                                                    the library's order (couples-orders.json, D4's) with the touched
+ *                                                                    left out, four taken evenly then the rest in order as reserves
+ *                                                                    (the younger cohort has none left untouched)
+ *   REG=1 node research/solver/couples-open-panel.mjs land <couple>  as above, into results/couples-open-land-reg/
+ *   REG=1 node research/solver/couples-open-panel.mjs combine        couples-open-registered-panel.json: the order walked, a couple
+ *                                                                    joining if all eleven units landed, off by the guard for their
+ *                                                                    reasons and on their routes, passed over (reported) if not, the
+ *                                                                    walk stopping at the first couple not yet landed
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -33,7 +45,10 @@ import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { couplesOf, planOf } from './couple-panel.mjs';
+import { couplesOf, planOf, byIndex, ORDERS_FILE } from './couple-panel.mjs';
+import { touchedAll } from './held-out.mjs';
+import { householdLineBases, evenly } from './household-hsp-panel.mjs';
+import { createHash } from 'node:crypto';
 import { reheldAt, withFeature } from './share-rules-panel.mjs';
 import { shapeOf, solverPlanOf } from './shapes-panel.mjs';
 import { armA } from './select-phase4.mjs';
@@ -58,8 +73,25 @@ export const VARIANTS = Object.freeze({
 export const CLASSES = Object.freeze(['Y', 'E', 'S', 'G', 'R']);
 /* the guard's reason each variant is kept off for, and the route the app takes for it */
 export const WANT = Object.freeze(Object.fromEntries(Object.entries(VARIANTS).map(([v, V]) => [v, { why: v === 'G8' || v === 'G12' ? 'gapincome' : 'uneven', route: V.risks || V.working ? 'today' : 'household' }])));
-export const PANEL = process.env.COUPLES_OPEN_PANEL || join(HERE, 'couples-open-panel.json');
-const OUT = process.env.COUPLES_OPEN_LAND_OUT || join(HERE, 'results', 'couples-open-land');
+export const REG = process.env.REG === '1', N_REG = 4;
+export const ORDERS = join(HERE, 'couples-open-orders.json');
+export const PANEL = process.env.COUPLES_OPEN_PANEL || join(HERE, REG ? 'couples-open-registered-panel.json' : 'couples-open-panel.json');
+const OUT = process.env.COUPLES_OPEN_LAND_OUT || join(HERE, 'results', REG ? 'couples-open-land-reg' : 'couples-open-land');
+/* the couples a run takes: the dress rehearsal's four, or the registered test's frozen order (the library's cohort) */
+export const couplesFor = () => (REG ? JSON.parse(readFileSync(ORDERS, 'utf8')).order.map(id => [id, 'lib']) : COUPLES);
+/* the walk over the registered order's landings (lands: couple id -> landing record): the first N_REG couples whose every
+   unit is taken, those passed over with why, and where it stopped */
+export function walkReg(order, lands, n = N_REG) {
+  const panel = [], passed = []; let gap = null;
+  for (const id of order) {
+    if (panel.length === n) break;
+    const L = lands[id];
+    if (!L) { gap = id; break; }
+    const bad = Object.keys(VARIANTS).flatMap(v => unitProblems(v, L.variants[v]).map(p => `${v}: ${p}`));
+    if (bad.length) passed.push({ id, not: bad }); else panel.push(id);
+  }
+  return { panel, passed, gap };
+}
 export const unitIdOf = (cid, v) => `${cid}-${v}`;
 const baseOf = cid => cid.replace(/F$/, '');
 
@@ -159,6 +191,15 @@ function planted() {
     cases.push(['the guard on', unitProblems('Y75', { ...ok, guard: { on: true, why: null } }).join(';'), 'the guard on']);
     cases.push(['the guard off for another reason', unitProblems('G8', ok).join(';'), 'the guard off for \'uneven\', not \'gapincome\'']);
     cases.push(['the route not the class\'s', unitProblems('RY75', ok).join(';'), 'the route \'household\', not \'today\'']); }
+  // the registered order's walk: a couple joins when every unit is taken, is passed over when one is not, and the walk stops at
+  // the first couple not yet landed
+  { const good = Object.fromEntries(Object.keys(VARIANTS).map(v => [v, { landed: true, guard: { on: false, why: WANT[v].why }, route: { route: WANT[v].route, why: null } }]));
+    const land = (bad = {}) => ({ variants: { ...good, ...bad } });
+    const lands = { A: land(), B: land({ Y90: { ...good.Y90, landed: false } }), C: land({ G8: { ...good.G8, guard: { on: false, why: 'uneven' } } }), D: land(), E2: land(), F: land() };
+    const w = walkReg(['A', 'B', 'C', 'D', 'E2', 'F'], lands, 4);
+    cases.push(['the registered walk: B not landed and C off for another reason passed over, A, D, E2, F taken', `${w.panel.join(',')} passed ${w.passed.map(x => x.id).join(',')} gap ${w.gap}`, 'A,D,E2,F passed B,C gap null']);
+    const w2 = walkReg(['A', 'G'], { A: land() }, 4);
+    cases.push(['the registered walk stops at the first couple not yet landed', `${w2.panel.length} ${w2.gap}`, '1 G']); }
   let bad = 0;
   for (const [n, got, want] of cases) { const okc = got === want; if (!okc) bad++; console.log(`${okc ? 'ok  ' : 'FAIL'} ${n}: ${got}${okc ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
@@ -170,8 +211,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (mode === '--planted') process.exit(planted() ? 1 : 0);
   const byId = Object.fromEntries(couplesOf().map(h => [h.id, h]));
   if (mode === 'land') {
-    const cid = process.argv[3], c = COUPLES.find(x => x[0] === cid);
-    if (!c) { console.error(`couples-open-panel: land <${COUPLES.map(x => x[0]).join('|')}>`); process.exit(2); }
+    const cid = process.argv[3], CS = couplesFor(), c = CS.find(x => x[0] === cid);
+    if (!c) { console.error(`couples-open-panel: land <one of ${CS.map(x => x[0]).join(', ')}>`); process.exit(2); }
     const cohort = c[1], h = byId[baseOf(cid)], t0 = Date.now(), variants = {};
     for (const v of Object.keys(VARIANTS)) {
       let label = null;
@@ -188,7 +229,30 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     writeFileSync(join(OUT, `${cid}.json`), JSON.stringify({ couple: cid, base: h.id, cohort, name: h.name, libraryTarget: E.num(h.plan.spending.targetSpend, 0), variants, code: id ? id.hash : 'unknown', head, secs: (Date.now() - t0) / 1000 }, null, 1) + '\n');
     console.log(`${cid} landed in ${Math.round((Date.now() - t0) / 1000)} s`);
   }
-  if (mode === 'combine') {
+  if (mode === 'freeze') {
+    if (existsSync(ORDERS)) { console.error('couples-open-panel: couples-open-orders.json exists; the order is taken once'); process.exit(2); }
+    const o = JSON.parse(readFileSync(ORDERS_FILE, 'utf8')), used = touchedAll();
+    for (const id of byIndex()) used.add(id);
+    for (const id of householdLineBases()) used.add(id);
+    for (const c of JSON.parse(readFileSync(join(HERE, 'household-hsp-panel.json'), 'utf8')).cohorts) for (const q of c.panel) used.add(q.base);
+    const ids = [...used].sort(), hash = createHash('sha256').update(ids.join(',')).digest('hex').slice(0, 12);
+    const pool = o.lib.filter(id => !used.has(id) && byId[id]), order = evenly(pool, N_REG);
+    writeFileSync(ORDERS, JSON.stringify({ built: new Date().toISOString(), from: 'couples-orders.json lib (D4\'s order); the younger cohort has no couple left untouched', touched: { count: ids.length, hash, ids }, untouchedYoung: o.young.filter(id => !used.has(id) && byId[id]).length, order }, null, 1) + '\n');
+    console.log(`frozen: the four ${order.slice(0, N_REG).join(', ')}, then ${order.length - N_REG} reserves; touched ${ids.length} ids (hash ${hash})`);
+  }
+  if (mode === 'combine' && REG) {
+    const order = couplesFor().map(x => x[0]), lands = Object.fromEntries(order.filter(id => existsSync(join(OUT, `${id}.json`))).map(id => [id, JSON.parse(readFileSync(join(OUT, `${id}.json`), 'utf8'))]));
+    const w = walkReg(order, lands);
+    console.log(`the registered panel: ${w.panel.length} couples${w.passed.length ? `; passed over ${w.passed.map(x => `${x.id} (${x.not.join('; ')})`).join('; ')}` : ''}${w.gap ? `; stopped at the first not yet landed, ${w.gap}` : ''}`);
+    if (w.panel.length < N_REG) { console.log('panel: INCOMPLETE, land more of the order'); process.exit(1); }
+    const codes = new Set(w.panel.map(id => lands[id].code));
+    if (codes.size !== 1) { console.log(`panel: the landings are on ${codes.size} codes (${[...codes].join(', ')}): land them again on one`); process.exit(1); }
+    const couples = w.panel.map(cid => { const L = lands[cid]; return { couple: cid, base: L.base, cohort: 'lib', units: Object.keys(VARIANTS).map(v => ({ id: unitIdOf(cid, v), variant: v, cls: VARIANTS[v].cls, target: L.variants[v].target, survival: L.variants[v].survival, label: L.variants[v].label, why: L.variants[v].guard.why, share: L.variants[v].guard.share, route: L.variants[v].route.route })) }; });
+    writeFileSync(PANEL, JSON.stringify({ built: new Date().toISOString(), code: [...codes][0], passed: w.passed, couples }, null, 1) + '\n');
+    const S = couples.flatMap(c => c.units.map(u => u.survival));
+    console.log(`panel: ${couples.length} couples, ${S.length} units, to ${PANEL} on code ${[...codes][0]}; arm A from ${Math.min(...S).toFixed(1)}% to ${Math.max(...S).toFixed(1)}%`);
+  }
+  if (mode === 'combine' && !REG) {
     const codes = new Set(), couples = [], bad = [];
     for (const [cid, cohort] of COUPLES) {
       const f = join(OUT, `${cid}.json`);
@@ -206,7 +270,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   if (mode === 'summary') {
     const j = JSON.parse(readFileSync(PANEL, 'utf8')), units = readOpenPanel();
-    console.log(`THE GUARD'S OWN UNITS, THE DRESS REHEARSAL'S PANEL (EXPLORATORY; COUPLES-OPEN.md step 1): couples-open-panel.json, built ${j.built}, code ${j.code}`);
+    console.log(REG ? `THE GUARD'S OWN UNITS, THE REGISTERED TEST'S PANEL (COUPLES-OPEN.md step 2): couples-open-registered-panel.json, built ${j.built}, code ${j.code}; passed over: ${(j.passed || []).length ? j.passed.map(x => `${x.id} (${x.not.join('; ')})`).join('; ') : 'none'}` : `THE GUARD'S OWN UNITS, THE DRESS REHEARSAL'S PANEL (EXPLORATORY; COUPLES-OPEN.md step 1): couples-open-panel.json, built ${j.built}, code ${j.code}`);
     for (const c of j.couples) {
       const d = byId[baseOf(c.couple)].plan.demographics;
       console.log(`${c.couple} (${c.cohort}; as the library holds it, ages ${d.currentAgeSelf}/${d.currentAgePart}):`);

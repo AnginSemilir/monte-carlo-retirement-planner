@@ -97,6 +97,10 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
       holding 75%); Y at an age gap over three years without other income;
     - a couple entered younger first (its mirror; every unit has the elder first);
     - a couple with no minimum pot set (every unit sets one);
+    - other taxable income paid while the household cannot yet draw a pension (before the access age of 58): G12R's rent
+      runs before the state pension age but after pension access on every registered couple, so the guard test's harmed
+      shape (S149's rent from 56, on today's route) is read in two halves by different runs, by inference (the design
+      review's second look, MINOR 1);
     - a couple retiring before the pension access age of 58 (no registered couple does; 30 of the 83 held-out couples do):
       the dress rehearsal's younger cohort (S351F and S357F, retiring at 52) read it, EXPLORATORY;
     - the younger cohort (the dress rehearsal and its addendum alone);
@@ -117,7 +121,7 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
   - each arm at its configuration, ROUTE on the page's own context.
   - A part of a unit's run saved before a restart is taken up again only under the same stamp and the same tables.
 - **What the pilot shows** (`results-couples-open-sizing.txt`; the 44 registered units, 1,000 paths of seed 7002, run 22 Nov 19:02 to 19:29 UK on the final files, EXPLORATORY):
-  - ROUTE against APP from `+9.00` to `+13.80` points on every unit; by class the mean Y `+10.94`, E `+11.11`, S `+10.53`, G
+  - ROUTE against APP from `+8.90` to `+13.80` points on every unit; by class the mean Y `+10.94`, E `+11.11`, S `+10.53`, G
     `+11.27`. D34's chance of flagging a unit at 25,000 paths with no true change is at most `0.004`; at the pilot's gains it
     is nought.
   - M1, by the read's own rule, names 8 of S037's 11 units (S037 retired, 68/65): spending on the paths both keep from
@@ -129,5 +133,5 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
   - Beside it, the dress rehearsal (every class passing, `results-couples-open-rehearsal.txt`) and its addendum
     (`results-couples-open-addendum.txt`).
 - **Budget:** `14.8` core-hours over the 44 units and the longest once more for a relaunch; about `3.9` hours on four cores in the batch's order (`results-couples-open-sizing.txt`, measured from the pilot on this machine, D21).
-- **The launch:** the agent launches once the design review passes (D140 (3)), seed 7026 reserved (D140 (1)), its stamp `code 36e4d2a860b2 audit f9b56fb0b6a1` (`MODE=registered TODO_ONLY=1 PREDICTION_FILE=research/solver/registrations/couples-open.md bash research/solver/batch-couples-open.sh` prints it and the 44 units), the stamp the launch commit carries; a stamped file changed before launch changes it, and then this line with it.
-- **Design review:** to come (the `reviewer` agent, before launch).
+- **The launch:** the agent launches once the design review passes (D140 (3)), seed 7026 reserved (D140 (1)), on the stamp the design review passed: `code 36e4d2a860b2 audit f9b56fb0b6a1`, the 44 units at 25,000 paths (`MODE=registered TODO_ONLY=1 PREDICTION_FILE=research/solver/registrations/couples-open.md bash research/solver/batch-couples-open.sh` prints it). A launch on any other stamp comes back to the reviewer first (the design review's second look, MINOR 2).
+- **Design review:** PASS on its second look (`research/solver/reviews/2026-11-22-couples-open-design-2.md`, three MINORs answered in this file), after the first's FAIL answered in one fix (`research/solver/reviews/2026-11-22-couples-open-design.md`; `COUPLES-OPEN.md` amendment 3).

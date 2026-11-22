@@ -1,7 +1,8 @@
 /*
  * PART C PHASE 9: THE STRATEGY TAB UNDER THE SOLVER'S SWITCH (the launch plan section 4; since step U, the new planner's Your plan, src/PlannerPlan.jsx). REQUIRED.
  *
- * 1. The served build, not opted in (rp_planner unset: the classic planner, the switch-off app bit for bit since Phase 12): the
+ * 1. The served build, the classic planner chosen (rp_planner 'classic', since 22 Nov 2026 when the new planner became the
+ *    default; unset before it; the switch-off app bit for bit since Phase 12): the
  *    Strategy tab is the tournament as today, and no solver code is fetched.
  * 2. A preview build with the switch on at this harness's light settings (vite.config.js solver-preview; the strategy's
  *    steps 200 then 500 paths), opted in to the new planner (rp_planner 'new': step U, LAYOUT.md section 11.2), a single
@@ -121,9 +122,9 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     return JSON.stringify(actionsOf(E, solveForApp(E, M, pl, light), pl, { seed, n: light.strategyActionsN }).actions);
   }, { pl, light: LIGHT, seed: SEED }));
 
-  // 1. not opted in (Phase 12: the switch is on in the source, so a visitor who has not opted in is the switch-off case; the
+  // 1. the classic planner, chosen (rp_planner 'classic': the new planner the default since 22 Nov 2026) (Phase 12: the switch is on in the source, so a visitor who has not opted in is the switch-off case; the
   // gate's served build, either mode's)
-  { const { p, errs, urls } = await open(b, PORT, planOf(CASES.main), { planner: null }), s = await tab(p);
+  { const { p, errs, urls } = await open(b, PORT, planOf(CASES.main), { planner: 'classic' }), s = await tab(p);
     ok('not opted in (the classic planner): the Strategy tab is the tournament, without the solver\'s view', s.tournament && !s.strategy && !s.couple, JSON.stringify(s));
     const got = urls.filter(u => /SolverStrategy|solverClient|solverWorker/.test(u));
     ok('not opted in: no solver code fetched', got.length === 0, got.join(', ') || `${urls.length} requests`);

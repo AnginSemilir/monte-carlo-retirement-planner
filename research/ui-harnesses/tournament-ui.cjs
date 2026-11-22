@@ -1,5 +1,6 @@
 // The tournament's final scoring now runs as one batch across the worker pool: does it still finish, rank, and time reasonably?
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const PORT = process.argv[2] || '5173';
 const GIA = 'Other Investments (e.g. GIA)';
 const plan = {

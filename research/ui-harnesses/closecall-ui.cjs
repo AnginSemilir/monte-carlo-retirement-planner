@@ -1,6 +1,7 @@
 // Drives the close-call branch. Plans: node -e 'import("./research/policy-study/scenarios.mjs").then(({buildScenarios})=>{const s=buildScenarios();const H=[{id:"k",relationship:"descendant",sharePct:100,income:60000}];const o={};for(const i of [224,210,378,182,42]){o[s[i].id]={...s[i].plan,inheritance:{...(s[i].plan.inheritance||{}),beneficiaries:H}}}require("fs").writeFileSync("plans.json",JSON.stringify(o))})'
 // Find a plan whose two runs disagree, and exercise the close-call card. Usage: node closecall-ui.cjs plans.json shotDir
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const fs = require('fs');
 const plans = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const SHOT = process.argv[3];

@@ -13,6 +13,7 @@
  * Run: node crossover-ui.cjs [port]
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const fs = require('fs');
 const PORT = process.argv[2] || '5181';
 // NO STYLESHEET IS INJECTED. These harnesses used to read a Tailwind build from /tmp and addStyleTag it,

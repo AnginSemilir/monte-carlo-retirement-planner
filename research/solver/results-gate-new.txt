@@ -1,4 +1,4 @@
-the code: code-stamp:dbf8ca69cf99214f; the new planner's mode
+the code: code-stamp:d2f0990247cc796e; the new planner's mode
 == build, the harnesses' light settings (SOLVER_HARNESS=1, into dist-new) ==
    ok
 == serve on :4173 ==
@@ -37,5 +37,3 @@ inheritance            optional  not run: SHOW_INHERITANCE is off
    not run in the new mode: they do not read the planner
 
 ALL REQUIRED GREEN
-
-== both modes: the classic planner green, the new planner green ==

@@ -1,4 +1,4 @@
-THE GUARD'S OWN UNITS, THE REGISTERED TEST'S PANEL (COUPLES-OPEN.md step 2): couples-open-registered-panel.json, built 2026-11-22T13:26:18.959Z, code 36e4d2a860b2; passed over: none
+THE GUARD'S OWN UNITS, THE REGISTERED TEST'S PANEL (COUPLES-OPEN.md step 2): couples-open-registered-panel.json, built 2026-11-22T15:43:02.737Z, code 36e4d2a860b2; passed over: none
 S037 (lib; as the library holds it, ages 68/65):
     S037-Y75     class Y; target 21700, arm A 84.4% (Bracket Fill Basic, lump sum); ages 68/65; the first person holds 25%; the guard off (uneven); the route household
     S037-Y90     class Y; target 21500, arm A 85.6% (Bracket Fill Basic); ages 68/65; the first person holds 10%; the guard off (uneven); the route household
@@ -9,8 +9,13 @@ S037 (lib; as the library holds it, ages 68/65):
     S037-G8      class G; target 33800, arm A 84.8% (Bracket Fill Basic, lump sum); ages 68/60; the first person holds 60%; the guard off (gapincome); the route household
     S037-G12     class G; target 33300, arm A 84.5% (Bracket Fill Basic, lump sum); ages 68/56; the first person holds 60%; the guard off (gapincome); the route household
     S037-G8Y75   class G; target 34000, arm A 84.6% (ISA First, lump sum); ages 68/60; the first person holds 25%; the guard off (uneven); the route household
-    S037-RY75    class R; target 21700, arm A 85.4% (Bracket Fill Basic (harvest off)); ages 68/65; the first person holds 25%; the guard off (uneven); the route today
-    S037-RWY75   class R; target 23700, arm A 84.7% (Bracket Fill (harvest off), lump sum); ages 68/65; the first person holds 25%; the guard off (uneven); the route today
+    S037-G12P    class G; target 25400, arm A 85.0% (ISA First, lump sum); ages 68/56; the first person holds 60%; the guard off (gapincome); the route household
+    S037-RY75    class RY; target 21700, arm A 85.4% (Bracket Fill Basic (harvest off)); ages 68/65; the first person holds 25%; the guard off (uneven); the route today
+    S037-RWY75   class RY; target 23700, arm A 84.7% (Bracket Fill (harvest off), lump sum); ages 68/65; the first person holds 25%; the guard off (uneven); the route today
+    S037-RE100   class RE; target 21500, arm A 85.4% (Bracket Fill, lump sum); ages 68/65; the first person holds 100%; the guard off (uneven); the route today
+    S037-RS75    class RS; target 23300, arm A 84.8% (Bracket Fill Basic (harvest off)); ages 68/68; the first person holds 75%; the guard off (uneven); the route today
+    S037-RG8     class RG; target 33800, arm A 84.9% (Bracket Fill Basic, lump sum); ages 68/60; the first person holds 60%; the guard off (gapincome); the route today
+    S037-RG12P   class RG; target 25400, arm A 85.9% (ISA First, lump sum); ages 68/56; the first person holds 60%; the guard off (gapincome); the route today
 S119 (lib; as the library holds it, ages 61/58):
     S119-Y75     class Y; target 94300, arm A 84.9% (Bracket Fill, lump sum); ages 61/58; the first person holds 25%; the guard off (uneven); the route household
     S119-Y90     class Y; target 94300, arm A 85.2% (Bracket Fill, lump sum); ages 61/58; the first person holds 10%; the guard off (uneven); the route household
@@ -21,8 +26,13 @@ S119 (lib; as the library holds it, ages 61/58):
     S119-G8      class G; target 102600, arm A 85.7% (Bracket Fill, lump sum); ages 61/53; the first person holds 60%; the guard off (gapincome); the route household
     S119-G12     class G; target 100500, arm A 85.2% (ISA First, lump sum); ages 61/49; the first person holds 60%; the guard off (gapincome); the route household
     S119-G8Y75   class G; target 100500, arm A 85.6% (Bracket Fill Basic); ages 61/53; the first person holds 25%; the guard off (uneven); the route household
-    S119-RY75    class R; target 96400, arm A 85.6% (Bracket Fill); ages 61/58; the first person holds 25%; the guard off (uneven); the route today
-    S119-RWY75   class R; target 96400, arm A 84.2% (Bracket Fill, lump sum); ages 61/58; the first person holds 25%; the guard off (uneven); the route today
+    S119-G12P    class G; target 96400, arm A 85.0% (Bracket Fill, lump sum); ages 61/49; the first person holds 60%; the guard off (gapincome); the route household
+    S119-RY75    class RY; target 96400, arm A 85.6% (Bracket Fill); ages 61/58; the first person holds 25%; the guard off (uneven); the route today
+    S119-RWY75   class RY; target 96400, arm A 84.2% (Bracket Fill, lump sum); ages 61/58; the first person holds 25%; the guard off (uneven); the route today
+    S119-RE100   class RE; target 92200, arm A 85.4% (Bracket Fill, lump sum); ages 61/58; the first person holds 100%; the guard off (uneven); the route today
+    S119-RS75    class RS; target 96400, arm A 85.0% (Bracket Fill, lump sum); ages 61/61; the first person holds 75%; the guard off (uneven); the route today
+    S119-RG8     class RG; target 104700, arm A 84.7% (Bracket Fill, lump sum); ages 61/53; the first person holds 60%; the guard off (gapincome); the route today
+    S119-RG12P   class RG; target 96400, arm A 85.6% (Sequential (harvest off), lump sum); ages 61/49; the first person holds 60%; the guard off (gapincome); the route today
 S199 (lib; as the library holds it, ages 55/52):
     S199-Y75     class Y; target 58900, arm A 84.8% (ISA First, lump sum); ages 55/52; the first person holds 25%; the guard off (uneven); the route household
     S199-Y90     class Y; target 59700, arm A 84.2% (ISA First, lump sum); ages 55/52; the first person holds 10%; the guard off (uneven); the route household
@@ -33,8 +43,13 @@ S199 (lib; as the library holds it, ages 55/52):
     S199-G8      class G; target 73300, arm A 85.2% (Bracket Fill Basic, lump sum); ages 55/47; the first person holds 60%; the guard off (gapincome); the route household
     S199-G12     class G; target 78400, arm A 85.7% (ISA First, lump sum); ages 55/43; the first person holds 60%; the guard off (gapincome); the route household
     S199-G8Y75   class G; target 73300, arm A 85.6% (Bracket Fill, lump sum); ages 55/47; the first person holds 25%; the guard off (uneven); the route household
-    S199-RY75    class R; target 59700, arm A 85.9% (Bracket Fill); ages 55/52; the first person holds 25%; the guard off (uneven); the route today
-    S199-RWY75   class R; target 54500, arm A 84.8% (ISA First, lump sum); ages 55/52; the first person holds 25%; the guard off (uneven); the route today
+    S199-G12P    class G; target 75000, arm A 84.1% (ISA First, lump sum); ages 55/43; the first person holds 60%; the guard off (gapincome); the route household
+    S199-RY75    class RY; target 59700, arm A 85.9% (Bracket Fill); ages 55/52; the first person holds 25%; the guard off (uneven); the route today
+    S199-RWY75   class RY; target 54500, arm A 84.8% (ISA First, lump sum); ages 55/52; the first person holds 25%; the guard off (uneven); the route today
+    S199-RE100   class RE; target 59700, arm A 85.1% (ISA First); ages 55/52; the first person holds 100%; the guard off (uneven); the route today
+    S199-RS75    class RS; target 54500, arm A 85.7% (Bracket Fill, lump sum); ages 55/55; the first person holds 75%; the guard off (uneven); the route today
+    S199-RG8     class RG; target 75000, arm A 84.4% (ISA First); ages 55/47; the first person holds 60%; the guard off (gapincome); the route today
+    S199-RG12P   class RG; target 75000, arm A 84.5% (ISA First, lump sum); ages 55/43; the first person holds 60%; the guard off (gapincome); the route today
 S279 (lib; as the library holds it, ages 45/42):
     S279-Y75     class Y; target 53200, arm A 84.7% (Bracket Fill Basic); ages 45/42; the first person holds 25%; the guard off (uneven); the route household
     S279-Y90     class Y; target 53200, arm A 84.6% (Bracket Fill Basic); ages 45/42; the first person holds 10%; the guard off (uneven); the route household
@@ -45,6 +60,11 @@ S279 (lib; as the library holds it, ages 45/42):
     S279-G8      class G; target 66500, arm A 85.6% (Windfall to ISA); ages 45/37; the first person holds 60%; the guard off (gapincome); the route household
     S279-G12     class G; target 69100, arm A 85.8% (Bracket Fill Basic, lump sum); ages 45/33; the first person holds 60%; the guard off (gapincome); the route household
     S279-G8Y75   class G; target 66500, arm A 85.3% (Windfall to ISA); ages 45/37; the first person holds 25%; the guard off (uneven); the route household
-    S279-RY75    class R; target 54600, arm A 85.2% (Bracket Fill, lump sum); ages 45/42; the first person holds 25%; the guard off (uneven); the route today
-    S279-RWY75   class R; target 37200, arm A 85.1% (ISA First, lump sum); ages 45/42; the first person holds 25%; the guard off (uneven); the route today
-44 units: Y 12, E 8, S 4, G 12, R 8; on the household route 36, on today's 8
+    S279-G12P    class G; target 63800, arm A 85.7% (Bracket Fill Basic, lump sum); ages 45/33; the first person holds 60%; the guard off (gapincome); the route household
+    S279-RY75    class RY; target 54600, arm A 85.2% (Bracket Fill, lump sum); ages 45/42; the first person holds 25%; the guard off (uneven); the route today
+    S279-RWY75   class RY; target 37200, arm A 85.1% (ISA First, lump sum); ages 45/42; the first person holds 25%; the guard off (uneven); the route today
+    S279-RE100   class RE; target 53200, arm A 84.0% (Bracket Fill Basic); ages 45/42; the first person holds 100%; the guard off (uneven); the route today
+    S279-RS75    class RS; target 50600, arm A 85.2% (Windfall to ISA); ages 45/45; the first person holds 75%; the guard off (uneven); the route today
+    S279-RG8     class RG; target 69100, arm A 84.1% (Bracket Fill Basic); ages 45/37; the first person holds 60%; the guard off (gapincome); the route today
+    S279-RG12P   class RG; target 65200, arm A 84.9% (Bracket Fill Basic, lump sum); ages 45/33; the first person holds 60%; the guard off (gapincome); the route today
+64 units: Y 12, E 8, S 4, G 16, RY 8, RE 4, RS 4, RG 8; on the household route 40, on today's 24

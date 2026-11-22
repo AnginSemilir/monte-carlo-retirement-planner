@@ -1,5 +1,5 @@
 {
- "built": "2026-11-22T11:32:45.454Z",
+ "built": "2026-11-22T15:43:00.798Z",
  "code": "36e4d2a860b2",
  "couples": [
   {
@@ -107,9 +107,20 @@
      "route": "household"
     },
     {
+     "id": "S025-G12P",
+     "variant": "G12P",
+     "cls": "G",
+     "target": 25900,
+     "survival": 85.7,
+     "label": "ISA First, lump sum",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "household"
+    },
+    {
      "id": "S025-RY75",
      "variant": "RY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 22600,
      "survival": 84.7,
      "label": "ISA First",
@@ -120,12 +131,56 @@
     {
      "id": "S025-RWY75",
      "variant": "RWY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 24500,
      "survival": 84.6,
      "label": "ISA First, lump sum",
      "why": "uneven",
      "share": 0.25,
+     "route": "today"
+    },
+    {
+     "id": "S025-RE100",
+     "variant": "RE100",
+     "cls": "RE",
+     "target": 22400,
+     "survival": 86,
+     "label": "ISA First, lump sum",
+     "why": "uneven",
+     "share": 1,
+     "route": "today"
+    },
+    {
+     "id": "S025-RS75",
+     "variant": "RS75",
+     "cls": "RS",
+     "target": 24300,
+     "survival": 84.39999999999999,
+     "label": "ISA First",
+     "why": "uneven",
+     "share": 0.75,
+     "route": "today"
+    },
+    {
+     "id": "S025-RG8",
+     "variant": "RG8",
+     "cls": "RG",
+     "target": 34200,
+     "survival": 84.89999999999999,
+     "label": "Bracket Fill Basic",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "today"
+    },
+    {
+     "id": "S025-RG12P",
+     "variant": "RG12P",
+     "cls": "RG",
+     "target": 26100,
+     "survival": 84.5,
+     "label": "ISA First, lump sum",
+     "why": "gapincome",
+     "share": 0.6,
      "route": "today"
     }
    ]
@@ -235,9 +290,20 @@
      "route": "household"
     },
     {
+     "id": "S273-G12P",
+     "variant": "G12P",
+     "cls": "G",
+     "target": 191300,
+     "survival": 84.2,
+     "label": "Bracket Fill Basic",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "household"
+    },
+    {
      "id": "S273-RY75",
      "variant": "RY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 166100,
      "survival": 84.89999999999999,
      "label": "Bracket Fill Basic",
@@ -248,12 +314,56 @@
     {
      "id": "S273-RWY75",
      "variant": "RWY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 110800,
      "survival": 85.2,
      "label": "Bracket Fill Basic",
      "why": "uneven",
      "share": 0.25,
+     "route": "today"
+    },
+    {
+     "id": "S273-RE100",
+     "variant": "RE100",
+     "cls": "RE",
+     "target": 161000,
+     "survival": 84.8,
+     "label": "Bracket Fill Basic, lump sum",
+     "why": "uneven",
+     "share": 1,
+     "route": "today"
+    },
+    {
+     "id": "S273-RS75",
+     "variant": "RS75",
+     "cls": "RS",
+     "target": 161000,
+     "survival": 84,
+     "label": "Bracket Fill Basic",
+     "why": "uneven",
+     "share": 0.75,
+     "route": "today"
+    },
+    {
+     "id": "S273-RG8",
+     "variant": "RG8",
+     "cls": "RG",
+     "target": 186300,
+     "survival": 84.8,
+     "label": "Bracket Fill Basic",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "today"
+    },
+    {
+     "id": "S273-RG12P",
+     "variant": "RG12P",
+     "cls": "RG",
+     "target": 191300,
+     "survival": 84.7,
+     "label": "Bracket Fill Basic",
+     "why": "gapincome",
+     "share": 0.6,
      "route": "today"
     }
    ]
@@ -363,9 +473,20 @@
      "route": "household"
     },
     {
+     "id": "S351F-G12P",
+     "variant": "G12P",
+     "cls": "G",
+     "target": 50400,
+     "survival": 84.7,
+     "label": "Bracket Fill",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "household"
+    },
+    {
      "id": "S351F-RY75",
      "variant": "RY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 44800,
      "survival": 84.89999999999999,
      "label": "Bracket Fill",
@@ -376,12 +497,56 @@
     {
      "id": "S351F-RWY75",
      "variant": "RWY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 32500,
      "survival": 84.6,
      "label": "Bracket Fill",
      "why": "uneven",
      "share": 0.25,
+     "route": "today"
+    },
+    {
+     "id": "S351F-RE100",
+     "variant": "RE100",
+     "cls": "RE",
+     "target": 42600,
+     "survival": 85.9,
+     "label": "Bracket Fill Basic",
+     "why": "uneven",
+     "share": 1,
+     "route": "today"
+    },
+    {
+     "id": "S351F-RS75",
+     "variant": "RS75",
+     "cls": "RS",
+     "target": 41500,
+     "survival": 84.8,
+     "label": "Bracket Fill, lump sum",
+     "why": "uneven",
+     "share": 0.75,
+     "route": "today"
+    },
+    {
+     "id": "S351F-RG8",
+     "variant": "RG8",
+     "cls": "RG",
+     "target": 52600,
+     "survival": 85.7,
+     "label": "Bracket Fill",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "today"
+    },
+    {
+     "id": "S351F-RG12P",
+     "variant": "RG12P",
+     "cls": "RG",
+     "target": 51500,
+     "survival": 84.39999999999999,
+     "label": "Bracket Fill",
+     "why": "gapincome",
+     "share": 0.6,
      "route": "today"
     }
    ]
@@ -491,9 +656,20 @@
      "route": "household"
     },
     {
+     "id": "S357F-G12P",
+     "variant": "G12P",
+     "cls": "G",
+     "target": 131300,
+     "survival": 84.89999999999999,
+     "label": "Bracket Fill Basic",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "household"
+    },
+    {
      "id": "S357F-RY75",
      "variant": "RY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 119000,
      "survival": 84,
      "label": "Bracket Fill",
@@ -504,12 +680,56 @@
     {
      "id": "S357F-RWY75",
      "variant": "RWY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 84200,
      "survival": 84.6,
      "label": "Bracket Fill",
      "why": "uneven",
      "share": 0.25,
+     "route": "today"
+    },
+    {
+     "id": "S357F-RE100",
+     "variant": "RE100",
+     "cls": "RE",
+     "target": 110800,
+     "survival": 85.39999999999999,
+     "label": "Bracket Fill Basic, lump sum",
+     "why": "uneven",
+     "share": 1,
+     "route": "today"
+    },
+    {
+     "id": "S357F-RS75",
+     "variant": "RS75",
+     "cls": "RS",
+     "target": 106700,
+     "survival": 85.39999999999999,
+     "label": "Bracket Fill, lump sum",
+     "why": "uneven",
+     "share": 0.75,
+     "route": "today"
+    },
+    {
+     "id": "S357F-RG8",
+     "variant": "RG8",
+     "cls": "RG",
+     "target": 131300,
+     "survival": 84.7,
+     "label": "Bracket Fill",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "today"
+    },
+    {
+     "id": "S357F-RG12P",
+     "variant": "RG12P",
+     "cls": "RG",
+     "target": 135400,
+     "survival": 84.6,
+     "label": "Bracket Fill Basic",
+     "why": "gapincome",
+     "share": 0.6,
      "route": "today"
     }
    ]

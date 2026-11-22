@@ -1,5 +1,5 @@
 {
- "built": "2026-11-22T13:26:18.959Z",
+ "built": "2026-11-22T15:43:02.737Z",
  "code": "36e4d2a860b2",
  "passed": [],
  "couples": [
@@ -108,9 +108,20 @@
      "route": "household"
     },
     {
+     "id": "S037-G12P",
+     "variant": "G12P",
+     "cls": "G",
+     "target": 25400,
+     "survival": 85,
+     "label": "ISA First, lump sum",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "household"
+    },
+    {
      "id": "S037-RY75",
      "variant": "RY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 21700,
      "survival": 85.39999999999999,
      "label": "Bracket Fill Basic (harvest off)",
@@ -121,12 +132,56 @@
     {
      "id": "S037-RWY75",
      "variant": "RWY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 23700,
      "survival": 84.7,
      "label": "Bracket Fill (harvest off), lump sum",
      "why": "uneven",
      "share": 0.25,
+     "route": "today"
+    },
+    {
+     "id": "S037-RE100",
+     "variant": "RE100",
+     "cls": "RE",
+     "target": 21500,
+     "survival": 85.39999999999999,
+     "label": "Bracket Fill, lump sum",
+     "why": "uneven",
+     "share": 1,
+     "route": "today"
+    },
+    {
+     "id": "S037-RS75",
+     "variant": "RS75",
+     "cls": "RS",
+     "target": 23300,
+     "survival": 84.8,
+     "label": "Bracket Fill Basic (harvest off)",
+     "why": "uneven",
+     "share": 0.75,
+     "route": "today"
+    },
+    {
+     "id": "S037-RG8",
+     "variant": "RG8",
+     "cls": "RG",
+     "target": 33800,
+     "survival": 84.89999999999999,
+     "label": "Bracket Fill Basic, lump sum",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "today"
+    },
+    {
+     "id": "S037-RG12P",
+     "variant": "RG12P",
+     "cls": "RG",
+     "target": 25400,
+     "survival": 85.9,
+     "label": "ISA First, lump sum",
+     "why": "gapincome",
+     "share": 0.6,
      "route": "today"
     }
    ]
@@ -236,9 +291,20 @@
      "route": "household"
     },
     {
+     "id": "S119-G12P",
+     "variant": "G12P",
+     "cls": "G",
+     "target": 96400,
+     "survival": 85,
+     "label": "Bracket Fill, lump sum",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "household"
+    },
+    {
      "id": "S119-RY75",
      "variant": "RY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 96400,
      "survival": 85.6,
      "label": "Bracket Fill",
@@ -249,12 +315,56 @@
     {
      "id": "S119-RWY75",
      "variant": "RWY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 96400,
      "survival": 84.2,
      "label": "Bracket Fill, lump sum",
      "why": "uneven",
      "share": 0.25,
+     "route": "today"
+    },
+    {
+     "id": "S119-RE100",
+     "variant": "RE100",
+     "cls": "RE",
+     "target": 92200,
+     "survival": 85.39999999999999,
+     "label": "Bracket Fill, lump sum",
+     "why": "uneven",
+     "share": 1,
+     "route": "today"
+    },
+    {
+     "id": "S119-RS75",
+     "variant": "RS75",
+     "cls": "RS",
+     "target": 96400,
+     "survival": 85,
+     "label": "Bracket Fill, lump sum",
+     "why": "uneven",
+     "share": 0.75,
+     "route": "today"
+    },
+    {
+     "id": "S119-RG8",
+     "variant": "RG8",
+     "cls": "RG",
+     "target": 104700,
+     "survival": 84.7,
+     "label": "Bracket Fill, lump sum",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "today"
+    },
+    {
+     "id": "S119-RG12P",
+     "variant": "RG12P",
+     "cls": "RG",
+     "target": 96400,
+     "survival": 85.6,
+     "label": "Sequential (harvest off), lump sum",
+     "why": "gapincome",
+     "share": 0.6,
      "route": "today"
     }
    ]
@@ -364,9 +474,20 @@
      "route": "household"
     },
     {
+     "id": "S199-G12P",
+     "variant": "G12P",
+     "cls": "G",
+     "target": 75000,
+     "survival": 84.1,
+     "label": "ISA First, lump sum",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "household"
+    },
+    {
      "id": "S199-RY75",
      "variant": "RY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 59700,
      "survival": 85.9,
      "label": "Bracket Fill",
@@ -377,12 +498,56 @@
     {
      "id": "S199-RWY75",
      "variant": "RWY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 54500,
      "survival": 84.8,
      "label": "ISA First, lump sum",
      "why": "uneven",
      "share": 0.25,
+     "route": "today"
+    },
+    {
+     "id": "S199-RE100",
+     "variant": "RE100",
+     "cls": "RE",
+     "target": 59700,
+     "survival": 85.1,
+     "label": "ISA First",
+     "why": "uneven",
+     "share": 1,
+     "route": "today"
+    },
+    {
+     "id": "S199-RS75",
+     "variant": "RS75",
+     "cls": "RS",
+     "target": 54500,
+     "survival": 85.7,
+     "label": "Bracket Fill, lump sum",
+     "why": "uneven",
+     "share": 0.75,
+     "route": "today"
+    },
+    {
+     "id": "S199-RG8",
+     "variant": "RG8",
+     "cls": "RG",
+     "target": 75000,
+     "survival": 84.39999999999999,
+     "label": "ISA First",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "today"
+    },
+    {
+     "id": "S199-RG12P",
+     "variant": "RG12P",
+     "cls": "RG",
+     "target": 75000,
+     "survival": 84.5,
+     "label": "ISA First, lump sum",
+     "why": "gapincome",
+     "share": 0.6,
      "route": "today"
     }
    ]
@@ -492,9 +657,20 @@
      "route": "household"
     },
     {
+     "id": "S279-G12P",
+     "variant": "G12P",
+     "cls": "G",
+     "target": 63800,
+     "survival": 85.7,
+     "label": "Bracket Fill Basic, lump sum",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "household"
+    },
+    {
      "id": "S279-RY75",
      "variant": "RY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 54600,
      "survival": 85.2,
      "label": "Bracket Fill, lump sum",
@@ -505,12 +681,56 @@
     {
      "id": "S279-RWY75",
      "variant": "RWY75",
-     "cls": "R",
+     "cls": "RY",
      "target": 37200,
      "survival": 85.1,
      "label": "ISA First, lump sum",
      "why": "uneven",
      "share": 0.25,
+     "route": "today"
+    },
+    {
+     "id": "S279-RE100",
+     "variant": "RE100",
+     "cls": "RE",
+     "target": 53200,
+     "survival": 84,
+     "label": "Bracket Fill Basic",
+     "why": "uneven",
+     "share": 1,
+     "route": "today"
+    },
+    {
+     "id": "S279-RS75",
+     "variant": "RS75",
+     "cls": "RS",
+     "target": 50600,
+     "survival": 85.2,
+     "label": "Windfall to ISA",
+     "why": "uneven",
+     "share": 0.75,
+     "route": "today"
+    },
+    {
+     "id": "S279-RG8",
+     "variant": "RG8",
+     "cls": "RG",
+     "target": 69100,
+     "survival": 84.1,
+     "label": "Bracket Fill Basic",
+     "why": "gapincome",
+     "share": 0.6,
+     "route": "today"
+    },
+    {
+     "id": "S279-RG12P",
+     "variant": "RG12P",
+     "cls": "RG",
+     "target": 65200,
+     "survival": 84.89999999999999,
+     "label": "Bracket Fill Basic, lump sum",
+     "why": "gapincome",
+     "share": 0.6,
      "route": "today"
     }
    ]

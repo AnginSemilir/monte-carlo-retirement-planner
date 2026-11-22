@@ -5,8 +5,9 @@
  * audit, seed, Node version, count of paths and points; each arm at its configuration (audit-couples-open.mjs configOf), every
  * array one a path; each unit's guard off for its class's reason and its route the panel's; each unit's own launch log with its
  * done line.
- * Then the rule, ROUTE against APP, for each class (Y, E, S, G, R; couples-open-panel.mjs), as step 8's (reduce-household-hsp.mjs
- * compare) with APP as the base:
+ * Then the rule, ROUTE against APP, for each class on its own route (couples-open-panel.mjs CLASSES: Y, E, S and G on the
+ * household route, RY, RE, RS and RG on today's; until 22 Nov's amendment the rehearsal's R was RY), as step 8's
+ * (reduce-household-hsp.mjs compare) with APP as the base:
  *   1. NO HARM: no unit of the class flagged by D34's harm rule (reduce-couples.mjs harmOf: the loss over the unit's paths
  *      against the threshold its realised discordance sets), compared in whole paths (reduce-share-rules.mjs harmExact);
  *   2. A GAIN: the class's pooled survival change with its 95% interval's lower end above nought, the interval by path
@@ -15,8 +16,12 @@
  *      those paths, the units weighted equally (reduce-household-hsp.mjs keptSpend), its point not lower than -0.05%.
  * A class passing all three OPENS (its part of the guard would come off, in a registered test); otherwise it STAYS, with its
  * parts and its units. Beside, deciding nothing: each unit's survival under both arms, its change and harm threshold, its
- * spending on the paths both keep, the mean pot left (uncapped and capped at the route's estate caps), lifetime tax, the route
- * and the times.
+ * spending on the paths both keep, its spending over all paths (reduce-phase4.mjs spendingItem, since 22 Nov: the rehearsal
+ * read's reviewer, MINOR 4) with the units below beyond noise named, the mean pot left (uncapped and capped at the route's
+ * estate caps), lifetime tax in percent and in pounds a path, the route, each arm's MPAA ages and the times.
+ * THE DRESS REHEARSAL'S ADDENDUM (COUPLES-OPEN.md amendment 1): the five units added to every couple after the rehearsal's read
+ * (couples-open-panel.mjs ADDENDUM), read on their own by the same rule, the gate as the rehearsal's on their own units:
+ *   node research/solver/reduce-couples-open.mjs --addendum [dir] > research/solver/results-couples-open-addendum.txt
  * THE REGISTERED TEST (registrations/couples-open.md; REG=1, the registered panel): the stamps against the registration's git
  * blob (fair-gate.mjs requireFairLogs), the gate at the held-out seed and couples-open-paths.json's paths, then the rule as
  * above, and M1 by unit (D116; as step 8's): a unit where ROUTE keeps more paths but spends less on the paths both keep beyond
@@ -31,13 +36,13 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { survivalItem } from './reduce-phase4.mjs';
+import { survivalItem, spendingItem } from './reduce-phase4.mjs';
 import { harmExact } from './reduce-share-rules.mjs';
 import { cells } from './reduce-household.mjs';
 import { keptSpend } from './reduce-household-hsp.mjs';
 import { requireFairLogs } from './fair-gate.mjs';
-import { ARMS, KEYS, SEED, W, N_DEFAULT, HELD, PILOT_N, REGISTRATION, PATHS_FILE, configOf, stampFilesHash } from './audit-couples-open.mjs';
-import { CLASSES, WANT } from './couples-open-panel.mjs';
+import { ARMS, KEYS, SEED, W, N_DEFAULT, HELD, PILOT_N, REGISTRATION, PATHS_FILE, ROUTE_CTX, configOf, stampFilesHash, unitsOf } from './audit-couples-open.mjs';
+import { CLASSES, WANT, ROUTE_OF_CLASS } from './couples-open-panel.mjs';
 import { APP_POINTS } from '../../src/solverSettings.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -68,6 +73,8 @@ export function gate(units, want, { seed = SEED, n = N_DEFAULT, pts = APP_POINTS
     if (u.W !== W) P.push(`${u.id}: estate weight ${u.W}, not ${W}`);
     if (!u.guard || u.guard.on || u.guard.why !== (WANT[u.variant] || {}).why) P.push(`${u.id}: the guard ${u.guard ? (u.guard.on ? 'on' : `off for '${u.guard.why}'`) : 'unrecorded'}, not off for its class's '${(WANT[u.variant] || {}).why}'`);
     if (w && u.route !== w.route) P.push(`${u.id}: the route '${u.route}', not the panel's '${w.route}'`);
+    if (u.routeCtx !== ROUTE_CTX) P.push(`${u.id}: ROUTE's context '${u.routeCtx}', not the page's ('${ROUTE_CTX}')`);
+    if (u.cls && ROUTE_OF_CLASS[u.cls] !== u.route) P.push(`${u.id}: class ${u.cls} on the route '${u.route}', not its class's '${ROUTE_OF_CLASS[u.cls]}'`);
     for (const arm of ARMS) {
       const A = u.arms && u.arms[arm];
       if (!A) { P.push(`${u.id} ${arm}: missing`); continue; }
@@ -91,7 +98,7 @@ export function compareClass(units) {
   const ns = [...new Set(units.map(u => u.N))];
   if (ns.length !== 1) throw new Error(`reduce-couples-open: the units run ${ns.join(', ')} paths, not one count`);
   const n = ns[0], rows = units.map(u => ({ id: u.id, variant: u.variant, route: u.route, cells: cells(u.arms.APP, u.arms.ROUTE), ...harmExact(u.arms.ROUTE, u.arms.APP, u.N) }));
-  return { rows, pooled: survivalItem(units.map(u => [u.arms.ROUTE, u.arms.APP]), n), kept: keptSpend(units, 'APP', 'ROUTE', n) };
+  return { rows, pooled: survivalItem(units.map(u => [u.arms.ROUTE, u.arms.APP]), n), kept: keptSpend(units, 'APP', 'ROUTE', n), all: spendingItem(units.map(u => [u.arms.ROUTE, u.arms.APP]), n) };
 }
 /* the rule, each class on its own */
 export function rule(units) {
@@ -112,7 +119,9 @@ export function m1ByUnit(units) {
     return { id: u.id, net: c.saved - c.lost, kept: kp, all: pct(u.arms.APP.delivered, u.arms.ROUTE.delivered), cap, named: c.saved - c.lost > 0 && kp.hi < 0 };
   });
 }
-export const CLASS_NAMES = Object.freeze({ Y: 'the younger partner holding most', E: 'the elder holding more than 90%', S: 'the two the same age, outside 40% to 60%', G: 'more than three years apart with other taxable income', R: 'a shape the household plan refuses (today\'s route)' });
+export const CLASS_NAMES = Object.freeze({ Y: 'the younger partner holding most, the household route', E: 'the elder holding more than 90%, the household route', S: 'the two the same age, outside 40% to 60%, the household route', G: 'more than three years apart with other taxable income, the household route', RY: 'the younger partner holding most, today\'s route', RE: 'the elder holding more than 90%, today\'s route', RS: 'the two the same age, outside 40% to 60%, today\'s route', RG: 'more than three years apart with other taxable income, today\'s route' });
+/* a unit's spending over all paths, ROUTE against APP, in percent of APP's mean, by path (beside the rule, deciding nothing) */
+export const allSpendOf = u => spendingItem([[u.arms.ROUTE, u.arms.APP]], u.N);
 export function report(units, { registered = false } = {}) {
   const R = rule(units), out = [];
   for (const [k, r] of Object.entries(R)) {
@@ -121,11 +130,14 @@ export function report(units, { registered = false } = {}) {
     out.push(`  1. no harm by D34: ${p.harm ? 'HOLDS' : `FAILS on ${r.flagged.map(x => x.id).join(', ')}`}`);
     out.push(`  2. a gain: pooled survival ${iv(r.C.pooled)} points, by path, its lower end above ${POOL_BAR}: ${p.gain ? 'HOLDS' : 'FAILS'}`);
     out.push(`  3. spending on the paths both keep ${iv(r.C.kept, f4)}%, the units weighted equally, not below ${SPEND_BAR}%: ${p.spend ? 'HOLDS' : 'FAILS'}`);
+    out.push(`     beside, not a bar: spending over all paths ${iv(r.C.all, f4)}%, the units weighted equally`);
     for (const row of r.C.rows) {
-      const u = units.find(x => x.id === row.id), A = u.arms.APP, X = u.arms.ROUTE, kp = keptSpend([u], 'APP', 'ROUTE', u.N), cap = capped(sum(u.caps || []), A.pot, X.pot);
-      out.push(`    ${row.id.padEnd(12)} ${row.route.padEnd(9)} APP ${surv(A).toFixed(2)}% ROUTE ${surv(X).toFixed(2)}%; ${row.lost} lost, ${row.saved} saved of ${row.n}, the threshold ${row.j} paths${row.flag ? ' FLAGGED' : ''}; spending on the paths both keep ${f4(kp.d)}%; the mean pot ${f3(pct(A.pot, X.pot))}%${cap ? `, capped ${f3(cap.pct)}% (${gbp(cap.gbp)} a path)` : ''}; lifetime tax ${f3(pct(A.tax, X.tax))}%`);
+      const u = units.find(x => x.id === row.id), A = u.arms.APP, X = u.arms.ROUTE, kp = keptSpend([u], 'APP', 'ROUTE', u.N), al = allSpendOf(u), cap = capped(sum(u.caps || []), A.pot, X.pot);
+      out.push(`    ${row.id.padEnd(12)} ${row.route.padEnd(9)} APP ${surv(A).toFixed(2)}% ROUTE ${surv(X).toFixed(2)}%; ${row.lost} lost, ${row.saved} saved of ${row.n}, the threshold ${row.j} paths${row.flag ? ' FLAGGED' : ''}; spending on the paths both keep ${f4(kp.d)}%, over all paths ${iv(al, f4)}%; the mean pot ${f3(pct(A.pot, X.pot))}%${cap ? `, capped ${f3(cap.pct)}% (${gbp(cap.gbp)} a path)` : ''}; lifetime tax ${f3(pct(A.tax, X.tax))}% (APP ${gbp(sum(A.tax) / A.tax.length)}, ROUTE ${gbp(sum(X.tax) / X.tax.length)} a path)${u.mpaa ? `; MPAA ages APP ${u.mpaa.APP.join('/')}, ROUTE ${u.mpaa.ROUTE.join('/')}` : ''}`);
     }
   }
+  const below = units.map(u => ({ id: u.id, al: allSpendOf(u) })).filter(x => x.al.hi < 0);
+  out.push(`SPENDING OVER ALL PATHS (beside, not a bar): units where ROUTE delivers less lifetime spending than APP beyond noise: ${below.length ? below.map(x => `${x.id} ${iv(x.al, f4)}%`).join('; ') : 'none'}`);
   const m1 = m1ByUnit(units).filter(x => x.named);
   out.push(`M1 by unit (D116; named, not a bar): ${m1.length ? m1.map(x => `${x.id} (${x.net} paths kept net; spending on the paths both keep ${iv(x.kept, f4)}%, over all paths ${f3(x.all)}%; the pot capped ${x.cap ? `${f3(x.cap.pct)}% (${gbp(x.cap.gbp)} a path)` : 'no cap'})`).join('; ') : 'none: no unit keeps more paths and spends less on the paths both keep beyond noise'}`);
   const opens = Object.entries(R).filter(([, r]) => r.outcome === 'OPENS').map(([k]) => k), stays = Object.entries(R).filter(([, r]) => r.outcome !== 'OPENS').map(([k]) => k);
@@ -139,9 +151,11 @@ export function report(units, { registered = false } = {}) {
 const median = a => { const s = [...a].sort((p, q) => p - q), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
 
 /* planted units: each arm's survival as given, path by path */
+const VAR_OF = { Y: 'Y75', E: 'E95', S: 'S75', G: 'G8', RY: 'RY75', RE: 'RE100', RS: 'RS75', RG: 'RG8' };
 function unit(id, k, cls, app, route, { n = 2000, deliveredDrop = 0 } = {}) {
   const mk = (surv, drop) => ({ config: null, survived: Uint8Array.from({ length: n }, (_, i) => (surv(i) ? 1 : 0)), failYear: new Int16Array(n), pot: new Float64Array(n).fill(1e5), estate: new Float64Array(n), tax: new Float64Array(n), delivered: new Float64Array(n).fill(100 - drop), unmet: new Float64Array(n), cpuUs: n * 1000, solveSecs: 1 });
-  return { id, k, cls, variant: cls === 'G' ? 'G8' : 'Y75', route: cls === 'R' ? 'today' : 'household', N: n, seed: SEED, pts: APP_POINTS, W, stamp: { code: 'c', audit: 'a', node: 'v' }, guard: { on: false, why: cls === 'G' ? 'gapincome' : 'uneven' }, caps: [5e4, 0], arms: { APP: mk(app, 0), ROUTE: mk(route, deliveredDrop) } };
+  const variant = VAR_OF[cls];
+  return { id, k, cls, variant, route: ROUTE_OF_CLASS[cls], N: n, seed: SEED, pts: APP_POINTS, W, stamp: { code: 'c', audit: 'a', node: 'v' }, guard: { on: false, why: WANT[variant].why }, routeCtx: ROUTE_CTX, caps: [5e4, 0], arms: { APP: mk(app, 0), ROUTE: mk(route, deliveredDrop) } };
 }
 function planted() {
   const cases = [], n = 2000;
@@ -149,6 +163,7 @@ function planted() {
   const gain = i => i % 10 !== 0 || i % 20 === 0;                       // ROUTE saves half the paths APP loses: +5 points
   const harm = i => i % 10 !== 0 && i % 7 !== 0;                        // ROUTE loses about 13 points more
   const same = i => i % 10 !== 0;
+  const thin = i => (i % 10 !== 0 && i % 80 !== 1) || i % 60 === 0;   // ROUTE loses 25 paths APP keeps and saves 34: +0.45 points, within noise
   { const R = rule([unit('a', 0, 'Y', base, gain), unit('b', 1, 'Y', base, gain)]);
     cases.push(['a class gaining on every unit opens', `${R.Y.outcome} ${R.Y.parts.harm} ${R.Y.parts.gain} ${R.Y.parts.spend}`, 'OPENS true true true']); }
   { const R = rule([unit('a', 0, 'Y', base, gain), unit('b', 1, 'Y', base, harm)]);
@@ -157,8 +172,17 @@ function planted() {
     cases.push(['a class with no gain stays on part 2 alone', `${R.E.outcome} ${R.E.parts.harm} ${R.E.parts.gain}`, 'STAYS true false']); }
   { const R = rule([unit('a', 0, 'S', base, gain, { deliveredDrop: 1 }), unit('b', 1, 'S', base, gain, { deliveredDrop: 1 })]);
     cases.push(['a class spending 1% less on the paths both keep stays on part 3', `${R.S.outcome} ${R.S.parts.spend}`, 'STAYS false']); }
-  { const R = rule([unit('a', 0, 'Y', base, gain), unit('g', 1, 'G', base, harm), unit('r', 2, 'R', base, gain)]);
-    cases.push(['each class read on its own units', `${R.Y.outcome} ${R.G.outcome} ${R.R.outcome}`, 'OPENS STAYS OPENS']); }
+  // part 2 reads the interval's lower end, not its point (the rehearsal read's reviewer, MINOR 5): a gain within noise stays
+  { const R = rule([unit('a', 0, 'E', base, thin), unit('b', 1, 'E', base, thin)]), c = R.E.C.pooled;
+    cases.push(['part 2: a pooled gain above nought whose interval reaches below it stays on part 2', `${R.E.outcome} ${c.d > 0} ${c.lo < 0} ${R.E.parts.harm} ${R.E.parts.gain} ${R.E.parts.spend}`, 'STAYS true true true false true']); }
+  // part 3's bar at -0.05%: -0.06% fails, -0.04% holds (the bar, not ten or twenty times it)
+  { const R6 = rule([unit('a', 0, 'S', base, gain, { deliveredDrop: 0.06 }), unit('b', 1, 'S', base, gain, { deliveredDrop: 0.06 })]), R4 = rule([unit('a', 0, 'S', base, gain, { deliveredDrop: 0.04 }), unit('b', 1, 'S', base, gain, { deliveredDrop: 0.04 })]);
+    cases.push(['part 3 at its bar: -0.06% on the paths both keep stays, -0.04% opens', `${R6.S.C.kept.d.toFixed(3)} ${R6.S.outcome} ${R4.S.C.kept.d.toFixed(3)} ${R4.S.outcome}`, '-0.060 STAYS -0.040 OPENS']); }
+  { const R = rule([unit('a', 0, 'Y', base, gain), unit('g', 1, 'G', base, harm), unit('r', 2, 'RY', base, gain), unit('rg', 3, 'RG', base, harm), unit('re', 4, 'RE', base, gain)]);
+    cases.push(['each class read on its own units and route', `${R.Y.outcome} ${R.G.outcome} ${R.RY.outcome} ${R.RG.outcome} ${R.RE.outcome}`, 'OPENS STAYS OPENS STAYS OPENS']); }
+  // spending over all paths, beside: a unit delivering 1% less on every path is named below beyond noise
+  { const r = report([unit('a', 0, 'Y', base, gain, { deliveredDrop: 1 }), unit('b', 1, 'Y', base, gain)]).out.find(l => l.startsWith('SPENDING OVER ALL PATHS'));
+    cases.push(['spending over all paths: a unit 1% below on every path named, one level not', /: a -1\.0000 /.test(r) && !/ b [-+]/.test(r) ? 'a' : r.slice(0, 120), 'a']); }
   { const M = m1ByUnit([unit('a', 0, 'Y', base, gain, { deliveredDrop: 1 }), unit('b', 1, 'Y', base, gain)]);
     cases.push(['M1 by unit: a unit keeping more paths but spending 1% less on the paths both keep is named, one spending the same is not', M.filter(x => x.named).map(x => x.id).join(','), 'a']); }
   // the gate: every refusal on its planted fault
@@ -176,12 +200,22 @@ function planted() {
       ['the guard off for another reason', us => { us[0].guard = { on: false, why: 'gapincome' }; return us; }, /off for 'gapincome'/],
       ['another route', us => { us[0].route = 'today'; return us; }, /the route 'today'/],
       ['another configuration', us => { us[0].arms.ROUTE.config = 'x'; return us; }, /configuration x/],
-      ['an array not one a path', us => { us[0].arms.APP.tax = new Float64Array(3); return us; }, /tax not one a path/]
+      ['an array not one a path', us => { us[0].arms.APP.tax = new Float64Array(3); return us; }, /tax not one a path/],
+      // the refusals the rehearsal read's reviewer found unplanted (MINOR 5), and the two of 22 Nov's amendment
+      ['another count of points', us => { us[0].pts = 30; return us; }, /a: 30 points/],
+      ['another estate weight', us => { us[0].W = 0.01; return us; }, /estate weight 0\.01/],
+      ['another Node version', us => { us[1].stamp = { ...us[1].stamp, node: 'w' }; return us; }, /more than one Node version/],
+      ['a unit not of the read', us => [...us, { ...us[0], id: 'z', k: 2 }], /z: not a unit of the read/],
+      ['an arm missing', us => { delete us[0].arms.ROUTE; return us; }, /a ROUTE: missing/],
+      ['ROUTE run on another context than the page\'s', us => { us[0].routeCtx = 'armA'; return us; }, /ROUTE's context 'armA'/],
+      ['a class on another route than its own', us => { us[0].route = 'today'; us[0].cls = 'Y'; return us; }, /class Y on the route 'today'/]
     ];
     const missed = faults.filter(([, f, re]) => !gate(f(ok()), want, { n, audit: 'a', logs: null }).some(x => re.test(x))).map(([nm]) => nm);
+    const auditOther = gate(ok(), want, { n, audit: 'zz', logs: null }).some(x => /an audit stamp not this read's files' \(zz\)/.test(x));
     const logMiss = gate(ok(), want, { n, audit: 'a', logs: { 'case0.txt': log({ id: 'a', k: 0 }) } }).some(x => /b: no launch log/.test(x));
     const logDone = gate(ok(), want, { n, audit: 'a', logs: { 'case0.txt': log({ id: 'a', k: 0 }), 'case1.txt': log({ id: 'b', k: 1 }, false) } }).some(x => /b: its launch log does not name it or has no done line/.test(x));
-    cases.push([`the gate: every refusal on its planted fault (${faults.length + 2})`, missed.join(', ') + (logMiss ? '' : ' log missing') + (logDone ? '' : ' no done line') || 'all fire', 'all fire']); }
+    const logStamp = gate(ok(), want, { n, audit: 'a', logs: { 'case0.txt': log({ id: 'a', k: 0 }).replace('audit a ', 'audit q '), 'case1.txt': log({ id: 'b', k: 1 }) } }).some(x => /a: its launch log's stamp is not its unit's/.test(x));
+    cases.push([`the gate: every refusal on its planted fault (${faults.length + 4})`, missed.join(', ') + (auditOther ? '' : ' another audit stamp') + (logMiss ? '' : ' log missing') + (logDone ? '' : ' no done line') + (logStamp ? '' : ' a log\'s stamp') || 'all fire', 'all fire']); }
   let bad = 0;
   for (const [nm, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${nm}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED: ${bad} of ${cases.length} FAILED` : `PLANTED: ALL PASS (${cases.length})`);
@@ -191,18 +225,18 @@ function planted() {
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
   if (args.includes('--planted')) process.exit(planted() ? 1 : 0);
-  const PILOT = args.includes('--pilot'), REGISTERED = args.includes('--registered');
+  const PILOT = args.includes('--pilot'), REGISTERED = args.includes('--registered'), ADD = args.includes('--addendum');
   // the pilot and the registered read take the registered panel (REG=1, so the stamp's data files are its)
   if ((PILOT || REGISTERED) !== (process.env.REG === '1')) { console.error(`reduce-couples-open: ${PILOT ? '--pilot' : REGISTERED ? '--registered' : 'the dress rehearsal'} reads ${PILOT || REGISTERED ? 'with' : 'without'} REG=1`); process.exit(2); }
   const seed = REGISTERED ? HELD : SEED;
-  const DIR = args.find(a => !a.startsWith('--')) || join(HERE, 'results', REGISTERED ? 'couples-open-run' : PILOT ? 'couples-open-pilot' : `couples-open-${SEED}`);
+  const DIR = args.find(a => !a.startsWith('--')) || join(HERE, 'results', REGISTERED ? 'couples-open-run' : PILOT ? 'couples-open-pilot' : ADD ? `couples-open-${SEED}-add` : `couples-open-${SEED}`);
   if (!existsSync(DIR)) { console.error(`reduce-couples-open: no ${DIR}`); process.exit(2); }
   const { readOpenPanel } = await import('./couples-open-panel.mjs');
-  const smoke = args.includes('--smoke'), units = loadDir(DIR).sort((a, b) => a.k - b.k), panel = readOpenPanel().map(u => ({ id: u.id, route: u.route }));
+  const smoke = args.includes('--smoke'), units = loadDir(DIR).sort((a, b) => a.k - b.k), panel = unitsOf(readOpenPanel(), ADD ? 'addendum' : '').map(u => ({ id: u.id, route: u.route }));
   const want = smoke ? panel.filter(w => units.some(u => u.id === w.id)) : panel;
   const logs = Object.fromEntries(readdirSync(DIR).filter(x => /^case\d+\.txt$/.test(x)).map(x => [x, readFileSync(join(DIR, x), 'utf8')]));
   const n = REGISTERED ? JSON.parse(readFileSync(PATHS_FILE, 'utf8')).N : PILOT ? PILOT_N : N_DEFAULT;
-  console.log(`THE GUARD'S OWN UNITS, ${REGISTERED ? `THE REGISTERED TEST (${REGISTRATION})` : PILOT ? 'THE REGISTERED TEST\'S PILOT (EXPLORATORY; its gate alone)' : 'THE DRESS REHEARSAL (EXPLORATORY; COUPLES-OPEN.md step 1)'}: ${units.length} units from ${DIR.replace(/.*research\/solver\//, '')}, seed ${seed}${smoke ? ', a smoke' : ''}`);
+  console.log(`THE GUARD'S OWN UNITS, ${REGISTERED ? `THE REGISTERED TEST (${REGISTRATION})` : PILOT ? 'THE REGISTERED TEST\'S PILOT (EXPLORATORY; its gate alone)' : ADD ? 'THE DRESS REHEARSAL\'S ADDENDUM (EXPLORATORY; COUPLES-OPEN.md amendment 1: the five units added to every couple after the rehearsal\'s read)' : 'THE DRESS REHEARSAL (EXPLORATORY; COUPLES-OPEN.md step 1)'}: ${units.length} units from ${DIR.replace(/.*research\/solver\//, '')}, seed ${seed}${smoke ? ', a smoke' : ''}`);
   if (smoke && units.some(u => u.N === n && u.pts === APP_POINTS)) { console.log('a smoke at the read\'s own count of paths and points: refused (read it without --smoke)'); process.exit(1); }
   // the fair-test gate on the launch logs (CHECKLIST 3): under the registration every log stamped by the launcher with the
   // registration's git blob; an exploratory run's with PREDICTION none; a smoke, not launched, has none; the pilot runs directly

@@ -12,13 +12,18 @@
  *          couples' share rule, each person's table solved with the partner's age, assembleCouple with the couples' joint move
  *          (src/solverSettings.js APP_COUPLE, appJoint).
  * The plan handed to ROUTE is the one the household line's audits hand their solvers (shapes-panel.mjs solverPlanOf: arm A's
- * policy, the couples' solver plan), its MPAA ages arm A's in the engine's context, as step 8's arms ran (audit-household-hsp.mjs).
+ * policy, the couples' solver plan). ROUTE's paths run on the page's own context for the solved couple (src/solverStrategy.js
+ * solvedContext: the solved plan's own MPAA ages, as its solve's preparation set them), since 22 Nov (the rehearsal read's
+ * reviewer, MINOR 2: the rehearsal ran ROUTE on arm A's MPAA ages, as step 8's arms ran, which differ from the page's on 1 of its
+ * 44 units and 13 of the registered panel's); each arm's MPAA ages are recorded.
  * Checked before any path, a failure ending the unit (exit 3): arm A's pick the landing's; the app's guard off for the unit's
  * class's reason (so the unit is one today's guard keeps on the app's rules); the route the panel's; ROUTE's minimum pot the
  * unit's; APP's settings; the two arms on one horizon. Each arm's first CHECK paths are held to E.runTrial. Each arm is saved
  * in chunks of 1,000 and resumes from them.
  *   node research/solver/audit-couples-open.mjs --units
  *   node research/solver/audit-couples-open.mjs rehearsal part k/n     the dress rehearsal (seed 7002, CO_N paths, 4,000 unless set)
+ *   node research/solver/audit-couples-open.mjs addendum part k/n      its addendum: the rehearsal panel's ADDENDUM units alone
+ *                                                                      (COUPLES-OPEN.md amendment 1), as the rehearsal
  *   node research/solver/audit-couples-open.mjs --planted              the checks on planted inputs
  *   CO_PTS the points (a smoke only); CO_N the paths; CO_ONLY a comma list of unit ids; CO_OUT the folder
  * THE REGISTERED TEST (COUPLES-OPEN.md step 2; registrations/couples-open.md), on the registered panel (REG=1,
@@ -39,7 +44,8 @@ import { appJoint, APP_COUPLE, APP_POINTS, APP_CANDIDATE } from '../../src/solve
 import { tablesOf, digestOf } from '../../src/solverDigest.js';
 import { runPath, inputsHash } from './audit-phase4.mjs';
 import { solverPlanOf } from './shapes-panel.mjs';
-import { readOpenPanel, routeOf, guardOf, WANT, FORM } from './couples-open-panel.mjs';
+import { readOpenPanel, routeOf, guardOf, WANT, FORM, ADDENDUM, CLASSES } from './couples-open-panel.mjs';
+import { solvedContext } from '../../src/solverStrategy.js';
 import { hashOf } from './candidate.mjs';
 import { codeId, codeFiles } from './code-id.mjs';
 import { writeFileSync, mkdirSync, readFileSync, existsSync, rmSync, renameSync } from 'node:fs';
@@ -55,13 +61,22 @@ export const HELD = 7026, PILOT_N = 1000;
 export const REGISTRATION = 'research/solver/registrations/couples-open.md';
 export const PATHS_FILE = join(HERE, 'couples-open-paths.json');
 export const ARMS = ['APP', 'ROUTE'];
+/* the units a mode runs: the addendum the rehearsal panel's ADDENDUM variants alone, every other mode its panel's every unit */
+export const unitsOf = (panel, mode) => (mode === 'addendum' ? panel.filter(u => ADDENDUM.includes(u.variant)) : panel);
+export const ROUTE_CTX = 'solvedContext';
+/* ROUTE's engine context: the page's own for the solved couple (src/solverStrategy.js solvedContext); the plant 'armages' puts
+   arm A's MPAA ages (ages) on the solved plan first, the rehearsal's way */
+export const routeContext = (cp, plant = '', ages = null) => solvedContext(E, plant === 'armages' ? { ...cp, plan: { ...cp.plan, demographics: { ...cp.plan.demographics, mpaaAgeSelf: ages.mpaaAgeSelf, mpaaAgePart: ages.mpaaAgePart } } } : cp);
+/* a context's MPAA ages, the first person's then the partner's (the engine's owners) */
+export const mpaaOf = ctx => ['self', 'part'].map(k => { const o = ctx.owners.find(x => x.key === k); return o ? o.mpaaAge : NaN; });
 export const orderOf = k => (k % 2 ? ['ROUTE', 'APP'] : ['APP', 'ROUTE']);
 export const partOf = (out, id, arm) => join(out, 'parts', `${id}-${arm}.json.gz`);
 export const fileOf = id => `${id}.json.gz`;
 /* each arm's configuration, hashed as candidate.mjs hashes the candidate's */
 export const CONFIG = Object.freeze({
   APP: { app: 'armA', tournament: false },
-  ROUTE: { ...APP_CANDIDATE, couple: APP_COUPLE, joint: appJoint(), form: FORM, route: 'app' }
+  // ctx since 22 Nov: ROUTE's paths on the page's own context for the solved couple (the rehearsal read's reviewer, MINOR 2)
+  ROUTE: { ...APP_CANDIDATE, couple: APP_COUPLE, joint: appJoint(), form: FORM, route: 'app', ctx: ROUTE_CTX }
 });
 export const configOf = arm => hashOf(CONFIG[arm]);
 export const KEYS = { survived: Uint8Array, failYear: Int16Array, pot: Float64Array, estate: Float64Array, tax: Float64Array, delivered: Float64Array, unmet: Float64Array };
@@ -134,7 +149,20 @@ function planted() {
     cases.push(['the guard on', unitProblems(U, 'ISA First', { on: true, why: null }, hh).join(';'), 'the app\'s guard is on: the unit is not one the guard keeps off']);
     cases.push(['the guard off for another reason', unitProblems({ ...U, variant: 'G8' }, 'ISA First', off, hh).join(';'), 'the app\'s guard keeps the unit off for \'uneven\', not its class\'s \'gapincome\'']);
     cases.push(['the route not the panel\'s', unitProblems(U, 'ISA First', off, { route: 'today' }).join(';'), 'the route \'today\', not the panel\'s \'household\'']); }
-  cases.push(['the panel: 44 units, each with its class and route', `${panel.length} ${panel.filter(u => u.route === 'today').length} ${[...new Set(panel.map(u => u.cls))].join('')}`, '44 8 YESGR']);
+  cases.push(['the panel: 64 units, 24 on today\'s route, each class on one route', `${panel.length} ${panel.filter(u => u.route === 'today').length} ${[...new Set(panel.map(u => u.cls))].join(',')}`, `64 24 ${CLASSES.join(',')}`]);
+  cases.push(['the addendum: the rehearsal panel\'s five new units a couple', `${unitsOf(panel, 'addendum').length} ${[...new Set(unitsOf(panel, 'addendum').map(u => u.variant))].sort().join(',')}`, `20 ${[...ADDENDUM].sort().join(',')}`]);
+  // ROUTE's context is the page's own (the rehearsal read's reviewer, MINOR 2): on a unit where arm A's MPAA ages and the solved
+  // plan's own differ (S357F-Y90 on the rehearsal panel, S279-RY75 on the registered), solved at light settings, ROUTE's context
+  // carries the solved plan's own ages, and the rehearsal's way (arm A's, the plant 'armages') would not
+  { const U = panel.find(u => u.id === 'S357F-Y90') || panel.find(u => u.id === 'S279-RY75');
+    if (!U) cases.push(['a unit whose two sets of MPAA ages differ is on the panel', 'none', 'one']);
+    else {
+      const { a, hp } = solverPlanOf(U.plan, 'own'), R = solveRoute(hp, routeOf(hp).route, { pts: 4, light: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } });
+      const own = R.cp.plan.demographics, armA = E.resolveMpaa(a.planState).demographics;
+      const page = mpaaOf(routeContext(R.cp)), planted = mpaaOf(routeContext(R.cp, 'armages', armA)), want = [own.mpaaAgeSelf, own.mpaaAgePart].map(x => (x === '' || x === undefined ? NaN : Number(x)));
+      cases.push([`${U.id}: ROUTE's context carries the solved plan's own MPAA ages, which differ from arm A's (${armA.mpaaAgeSelf}/${armA.mpaaAgePart})`, `${page.join('/')} ${page.join('/') === want.join('/')} ${page.join('/') !== [armA.mpaaAgeSelf, armA.mpaaAgePart].map(Number).join('/')}`, `${want.join('/')} true true`]);
+      cases.push([`${U.id}: the plant 'armages' (arm A's ages, the rehearsal's way) is caught`, `${planted.join('/') === want.join('/') ? 'missed' : 'caught'}`, 'caught']);
+    } }
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
@@ -145,9 +173,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
   if (args[0] === '--planted') process.exit(planted() ? 1 : 0);
   const panel = readOpenPanel();
-  if (args[0] === '--units') { panel.forEach((u, k) => console.log(`${k} ${u.id}`)); console.log(panel.length); process.exit(0); }
-  const MODE = args[0], REGISTERED = MODE === 'registered', PILOT = MODE === 'pilot';
-  if (!['rehearsal', 'pilot', 'registered'].includes(MODE)) { console.error('audit-couples-open: rehearsal, pilot or registered part k/n'); process.exit(2); }
+  if (args[0] === '--units') { const us = unitsOf(panel, args[1] || ''); us.forEach((u, k) => console.log(`${k} ${u.id}`)); console.log(us.length); process.exit(0); }
+  const MODE = args[0], REGISTERED = MODE === 'registered', PILOT = MODE === 'pilot', ADD = MODE === 'addendum';
+  if (!['rehearsal', 'addendum', 'pilot', 'registered'].includes(MODE)) { console.error('audit-couples-open: rehearsal, addendum, pilot or registered part k/n'); process.exit(2); }
   // the pilot and the registered run read the registered panel; the dress rehearsal its own
   if ((REGISTERED || PILOT) !== (process.env.REG === '1')) { console.error(`audit-couples-open: ${MODE} runs ${REGISTERED || PILOT ? 'with' : 'without'} REG=1`); process.exit(2); }
   if (REGISTERED && (process.env.CO_PTS || process.env.CO_N || process.env.CO_ONLY || process.env.CO_OUT)) { console.error('audit-couples-open: the registered run takes no limits'); process.exit(2); }
@@ -155,19 +183,19 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   // the registered run only on the code the panel was landed on: a change of code means landing again, a new pilot and review
   if (REGISTERED) { const pc = JSON.parse(readFileSync(join(HERE, 'couples-open-registered-panel.json'), 'utf8')).code, cc = codeId(); if (!cc || cc.hash !== pc) { console.error(`audit-couples-open: the code ${cc ? cc.hash : 'unknown'} is not the code the panel was landed on (${pc})`); process.exit(2); } }
   const reg = REGISTERED ? JSON.parse(readFileSync(PATHS_FILE, 'utf8')) : null;
-  const only = process.env.CO_ONLY ? new Set(process.env.CO_ONLY.split(',')) : null, units = panel.filter(u => !only || only.has(u.id));
+  const only = process.env.CO_ONLY ? new Set(process.env.CO_ONLY.split(',')) : null, units = unitsOf(panel, MODE).filter(u => !only || only.has(u.id));
   const at = args.indexOf('part'), [pk, pn] = at >= 0 ? args[at + 1].split('/').map(Number) : [NaN, NaN];
   if (!(pn === units.length && pk >= 0 && pk < pn)) { console.error(`audit-couples-open: part k/${units.length}`); process.exit(2); }
   const pts = Number(process.env.CO_PTS) || APP_POINTS, U = units[pk], seed = REGISTERED ? HELD : SEED;
   const n = REGISTERED ? reg.N : Number(process.env.CO_N) || (PILOT ? PILOT_N : N_DEFAULT);
   if (REGISTERED && !(n > 0)) { console.error(`audit-couples-open: ${PATHS_FILE} gives no paths`); process.exit(2); }
   const smoke = pts !== APP_POINTS, light = smoke && pts <= 6 ? { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } : null;
-  const OUT = process.env.CO_OUT || join(HERE, 'results', REGISTERED ? 'couples-open-run' : PILOT ? 'couples-open-pilot' : 'couples-open-7002');
+  const OUT = process.env.CO_OUT || join(HERE, 'results', REGISTERED ? 'couples-open-run' : PILOT ? 'couples-open-pilot' : ADD ? 'couples-open-7002-add' : 'couples-open-7002');
   mkdirSync(join(OUT, 'parts'), { recursive: true });
   const cid = codeId(), STAMP = { code: cid ? cid.hash : 'unknown', audit: stampFilesHash(), prediction: process.env.PREDICTION_FILE || 'NOT-LAUNCHED', sha: process.env.PREDICTION_SHA || '-', node: process.version };
   console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);   // fair-gate.mjs LOG_STAMP
   const PROC = `${hostname()}:${process.pid}:${Date.now()}`, t0 = Date.now(), order = orderOf(pk);
-  console.log(`THE GUARD'S OWN UNITS (${REGISTERED ? 'THE REGISTERED TEST' : PILOT ? 'THE REGISTERED TEST\'S PILOT, EXPLORATORY' : 'THE DRESS REHEARSAL, EXPLORATORY'}): unit ${pk}/${pn}: ${U.id} (class ${U.cls}, ${U.cohort}), target ${U.target}, seed ${seed}, ${n} paths, ${pts} points, estate weight ${W}; configs ${ARMS.map(x => `${x} ${configOf(x)}`).join(', ')}`);
+  console.log(`THE GUARD'S OWN UNITS (${REGISTERED ? 'THE REGISTERED TEST' : PILOT ? 'THE REGISTERED TEST\'S PILOT, EXPLORATORY' : ADD ? 'THE DRESS REHEARSAL\'S ADDENDUM, EXPLORATORY' : 'THE DRESS REHEARSAL, EXPLORATORY'}): unit ${pk}/${pn}: ${U.id} (class ${U.cls}, ${U.cohort}), target ${U.target}, seed ${seed}, ${n} paths, ${pts} points, estate weight ${W}; configs ${ARMS.map(x => `${x} ${configOf(x)}`).join(', ')}`);
   const { a, hp } = solverPlanOf(U.plan, 'own'), guard = guardOf(U.plan), route = routeOf(hp);
   const before = unitProblems(U, a.label, guard, route);
   if (before.length) { console.error(`audit-couples-open: ${U.id}: ${before.join('; ')}`); process.exit(3); }
@@ -175,19 +203,22 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const digest = async () => Object.fromEntries(await Promise.all(Object.entries(R.tables).map(async ([w, t]) => [w, await digestOf(tablesOf(t))])));
   const tablesBefore = await digest();
   console.log(`${''.padEnd(8)} solved: ROUTE (${route.route}${route.why ? `: ${route.why}` : ''}) ${solveSecs.ROUTE.toFixed(0)} s${R.k !== null ? `; k ${R.k.toFixed(4)}` : `; the share ${R.share}`}; the guard off (${guard.why}), the first person holding ${(100 * guard.share).toFixed(1)}%`);
-  const aDemo = E.resolveMpaa(a.planState).demographics, withAges = plan => ({ ...plan, demographics: { ...plan.demographics, mpaaAgeSelf: aDemo.mpaaAgeSelf, mpaaAgePart: aDemo.mpaaAgePart } });
   const ctxOf = arm => {
     if (arm === 'APP') {
       const ctx = E.buildContext(E.resolveMpaa(a.planState));
       if (!ctx.guardrails || ctx.lookaheadYears !== 5 || ctx.raiseCapFrac !== 1.1 || ctx.solvencyFloor !== E.num(U.plan.config.solvencyFloor, 0) || !ctx.isCouple) { console.error(`audit-couples-open: ${U.id} APP: guardrails ${ctx.guardrails}, lookahead ${ctx.lookaheadYears}, raise cap ${ctx.raiseCapFrac}, minimum pot ${ctx.solvencyFloor}, a couple ${ctx.isCouple}`); process.exit(3); }
       return ctx;
     }
-    const ctx = E.buildContext(route.route === 'household' ? withHouseholdSingle(withAges(R.cp.plan), R.cp) : withCouple(withAges(R.cp.plan), R.cp));
+    // the page's own context for the solved couple: the household's one table, or today's two through the joint move
+    if (!!R.cp.household !== (route.route === 'household')) { console.error(`audit-couples-open: ${U.id} ROUTE: the solved couple is ${R.cp.household ? 'a household' : 'two tables'} on the route '${route.route}'`); process.exit(3); }
+    const ctx = routeContext(R.cp);
     if (ctx.solvencyFloor !== E.num(U.plan.config.solvencyFloor, 0)) { console.error(`audit-couples-open: ${U.id} ROUTE: the minimum pot ${ctx.solvencyFloor}, not the unit's ${U.plan.config.solvencyFloor}`); process.exit(3); }
     return ctx;
   };
   const T = ctxOf('ROUTE').totalYears, paths = E.pathsForSeed(seed, n, T).map(zs => Float64Array.from(zs));
   const inputs = Object.fromEntries(ARMS.map(x => [x, inputsHash(ctxOf(x))])), arms = {};
+  const mpaa = Object.fromEntries(ARMS.map(x => [x, mpaaOf(ctxOf(x))]));
+  console.log(`${''.padEnd(8)} MPAA ages: APP ${mpaa.APP.join('/')}, ROUTE ${mpaa.ROUTE.join('/')} (the page's own context)`);
   for (const arm of order) {
     const ctx = ctxOf(arm), pf = partOf(OUT, U.id, arm), o = { config: configOf(arm) };
     if (ctx.totalYears !== T) { console.error(`audit-couples-open: ${U.id} ${arm}: another horizon (${ctx.totalYears}, ${T})`); process.exit(3); }
@@ -223,7 +254,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   if (js(await digest()) !== js(tablesBefore)) { console.error(`audit-couples-open: ${U.id}: the tables changed while the paths ran`); process.exit(3); }
   writeFileSync(join(OUT, fileOf(U.id)), gzipSync(js({ k: pk, id: U.id, couple: U.couple, cohort: U.cohort, variant: U.variant, cls: U.cls, target: U.target, label: a.label, seed, N: n, warm: WARM, pts, W, stamp: STAMP,
-    route: route.route, refusal: route.why, guard, split: { k: R.k }, share: R.share === undefined ? null : R.share, caps: R.caps, digests: tablesBefore, arms })));
+    route: route.route, refusal: route.why, guard, split: { k: R.k }, share: R.share === undefined ? null : R.share, caps: R.caps, digests: tablesBefore, routeCtx: ROUTE_CTX, mpaa, mode: MODE, arms })));
   for (const arm of ARMS) rmSync(partOf(OUT, U.id, arm), { force: true });
   console.log(`${''.padEnd(8)} done unit ${pk} secs ${Math.round((Date.now() - t0) / 1000)}`);
 }

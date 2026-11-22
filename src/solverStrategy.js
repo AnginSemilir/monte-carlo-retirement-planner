@@ -52,6 +52,9 @@ export const solvedContext = (E, solved) => E.buildContext(solved && solved.hous
 export function runPath(E, ctx, zs) {
   const state = E.freshState(ctx), T = ctx.totalYears, Y = T + 1, zPath = zs.length > Y ? zs[Y] : 0;
   const level = new Uint16Array(Y);
+  // the share of the year's money held in shares, in whole percent (EQ_NONE where nothing is left), for the outlook's
+  // investing chart (the new planner's UI pass, 20 Nov): read from the tiers the year was grown at, so it is what the plan held
+  const eq = new Uint8Array(Y);
   // the money each year, all wrappers, as runTrial's kept path records it (Math.max(0, totalCombined), in doubles), so the
   // outlook's money bands are the engine's monteCarlo bands bit for bit (step U, LAYOUT.md section 11.3)
   const wealth = PLANT.rule === 'f32' ? new Float32Array(Y) : new Float64Array(Y);
@@ -59,6 +62,8 @@ export function runPath(E, ctx, zs) {
   for (let t = 0; t <= T; t++) {
     const row = E.stepYear(ctx, state, t, { z: zs[t], zPath });
     wealth[t] = Math.max(0, row.totalCombined);
+    const mx = mixOf(ctx, state, row.pots);
+    eq[t] = mx.all === null ? EQ_NONE : Math.round(100 * mx.all);
     tax += row.taxPaid + (row.cgtPaid || 0);
     const unmet = Math.max(0, row.unmetDemand || 0);
     if (row.targetSpend > 0) {
@@ -71,7 +76,31 @@ export function runPath(E, ctx, zs) {
   const terminalPot = Math.max(0, last.totalCombined);
   if (!failed && ctx.solvencyFloor > 0 && terminalPot < ctx.solvencyFloor) { failed = true; failT = T; }
   const terminalPotNet = Math.max(0, terminalPot - Math.max(0, last.pensions) * ctx.pensionDeathTaxRate);
-  return { survived: !failed, failT, terminalPot, terminalPotNet, lifetimeTax: tax, delivered, target, level, wealth };
+  return { survived: !failed, failT, terminalPot, terminalPotNet, lifetimeTax: tax, delivered, target, level, wealth, eq };
+}
+
+/*
+ * HOW THE MONEY IS INVESTED (the new planner's UI pass, 20 Nov). The share of the money held in shares at the year's end, all
+ * wrappers together and the pensions', the ISAs' and the taxable account's apart, each weighted by its balance: a pension or
+ * ISA at the tier it was held at this year (the engine's state.tierHeld, which under no table stays at the wrapper's own tier,
+ * index 0 of its list), every other account at its own risk, cash at none. null where a group holds nothing.
+ * research/tests/planner-more.test.mjs plant 'tierown': each pension and ISA read at its own tier, whatever tier is held.
+ */
+export const EQ_NONE = 255;
+export function mixOf(ctx, state, pots) {
+  const w = { all: 0, pen: 0, isa: 0, other: 0 }, e = { all: 0, pen: 0, isa: 0, other: 0 };
+  for (const a of ctx.accounts) {
+    const v = pots[a.id] || 0;
+    if (!(v > 0)) continue;
+    let ew = a.cat === 'cash' ? 0 : a.equityWeight;
+    const profs = ctx.tierProfiles && ctx.tierProfiles[a.id], held = state.tierHeld && state.tierHeld[a.owner];
+    if (profs && held && (a.cat === 'pen' || a.cat === 'isa') && PLANT.rule !== 'tierown') ew = profs[Math.min(held[a.cat] || 0, profs.length - 1)].equityWeight;
+    w.all += v; e.all += v * ew;
+    if (w[a.cat] !== undefined) { w[a.cat] += v; e[a.cat] += v * ew; }
+  }
+  const out = {};
+  for (const k of Object.keys(w)) out[k] = w[k] > 0 ? e[k] / w[k] : null;
+  return out;
 }
 
 /* summarizeTrials's quantile, so a figure here is the same number the projection would print */
@@ -177,6 +206,65 @@ export function wealthBandsOf(rs) {
   }
   return out;
 }
+/*
+ * THE PLAN AGAINST YOUR CURRENT APPROACH, BEYOND THE HEADLINE (the new planner's UI pass, 20 Nov), from the same runs:
+ *   lasting   each plan year, the percentage of paths whose money has not run out by its end, for both arms
+ *   equity    each plan year, the share in shares over the paths with money left: { t, n, p10, p25, p50, p75, p90 }, both arms
+ *   spending  both arms, over each path's retired years while its money lasts: how many path-years at each spending level
+ *             (`levels`, level -> count), the years a path spends below its target (p25, p50, p75 over every path), the
+ *             spending delivered as a share of the target over the plan, and the paths that run out with the plan year they do
+ *             (`failed`, the median of failT over them)
+ * Every figure keyed by plan year t, never by age, so a couple solved on its mirror reads them unchanged (src/coupleOrder.js).
+ * research/tests/planner-more.test.mjs plants: 'lastswap' the arms' lasting swapped, 'eqdead' a path's share counted after its
+ * money runs out, 'belowall' a failed year counted below target.
+ */
+const aliveAt = (r, t) => r.failT < 0 || r.failT > t;
+export function lastingOf(rs, years) {
+  const n = rs.length, out = [];
+  for (let t = 0; t < years; t++) out.push(n ? (100 * rs.filter(r => aliveAt(r, t)).length) / n : 0);
+  return out;
+}
+export function equityBandsOf(rs, years) {
+  const out = [];
+  for (let t = 0; t < years; t++) {
+    const v = sortedOf(rs.filter(r => (PLANT.rule === 'eqdead' || aliveAt(r, t)) && r.eq[t] !== EQ_NONE), r => r.eq[t]);
+    if (!v.length) break;
+    out.push({ t, n: v.length, p10: q(v, 0.1), p25: q(v, 0.25), p50: q(v, 0.5), p75: q(v, 0.75), p90: q(v, 0.9) });
+  }
+  return out;
+}
+export function spendingOf(ctx, rs, retireT) {
+  const levels = {}, below = [], fails = [];
+  let tgt = 0, got = 0;
+  for (const r of rs) {
+    let b = 0;
+    for (let t = retireT; t <= ctx.totalYears; t++) {
+      if (!aliveAt(r, t)) { if (PLANT.rule === 'belowall') b++; continue; }
+      const lv = r.level[t];
+      if (!lv) continue;
+      levels[lv] = (levels[lv] || 0) + 1;
+      if (lv < 100) b++;
+    }
+    below.push(b);
+    if (!r.survived) fails.push(r.failT);
+    tgt += r.target; got += r.delivered;
+  }
+  below.sort((a, b) => a - b); fails.sort((a, b) => a - b);
+  return {
+    levels, below: { p25: q(below, 0.25), p50: q(below, 0.5), p75: q(below, 0.75) },
+    delivered: tgt > 0 ? (100 * got) / tgt : 100, failed: { n: fails.length, t50: fails.length ? q(fails, 0.5) : null }
+  };
+}
+export function moreOf(ctx, runs, retireT) {
+  const years = ctx.totalYears + 1;
+  const [a, b] = PLANT.rule === 'lastswap' ? [runs.yours, runs.solved] : [runs.solved, runs.yours];
+  return {
+    lasting: { solved: lastingOf(a, years), yours: lastingOf(b, years) },
+    equity: { solved: equityBandsOf(runs.solved, years), yours: equityBandsOf(runs.yours, years) },
+    spending: { solved: spendingOf(ctx, runs.solved, retireT), yours: spendingOf(ctx, runs.yours, retireT) }
+  };
+}
+
 export function outlookOf(ctx, runs, retireT) {
   // the browser's plant (research/ui-harnesses/solver-projection-ui.cjs, PROJECTION_PLANT=outlookswap) is the Node test's armswap
   const [a, b] = PLANT.rule === 'armswap' || PLANNER_PLANT.has('outlookswap') ? [runs.yours, runs.solved] : [runs.solved, runs.yours];
@@ -221,7 +309,7 @@ export const headRuns = (runs, n) => (runs.from !== 0 ? (() => { throw new Error
   : runs.to <= n ? runs : { ...runs, to: n, solved: runs.solved.slice(0, n), yours: runs.yours.slice(0, n) });
 export function strategySummary(E, solved, runs) {
   const sc = solvedContext(E, solved), retireT = retireYearOf(sc);
-  return { trials: runs.solved.length, seed: runs.seed, headline: headlineOf(E, sc, runs.solved, retireT), compare: { yours: compareOf(runs.yours), solved: compareOf(runs.solved) }, raise: raiseOf(sc, runs.solved, retireT), outlook: outlookOf(sc, runs, retireT) };
+  return { trials: runs.solved.length, seed: runs.seed, headline: headlineOf(E, sc, runs.solved, retireT), compare: { yours: compareOf(runs.yours), solved: compareOf(runs.solved) }, raise: raiseOf(sc, runs.solved, retireT), outlook: outlookOf(sc, runs, retireT), more: moreOf(sc, runs, retireT) };
 }
 /* the whole tab's first figures, on `trials` paths of `seed` */
 export const strategyOf = (E, solved, plan, { trials = 2000, seed = 12345 } = {}) => strategySummary(E, solved, strategyRuns(E, solved, plan, { seed, from: 0, to: trials }));
@@ -362,8 +450,29 @@ export function aheadOf(E, solved, plan, runs, { years = 10 } = {}) {
   }
   // the typical run's levels: path k's as counted, or, where the counted paths took a shortlist, path k run on the whole
   // menu, so the levels shown are those of the rows shown (D90)
-  return { path: k, rows, typical: solved.chooserShortlist ? Array.from(runPath(E, { ...sc, policyOverride: shown }, zs).level) : typicalOf(runs, k) };
+  return { path: k, rows, typical: solved.chooserShortlist ? Array.from(runPath(E, { ...sc, policyOverride: shown }, zs).level) : typicalOf(runs, k), life: lifeOf(E, { ...sc, policyOverride: shown }, yourContext(E, plan), zs) };
 }
+
+/*
+ * THE TYPICAL RUN'S WHOLE LIFE (the new planner's UI pass, 20 Nov): the path the next years follow, every year to the plan's
+ * end, under the solved plan (on the moves the pages show) and under your current approach on the same market, each year's
+ * money by wrapper at its end, the share in shares (all, and each wrapper group's), the tax and the spending met. Keyed by
+ * plan year t. research/tests/planner-more.test.mjs plant 'lifeyours': both arms the solved plan's.
+ */
+export function lifeRun(E, ctx, zs) {
+  const state = E.freshState(ctx), T = ctx.totalYears, zPath = zs.length > T + 1 ? zs[T + 1] : 0, out = [];
+  for (let t = 0; t <= T; t++) {
+    const row = E.stepYear(ctx, state, t, { z: zs[t], zPath }), mx = mixOf(ctx, state, row.pots), pc = v => (v === null ? null : Math.round(100 * v));
+    const sched = row.targetSpend > 0 ? E.spendTargetAtAge(ctx, row.ageSelf) : 0, met = Math.max(0, row.targetSpend - Math.max(0, row.unmetDemand || 0));
+    out.push({
+      t, pen: Math.round(Math.max(0, row.pensions)), isa: Math.round(Math.max(0, row.isas)), other: Math.round(Math.max(0, row.other)), cash: Math.round(Math.max(0, row.cash)),
+      eq: pc(mx.all), eqPen: pc(mx.pen), eqIsa: pc(mx.isa), tax: Math.round(row.taxPaid + (row.cgtPaid || 0)),
+      spend: Math.round(met), level: sched > 0 ? Math.round((100 * row.targetSpend) / sched) : 0, short: (row.unmetDemand || 0) > E.FAIL_TOLERANCE || !!row.preNmpaInsolvent
+    });
+  }
+  return out;
+}
+export const lifeOf = (E, sc, yc, zs) => ({ solved: lifeRun(E, sc, zs), yours: lifeRun(E, PLANT.rule === 'lifeyours' ? sc : yc, zs) });
 
 /*
  * ONE MARKET'S RUN OF THE SOLVED PLAN, YEAR BY YEAR (Part C Phase 10, item 7): the engine's own rows (E.stepYear with the

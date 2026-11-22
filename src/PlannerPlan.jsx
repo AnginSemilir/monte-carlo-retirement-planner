@@ -2,14 +2,17 @@
  * YOUR PLAN, THE NEW PLANNER'S FIRST PLACE (step U; research/reviews/2026-11-03/LAYOUT.md sections 3.1, 4.2 and 9). Loaded
  * lazily, only in the new planner, for a single household (App.jsx `solverRules`).
  *
- * The answer first, its levers beside it (`aside`, "What matters to you"), then the outlook's two charts, this year, the rule
- * of thumb, the next ten years and the solved plan against your current approach. Every figure is the engine's simulation of
+ * The answer first, with the solved plan against your current approach in three figures, its levers beside it (`aside`, "What
+ * matters to you"); then how it plays out (what you could spend, what you would have, how long the money lasts, how it is
+ * invested: src/PlannerMore.jsx), what to do (this year, the rule of thumb, the next ten years, where the money sits on the
+ * typical run) and the solved plan against your current approach in full (the UI pass of 20 Nov). Every figure is the engine's simulation of
  * the solved plan, asked of the worker that holds the solve (src/solverWorker.js 'strategy', src/solverStrategy.js), on
  * `steps` paths in turn (2,000 then 5,000), the outlook's charts from the same paths, so they cost no second simulation.
  *
  * The answer card's states (data-plan-answer): 'solving' (the first solve, no answer yet), 'filling' (the first step's paths
  * in), 'done', 'stale' (the last answer kept, dimmed, behind a band, until the new plan's first figures arrive; never asked
- * anything while stale), 'failed', 'ask' (a phone that has not asked). On a phone the place is a deck of six slides.
+ * anything while stale), 'failed', 'ask' (a phone that has not asked). On a phone the place is a deck of seven slides, one idea
+ * each (the UI pass's phone round, 21 Nov).
  */
 import React, { useEffect, useRef, useState } from 'react';
 import '@fontsource/newsreader/latin-500.css';
@@ -18,6 +21,7 @@ import { useSwipe } from './swipe.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 import { timings } from './solveStatus.js';
 import { DiagnosticCopy } from './DiagnosticCopy.jsx';
+import { VersusStrip, LastingCard, InvestCard, LevelsBar, LifeCard } from './PlannerMore.jsx';
 
 
 export const STEPS = [2000, 5000];
@@ -123,8 +127,15 @@ export function PlannerPlan({ plan, solve, seed, fmt, isPhone, steps = STEPS, ac
         {/* below 1,100px the levers sit under the explanation, not at the page's end; one copy of them on the page either way,
             so the dial's figures are asked for once */}
         {aside && !side && <div data-plan-aside="under">{aside}</div>}
-        {outlook && outlook.full}
-        {below && below.all}
+        {outlook && <Section id="outlook" title="How it plays out">{outlook.full}</Section>}
+        {below && (
+          <Section id="doing" title="What to do">
+            {mine.distil && mine.distil.show ? <div className="grid gap-6 min-[900px]:grid-cols-2 items-start">{below.thisYear}{below.rule}</div> : <>{below.thisYear}{below.rule}</>}
+            {below.ahead}
+          </Section>
+        )}
+        {outlook && outlook.life && <Section id="run" title="One run of the markets, pot by pot">{outlook.life}</Section>}
+        {below && <Section id="against" title="Against your current approach">{below.compare}</Section>}
         <p className="text-[11px] text-slate-400">Educational and illustrative only. This is not financial advice.</p>
       </div>
       {aside && side && (
@@ -210,6 +221,7 @@ function AnswerCard({ s, state, steps, fmt, isPhone, pctDone, failed, onRetry, o
           <p className="text-xs text-slate-600">{w.delivered}</p>
         </div>
         <p className="text-[11px] text-slate-500">{s.trials >= steps[steps.length - 1] ? `On ${s.trials.toLocaleString('en-GB')} simulated markets.` : `On ${s.trials.toLocaleString('en-GB')} simulated markets so far.`}</p>
+        <VersusStrip s={s} ageAt0={ageAt0Of(s)} fmt={fmt} isPhone={isPhone} />
         {!stale && hasActions && onPrint && <button type="button" data-plan-print onClick={onPrint} className={`text-xs font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Print this plan</button>}
       </div>
     </div>
@@ -229,10 +241,24 @@ const W = 600, H = 240, PAD = { l: 44, r: 16, t: 14, b: 26 };
 const area = (pts, lo, hi, x, y) => `${pts.map((p, i) => `${i ? 'L' : 'M'}${x(p.at).toFixed(2)},${y(p[hi]).toFixed(2)}`).join('')}${[...pts].reverse().map(p => `L${x(p.at).toFixed(2)},${y(p[lo]).toFixed(2)}`).join('')}Z`;
 const path = (pts, k, x, y) => pts.map((p, i) => `${i ? 'L' : 'M'}${x(p.at).toFixed(2)},${y(p[k]).toFixed(2)}`).join('');
 
+// a section's heading on the wide page: a quiet label over the cards it groups
+export const Section = ({ id, title, children }) => (
+  <section data-plan-section={id} className="space-y-3">
+    <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{title}</h2>
+    {children}
+  </section>
+);
 function outlookParts({ s, ahead, fmt, floorShare, minPot, dim, isPhone }) {
+  const ageAt0 = ageAt0Of(s), life = ahead && ahead.life ? ahead.life : null;
   const spend = <SpendCard s={s} ahead={ahead} fmt={fmt} floorShare={floorShare} dim={dim} isPhone={isPhone} />;
   const wealth = <WealthCard s={s} fmt={fmt} minPot={minPot} dim={dim} isPhone={isPhone} />;
-  return { spend, wealth, full: <div data-outlook className="grid gap-6 min-[900px]:grid-cols-2">{spend}{wealth}</div> };
+  const lasting = <LastingCard s={s} ageAt0={ageAt0} dim={dim} isPhone={isPhone} />;
+  const invest = <InvestCard s={s} life={life} ageAt0={ageAt0} dim={dim} isPhone={isPhone} />;
+  const lifeCard = life ? <LifeCard life={life} ageAt0={ageAt0} fmt={fmt} dim={dim} isPhone={isPhone} /> : null;
+  return {
+    spend, wealth, lasting, invest, life: lifeCard,
+    full: <div data-outlook className="grid gap-6 min-[900px]:grid-cols-2">{spend}{wealth}{lasting}{invest}</div>
+  };
 }
 const ageAt0Of = s => (s.outlook.spend.length ? s.outlook.spend[0].age - s.outlook.spend[0].t : 0);
 function SpendCard({ s, ahead, fmt, floorShare, dim, isPhone }) {
@@ -249,6 +275,7 @@ function SpendCard({ s, ahead, fmt, floorShare, dim, isPhone }) {
       <h3 className="text-[15px] font-semibold text-slate-900">What you could spend</h3>
       <SpendChart pts={spend} typical={typical} floorShare={floorShare} target={h.target} backAge={backAge} backYear={h.backYear} fmt={fmt} label={sentence(typical, h, s.raise, raise)} isPhone={isPhone} />
       {raise && <p className="text-xs text-emerald-800" data-strategy-raise>{raise}</p>}
+      <LevelsBar s={s} floorShare={floorShare} isPhone={isPhone} />
       <button type="button" onClick={() => setShow(v => !v)} className={`text-xs font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>{show ? 'Hide the figures' : 'Show the figures'}</button>
       {show && (
         <table className="w-full text-[11px] tabular-nums" data-outlook-table="spend"><thead><tr className="text-slate-500"><th className="text-left font-medium">Age</th><th className="text-right font-medium">Lowest tenth</th><th className="text-right font-medium">Middle half</th><th className="text-right font-medium">Highest tenth</th><th className="text-right font-medium">Typical run</th></tr></thead>
@@ -265,6 +292,10 @@ function WealthCard({ s, fmt, minPot, dim, isPhone }) {
     <section data-outlook="wealth" data-outlook-bands={JSON.stringify(o.wealth)} className={`p-4 bg-surface border border-slate-200/90 rounded-xl space-y-2 ${dim ? 'opacity-55' : ''}`}>
       <h3 className="text-[15px] font-semibold text-slate-900">What you would have</h3>
       <WealthChart pts={wealth} yours={yours} minPot={minPot} fmt={fmt} isPhone={isPhone} />
+      <p className="text-xs text-slate-700" data-wealth-words>
+        At {wealth[wealth.length - 1].at} the solved plan typically leaves {fmt(s.compare.solved.medianPot)}, and {fmt(s.compare.solved.p10Pot)} in an unlucky tenth of markets;
+        your current approach {fmt(s.compare.yours.medianPot)} and {fmt(s.compare.yours.p10Pot)}. The shaded bands are the solved plan&apos;s spread: the darker half of markets, the lighter most of them.
+      </p>
       <button type="button" onClick={() => setShow(v => !v)} className={`text-xs font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>{show ? 'Hide the figures' : 'Show the figures'}</button>
       {show && (
         <table className="w-full text-[11px] tabular-nums" data-outlook-table="wealth"><thead><tr className="text-slate-500"><th className="text-left font-medium">Age</th><th className="text-right font-medium">Lowest tenth</th><th className="text-right font-medium">Typical</th><th className="text-right font-medium">Highest tenth</th><th className="text-right font-medium">Your current approach, typical</th></tr></thead>
@@ -287,8 +318,12 @@ function sentence(typical, h, rz, raise) {
   return parts.join(' ');
 }
 
+// a chart's drawing box: on a phone about as wide in units as in pixels, so its labels read at about 10px (the UI pass's phone
+// round, 21 Nov; src/PlannerMore.jsx dimsOf); the marks' figures are read back through the scales, whatever the box
+const boxOf = isPhone => (isPhone ? { W: 330, H: 250 } : { W, H });
 function SpendChart({ pts, typical, floorShare, target, backAge, backYear, fmt, label, isPhone }) {
   if (!pts.length) return null;
+  const { W, H } = boxOf(isPhone);
   const shift = PLANNER_PLANT.has('chartyear') ? 1 : 0;   // the plant: drawn a year out, its data untouched
   const a0 = pts[0].at, a1 = pts[pts.length - 1].at;
   const ymax = Math.max(115, ...pts.map(p => p.p90)), ymin = Math.min(70, Math.floor(100 * floorShare) - 5, ...pts.map(p => p.p10));
@@ -323,6 +358,7 @@ function SpendChart({ pts, typical, floorShare, target, backAge, backYear, fmt, 
 // `yours` null: the bands are your current approach's alone (the failure view, where there is no solved plan), named so
 function WealthChart({ pts, yours: yoursIn, minPot, fmt, isPhone }) {
   if (!pts.length) return null;
+  const { W, H } = boxOf(isPhone);
   const alone = !yoursIn, yours = yoursIn || pts;
   const a0 = pts[0].at, a1 = pts[pts.length - 1].at;
   const ymax = Math.max(1, ...pts.map(p => p.p90), ...yours.map(p => p.p50));
@@ -360,6 +396,12 @@ function belowParts({ s, mine, ctx, dim, isPhone, rulesLine }) {
     ['Tax over your lifetime, typical', v => ctx.fmt(v.lifetimeTax), 'lifetimeTax'],
     ['Estate after the pension\'s death tax, typical', v => ctx.fmt(v.estate), 'estate']
   ];
+  // from the same paths (moreOf): the spending each arm delivers, the years below target and where the money runs out
+  const sp = s.more && s.more.spending, ageAt0 = ageAt0Of(s), arm = v => (v === c.solved ? sp.solved : sp.yours);
+  if (sp) rows.splice(1, 0,
+    ['Spending delivered over the plan', v => `${Math.round(arm(v).delivered)}% of target`, 'delivered'],
+    ['Retired years below target, typical', v => `${arm(v).below.p50}`, 'below'],
+    ['If the money runs out, typically at', v => (arm(v).failed.t50 === null ? 'never' : `${Math.round(ageAt0 + arm(v).failed.t50)}`), 'failAge']);
   const op = dim ? 'opacity-55' : '';
   const thisYear = (
     <div className={`p-4 bg-surface border border-slate-200/90 rounded-xl space-y-3 ${op}`} data-strategy-actions={mine.actions ? 'done' : 'pending'}>
@@ -416,7 +458,12 @@ function belowParts({ s, mine, ctx, dim, isPhone, rulesLine }) {
 }
 
 /* ---------------------------------------------------------------- the phone's deck (LAYOUT.md section 9) */
-const SLIDES = ['The answer', 'What you could spend', 'What you would have', 'This year', 'The next ten years', 'Against your current approach'];
+/*
+ * One idea a slide (the UI pass's phone round, 21 Nov): the money and how long it lasts together, how it is invested on its
+ * own, this year with the next ten (what to do), the run pot by pot on its own. Before it one slide held the ten years, the
+ * investing chart and the pot-by-pot run, three screens of a phone, which a deck exists to avoid.
+ */
+const SLIDES = ['The answer', 'What you could spend', 'Your money and how long it lasts', 'How it is invested', 'What to do', 'One run, pot by pot', 'Against your current approach'];
 function Deck({ card, explanation, outlook, below, levers, onOpenLevers, state }) {
   const [slide, setSlide] = useState(1), [all, setAll] = useState(false), [why, setWhy] = useState(false);
   const ref = useRef(null);
@@ -433,19 +480,24 @@ function Deck({ card, explanation, outlook, below, levers, onOpenLevers, state }
     </>);
     if (!ready) return <p className="text-sm text-slate-500 p-4">The figures arrive once your plan is worked out.</p>;
     if (n === 2) return outlook.spend;
-    if (n === 3) return outlook.wealth;
-    if (n === 4) return <>{below.thisYear}{below.rule}</>;
-    if (n === 5) return below.ahead || <p className="text-sm text-slate-500 p-4">Working out the next ten years…</p>;
+    if (n === 3) return <>{outlook.wealth}{outlook.lasting}</>;
+    if (n === 4) return outlook.invest;
+    if (n === 5) return <>{below.thisYear}{below.rule}{below.ahead || <p className="text-sm text-slate-500 p-4">Working out the next ten years…</p>}</>;
+    if (n === 6) return outlook.life || <p className="text-sm text-slate-500 p-4">Working out a typical run…</p>;
     return below.compare;
   };
   return (
     <div data-planner-plan data-deck data-deck-state={state} ref={ref} className="space-y-3 swipe-x">
-      <div className="flex items-center gap-1 overflow-x-auto" data-no-swipe role="tablist" aria-label="Your plan, a slide at a time">
+      {/* the steps fill the row, each 44px or more; "See all" moved under the slide's name so seven steps fit a 360px phone */}
+      <div className="flex items-center gap-[2px] overflow-x-auto" data-no-swipe role="tablist" aria-label="Your plan, a slide at a time">
         {SLIDES.map((t, i) => (
           <button key={t} type="button" role="tab" aria-selected={!all && slide === i + 1} aria-label={t} data-deck-step={i + 1} onClick={() => { setAll(false); setSlide(i + 1); }}
-            className={`min-h-11 min-w-11 px-2 rounded-lg text-xs font-bold border cursor-pointer ${!all && slide === i + 1 ? 'bg-accent text-onaccent border-blue-600' : 'bg-surface text-slate-600 border-slate-200'}`}>{i + 1}</button>
+            className={`flex-1 min-h-11 min-w-11 rounded-lg text-xs font-bold border cursor-pointer ${!all && slide === i + 1 ? 'bg-accent text-onaccent border-blue-600' : 'bg-surface text-slate-600 border-slate-200'}`}>{i + 1}</button>
         ))}
-        <button type="button" onClick={() => setAll(v => !v)} className="ml-auto min-h-11 px-3 rounded-lg text-xs font-bold border border-slate-200 bg-surface text-slate-700 cursor-pointer">{all ? 'One at a time' : 'See all'}</button>
+      </div>
+      <div className="flex items-center justify-between gap-2" data-deck-title>
+        <span className="text-xs font-semibold text-slate-600 min-w-0 truncate">{all ? 'All of your plan' : `${slide} of ${SLIDES.length} · ${SLIDES[slide - 1]}`}</span>
+        <button type="button" onClick={() => setAll(v => !v)} className="shrink-0 min-h-11 px-2 text-xs font-bold text-indigo-700 cursor-pointer">{all ? 'One at a time' : 'See all'}</button>
       </div>
       {all ? SLIDES.map((t, i) => <div key={t} data-deck-slide={i + 1} className="space-y-3">{body(i + 1)}</div>) : (
         <div data-deck-slide={slide} className="space-y-3">{body(slide)}</div>

@@ -7254,6 +7254,7 @@ const SOLVER_UI = { Fine, PhoneCollapse, MoneyInput, fieldCls: inputCls };
 const SolverAimsCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverAims })));
 // Phase 10, item 7: the history tab's out-of-model check, loaded when there is a solved plan's run through history to show
 const SolverHistoryCard = /* @__PURE__ */ lazy(() => import('./SolverFigures.jsx').then(m => ({ default: m.SolverHistory })));
+const HistoryStripCard = /* @__PURE__ */ lazy(() => import('./PlannerMore.jsx').then(m => ({ default: m.HistoryStrip })));
 const SolverLocksCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverLocks })));
 // step U: Your plan, the new planner's first place (src/PlannerPlan.jsx), its other cards (src/PlannerCards.jsx: the couples
 // card, What if with the age, target and limits cards and the scenarios, the solver's settings, how it decides) and its quick
@@ -9348,6 +9349,17 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   }, [solvedInHand, solve.key, activeTab, activeHistoricalStartYear, haveExpected]); // eslint-disable-line react-hooks/exhaustive-deps
   const solvedLedger = solvedInHand && solvedRows.key === solve.key ? solvedRows.expected : null;
   const solvedHistory = solvedInHand && solvedRows.key === solve.key ? solvedRows.hist[activeHistoricalStartYear] || null : null;
+  // every start year at once (the UI pass of 20 Nov): the solved plan's verdicts from the worker, your current approach's here
+  const [histAll, setHistAll] = useState({ key: null, list: null });
+  const histYears = useMemo(() => { const a = []; for (let y = E.HISTORICAL_FIRST_YEAR; y <= maxHistoricalStartYear; y++) a.push(y); return a; }, [maxHistoricalStartYear]);
+  useEffect(() => {
+    if (!solvedInHand || activeTab !== 'details' || histAll.key === solve.key) return undefined;
+    let live = true;
+    const key = solve.key;
+    solve.ask('history', { years: histYears }).then(({ history }) => { if (live && history) setHistAll({ key, list: history }); }).catch(() => { /* the strip shows your current approach alone */ });
+    return () => { live = false; };
+  }, [solvedInHand, solve.key, activeTab, histYears]); // eslint-disable-line react-hooks/exhaustive-deps
+  const yourHistAll = useMemo(() => (solverOn && activeTab === 'details' ? histYears.map(y => { const v = E.evaluateRows(ctx, E.simulateHistorical(ctx, y)); return { y, ok: !!v.survived, failYear: v.failYear }; }) : null), [solverOn, activeTab, ctx, histYears]);
   // the audit table: the solved plan's ledger where one is in hand (your plan's a click away), else your plan's
   const [auditView, setAuditView] = useState('solved');
   const auditRun = solvedLedger && auditView === 'solved' ? solvedLedger : null;
@@ -12472,6 +12484,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-slate-500">Your working years cannot run the pot dry, because your living spend is only drawn from the first retirement onwards. The verdict below therefore counts <strong>drawdown years</strong>, not calendar years — a plan that fails the moment you stop working has funded nothing, however far away that moment is.</p>
               </Fine>
             </div>
+            {/* every start year first (the UI pass, 21 Nov): the overview a year is picked from, above the picker */}
+            {solverOn && yourHistAll && (
+              <Suspense fallback={null}>
+                <HistoryStripCard solved={histAll.key === solve.key ? histAll.list : null} yours={yourHistAll} selected={activeHistoricalStartYear} onPick={setSelectedHistoricalYear} isPhone={isPhone} />
+              </Suspense>
+            )}
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div><h3 className="text-sm font-semibold text-slate-900">Select a historical scenario or start year</h3>{!isPhone && <span className="text-[11px] text-slate-500">Select an iconic crisis preset or slide to any year between {E.HISTORICAL_FIRST_YEAR} and {maxHistoricalStartYear}.</span>}</div>
@@ -13729,7 +13747,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div data-section="you" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5'}`}>
               <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
                 <div>
-                  {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Users className="w-4 h-4 text-blue-600" /> 1. Demographics, salaries &amp; retirement targets</h3>}
+                  {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Users className="w-4 h-4 text-blue-600" /> {solverOn ? 'About you, and what you want to spend' : <>1. Demographics, salaries &amp; retirement targets</>}</h3>}
                   {!isPhone && <span className="text-xs text-slate-500">Choose whether this plan is for an individual or a couple.</span>}
                 </div>
                 {/* Two options, which is exactly what a segmented control is for; full width on a phone,
@@ -13836,7 +13854,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             {showSection('money') && (
             <div data-section="money" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5 overflow-x-auto'}`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-600" /> 2. Current balances, annual contributions &amp; risk profiles</h3>}
+                {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-600" /> {solverOn ? 'Your money: balances, contributions and risk' : <>2. Current balances, annual contributions &amp; risk profiles</>}</h3>}
                 <button type="button" onClick={() => goToDoc('doc-risk-profiles')} className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto"><HelpCircle className="w-3.5 h-3.5" /> Guide to investment allocations &amp; fund types &rarr;</button>
               </div>
               <Fine isPhone={isPhone} label="What counts as a contribution?">
@@ -13947,7 +13965,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div data-section="income" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5'}`}>
               <div className="flex justify-between items-center">
                 <div>
-                  {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Coins className="w-4 h-4 text-blue-600" /> 3. Expected other income streams (e.g. defined benefit pensions, part-time work, rental income)</h3>}
+                  {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Coins className="w-4 h-4 text-blue-600" /> {solverOn ? 'Other income (a DB pension, part-time work, rent)' : '3. Expected other income streams (e.g. defined benefit pensions, part-time work, rental income)'}</h3>}
                   <Fine isPhone={isPhone} label="How income streams are taxed">
                   <span className="text-[11px] text-slate-500">Taxable streams count towards the personal allowance and tax bands; tax-free streams directly reduce net drawdown demand. Blank end age = plan end.</span>
                   <ul className="list-disc pl-4 text-[11px] text-slate-500 mt-1 leading-relaxed max-w-3xl space-y-0.5">
@@ -14000,7 +14018,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div data-section="deposits" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5'}`}>
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                   <div>
-                    {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Plus className="w-4 h-4 text-blue-600" /> 4. One-off deposits (by wrapper)</h3>}
+                    {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Plus className="w-4 h-4 text-blue-600" /> {solverOn ? 'One-off deposits' : '4. One-off deposits (by wrapper)'}</h3>}
                     {!isPhone && <span className="text-[11px] text-slate-500 block mt-0.5">Lump sums into a chosen wrapper. Anything above that year's allowance is parked in Other Investments and fed in over later years. Into a pension, the amount lands as you enter it: tax relief is not added, so enter any relief as its own deposit from External.</span>}
                     <button type="button" onClick={() => goToDoc('doc-one-off-deposits')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-0.5"><HelpCircle className="w-3.5 h-3.5" /> How one-off deposits &amp; multi-year staging work &rarr;</button>
                   </div>
@@ -14135,7 +14153,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div data-section="costs" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5'}`}>
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                   <div>
-                    {!isPhone && <h3 className="text-sm font-semibold text-rose-700 flex items-center gap-2"><Trash2 className="w-4 h-4 text-rose-600" /> 5. One-off capital costs</h3>}
+                    {!isPhone && <h3 className="text-sm font-semibold text-rose-700 flex items-center gap-2"><Trash2 className="w-4 h-4 text-rose-600" /> {solverOn ? 'One-off costs' : '5. One-off capital costs'}</h3>}
                     <button type="button" onClick={() => goToDoc('doc-one-offs')} className="text-[11px] text-rose-600 hover:text-rose-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-0.5"><HelpCircle className="w-3.5 h-3.5" /> How costs are liquidated from your wrappers &rarr;</button>
                   </div>
                   <button onClick={addOneOffCost} className={`${isPhone ? 'w-full min-h-11 justify-center' : 'px-2.5 py-1'} bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200 self-start sm:self-auto`}><Plus className="w-3.5 h-3.5" /> Add cost</button>
@@ -14166,7 +14184,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             )}
             {youOn && showSection('advanced') && (
               <div data-section="advanced" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5'}`}>
-                {!isPhone && <h3 className="text-sm font-semibold text-slate-900">7. Advanced inputs</h3>}
+                {!isPhone && <h3 className="text-sm font-semibold text-slate-900">{solverOn ? 'Advanced' : '7. Advanced inputs'}</h3>}
                 {renderAdvancedInputs(isPhone)}
                 {currentApproachCard()}
               </div>

@@ -165,7 +165,10 @@ export function Details({ isPhone, sections, section, onSection, onPrint, onExpo
       {(!isPhone || section === 'history') && <section data-details="history" className="scroll-mt-32 space-y-6">{history()}</section>}
       {(!isPhone || section === 'assumptions') && (
         <section data-details="assumptions" data-assumptions className="scroll-mt-32 space-y-4">
-          <div className="bg-surface border border-slate-200/90 p-5 rounded-xl text-xs">{taxRules()}</div>
+          <div className="bg-surface border border-slate-200/90 p-5 rounded-xl text-xs space-y-3">
+            <div><h2 className="text-base font-semibold text-slate-900">Tax rules</h2><p className="text-xs text-slate-500 mt-1">Which taxes the model charges, for the solved plan and your current approach alike.</p></div>
+            {taxRules()}
+          </div>
           {assumptions()}
           <div data-display className="space-y-2">
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl flex flex-wrap items-center justify-between gap-3">

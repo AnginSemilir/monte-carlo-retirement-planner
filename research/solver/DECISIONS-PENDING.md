@@ -1092,7 +1092,14 @@ twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/20
      EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test.
    - **Ruled (D112, 17 Nov), the four left open with the maintainer** (below): M3 and M6 in the page's words with the next
      batch, the cash buffer's size left for now, `survivalChangeU`'s interval fixed after JOINT-WIDE's read.
-2. **The maintainer's work on the UI.** Its scope is the maintainer's; nothing is planned for it here yet.
+2. **The maintainer's work on the UI.** Its scope is the maintainer's. Begun 20 Nov at the maintainer's word ("revisit the
+   complete UI of the beta site ... optimise it based on how the solver works now"), on the working branch, changing no
+   figure, default or solve: Your plan reorganised into the answer (with the solved plan against your current approach in
+   three figures), how it plays out (spending with the retired years by level, money, how long the money lasts by age, how
+   it is invested year by year), what to do, one run of the markets pot by pot, and the comparison in full; the phone's deck
+   keeping its six slides; Details' history check with every start year at once; You's classic numbered headings gone. The new
+   figures come from the headline's own paths (`src/solverStrategy.js` `moreOf`, `lifeRun`; `planner-more.test.mjs`, the
+   full tier, each of its five plants failing exactly its check). For the maintainer: what else the UI pass should take on.
 3. **Sharing it publicly.** Before it: the readiness checklist taken again on that commit, and the maintainer's word on
    the solver on by default and the switch's removal.
 

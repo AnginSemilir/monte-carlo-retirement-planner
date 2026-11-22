@@ -93,7 +93,8 @@ const runProjection = async p => {
   { const { SIMPLE_BLANK } = await load('research/simplePlan.mjs');
     const c = await b.newContext({ viewport: { width: 1400, height: 1100 } }), p = await c.newPage();
     // the page is chosen by the key read raw (src/Shell.jsx: getItem('rp_which_app') === 'simple'), not as JSON
-    await c.addInitScript(sp => { localStorage.setItem('rp_simple_v1', JSON.stringify(sp)); localStorage.setItem('rp_which_app', 'simple'); }, { ...SIMPLE_BLANK, ageSelf: 56, retireSelf: 60, spend: 26000, pen: 420000, isa: 90000, cash: 15000 });
+    // and the classic planner chosen: since 22 Nov the new planner is the default, and it opens the full planner, not the Simple page
+    await c.addInitScript(sp => { localStorage.setItem('rp_simple_v1', JSON.stringify(sp)); localStorage.setItem('rp_which_app', 'simple'); localStorage.setItem('rp_planner', 'classic'); }, { ...SIMPLE_BLANK, ageSelf: 56, retireSelf: 60, spend: 26000, pen: 420000, isa: 90000, cash: 15000 });
     await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
     // the Simple page itself (the Shell offers "Open the full planner" on it alone), its figures drawn, before the card's absence means anything
     const onSimple = await p.waitForFunction(() => /Open the full planner/.test(document.body.textContent) && /Pot at retirement/.test(document.body.textContent), null, { timeout: 120000 }).then(() => true, () => false);

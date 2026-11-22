@@ -1,5 +1,5 @@
 == the batches' pause was already set: left in place when this run exits ==
-the code: code-stamp:07db8b86e2aef6a9; the classic planner's mode
+the code: code-stamp:dbf8ca69cf99214f; the classic planner's mode
 == build, the site as it ships ==
    ok
 == serve on :4173 ==

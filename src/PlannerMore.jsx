@@ -14,7 +14,10 @@
  */
 import React, { useMemo, useState } from 'react';
 
-const W = 600, H = 220, PAD = { l: 44, r: 16, t: 14, b: 26 };
+const PAD = { l: 44, r: 16, t: 14, b: 26 };
+// a chart's drawing box: on a phone about as wide in units as it is in pixels, so its 10-unit labels read at about 10px
+// (the UI pass's phone round, 21 Nov: at 600 units they drew near 6px on a 360px screen)
+export const dimsOf = isPhone => (isPhone ? { W: 330, H: 240 } : { W: 600, H: 220 });
 const lin = (d0, d1, r0, r1) => v => r0 + ((v - d0) * (r1 - r0)) / (d1 - d0 || 1);
 const pct = x => `${Math.round(x)}%`;
 export const short = v => (v >= 995000 ? `£${(v / 1e6).toFixed(v >= 9.95e6 ? 0 : 1)}m` : v >= 1000 ? `£${Math.round(v / 1000)}k` : `£${Math.round(v)}`);
@@ -23,7 +26,9 @@ const linkBtn = isPhone => `text-xs font-semibold text-indigo-700 hover:underlin
 const pathOf = (pts, x, y) => pts.map((p, i) => `${i ? 'L' : 'M'}${x(p[0]).toFixed(2)},${y(p[1]).toFixed(2)}`).join('');
 
 /* a hover readout for a chart drawn over ages: the nearest age to the pointer, a rule at it and a box of lines beside it */
-function useHover(ages, x) {
+// on a touch screen the readout stays where the finger lifted (a tap reads a year, a drag scrubs; the chart's box is left out
+// of the deck's swipe), and a mouse's leaves with the pointer
+function useHover(ages, x, W) {
   const [at, setAt] = useState(null);
   const on = e => {
     const r = e.currentTarget.getBoundingClientRect(), vx = ((e.clientX - r.left) / r.width) * W;
@@ -31,9 +36,9 @@ function useHover(ages, x) {
     ages.forEach((a, i) => { if (Math.abs(x(a) - vx) < Math.abs(x(ages[best]) - vx)) best = i; });
     setAt(best);
   };
-  return { at, svg: { onPointerMove: on, onPointerDown: on, onPointerLeave: () => setAt(null) } };
+  return { at, svg: { onPointerMove: on, onPointerDown: on, onPointerLeave: e => { if (e.pointerType === 'mouse') setAt(null); } } };
 }
-function Readout({ at, x, lines }) {
+function Readout({ at, x, lines, W }) {
   if (at === null || !lines) return null;
   const left = (100 * x) / W;
   return (
@@ -43,7 +48,7 @@ function Readout({ at, x, lines }) {
     </div>
   );
 }
-const AgeAxis = ({ a0, a1, x, h = H }) => [a0, Math.round((a0 + a1) / 2), a1].map(v => <text key={v} x={x(v)} y={h - 8} textAnchor="middle" className="fill-slate-500 text-[10px]">{v}</text>);
+const AgeAxis = ({ a0, a1, x, h }) => [a0, Math.round((a0 + a1) / 2), a1].map(v => <text key={v} x={x(v)} y={h - 8} textAnchor="middle" className="fill-slate-500 text-[10px]">{v}</text>);
 function Toggle({ show, setShow, isPhone }) {
   return <button type="button" onClick={() => setShow(v => !v)} className={linkBtn(isPhone)}>{show ? 'Hide the figures' : 'Show the figures'}</button>;
 }
@@ -71,6 +76,36 @@ export function VersusStrip({ s, ageAt0, fmt, isPhone }) {
     { k: 'tax', label: 'Tax over your lifetime, typical', a: c.solved.lifetimeTax, b: c.yours.lifetimeTax, f: v => fmt(v), bar: false, diff: d => (Math.abs(d) < 500 ? 'about the same' : `${short(Math.abs(d))} ${d < 0 ? 'less' : 'more'}`), good: d => d < 0 }
   ];
   const fa = failAge(sp.solved), fb = failAge(sp.yours);
+  const tone = (t, d) => (t.good(d) ? 'text-emerald-700' : Math.abs(d) < 0.5 ? 'text-slate-500' : 'text-rose-700');
+  /*
+   * ON A PHONE, A TABLE. Three tiles stacked made the answer card a screen and a half and pushed "Why" and the levers off
+   * the first slide; the same figures as rows (what, solved, current, the difference) fit in about a third of that, and a
+   * row reads across the way the comparison is meant: this plan, then yours, then what it buys you.
+   */
+  if (isPhone) return (
+    <div data-versus="table" className="pt-3 mt-1 border-t border-slate-200 space-y-1.5">
+      <div className="text-xs font-semibold text-slate-700">Against your current approach (the app&apos;s fixed rules), on the same markets</div>
+      <table className="w-full text-[12px] tabular-nums">
+        <thead><tr className="text-[11px] text-slate-500"><th className="text-left font-medium" /><th className="text-right font-medium pl-2">Solved</th><th className="text-right font-medium pl-2">Current</th><th className="text-right font-medium pl-2">Change</th></tr></thead>
+        <tbody>{tiles.map(t => {
+          const d = t.a - t.b, f = t.k === 'tax' ? short : pct;
+          return (
+            <tr key={t.k} data-versus-tile={t.k} className="border-t border-slate-100 align-baseline">
+              <td className="py-1.5 pr-1 text-slate-700 leading-tight">{t.k === 'survival' ? 'Money lasts' : t.k === 'delivered' ? 'Spending delivered' : 'Lifetime tax'}</td>
+              <td className="pl-2 text-right font-semibold text-slate-900">{f(t.a)}</td>
+              <td className="pl-2 text-right text-slate-600">{f(t.b)}</td>
+              <td className={`pl-2 text-right font-semibold whitespace-nowrap ${tone(t, d)}`}>{t.k === 'tax' ? (Math.abs(d) < 500 ? 'same' : `${d < 0 ? '−' : '+'}${short(Math.abs(d))}`) : `${d >= 0 ? '+' : '−'}${Math.abs(Math.round(d))} pts`}</td>
+            </tr>
+          );
+        })}</tbody>
+      </table>
+      {(fa !== null || fb !== null) && (
+        <p className="text-[11px] text-slate-500" data-versus-fail>
+          Where the money does run out: typically at {fa !== null ? fa : '–'} under the solved plan{fb !== null ? `, ${fb} under your current approach` : ''}.
+        </p>
+      )}
+    </div>
+  );
   return (
     <div data-versus className="pt-3 mt-1 border-t border-slate-200 space-y-2">
       <div className="text-xs font-semibold text-slate-700">Against your current approach, the app&apos;s fixed rules on the same markets</div>
@@ -107,10 +142,10 @@ export function VersusStrip({ s, ageAt0, fmt, isPhone }) {
 /* ---------------------------------------------------------------- how long the money lasts */
 export function LastingCard({ s, ageAt0, dim, isPhone }) {
   const [show, setShow] = useState(false);
-  const L = s.more && s.more.lasting;
+  const L = s.more && s.more.lasting, { W, H } = dimsOf(isPhone);
   const ages = useMemo(() => (L ? L.solved.map((_, t) => ageAt0 + t) : []), [L, ageAt0]);
   const x = lin(ages[0], ages[ages.length - 1], PAD.l, W - PAD.r), y = lin(0, 100, H - PAD.b, PAD.t);
-  const hv = useHover(ages, x);
+  const hv = useHover(ages, x, W);
   if (!L || ages.length < 2) return null;
   const a = L.solved.map((v, i) => [ages[i], v]), b = L.yours.map((v, i) => [ages[i], v]);
   // the age the two part most, for the sentence (the first where the gap is widest, past the first ten years where it can be)
@@ -118,7 +153,9 @@ export function LastingCard({ s, ageAt0, dim, isPhone }) {
   L.solved.forEach((v, i) => { if (v - L.yours[i] > L.solved[gi] - L.yours[gi] + 0.5) gi = i; });
   const between = `${pathOf(a, x, y)}${[...b].reverse().map(p => `L${x(p[0]).toFixed(2)},${y(p[1]).toFixed(2)}`).join('')}Z`;
   const last = ages.length - 1, endA = y(L.solved[last]), endB = y(L.yours[last]);
-  const labA = Math.abs(endA - endB) < 14 ? (endA < endB ? endA - 6 : endA + 14) : endA - 6;
+  // the solved plan's name above its line's last few years (a minimum pot can drop the line in the final year, under the name)
+  const topA = Math.min(...L.solved.slice(-4).map(v => y(v)));
+  const labA = Math.abs(endA - endB) < 14 ? (endA < endB ? topA - 6 : endA + 14) : topA - 6;
   const label = `How long your money lasts. By ${ages[gi]}: ${pct(L.solved[gi])} of markets under the solved plan, ${pct(L.yours[gi])} under your current approach. At the plan's end: ${pct(L.solved[last])} and ${pct(L.yours[last])}.`;
   const at = hv.at;
   return (
@@ -127,7 +164,7 @@ export function LastingCard({ s, ageAt0, dim, isPhone }) {
         <h3 className="text-[15px] font-semibold text-slate-900">How long your money lasts</h3>
         <p className="text-xs text-slate-600 mt-0.5">The share of simulated markets in which your money is still going at each age.</p>
       </div>
-      <div className="relative">
+      <div className="relative" data-no-swipe>
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto touch-pan-y" role="img" aria-label={label} data-chart="lasting" {...hv.svg}>
           {[0, 25, 50, 75, 100].map(v => <g key={v}><line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} className="stroke-slate-200" /><text x={PAD.l - 6} y={y(v) + 3} textAnchor="end" className="fill-slate-500 text-[10px]">{v}%</text></g>)}
           <path d={between} className="fill-indigo-100" opacity="0.8" />
@@ -136,9 +173,9 @@ export function LastingCard({ s, ageAt0, dim, isPhone }) {
           <text x={x(ages[last]) - 4} y={labA} textAnchor="end" className="fill-indigo-800 text-[10px] font-semibold">{isPhone ? `solved ${pct(L.solved[last])}` : `the solved plan, ${pct(L.solved[last])}`}</text>
           <text x={x(ages[last]) - 4} y={Math.min(endB + 14, H - PAD.b - 4)} textAnchor="end" className="fill-slate-600 text-[10px]">{isPhone ? `current ${pct(L.yours[last])}` : `your current approach, ${pct(L.yours[last])}`}</text>
           {at !== null && <g><line x1={x(ages[at])} x2={x(ages[at])} y1={PAD.t} y2={H - PAD.b} className="stroke-slate-400" /><circle cx={x(ages[at])} cy={y(L.solved[at])} r="4" className="fill-indigo-700 stroke-surface" strokeWidth="2" /><circle cx={x(ages[at])} cy={y(L.yours[at])} r="4" className="fill-slate-500 stroke-surface" strokeWidth="2" /></g>}
-          <AgeAxis a0={ages[0]} a1={ages[last]} x={x} />
+          <AgeAxis a0={ages[0]} a1={ages[last]} x={x} h={H} />
         </svg>
-        <Readout at={at} x={at === null ? 0 : x(ages[at])} lines={at === null ? null : [`Age ${ages[at]}`, `Solved plan: ${pct(L.solved[at])}`, `Current approach: ${pct(L.yours[at])}`]} />
+        <Readout W={W} at={at} x={at === null ? 0 : x(ages[at])} lines={at === null ? null : [`Age ${ages[at]}`, `Solved plan: ${pct(L.solved[at])}`, `Current approach: ${pct(L.yours[at])}`]} />
       </div>
       <Key items={[['stroke-indigo-700', 'The solved plan', '1 0'], ['stroke-slate-500', 'Your current approach', true]]} />
       {L.solved[gi] - L.yours[gi] >= 1 && (
@@ -174,7 +211,7 @@ function TierStrip({ life, ageAt0, a0, a1, rows }) {
               <div key={r.t0} title={`${name}: ${r.v}% in shares, ages ${ageAt0 + r.t0} to ${ageAt0 + r.t1}`} className="absolute top-0 h-6 rounded-sm overflow-hidden border-r-2 border-surface"
                 style={{ left: `${at(ageAt0 + r.t0)}%`, width: `${w}%` }}>
                 <div className="absolute inset-0 bg-indigo-700" style={{ opacity: 0.15 + 0.85 * (r.v / 100) }} />
-                {w >= 7 && <span className={`relative pl-1 text-[11px] font-semibold leading-6 ${r.v >= 60 ? 'text-surface' : 'text-slate-900'}`}>{r.v}%</span>}
+                {w >= 10 && <span className={`relative pl-1 text-[11px] font-semibold leading-6 ${r.v >= 60 ? 'text-surface' : 'text-slate-900'}`}>{r.v}%</span>}
               </div>
             );
           })}
@@ -195,11 +232,11 @@ const runsOf = (life, k) => {
 };
 export function InvestCard({ s, life, ageAt0, dim, isPhone }) {
   const [show, setShow] = useState(false);
-  const eqs = s.more && s.more.equity, a = eqs ? eqs.solved : [], b = eqs ? eqs.yours : [];
+  const eqs = s.more && s.more.equity, a = eqs ? eqs.solved : [], b = eqs ? eqs.yours : [], { W, H } = dimsOf(isPhone);
   const ages = useMemo(() => a.map(p => ageAt0 + p.t), [a, ageAt0]);
   const a0 = ageAt0, a1 = ageAt0 + Math.max(a.length ? a[a.length - 1].t : 0, b.length ? b[b.length - 1].t : 0, 1);
   const x = lin(a0, a1, PAD.l, W - PAD.r), y = lin(0, 100, H - PAD.b, PAD.t);
-  const hv = useHover(ages, x);
+  const hv = useHover(ages, x, W);
   if (!eqs || a.length < 2) return null;
   const band = (lo, hi) => `${a.map((p, i) => `${i ? 'L' : 'M'}${x(ageAt0 + p.t).toFixed(2)},${y(p[hi]).toFixed(2)}`).join('')}${[...a].reverse().map(p => `L${x(ageAt0 + p.t).toFixed(2)},${y(p[lo]).toFixed(2)}`).join('')}Z`;
   const med = a.map(p => [ageAt0 + p.t, p.p50]), yours = b.map(p => [ageAt0 + p.t, p.p50]);
@@ -220,7 +257,7 @@ export function InvestCard({ s, life, ageAt0, dim, isPhone }) {
         <h3 className="text-[15px] font-semibold text-slate-900">How your money is invested</h3>
         <p className="text-xs text-slate-600 mt-0.5">The share of your money held in shares, year by year. The solver chooses each pot&apos;s risk every year; your current approach keeps the risk you set.</p>
       </div>
-      <div className="relative">
+      <div className="relative" data-no-swipe>
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto touch-pan-y" role="img" data-chart="equity" {...hv.svg}
           aria-label={`${words}${yw}`}>
           {[0, 25, 50, 75, 100].map(v => <g key={v}><line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} className="stroke-slate-200" /><text x={PAD.l - 6} y={y(v) + 3} textAnchor="end" className="fill-slate-500 text-[10px]">{v}%</text></g>)}
@@ -229,9 +266,9 @@ export function InvestCard({ s, life, ageAt0, dim, isPhone }) {
           {yours.length > 1 && <path d={pathOf(yours, x, y)} className="stroke-slate-500 fill-none" strokeWidth="2" strokeDasharray="6 4" />}
           <path d={pathOf(med, x, y)} className="stroke-indigo-700 fill-none" strokeWidth="2.5" />
           {at !== null && <g><line x1={x(ages[at])} x2={x(ages[at])} y1={PAD.t} y2={H - PAD.b} className="stroke-slate-400" /><circle cx={x(ages[at])} cy={y(a[at].p50)} r="4" className="fill-indigo-700 stroke-surface" strokeWidth="2" /></g>}
-          <AgeAxis a0={a0} a1={a1} x={x} />
+          <AgeAxis a0={a0} a1={a1} x={x} h={H} />
         </svg>
-        <Readout at={at} x={at === null ? 0 : x(ages[at])} lines={at === null ? null : [`Age ${ages[at]}`, `Solved plan, typical: ${a[at].p50}% in shares`, `Most markets: ${a[at].p10}% to ${a[at].p90}%`, ...(yAt ? [`Current approach, typical: ${yAt.p50}%`] : [])]} />
+        <Readout W={W} at={at} x={at === null ? 0 : x(ages[at])} lines={at === null ? null : [`Age ${ages[at]}`, `Solved plan, typical: ${a[at].p50}% in shares`, `Most markets: ${a[at].p10}% to ${a[at].p90}%`, ...(yAt ? [`Current approach, typical: ${yAt.p50}%`] : [])]} />
       </div>
       <Key items={[['stroke-indigo-700', 'Solved plan, typical', '1 0'], ['bg-indigo-200', 'Half of markets'], ['bg-indigo-100', 'Most markets'], ['stroke-slate-500', 'Your current approach, typical', true]]} />
       <p className="text-xs text-slate-700" data-invest-words>{words}{yw}</p>
@@ -239,7 +276,15 @@ export function InvestCard({ s, life, ageAt0, dim, isPhone }) {
         <div className="space-y-1" data-invest-strip>
           <div className="text-xs font-semibold text-slate-800">Each pot&apos;s risk on a typical run</div>
           <TierStrip life={life.solved} ageAt0={ageAt0} a0={a0} a1={a1} rows={stripRows} />
-          <p className="text-[11px] text-slate-500">Each block is a stretch of years at one risk, labelled with its share in shares; a stronger colour is more in shares.</p>
+          <p className="text-[11px] text-slate-500">Each block is a stretch of years at one risk; a stronger colour is more in shares.</p>
+          {/* the strip in words, so a block too narrow for its label still says its figure */}
+          <ul className="text-xs text-slate-700 space-y-0.5" data-invest-runs>
+            {stripRows.map(([k, name]) => {
+              const rs = runsOf(life.solved, k);
+              const said = rs.slice(0, 6).map((r, i) => (i === 0 ? `${r.v}% in shares` : `${r.v}% from ${ageAt0 + r.t0}`)).join(', then ');
+              return <li key={k}><span className="font-semibold">{name}:</span> {said}{rs.length === 1 ? ' throughout' : rs.length > 6 ? `, and ${rs.length - 6} more changes after` : ''}.</li>;
+            })}
+          </ul>
         </div>
       )}
       <Toggle show={show} setShow={setShow} isPhone={isPhone} />
@@ -305,9 +350,9 @@ export function LifeCard({ life, ageAt0, fmt, dim, isPhone }) {
   const rows = life ? life[arm] : [];
   const ages = useMemo(() => rows.map(r => ageAt0 + r.t), [rows, ageAt0]);
   const top = life ? Math.max(1, ...['solved', 'yours'].flatMap(k => life[k].map(r => r.pen + r.isa + r.other + r.cash))) : 1;
-  const HL = isPhone ? H : 170;
+  const { W, H } = dimsOf(isPhone), HL = isPhone ? H : 170;
   const x = lin(ages[0] || 0, ages[ages.length - 1] || 1, PAD.l + 14, W - PAD.r), y = lin(0, top * 1.05, HL - PAD.b, PAD.t);
-  const hv = useHover(ages, x);
+  const hv = useHover(ages, x, W);
   if (!life || rows.length < 2) return null;
   const present = WRAPS.filter(([k]) => life.solved.some(r => r[k] > 0) || life.yours.some(r => r[k] > 0));
   // the stack, bottom up, in WRAPS' order: each layer between the running sums before and after it
@@ -330,7 +375,7 @@ export function LifeCard({ life, ageAt0, fmt, dim, isPhone }) {
           <button type="button" data-life-pick="yours" aria-pressed={arm === 'yours'} onClick={() => setArm('yours')} className={btn(arm === 'yours')}>Your current approach</button>
         </div>
       </div>
-      <div className="relative">
+      <div className="relative" data-no-swipe>
         <svg viewBox={`0 0 ${W} ${HL}`} className="w-full h-auto touch-pan-y" role="img" data-chart="life" {...hv.svg}
           aria-label={`${arm === 'solved' ? 'The solved plan' : 'Your current approach'} on a typical run: ${fmt(endOf(arm))} left at ${ages[ages.length - 1]}, ${fmt(taxOf(arm))} paid in tax${runOut ? `, the money running short at ${ageAt0 + runOut.t}` : ''}.`}>
           {ticks.map(v => <g key={v}><line x1={PAD.l + 14} x2={W - PAD.r} y1={y(v)} y2={y(v)} className="stroke-slate-200" /><text x={PAD.l + 10} y={y(v) + 3} textAnchor="end" className="fill-slate-500 text-[10px]">{short(v)}</text></g>)}
@@ -339,7 +384,7 @@ export function LifeCard({ life, ageAt0, fmt, dim, isPhone }) {
           {at !== null && <line x1={x(ages[at])} x2={x(ages[at])} y1={PAD.t} y2={HL - PAD.b} className="stroke-slate-900" strokeOpacity="0.5" />}
           <AgeAxis a0={ages[0]} a1={ages[ages.length - 1]} x={x} h={HL} />
         </svg>
-        <Readout at={at} x={at === null ? 0 : x(ages[at])} lines={r ? [`Age ${ages[at]}`, ...present.map(([k, l]) => `${l}: ${fmt(r[k])}`), `In shares: ${r.eq === null ? '–' : `${r.eq}%`}`, `Tax that year: ${fmt(r.tax)}`] : null} />
+        <Readout W={W} at={at} x={at === null ? 0 : x(ages[at])} lines={r ? [`Age ${ages[at]}`, ...present.map(([k, l]) => `${l}: ${fmt(r[k])}`), `In shares: ${r.eq === null ? '–' : `${r.eq}%`}`, `Tax that year: ${fmt(r.tax)}`] : null} />
       </div>
       <Key items={present.map(([, l, , bg]) => [bg, l])} />
       <p className="text-xs text-slate-700" data-life-words>
@@ -378,15 +423,49 @@ export function HistoryStrip({ solved, yours, selected, onPick, isPhone }) {
       </div>
     </div>
   );
+  /*
+   * ON A PHONE, A DECADE GRID. Sixty-odd columns across a phone are hairlines two pixels wide that no finger can pick. So the
+   * years go ten to a row, a row a decade, as a calendar reads: each cell is one start year, its upper half the solved plan and
+   * its lower half your current approach, and a cell is a tap target of about 28 by 40 pixels.
+   */
+  const half = (r, tone) => (r ? (r.ok ? tone : 'bg-transparent border-2 border-rose-600') : 'bg-slate-100');
+  const grid = isPhone && (
+    <div className="space-y-1" data-history-grid role="group" aria-label="Every start year, a row a decade">
+      <div className="grid gap-[3px] text-[10px] text-slate-500 tabular-nums" style={{ gridTemplateColumns: '2.6rem repeat(10, minmax(0, 1fr))' }}>
+        <span />{Array.from({ length: 10 }, (_, d) => <span key={d} className="text-center">{d}</span>)}
+      </div>
+      {[...new Set(yours.map(r => Math.floor(r.y / 10) * 10))].map(dec => (
+        <div key={dec} className="grid gap-[3px] items-stretch" style={{ gridTemplateColumns: '2.6rem repeat(10, minmax(0, 1fr))' }}>
+          <span className="text-[11px] text-slate-600 tabular-nums self-center">{dec}s</span>
+          {Array.from({ length: 10 }, (_, d) => {
+            const y = dec + d, yr = yours.find(r => r.y === y);
+            if (!yr) return <span key={d} />;
+            const sr = solved ? bySolved[y] : null;
+            return (
+              <button key={d} type="button" onClick={() => onPick && onPick(y)} data-history-cell={y}
+                aria-label={`${y}: solved plan ${sr ? (sr.ok ? 'lasts' : `runs out in ${sr.failYear}`) : 'working it out'}; your current approach ${yr.ok ? 'lasts' : `runs out in ${yr.failYear}`}`}
+                className={`h-10 rounded-sm flex flex-col gap-[2px] p-[1px] cursor-pointer ${selected === y ? 'ring-2 ring-slate-900' : ''}`}>
+                <span className={`flex-1 rounded-[2px] ${half(sr, 'bg-emerald-600')}`} />
+                <span className={`flex-1 rounded-[2px] ${half(yr, 'bg-slate-400')}`} />
+              </button>
+            );
+          })}
+        </div>
+      ))}
+      <p className="text-[11px] text-slate-500">In each cell the upper half is the solved plan and the lower half your current approach.</p>
+    </div>
+  );
   return (
     <div data-history-strip={solved ? 'in' : 'pending'} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
       <div>
         <h3 className="text-base font-semibold text-slate-900">Every start year in history</h3>
         <p className="text-xs text-slate-600 mt-0.5">Your plan run through the real markets from each year since {yours[0].y}. {isPhone ? 'Tap' : 'Click'} a year to see its run below.</p>
       </div>
-      {row('Solved plan', solved, 'bg-emerald-600', 'solved')}
-      {row('Your current approach', yours, 'bg-slate-400', 'yours')}
-      <div className="flex items-center gap-2 text-[10px] text-slate-500 tabular-nums"><span className="w-24 shrink-0" /><span className="flex-1 flex justify-between"><span>{yours[0].y}</span><span>{yours[Math.floor(n / 2)].y}</span><span>{yours[n - 1].y}</span></span></div>
+      {isPhone ? grid : (<>
+        {row('Solved plan', solved, 'bg-emerald-600', 'solved')}
+        {row('Your current approach', yours, 'bg-slate-400', 'yours')}
+        <div className="flex items-center gap-2 text-[10px] text-slate-500 tabular-nums"><span className="w-24 shrink-0" /><span className="flex-1 flex justify-between"><span>{yours[0].y}</span><span>{yours[Math.floor(n / 2)].y}</span><span>{yours[n - 1].y}</span></span></div>
+      </>)}
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-600">
         <span className="inline-flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-600" />The money lasts (solved plan)</span>
         <span className="inline-flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-slate-400" />The money lasts (your current approach)</span>

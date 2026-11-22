@@ -11,8 +11,8 @@
  *
  * The answer card's states (data-plan-answer): 'solving' (the first solve, no answer yet), 'filling' (the first step's paths
  * in), 'done', 'stale' (the last answer kept, dimmed, behind a band, until the new plan's first figures arrive; never asked
- * anything while stale), 'failed', 'ask' (a phone that has not asked). On a phone the place is a deck of six slides (the UI
- * pass of 20 Nov puts how long the money lasts with the money, and how it is invested and the pot-by-pot run with the ten years).
+ * anything while stale), 'failed', 'ask' (a phone that has not asked). On a phone the place is a deck of seven slides, one idea
+ * each (the UI pass's phone round, 21 Nov).
  */
 import React, { useEffect, useRef, useState } from 'react';
 import '@fontsource/newsreader/latin-500.css';
@@ -318,8 +318,12 @@ function sentence(typical, h, rz, raise) {
   return parts.join(' ');
 }
 
+// a chart's drawing box: on a phone about as wide in units as in pixels, so its labels read at about 10px (the UI pass's phone
+// round, 21 Nov; src/PlannerMore.jsx dimsOf); the marks' figures are read back through the scales, whatever the box
+const boxOf = isPhone => (isPhone ? { W: 330, H: 250 } : { W, H });
 function SpendChart({ pts, typical, floorShare, target, backAge, backYear, fmt, label, isPhone }) {
   if (!pts.length) return null;
+  const { W, H } = boxOf(isPhone);
   const shift = PLANNER_PLANT.has('chartyear') ? 1 : 0;   // the plant: drawn a year out, its data untouched
   const a0 = pts[0].at, a1 = pts[pts.length - 1].at;
   const ymax = Math.max(115, ...pts.map(p => p.p90)), ymin = Math.min(70, Math.floor(100 * floorShare) - 5, ...pts.map(p => p.p10));
@@ -354,6 +358,7 @@ function SpendChart({ pts, typical, floorShare, target, backAge, backYear, fmt, 
 // `yours` null: the bands are your current approach's alone (the failure view, where there is no solved plan), named so
 function WealthChart({ pts, yours: yoursIn, minPot, fmt, isPhone }) {
   if (!pts.length) return null;
+  const { W, H } = boxOf(isPhone);
   const alone = !yoursIn, yours = yoursIn || pts;
   const a0 = pts[0].at, a1 = pts[pts.length - 1].at;
   const ymax = Math.max(1, ...pts.map(p => p.p90), ...yours.map(p => p.p50));
@@ -453,7 +458,12 @@ function belowParts({ s, mine, ctx, dim, isPhone, rulesLine }) {
 }
 
 /* ---------------------------------------------------------------- the phone's deck (LAYOUT.md section 9) */
-const SLIDES = ['The answer', 'What you could spend', 'What you would have', 'This year', 'The next ten years', 'Against your current approach'];
+/*
+ * One idea a slide (the UI pass's phone round, 21 Nov): the money and how long it lasts together, how it is invested on its
+ * own, this year with the next ten (what to do), the run pot by pot on its own. Before it one slide held the ten years, the
+ * investing chart and the pot-by-pot run, three screens of a phone, which a deck exists to avoid.
+ */
+const SLIDES = ['The answer', 'What you could spend', 'Your money and how long it lasts', 'How it is invested', 'What to do', 'One run, pot by pot', 'Against your current approach'];
 function Deck({ card, explanation, outlook, below, levers, onOpenLevers, state }) {
   const [slide, setSlide] = useState(1), [all, setAll] = useState(false), [why, setWhy] = useState(false);
   const ref = useRef(null);
@@ -471,19 +481,23 @@ function Deck({ card, explanation, outlook, below, levers, onOpenLevers, state }
     if (!ready) return <p className="text-sm text-slate-500 p-4">The figures arrive once your plan is worked out.</p>;
     if (n === 2) return outlook.spend;
     if (n === 3) return <>{outlook.wealth}{outlook.lasting}</>;
-    if (n === 4) return <>{below.thisYear}{below.rule}</>;
-    // the ten years, how the money is invested and the pot-by-pot run all follow the same typical run of the markets
-    if (n === 5) return <>{below.ahead || <p className="text-sm text-slate-500 p-4">Working out the next ten years…</p>}{outlook.invest}{outlook.life}</>;
+    if (n === 4) return outlook.invest;
+    if (n === 5) return <>{below.thisYear}{below.rule}{below.ahead || <p className="text-sm text-slate-500 p-4">Working out the next ten years…</p>}</>;
+    if (n === 6) return outlook.life || <p className="text-sm text-slate-500 p-4">Working out a typical run…</p>;
     return below.compare;
   };
   return (
     <div data-planner-plan data-deck data-deck-state={state} ref={ref} className="space-y-3 swipe-x">
-      <div className="flex items-center gap-1 overflow-x-auto" data-no-swipe role="tablist" aria-label="Your plan, a slide at a time">
+      {/* the steps fill the row, each 44px or more; "See all" moved under the slide's name so seven steps fit a 360px phone */}
+      <div className="flex items-center gap-[2px] overflow-x-auto" data-no-swipe role="tablist" aria-label="Your plan, a slide at a time">
         {SLIDES.map((t, i) => (
           <button key={t} type="button" role="tab" aria-selected={!all && slide === i + 1} aria-label={t} data-deck-step={i + 1} onClick={() => { setAll(false); setSlide(i + 1); }}
-            className={`min-h-11 min-w-11 px-2 rounded-lg text-xs font-bold border cursor-pointer ${!all && slide === i + 1 ? 'bg-accent text-onaccent border-blue-600' : 'bg-surface text-slate-600 border-slate-200'}`}>{i + 1}</button>
+            className={`flex-1 min-h-11 min-w-11 rounded-lg text-xs font-bold border cursor-pointer ${!all && slide === i + 1 ? 'bg-accent text-onaccent border-blue-600' : 'bg-surface text-slate-600 border-slate-200'}`}>{i + 1}</button>
         ))}
-        <button type="button" onClick={() => setAll(v => !v)} className="ml-auto min-h-11 px-3 rounded-lg text-xs font-bold border border-slate-200 bg-surface text-slate-700 cursor-pointer">{all ? 'One at a time' : 'See all'}</button>
+      </div>
+      <div className="flex items-center justify-between gap-2" data-deck-title>
+        <span className="text-xs font-semibold text-slate-600 min-w-0 truncate">{all ? 'All of your plan' : `${slide} of ${SLIDES.length} · ${SLIDES[slide - 1]}`}</span>
+        <button type="button" onClick={() => setAll(v => !v)} className="shrink-0 min-h-11 px-2 text-xs font-bold text-indigo-700 cursor-pointer">{all ? 'One at a time' : 'See all'}</button>
       </div>
       {all ? SLIDES.map((t, i) => <div key={t} data-deck-slide={i + 1} className="space-y-3">{body(i + 1)}</div>) : (
         <div data-deck-slide={slide} className="space-y-3">{body(slide)}</div>

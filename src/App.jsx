@@ -12457,6 +12457,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-slate-500">Your working years cannot run the pot dry, because your living spend is only drawn from the first retirement onwards. The verdict below therefore counts <strong>drawdown years</strong>, not calendar years — a plan that fails the moment you stop working has funded nothing, however far away that moment is.</p>
               </Fine>
             </div>
+            {/* every start year first (the UI pass, 21 Nov): the overview a year is picked from, above the picker */}
+            {solverOn && yourHistAll && (
+              <Suspense fallback={null}>
+                <HistoryStripCard solved={histAll.key === solve.key ? histAll.list : null} yours={yourHistAll} selected={activeHistoricalStartYear} onPick={setSelectedHistoricalYear} isPhone={isPhone} />
+              </Suspense>
+            )}
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div><h3 className="text-sm font-semibold text-slate-900">Select a historical scenario or start year</h3>{!isPhone && <span className="text-[11px] text-slate-500">Select an iconic crisis preset or slide to any year between {E.HISTORICAL_FIRST_YEAR} and {maxHistoricalStartYear}.</span>}</div>
@@ -12475,11 +12481,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </div>
               <div className="pt-2 flex items-center gap-3"><span className="text-xs font-mono text-slate-400">{E.HISTORICAL_FIRST_YEAR}</span><input aria-label="Start year" type="range" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Number(e.target.value))} className="w-full accent-indigo-600 cursor-pointer" /><span className="text-xs font-mono text-slate-600 font-bold">{maxHistoricalStartYear}</span></div>
             </div>
-            {solverOn && yourHistAll && (
-              <Suspense fallback={null}>
-                <HistoryStripCard solved={histAll.key === solve.key ? histAll.list : null} yours={yourHistAll} selected={activeHistoricalStartYear} onPick={setSelectedHistoricalYear} isPhone={isPhone} />
-              </Suspense>
-            )}
             {/* Part C Phase 10, item 7: under the switch the backtest runs the solved plan, and says what it is: the check outside
                 the model the plan was solved in, with your plan's verdict on the same history beside it */}
             {solvedHistory && (

@@ -4,6 +4,12 @@ D139; `COUPLES-OPEN.md` step 1. The read whole: `results-couples-open-rehearsal.
 from a tree at the launch commit c4e86633). It decides nothing: no class opens on it, and the registered test reads by this
 rule on couples no run has used and a held-out seed.
 
+Corrected 22 Nov after the reviewer at the read (`reviews/2026-11-22-read-couples-open-rehearsal.md`: FAIL, one BLOCKING and
+five MINOR), in one fix (D81 (F)): what it means for the registered test (BLOCKING 1, answered by `COUPLES-OPEN.md` amendment
+1), the account of lifetime tax (MINOR 3), S025's spending over all paths (MINOR 4) and which route each class read. The
+figures added are printed by `couples-open-beside.mjs` from the read's own records (`results-couples-open-rehearsal-beside.txt`).
+The read and each class's outcome by the rule stand.
+
 ## What ran
 
 - **The arms**, on the same 4,000 paths of the tuning seed 7002 a unit, 45 points, estate weight 0.02:
@@ -46,21 +52,41 @@ Each class passes all three parts of the rule, ROUTE against APP. Every figure b
   - Each leaves a larger mean pot (from `+28.124%` to `+105.069%`).
   - Every other couple's units spend more on the paths both keep, from `+0.9431%` to `+13.9112%`.
   - Part 3 is read pooled, and these units do not reach it.
+- **Spending over all paths**, saved paths included (beside the rule; `results-couples-open-rehearsal-beside.txt`):
+  - ROUTE delivers less lifetime spending than APP, beyond noise, on nine of S025's eleven units: from `-0.3847%` (Y100) to
+    `-2.8713%` (RY75). It delivers more on Y75 (`+0.5737%`) and Y90 (`+0.4848%`).
+  - So for the panel's one couple already retired, the survival gain is paid for in lifetime spending, not only on the paths
+    both keep. The money stays in the pot: S025's units leave a larger pot, from `+28.124%` to `+105.069%` on the seven
+    named above.
+  - Every other couple's units deliver more over all paths, beyond noise, on all 33.
 - **The pot**, beside the rule:
   - S273's, S351F's and S357F's units leave a much smaller mean pot under ROUTE, from `-70.494%` to `-86.658%`, while
     spending more. Capped at the route's estate caps, the change is from `-8.908%` to `+4.595%`.
   - S025's units leave a larger pot.
   - A smaller pot is no harm where the route keeps more paths and spends no less (D116). The units where the route spends
     less on the paths both keep are S025's, whose pots are larger.
-- **Lifetime tax** swings widely by unit, from `-56.850%` to `+2024.776%`. Where APP pays little tax it also spends far
-  less, so a percentage of its tax is no guide.
+- **Lifetime tax** swings widely by unit, from `-56.850%` to `+2024.776%`. The largest percentages sit on small bases
+  (`results-couples-open-rehearsal-beside.txt`):
+  - On S351F-RWY75, the `+2024.776%`, APP pays `£7,063` a path against ROUTE's `£150,070`, while on the paths both keep it
+    delivers `£1,974,318` a path against ROUTE's `£1,996,686`, only `1.1330%` less.
+  - On S025's units APP pays from `£375` to `£67,175` a path, and ROUTE from `£583` to `£60,467`.
+  - The first write-up said that where APP pays little tax it also spends far less. The records do not show it: of the
+    eleven units where APP pays least, ROUTE spends less than APP on the paths both keep on five.
 - **The time:** a path's CPU, APP the median `0.7` ms and ROUTE `59.5` ms; ROUTE's solve the median `85` s.
 
 ## What it means for the registered test
 
 - **Paths.** The rehearsal's discordance sizes the registered test's paths by D34. The registered panel's own pilot sizes
   them in the end.
-- **The panel.** Every class can be registered as it stands: none of the five showed harm.
+- **The panel.** The first write-up said every class could be registered as it stands. It cannot, as designed:
+  - Y, E, S and G ran on the household route alone (36 units). R alone read today's route, at one holding (the younger
+    75%), with no age gap and no other income (8 units).
+  - A class's pass would lift its reason in the guard on both routes, and every couple whose shape the household plan
+    refuses takes today's route. Today's route is where `gapincome`'s own evidence was measured (step 5's shapes, the guard
+    test).
+  - So `COUPLES-OPEN.md` amendment 1 opens each class on its own route alone (Y, E, S, G on the household route; RY, RE,
+    RS, RG on today's), and adds five units to every couple so that today's route is read at each reason and G at a
+    partner's DB pension. The five run first here, as this rehearsal's addendum.
 - **Unit by unit.** The registered read should name a unit that keeps more paths but spends less on the paths both keep
   (S025's pattern here), as step 8's M1 by unit did. It is not a bar.
 - **The younger cohort** (S351F and S357F here) has no couple left untouched for the registered panel. It rests on this
@@ -69,5 +95,6 @@ Each class passes all three parts of the rule, ROUTE against APP. Every figure b
 ## What it does not show
 
 - It is the tuning seed and four couples step 8 used, so it is not held out.
+- Each class read one route: Y, E, S and G the household route; R today's route, at the younger holding 75% alone.
 - Each class's pass reaches other splits, gaps, incomes and shapes by inference only.
 - The R class reads two of the five shapes the household plan refuses, not all five.

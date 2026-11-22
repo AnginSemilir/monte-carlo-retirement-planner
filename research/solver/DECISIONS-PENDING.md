@@ -24,6 +24,16 @@ the registered test is not held up when the dress rehearsal reads.**
 The agent's recommendation: yes to all three (1 and 2 need the words "unlock enforcement"). Meanwhile the dress rehearsal
 runs (EXPLORATORY, seed 7002) and the registered panel is frozen and landed; nothing of a held-out seed is read.
 
+Updated 22 Nov, afternoon. The dress rehearsal read once: every class passes (`results-couples-open-rehearsal.txt`). Its
+reviewer at the read FAIL (`reviews/2026-11-22-read-couples-open-rehearsal.md`): today's two-table route, which a couple
+takes wherever the household plan refuses its plan's shape, was read only at one holding, while a class's pass would lift
+its reason on both routes. Answered in one fix by `COUPLES-OPEN.md` amendment 1: each class opens its reason on its own
+route alone (Y, E, S, G on the household route; RY, RE, RS, RG on today's), five units added to every couple so today's
+route is read at each reason (both panels now 64 units), and ROUTE run on the page's own context. So item 2's change, for
+the classes that pass, is the guard reading the household plan's refusal (its shape checks) before it lifts a reason, the
+reason lifted on its class's route alone; `couple-default.test.mjs` pins it. A class the rehearsal's addendum (the new units,
+EXPLORATORY, running now) shows harmed is left out of the registration and comes to you with its units.
+
 **OPEN (22 Nov, early), from the reviewer on D138's change of default (second look, finding 3,
 `reviews/2026-11-21-default-save-split-2.md`), for your word: the employer's NIC passed to the pension, a part of D137
 (4)'s price the split's routes do not carry.**

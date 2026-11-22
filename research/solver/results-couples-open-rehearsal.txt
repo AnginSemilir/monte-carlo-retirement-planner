@@ -1,0 +1,68 @@
+THE GUARD'S OWN UNITS, THE DRESS REHEARSAL (EXPLORATORY; COUPLES-OPEN.md step 1): 44 units from results/couples-open-7002, seed 7002 (read once, 22 Nov, from a tree at the launch commit c4e86633, whose files are the ones the run was stamped with)
+THE GATE: fair; one code 36e4d2a860b2, audit a4ef3698d92c, seed 7002, 4000 paths, 45 points; both arms at their configurations; each unit off by the guard for its class's reason and on the panel's route; each unit's own log with its done line
+CLASS Y, the younger partner holding most (12 units): OPENS
+  1. no harm by D34: HOLDS
+  2. a gain: pooled survival +11.058 (+10.411 to +11.706) points, by path, its lower end above 0: HOLDS
+  3. spending on the paths both keep +7.1960 (+7.0371 to +7.3548)%, the units weighted equally, not below -0.05%: HOLDS
+    S025-Y75     household APP 84.47% ROUTE 99.22%; 1 lost, 591 saved of 4000, the threshold 52 paths; spending on the paths both keep +1.5257%; the mean pot +94.891%, capped +75.137% (£113,912 a path); lifetime tax +51.872%
+    S025-Y90     household APP 84.40% ROUTE 99.53%; 0 lost, 605 saved of 4000, the threshold 52 paths; spending on the paths both keep +1.3604%; the mean pot +85.138%, capped +70.254% (£106,580 a path); lifetime tax -50.322%
+    S025-Y100    household APP 84.92% ROUTE 99.70%; 0 lost, 591 saved of 4000, the threshold 51 paths; spending on the paths both keep +0.2300%; the mean pot +65.330%, capped +59.203% (£95,840 a path); lifetime tax -56.850%
+    S273-Y75     household APP 85.25% ROUTE 93.20%; 0 lost, 318 saved of 4000, the threshold 41 paths; spending on the paths both keep +13.1989%; the mean pot -72.102%, capped -7.448% (-£493,624 a path); lifetime tax -4.443%
+    S273-Y90     household APP 84.92% ROUTE 93.13%; 0 lost, 328 saved of 4000, the threshold 41 paths; spending on the paths both keep +13.7455%; the mean pot -71.759%, capped -7.281% (-£483,374 a path); lifetime tax -8.398%
+    S273-Y100    household APP 84.72% ROUTE 93.17%; 0 lost, 338 saved of 4000, the threshold 42 paths; spending on the paths both keep +12.8242%; the mean pot -71.694%, capped -6.737% (-£447,058 a path); lifetime tax -6.075%
+    S351F-Y75    household APP 85.25% ROUTE 95.70%; 0 lost, 418 saved of 4000, the threshold 45 paths; spending on the paths both keep +6.7448%; the mean pot -78.198%, capped -0.243% (-£3,168 a path); lifetime tax +387.748%
+    S351F-Y90    household APP 85.80% ROUTE 96.33%; 0 lost, 421 saved of 4000, the threshold 45 paths; spending on the paths both keep +7.9878%; the mean pot -77.554%, capped +2.249% (£29,176 a path); lifetime tax +33.878%
+    S351F-Y100   household APP 85.83% ROUTE 96.33%; 0 lost, 420 saved of 4000, the threshold 45 paths; spending on the paths both keep +6.4573%; the mean pot -79.486%, capped +0.551% (£7,280 a path); lifetime tax +814.525%
+    S357F-Y75    household APP 85.20% ROUTE 95.50%; 0 lost, 412 saved of 4000, the threshold 45 paths; spending on the paths both keep +7.7745%; the mean pot -77.795%, capped +4.046% (£278,270 a path); lifetime tax +102.638%
+    S357F-Y90    household APP 85.08% ROUTE 96.08%; 0 lost, 440 saved of 4000, the threshold 46 paths; spending on the paths both keep +7.1054%; the mean pot -78.043%, capped +2.646% (£187,629 a path); lifetime tax +276.371%
+    S357F-Y100   household APP 84.72% ROUTE 95.40%; 0 lost, 427 saved of 4000, the threshold 46 paths; spending on the paths both keep +7.3969%; the mean pot -77.781%, capped +4.220% (£291,404 a path); lifetime tax +113.885%
+CLASS E, the elder holding more than 90% (8 units): OPENS
+  1. no harm by D34: HOLDS
+  2. a gain: pooled survival +10.787 (+10.144 to +11.431) points, by path, its lower end above 0: HOLDS
+  3. spending on the paths both keep +7.4125 (+7.2551 to +7.5699)%, the units weighted equally, not below -0.05%: HOLDS
+    S025-E95     household APP 84.10% ROUTE 99.67%; 0 lost, 623 saved of 4000, the threshold 53 paths; spending on the paths both keep -0.1195%; the mean pot +44.302%, capped +51.113% (£89,972 a path); lifetime tax -48.694%
+    S025-E100    household APP 86.28% ROUTE 99.80%; 0 lost, 541 saved of 4000, the threshold 50 paths; spending on the paths both keep -0.2341%; the mean pot +38.366%, capped +46.303% (£86,681 a path); lifetime tax -45.875%
+    S273-E95     household APP 85.15% ROUTE 93.28%; 0 lost, 325 saved of 4000, the threshold 41 paths; spending on the paths both keep +13.3150%; the mean pot -71.498%, capped -6.697% (-£449,061 a path); lifetime tax -5.082%
+    S273-E100    household APP 85.40% ROUTE 93.25%; 0 lost, 314 saved of 4000, the threshold 41 paths; spending on the paths both keep +13.9112%; the mean pot -70.510%, capped -6.387% (-£428,138 a path); lifetime tax -11.541%
+    S351F-E95    household APP 86.10% ROUTE 96.28%; 0 lost, 407 saved of 4000, the threshold 45 paths; spending on the paths both keep +8.0336%; the mean pot -77.383%, capped +2.393% (£31,082 a path); lifetime tax +32.983%
+    S351F-E100   household APP 85.97% ROUTE 96.30%; 0 lost, 413 saved of 4000, the threshold 45 paths; spending on the paths both keep +8.0309%; the mean pot -77.364%, capped +2.558% (£33,173 a path); lifetime tax +32.172%
+    S357F-E95    household APP 85.47% ROUTE 95.78%; 0 lost, 412 saved of 4000, the threshold 45 paths; spending on the paths both keep +8.2276%; the mean pot -77.307%, capped +4.575% (£316,740 a path); lifetime tax +101.997%
+    S357F-E100   household APP 85.42% ROUTE 95.85%; 0 lost, 417 saved of 4000, the threshold 45 paths; spending on the paths both keep +8.1351%; the mean pot -77.353%, capped +4.595% (£318,421 a path); lifetime tax +106.499%
+CLASS S, the two the same age, outside 40% to 60% (4 units): OPENS
+  1. no harm by D34: HOLDS
+  2. a gain: pooled survival +10.262 (+9.625 to +10.900) points, by path, its lower end above 0: HOLDS
+  3. spending on the paths both keep +6.6415 (+6.4911 to +6.7920)%, the units weighted equally, not below -0.05%: HOLDS
+    S025-S75     household APP 85.47% ROUTE 98.80%; 0 lost, 533 saved of 4000, the threshold 49 paths; spending on the paths both keep -0.3243%; the mean pot +41.194%, capped +45.322% (£76,618 a path); lifetime tax +40.365%
+    S273-S75     household APP 85.13% ROUTE 92.90%; 0 lost, 311 saved of 4000, the threshold 41 paths; spending on the paths both keep +13.6983%; the mean pot -70.648%, capped -7.292% (-£479,113 a path); lifetime tax -14.863%
+    S351F-S75    household APP 86.63% ROUTE 96.55%; 0 lost, 397 saved of 4000, the threshold 44 paths; spending on the paths both keep +6.0869%; the mean pot -77.410%, capped +0.407% (£5,333 a path); lifetime tax +361.262%
+    S357F-S75    household APP 85.78% ROUTE 95.80%; 0 lost, 401 saved of 4000, the threshold 44 paths; spending on the paths both keep +7.1052%; the mean pot -77.455%, capped +4.234% (£291,866 a path); lifetime tax +91.653%
+CLASS G, more than three years apart with other taxable income (12 units): OPENS
+  1. no harm by D34: HOLDS
+  2. a gain: pooled survival +11.119 (+10.464 to +11.773) points, by path, its lower end above 0: HOLDS
+  3. spending on the paths both keep +6.5255 (+6.3788 to +6.6722)%, the units weighted equally, not below -0.05%: HOLDS
+    S025-G8      household APP 86.05% ROUTE 100.00%; 0 lost, 558 saved of 4000, the threshold 50 paths; spending on the paths both keep -0.8892%; the mean pot +103.692%, capped +88.537% (£160,721 a path); lifetime tax -10.109%
+    S025-G12     household APP 86.50% ROUTE 99.92%; 0 lost, 537 saved of 4000, the threshold 50 paths; spending on the paths both keep +0.0262%; the mean pot +98.295%, capped +83.227% (£146,565 a path); lifetime tax -9.112%
+    S025-G8Y75   household APP 85.25% ROUTE 100.00%; 0 lost, 590 saved of 4000, the threshold 51 paths; spending on the paths both keep -1.3855%; the mean pot +105.069%, capped +89.121% (£161,166 a path); lifetime tax -4.335%
+    S273-G8      household APP 85.75% ROUTE 93.78%; 0 lost, 321 saved of 4000, the threshold 41 paths; spending on the paths both keep +11.4250%; the mean pot -72.251%, capped -7.106% (-£478,031 a path); lifetime tax -0.932%
+    S273-G12     household APP 85.45% ROUTE 94.05%; 0 lost, 344 saved of 4000, the threshold 42 paths; spending on the paths both keep +13.1561%; the mean pot -71.737%, capped -7.042% (-£476,450 a path); lifetime tax -7.790%
+    S273-G8Y75   household APP 85.45% ROUTE 93.55%; 0 lost, 324 saved of 4000, the threshold 41 paths; spending on the paths both keep +13.0775%; the mean pot -71.829%, capped -7.497% (-£502,218 a path); lifetime tax -8.278%
+    S351F-G8     household APP 85.85% ROUTE 97.47%; 0 lost, 465 saved of 4000, the threshold 47 paths; spending on the paths both keep +7.6060%; the mean pot -75.670%, capped +2.599% (£33,619 a path); lifetime tax +92.884%
+    S351F-G12    household APP 86.55% ROUTE 97.80%; 0 lost, 450 saved of 4000, the threshold 46 paths; spending on the paths both keep +6.1166%; the mean pot -78.382%, capped +0.396% (£5,324 a path); lifetime tax +131.633%
+    S351F-G8Y75  household APP 86.65% ROUTE 97.85%; 0 lost, 448 saved of 4000, the threshold 46 paths; spending on the paths both keep +7.5514%; the mean pot -75.832%, capped +3.120% (£40,705 a path); lifetime tax +96.024%
+    S357F-G8     household APP 84.70% ROUTE 95.53%; 0 lost, 433 saved of 4000, the threshold 46 paths; spending on the paths both keep +7.4868%; the mean pot -78.257%, capped +3.372% (£232,283 a path); lifetime tax +93.767%
+    S357F-G12    household APP 85.20% ROUTE 95.90%; 0 lost, 428 saved of 4000, the threshold 46 paths; spending on the paths both keep +6.9452%; the mean pot -78.175%, capped +3.389% (£236,051 a path); lifetime tax +97.878%
+    S357F-G8Y75  household APP 84.65% ROUTE 95.63%; 0 lost, 439 saved of 4000, the threshold 46 paths; spending on the paths both keep +7.1896%; the mean pot -78.126%, capped +3.694% (£253,884 a path); lifetime tax +100.862%
+CLASS R, a shape the household plan refuses (today's route) (8 units): OPENS
+  1. no harm by D34: HOLDS
+  2. a gain: pooled survival +10.178 (+9.600 to +10.756) points, by path, its lower end above 0: HOLDS
+  3. spending on the paths both keep +3.4485 (+3.3322 to +3.5649)%, the units weighted equally, not below -0.05%: HOLDS
+    S025-RY75    today     APP 84.88% ROUTE 97.60%; 0 lost, 509 saved of 4000, the threshold 49 paths; spending on the paths both keep -2.6662%; the mean pot +74.699%, capped +69.256% (£110,662 a path); lifetime tax +85.351%
+    S025-RWY75   today     APP 85.17% ROUTE 97.50%; 1 lost, 494 saved of 4000, the threshold 48 paths; spending on the paths both keep -2.2993%; the mean pot +28.124%, capped +36.077% (£79,778 a path); lifetime tax +220.438%
+    S273-RY75    today     APP 85.15% ROUTE 92.20%; 2 lost, 284 saved of 4000, the threshold 39 paths; spending on the paths both keep +12.0444%; the mean pot -70.494%, capped -8.908% (-£584,170 a path); lifetime tax -9.961%
+    S273-RWY75   today     APP 85.25% ROUTE 94.75%; 0 lost, 380 saved of 4000, the threshold 44 paths; spending on the paths both keep +8.6918%; the mean pot -70.588%, capped -1.960% (-£122,375 a path); lifetime tax -27.591%
+    S351F-RY75   today     APP 84.88% ROUTE 90.10%; 16 lost, 225 saved of 4000, the threshold 37 paths; spending on the paths both keep +3.6335%; the mean pot -80.394%, capped +0.858% (£11,112 a path); lifetime tax +721.992%
+    S351F-RWY75  today     APP 83.85% ROUTE 95.90%; 2 lost, 484 saved of 4000, the threshold 48 paths; spending on the paths both keep +1.1330%; the mean pot -84.486%, capped +4.106% (£50,125 a path); lifetime tax +2024.776%
+    S357F-RY75   today     APP 84.50% ROUTE 95.10%; 0 lost, 424 saved of 4000, the threshold 45 paths; spending on the paths both keep +6.1081%; the mean pot -79.924%, capped -0.736% (-£51,175 a path); lifetime tax +185.721%
+    S357F-RWY75  today     APP 85.08% ROUTE 97.03%; 0 lost, 478 saved of 4000, the threshold 48 paths; spending on the paths both keep +0.9431%; the mean pot -86.658%, capped +1.948% (£132,478 a path); lifetime tax +271.849%
+OUTCOME: Y, E, S, G, R pass (EXPLORATORY: nothing opens on this read; the registered test reads by this rule)
+beside: a path's CPU, APP the median 0.7 ms, ROUTE 59.5 ms; ROUTE's solve the median 85 s

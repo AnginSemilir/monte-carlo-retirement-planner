@@ -28,7 +28,7 @@ and its registration names this as the next step ("the guard is looked at again 
    refuses its shape; each solved as the page solves it, the guard alone bypassed) against the app's own rules (APP: arm A, the
    app's withdrawal-policy search on the plan as entered), on the same paths, by the rule in step 2. Its panel: four couples
    step 8 used (touched, so not held out), each landed so APP survives `85 +/- 1%` on `1,000` paths of seed 7005 (D4's
-   procedure), ten units each, every one kept off by today's guard:
+   procedure), eleven units each, every one kept off by today's guard:
    - **Y**, the younger partner holding most: `Y75`, `Y90`, `Y100` (every wrapper re-held so the younger holds that share);
    - **E**, the elder holding more than 90%: `E95`, `E100`;
    - **S**, the two the same age, outside 40% to 60%: `S75`;
@@ -36,7 +36,8 @@ and its registration names this as the next step ("the guard is looked at again 
      state pension age): `G8` and `G12` (8 and 12 years apart, the elder holding 60%), and `G8Y75` (8 years apart, the
      younger holding 75%);
    - **R**, a shape the household plan refuses, so on today's route: `RY75` (the two people's pensions at different risks,
-     the younger holding 75%).
+     the younger holding 75%) and `RWY75` (one retired today and the other still paid in the plan's first year, the younger
+     holding 75%: a shape real couples often have, added before any unit ran).
    On `4,000` paths a unit. It decides nothing (CHECKLIST 1). It shows which classes the registered test can expect to pass
    and sizes its paths; a class it shows harmed goes to the maintainer with its units before anything is registered.
 2. **The registered test** (`registrations/couples-open.md`), its rule as the dress rehearsal's, per class:

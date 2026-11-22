@@ -12,7 +12,9 @@
  *   G8Y75           the same 8 years apart with the DB pension, the younger holding 75%: 'uneven' (the guard reads the
  *                   holdings first);
  *   RY75            the partner's pension one risk profile from the first person's (otherRisk), so the household plan refuses
- *                   it and the app solves it on today's two-table route, the younger holding 75%: 'uneven'.
+ *                   it and the app solves it on today's two-table route, the younger holding 75%: 'uneven';
+ *   RWY75           the first person retired today and the partner still paid in the plan's first year (laterWorking), which
+ *                   the household plan refuses too, so today's route, the younger holding 75%: 'uneven'.
  * The first person is the elder in every library couple, so no unit is handed to the solver on its mirror.
  * Each unit's plan (unitPlan): the variant, then couple-panel.mjs planOf at the couple's cohort and target. Landed so arm A,
  * searched anew at each target, survives 85 +/- 1% on 1,000 paths of seed 7005 (phase4-panel.mjs landTarget, D4's procedure);
@@ -51,11 +53,11 @@ export const VARIANTS = Object.freeze({
   E95: { cls: 'E', hold: 0.95 }, E100: { cls: 'E', hold: 1 },
   S75: { cls: 'S', shape: 'even', hold: 0.75 },
   G8: { cls: 'G', shape: 'gap8', feature: 'db' }, G12: { cls: 'G', shape: 'gap12', feature: 'db' }, G8Y75: { cls: 'G', shape: 'gap8', feature: 'db', hold: 0.25 },
-  RY75: { cls: 'R', hold: 0.25, risks: true }
+  RY75: { cls: 'R', hold: 0.25, risks: true }, RWY75: { cls: 'R', hold: 0.25, working: true }
 });
 export const CLASSES = Object.freeze(['Y', 'E', 'S', 'G', 'R']);
 /* the guard's reason each variant is kept off for, and the route the app takes for it */
-export const WANT = Object.freeze(Object.fromEntries(Object.entries(VARIANTS).map(([v, V]) => [v, { why: v === 'G8' || v === 'G12' ? 'gapincome' : 'uneven', route: V.risks ? 'today' : 'household' }])));
+export const WANT = Object.freeze(Object.fromEntries(Object.entries(VARIANTS).map(([v, V]) => [v, { why: v === 'G8' || v === 'G12' ? 'gapincome' : 'uneven', route: V.risks || V.working ? 'today' : 'household' }])));
 export const PANEL = process.env.COUPLES_OPEN_PANEL || join(HERE, 'couples-open-panel.json');
 const OUT = process.env.COUPLES_OPEN_LAND_OUT || join(HERE, 'results', 'couples-open-land');
 export const unitIdOf = (cid, v) => `${cid}-${v}`;
@@ -83,8 +85,20 @@ export function variantPlan(h, v) {
   if (V.risks) p = otherRisk(p);
   return p;
 }
+/* RWY75's shape, after the cohort's retirement ages are set (couple-panel.mjs planOf sets the younger cohort's at 52): the
+   first person retired today and the partner still paid in the plan's first year, working two more years at least, at
+   their own salary or WORKING_SALARY where they have none; the household plan refuses such a plan ('a later retiree paid
+   or saving in plan year 0'), so the app solves it on today's route */
+export const WORKING_SALARY = 30000;
+export function laterWorking(plan) {
+  const d = { ...plan.demographics }, a = E.num(d.currentAgeSelf, 40), b = E.num(d.currentAgePart, a);
+  d.retireAgeSelf = Math.min(E.num(d.retireAgeSelf, a), a);
+  d.retireAgePart = Math.max(E.num(d.retireAgePart, b), b + 2);
+  if (!(E.num(d.salaryPart, 0) > 0)) d.salaryPart = WORKING_SALARY;
+  return E.normalizePlan({ ...plan, demographics: d });
+}
 /* the unit's plan at a target, as every arm runs it */
-export const unitPlan = (h, cohort, v, target) => planOf({ ...h, plan: variantPlan(h, v) }, cohort, target);
+export const unitPlan = (h, cohort, v, target) => { const p = planOf({ ...h, plan: variantPlan(h, v) }, cohort, target); return VARIANTS[v] && VARIANTS[v].working ? laterWorking(p) : p; };
 /* the app's guard on the unit's plan */
 export function guardOf(plan) { const g = coupleSolverOn(plan); return { on: g.on, why: g.why, share: g.share }; }
 /* the app's route for a couple's plan as the solvers are handed it (src/solverClient.js): the household where its cut takes
@@ -124,6 +138,11 @@ function planted() {
     cases.push([`${v}: ${gap} years apart, the elder's DB pension of £15,000 a year`, `${E.num(d.currentAgeSelf, 0) - E.num(d.currentAgePart, 0)} ${db.length} ${db.map(i => i.amount).join(',')}`, `${gap} 1 15000`]);
   }
   { const p = variantPlan(h, 'RY75'), r = id => p.accounts.find(a => a.id === id).risk; cases.push(['RY75: the partner\'s pension one profile safer than the first person\'s', `${r('pen_self')} | ${r('pen_part')}`, 'High Risk | Medium/High Risk']); }
+  for (const cohort of ['lib', 'young']) {
+    const g = cohort === 'lib' ? h : byId.S351, d = unitPlan(g, cohort, 'RWY75', 30000).demographics, a = E.num(d.currentAgeSelf, 0), b = E.num(d.currentAgePart, 0);
+    cases.push([`RWY75 (${cohort}): the first person retired today, the partner paid and working two more years at least`, `${E.num(d.retireAgeSelf, 0) <= a} ${E.num(d.retireAgePart, 0) >= b + 2} ${E.num(d.salaryPart, 0) > 0}`, 'true true true']);
+    cases.push([`RWY75 (${cohort}): refused by the household plan for its later retiree in plan year 0`, routeOf(solverPlanOf(unitPlan(g, cohort, 'RWY75', 30000), 'own').hp).why, 'householdPlanFor: a later retiree paid or saving in plan year 0']);
+  }
   { let got;
     try { got = otherRisk({ ...h.plan, accounts: h.plan.accounts.map(a => (a.id.startsWith('pen_') ? { ...a, risk: 'Low Risk' } : a)) }).accounts.find(a => a.id === 'pen_part').risk; } catch (e) { got = e.message; }
     cases.push(['otherRisk from the safest profile takes the next riskier', got, 'Medium/Low Risk']); }

@@ -3705,6 +3705,7 @@
    "research/solver/drafts/d137-candidate-test.py",
    "research/solver/drafts/d138-build.patch",
    "research/solver/drafts/d138-candidate-test.py",
+   "research/solver/drafts/guard-route.patch",
    "research/solver/e3pcls-pin.json",
    "research/solver/f2-design.md",
    "research/solver/fixtures",

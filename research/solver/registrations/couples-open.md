@@ -51,7 +51,7 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
       age, the library's own holding; 8 years apart with it, the younger holding 75%; 12 years apart with the partner's
       (the younger's) DB pension instead, the library's own holding.
 - **Seed:** 7026, reserved in `check-prediction.mjs` for `couples-open*.md` under the maintainer's unlock (D140); the batch names it on a line the launcher's seed check reads; the pilot runs on 7002.
-- **Paths:** after the pilot: one N for every unit, D34's size at the pilot's discordance, its upper 95% bound, at most D61's 19,000 (`size-couples-open.mjs`, `couples-open-paths.json`).
+- **Paths:** 19,000 for every unit (`couples-open-paths.json`, `results-couples-open-sizing.txt`): D34's size at each unit's pilot discordance, its upper 95% bound, from 17,000 to 25,000, the largest taken, at most D61's 19,000. At 19,000 a true 1-point loss reads as harm at least 90% of the time up to a discordance of `12.45%`; the 24 units past it (S037's ten, seven of S199's and seven of S279's, from `13.00%` to `16.09%`) are read at 19,000 and named at the read with their rate (D34 (4), as D61 applied it).
 - **Primary metric:** survival scored by the engine (`audit-phase4.mjs runPath`, held to `E.runTrial` on the first 200 paths of every arm), paired on the same paths of the held-out seed across the arms.
   - Beside it: spending delivered, the pot left (and capped at the route's estate caps) and lifetime tax.
 - **Decision rule:** ROUTE against APP, for each class (Y, E, S and G, each on the household route) on its own units; a class OPENS if all three hold, as the dress rehearsal's rule
@@ -104,7 +104,7 @@ read, only Paths, Budget, The launch, What the pilot shows and Design review cha
   - each unit off by the guard for its class's reason and on the panel's route, its class's route;
   - each arm at its configuration, ROUTE on the page's own context.
   - A part of a unit's run saved before a restart is taken up again only under the same stamp and the same tables.
-- **What the pilot shows:** after the pilot (the 40 household-route units read of its 64, 1,000 paths of seed 7002, EXPLORATORY; `results-couples-open-sizing.txt`), beside the dress rehearsal and its addendum.
-- **Budget:** after the pilot (`results-couples-open-sizing.txt`).
-- **The launch:** after the design review and the maintainer's unlock of seed 7026; the stamp filled by hand at the launch commit.
+- **What the pilot shows** (`results-couples-open-sizing.txt`; the 40 household-route units read of its 64, 1,000 paths of seed 7002, EXPLORATORY): ROUTE against APP from `+8.90` to `+13.80` points on every unit, by class the mean Y `+10.94`, E `+11.11`, S `+10.53`, G `+11.23`; were each unit's pilot change the truth, D34 would flag it at 19,000 with chance `0.003` to `0.006`. Beside it, the dress rehearsal (every class passing, `results-couples-open-rehearsal.txt`) and its addendum (`results-couples-open-addendum.txt`).
+- **Budget:** `10.1` core-hours over the 40 units and the longest once more for a relaunch; about `2.7` hours on four cores in the batch's order (`results-couples-open-sizing.txt`, measured from the pilot on this machine, D21).
+- **The launch:** the agent launches once the design review passes (D140 (3)), seed 7026 reserved (D140 (1)); the stamp filled by hand at the launch commit.
 - **Design review:** to come (the `reviewer` agent, before launch).

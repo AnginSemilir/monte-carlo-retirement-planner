@@ -42,10 +42,10 @@ index 5484638a..2b722372 100644
  export function solveCandidate(E, M, plan, extra = {}, base = CANDIDATE_OPTS) {
 diff --git a/research/solver/d138-fulltier.mjs b/research/solver/d138-fulltier.mjs
 new file mode 100644
-index 00000000..3cd9d528
+index 00000000..5223ad10
 --- /dev/null
 +++ b/research/solver/d138-fulltier.mjs
-@@ -0,0 +1,95 @@
+@@ -0,0 +1,111 @@
 +/*
 + * D138, THE WORKING FOR THE FULL TIER'S PINNED FIGURES THE SAVINGS SPLIT MOVES (the reviewer on D138's change of default,
 + * reviews/2026-11-21-default-save-split.md, finding 1: the full tier failed on the build in tests the change did not name;
@@ -58,7 +58,10 @@ index 00000000..3cd9d528
 + *     app's solve (solveForApp);
 + *   - lock-tiers.test.mjs check 1b: the tables and 40 forward runs of a Phase 4 panel household under APP's pick, both
 + *     options off (solveCandidate), at the candidate's settings (E5, on anchors) and on the layer loop (tsOnce: false, the
-+ *     whole menu): S090 and S328F.
++ *     whole menu): S090 and S328F;
++ *   - couple-solve-client.test.mjs check 6: the digest of the library's 210 singles' stored-solve keys (src/solverKey.js),
++ *     which name the app's candidate whole, so every one moves with it; "both keys out" is the key plant 'nod138', which
++ *     names the candidate without the split's two keys (as 'nod73' did for D73's).
 + * One line a figure: the test and check, what is solved, the figure before, the figure with both keys out, the figure now.
 + *   node research/solver/d138-fulltier.mjs > research/solver/results-d138-fulltier.txt
 + */
@@ -69,6 +72,7 @@ index 00000000..3cd9d528
 +import { vecOf } from '../../src/solver/grid.js';
 +import { withTable } from '../../src/solver/bridge.js';
 +import { solveForApp } from '../../src/solverApp.js';
++import { solveKey, PLANT as KEY_PLANT } from '../../src/solverKey.js';
 +import { APP_CANDIDATE } from '../../src/solverSettings.js';
 +import { tablesOf, digestOf } from '../../src/solverDigest.js';
 +import { buildScenarios } from '../policy-study/scenarios.mjs';
@@ -109,6 +113,17 @@ index 00000000..3cd9d528
 +  return { digest: createHash('sha256').update(await digestOf(tablesOf(r))).update(runs.join('\n')).digest('hex'), moves: r.actions.length };
 +};
 +
++// ---- couple-solve-client.test.mjs check 6: the library's singles' keys, their digest as the test takes it ----
++const keysDigest = async extra => {
++  const was = KEY_PLANT.rule;
++  KEY_PLANT.rule = extra === OUT ? 'nod138' : was;
++  try {
++    const h = createHash('sha256');
++    for (const s of library.filter(x => x.plan.demographics.planningMode === 'single')) h.update(`${s.id}:${await solveKey(E, s.plan, {})};`);
++    return { digest: h.digest('hex').slice(0, 16) };
++  } finally { KEY_PLANT.rule = was; }
++};
++
 +// each pinned figure: the test and check, what is solved, how, and the figure pinned before D138
 +const PINS = [
 +  ['couple-tables.test.mjs check 6', 'S116', s => single('S116', s), { tables: 'e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3', runs: 'ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b', reads: '6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4' }],
@@ -116,7 +131,8 @@ index 00000000..3cd9d528
 +  ['lock-tiers.test.mjs check 1b (S090 e5)', "S090, its tables and 40 forward runs, the candidate's settings", panelDigest('S090', false), { digest: 'bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac' }],
 +  ['lock-tiers.test.mjs check 1b (S090 loop)', 'S090, its tables and 40 forward runs, the layer loop (tsOnce: false)', panelDigest('S090', true), { digest: 'e82ad3e7329ba50b78e0a7d9445e5a7203885c163558f4f03d825a662abab144' }],
 +  ['lock-tiers.test.mjs check 1b (S328F e5)', "S328F, its tables and 40 forward runs, the candidate's settings", panelDigest('S328F', false), { digest: '79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb' }],
-+  ['lock-tiers.test.mjs check 1b (S328F loop)', 'S328F, its tables and 40 forward runs, the layer loop (tsOnce: false)', panelDigest('S328F', true), { digest: '9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa' }]
++  ['lock-tiers.test.mjs check 1b (S328F loop)', 'S328F, its tables and 40 forward runs, the layer loop (tsOnce: false)', panelDigest('S328F', true), { digest: '9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa' }],
++  ['couple-solve-client.test.mjs check 6', "the library's 210 singles' stored-solve keys, their digest", keysDigest, { digest: '6825f36b3e1a20ff' }]
 +];
 +
 +const id = codeId();
@@ -134,13 +150,50 @@ index 00000000..3cd9d528
 +    if (mv) moved.push(`${test}: ${what}${k === 'digest' ? '' : `, its ${k}`}`);
 +    console.log(`${test} | ${what}${k === 'digest' ? '' : `, its ${k}`} | before ${old[k]} | both keys out ${out[k]} ${same ? '(= before)' : '(NOT the figure before)'} | now ${now[k]}${mv ? ' (moved)' : ' (the same)'}`);
 +  }
-+  console.log(`  the menu: ${out.moves} moves with both keys out, ${now.moves} now`);
++  if (Number.isFinite(out.moves)) console.log(`  the menu: ${out.moves} moves with both keys out, ${now.moves} now`);
 +}
 +console.log('');
 +console.log(bad === 0
 +  ? `VERDICT: with both keys out each of the ${n} figures is the figure pinned before, so the change moves them by the split's two keys alone; as the candidate now is, ${moved.length} move (${moved.join('; ')}) and the rest are the same.`
 +  : `VERDICT: ${bad} of ${n} figures with both keys out are NOT the figures pinned before: something besides the split's two keys moves them.`);
 +process.exit(bad === 0 ? 0 : 1);
+diff --git a/research/solver/d138-lockstep.sh b/research/solver/d138-lockstep.sh
+new file mode 100644
+index 00000000..37defef6
+--- /dev/null
++++ b/research/solver/d138-lockstep.sh
+@@ -0,0 +1,31 @@
++#!/bin/bash
++# D138, THE ENGINE AND THE FORWARD RUN IN STEP UNDER THE SAVINGS SPLIT (EXPLORATORY; the full tier on D138's build, the
++# reviewer on its change of default finding 1). Two lockstep tests build the move they hand the engine by hand from the
++# solver's action, and since D138 a working saver's move carries the split's `save`, which the engine's own policy hands it
++# (src/solver/bridge.js withTable) and those builders left out, so the engine ran the plan's own saving where the forward run
++# ran the move's. Printed here, each on this tree:
++#   1. V2's state check in full (state-check-full.test.mjs; state-check.test.mjs is protected) as it stands: S224 parts;
++#   2. the same test with its builder handing the engine `windfall` and `save` as bridge.js does (a copy made here, in a
++#      folder of its own beside research/tests so its imports resolve alike, and removed after; the protected file is not
++#      touched): every check;
++#   3. the gaps sweep (gaps-sweep.test.mjs, not protected) with its builder so fixed, all 60 cases.
++#   bash research/solver/d138-lockstep.sh > research/solver/results-d138-lockstep.txt
++cd "$(dirname "$0")/../.." || exit 2
++echo "D138: the engine and the forward run in step under the savings split (EXPLORATORY; d138-lockstep.sh), code $(node -e 'import("./research/solver/code-id.mjs").then(m => console.log(m.codeId().hash))'), $(TZ=Europe/London date '+%-d %b %H:%M UK')"
++echo
++echo "-- 1. node research/tests/state-check-full.test.mjs (state-check.test.mjs --full, as it stands)"
++node research/tests/state-check-full.test.mjs 2>&1 | grep -E "^(PASS|FAIL)|ALL PASS|FAILED"
++echo
++echo "-- 2. the same, its move builder handing the engine windfall and save as bridge.js does (a copy, removed after)"
++d=research/.d138-lockstep; rm -rf "$d"; mkdir -p "$d"
++node -e '
++const fs = require("fs"); let s = fs.readFileSync("research/tests/state-check.test.mjs", "utf8");
++const old = "...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0,";
++if (s.split(old).length !== 2) { console.error("the builder is not as expected"); process.exit(2); }
++s = s.replace(old, "...(a.sweepIsa ? { sweepIsa: true } : {}), ...(a.windfall ? { windfall: a.windfall } : {}), ...(a.save ? { save: a.save } : {}), tierPen: ca.tierPen || 0,");
++fs.writeFileSync(process.argv[1], s);' "$d/state-check-save.mjs" || exit 2
++node "$d/state-check-save.mjs" --full 2>&1 | grep -E "^(PASS|FAIL)|ALL PASS|FAILED"
++rm -rf "$d"
++echo
++echo "-- 3. node research/tests/gaps-sweep.test.mjs (its builder handing the engine windfall and save)"
++node research/tests/gaps-sweep.test.mjs 2>&1 | grep -E "^(PASS|FAIL)|SWEEP"
 diff --git a/research/solver/e3pcls-pin.json b/research/solver/e3pcls-pin.json
 index d918b2cd..e3dca08e 100644
 --- a/research/solver/e3pcls-pin.json
@@ -242,10 +295,10 @@ index 00000000..0c5ac619
 +run-all fast: 77 files found, 77 run, 76 passed, FAILED: check-state.test.mjs (1)
 diff --git a/research/solver/results-d138-fulltier.txt b/research/solver/results-d138-fulltier.txt
 new file mode 100644
-index 00000000..dab2adf6
+index 00000000..3ea906e1
 --- /dev/null
 +++ b/research/solver/results-d138-fulltier.txt
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,23 @@
 +D138: the full tier's pinned figures the savings split moves, and the working (d138-fulltier.mjs; code 5eef43e81abe)
 +the candidate 06bc8f910b3f (before D138 17ff82379838); its keys since D138: saveSplit true, saveIsaFirst "selfEmployed"
 +each solve at 4 points on its test's light reference lattice, as the test makes it; "both keys out": saveSplit and saveIsaFirst left out of the candidate
@@ -266,8 +319,114 @@ index 00000000..dab2adf6
 +  the menu: 800 moves with both keys out, 2400 now
 +lock-tiers.test.mjs check 1b (S328F loop) | S328F, its tables and 40 forward runs, the layer loop (tsOnce: false) | before 9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa | both keys out 9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa (= before) | now 18a7fcf425645e2e4834abd56f8ec45be7b35f454fe6aeff3f520c33ceea091f (moved)
 +  the menu: 800 moves with both keys out, 2400 now
++couple-solve-client.test.mjs check 6 | the library's 210 singles' stored-solve keys, their digest | before 6825f36b3e1a20ff | both keys out 6825f36b3e1a20ff (= before) | now 9c3e304722255a5e (moved)
 +
-+VERDICT: with both keys out each of the 10 figures is the figure pinned before, so the change moves them by the split's two keys alone; as the candidate now is, 5 move (couple-tables.test.mjs check 6: S224, its tables; couple-tables.test.mjs check 6: S224, its runs; couple-tables.test.mjs check 6: S224, its reads; lock-tiers.test.mjs check 1b (S328F e5): S328F, its tables and 40 forward runs, the candidate's settings; lock-tiers.test.mjs check 1b (S328F loop): S328F, its tables and 40 forward runs, the layer loop (tsOnce: false)) and the rest are the same.
++VERDICT: with both keys out each of the 11 figures is the figure pinned before, so the change moves them by the split's two keys alone; as the candidate now is, 6 move (couple-tables.test.mjs check 6: S224, its tables; couple-tables.test.mjs check 6: S224, its runs; couple-tables.test.mjs check 6: S224, its reads; lock-tiers.test.mjs check 1b (S328F e5): S328F, its tables and 40 forward runs, the candidate's settings; lock-tiers.test.mjs check 1b (S328F loop): S328F, its tables and 40 forward runs, the layer loop (tsOnce: false); couple-solve-client.test.mjs check 6: the library's 210 singles' stored-solve keys, their digest) and the rest are the same.
+diff --git a/research/solver/results-d138-lockstep.txt b/research/solver/results-d138-lockstep.txt
+new file mode 100644
+index 00000000..83ae2df7
+--- /dev/null
++++ b/research/solver/results-d138-lockstep.txt
+@@ -0,0 +1,99 @@
++D138: the engine and the forward run in step under the savings split (EXPLORATORY; d138-lockstep.sh), code 5eef43e81abe, 22 Nov 00:47 UK
++
++-- 1. node research/tests/state-check-full.test.mjs (state-check.test.mjs --full, as it stands)
++FAIL  1. lockstep, 8181 household-years: the engine's state in the solver's slots against the forward run's, worst gaps: pension £904568.8328 (S224 path 39 year 28); ISA £295729.9668 (S224 path 39 year 37); taxable and cash £6821.4936 (S224 path 12 year 37); tax-free cash taken £68435.7421 (S224 path 30 year 40); cash ISA £6104.6751 (S224 path 31 year 27); gains carried 8.7e-11 (carry path 19 year 20); cash £6821.4936 (S224 path 12 year 37); basis of an emptied account 1.1e-9 (S370 path 11 year 9); gain held 1.7e-9 (carry path 23 year 28); lump sum taken 0.0e+0; tiers held 0.0e+0; wealth at the end £480397.4171 (S224 path 30)
++FAIL  1. where the engine's own pick differs from the forward run's (138 of 8181 years), the two moves score alike to the engine's chooser: the largest gap 1.6e-3 (S224 path 34 year 20, moves 36 and 38), its tie tolerance 1.0e-12 (a near-tie, broken by noise in the last digits; a larger gap means the chooser reads something the state does not carry)
++FAIL  the move handed to the engine is tablePolicy's own whenever both pick the same index (mismatches 194)
++PASS  2. planted: a forward run that forgets an emptied account's basis each year (slot 13 at nothing, the code before 23 Oct) parts from the engine on S370 (gain held, worst £6231; basis of an emptied account £68401; gains carried £1003)
++PASS  2. planted: with the carried gains dropped, the forward run's picks part from the engine chooser's by more than a tie (the largest gap 1.3e-4)
++PASS  2. planted: a forward run that drops its carried gains each year parts from the engine (gains carried, worst £13466; pension £36612, taxable and cash £187483)
++PASS  3. inventory: 22 fields of the engine's state seen over every year of every run, each listed: 4 pots carried (pots.pen_self, pots.isa_self, pots.other_self, pots.cash_self), 7 more carried (giaBasis.self as slot 3, the gain share of slot 2 less slot 12, and slot 13 when that is empty; cgtCarry.self as slot 11; cumPcls.self as slot 4; lumpSumTaken.self as slot 5; cashIsa.self as slot 6; tierHeld.self.pen as the tiers held; tierHeld.self.isa as the tiers held), 7 constant for a single (giaBasis.part, cgtCarry.part, cumPcls.part, lumpSumTaken.part, cashIsa.part, tierHeld.part.pen, tierHeld.part.isa), 4 inert under a table (guard.rate0, guard.mult, guard.lostLastYear, guard.lastBaseDraw)
++PASS  3. the constants are at nothing in every year of every run
++PASS  3. each inert field (the guardrails' memory) perturbed at every year of path 0 on every household (884 trials) leaves the engine's year unchanged: its row to a penny, every slot but the guardrails', the tiers held
++PASS  3. the forward run's guardrail slots (7 to 10) perturbed from each year of path 0 on (171 runs) leave the rest of its run unchanged
++PASS  3. no run writes to the engine's context (households whose context changed: 0)
++PASS  4. planted: a field added to the state fails the inventory (not listed: extra.flag)
++PASS  4. planted: a partner's carried gains of 1,200 fail the constants (off: cgtCarry.part)
++PASS  4. planted: the carried gains listed as inert fail the perturbation (the year moved in 221 of 221; first carry year 0)
++FAILED: 3 of 14 checks
++
++-- 2. the same, its move builder handing the engine windfall and save as bridge.js does (a copy, removed after)
++PASS  1. lockstep, 8181 household-years: the engine's state in the solver's slots against the forward run's, worst gaps: pension 1.9e-9 (S224 path 7 year 32); ISA 2.1e-9 (S380 path 3 year 45); taxable and cash 2.4e-9 (carry path 23 year 29); tax-free cash taken 2.9e-10 (S224 path 7 year 34); cash ISA 2.0e-10 (carry path 19 year 20); gains carried 8.7e-11 (carry path 19 year 20); cash 2.0e-10 (carry path 19 year 20); basis of an emptied account 1.1e-9 (S370 path 11 year 9); gain held 1.7e-9 (carry path 23 year 28); lump sum taken 0.0e+0; tiers held 0.0e+0; wealth at the end 2.3e-9 (carry path 23)
++PASS  1. where the engine's own pick differs from the forward run's (10 of 8181 years), the two moves score alike to the engine's chooser: the largest gap 5.6e-16 (S370 path 32 year 10, moves 336 and 56), its tie tolerance 1.0e-12 (a near-tie, broken by noise in the last digits; a larger gap means the chooser reads something the state does not carry)
++PASS  the move handed to the engine is tablePolicy's own whenever both pick the same index (mismatches 0)
++PASS  2. planted: a forward run that forgets an emptied account's basis each year (slot 13 at nothing, the code before 23 Oct) parts from the engine on S370 (gain held, worst £6231; basis of an emptied account £68401; gains carried £1003)
++PASS  2. planted: with the carried gains dropped, the forward run's picks part from the engine chooser's by more than a tie (the largest gap 1.3e-4)
++PASS  2. planted: a forward run that drops its carried gains each year parts from the engine (gains carried, worst £13466; pension £36612, taxable and cash £187483)
++PASS  3. inventory: 22 fields of the engine's state seen over every year of every run, each listed: 4 pots carried (pots.pen_self, pots.isa_self, pots.other_self, pots.cash_self), 7 more carried (giaBasis.self as slot 3, the gain share of slot 2 less slot 12, and slot 13 when that is empty; cgtCarry.self as slot 11; cumPcls.self as slot 4; lumpSumTaken.self as slot 5; cashIsa.self as slot 6; tierHeld.self.pen as the tiers held; tierHeld.self.isa as the tiers held), 7 constant for a single (giaBasis.part, cgtCarry.part, cumPcls.part, lumpSumTaken.part, cashIsa.part, tierHeld.part.pen, tierHeld.part.isa), 4 inert under a table (guard.rate0, guard.mult, guard.lostLastYear, guard.lastBaseDraw)
++PASS  3. the constants are at nothing in every year of every run
++PASS  3. each inert field (the guardrails' memory) perturbed at every year of path 0 on every household (884 trials) leaves the engine's year unchanged: its row to a penny, every slot but the guardrails', the tiers held
++PASS  3. the forward run's guardrail slots (7 to 10) perturbed from each year of path 0 on (171 runs) leave the rest of its run unchanged
++PASS  3. no run writes to the engine's context (households whose context changed: 0)
++PASS  4. planted: a field added to the state fails the inventory (not listed: extra.flag)
++PASS  4. planted: a partner's carried gains of 1,200 fail the constants (off: cgtCarry.part)
++PASS  4. planted: the carried gains listed as inert fail the perturbation (the year moved in 221 of 221; first carry year 0)
++ALL PASS: 14 checks
++
++-- 3. node research/tests/gaps-sweep.test.mjs (its builder handing the engine windfall and save)
++THE GAPS SWEEP: code 6b40bca736d7, the light candidate, 20 paths each of seed 99001; 60 cases
++PASS  control carry [carry, 30 years, solve 7 s]: 600 household-years in step, the change live in 600; worst gap £9.3e-10 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £257964.86; the forward run survives 20 of 20
++PASS  control S370 [S370, 46 years, solve 10 s]: 813 household-years in step, the change live in 813; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (spend): parts by £2513587.11; the forward run survives 13 of 20
++PASS  control S380 [S380, 46 years, solve 9 s]: 753 household-years in step, the change live in 753; worst gap £2.1e-9 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £840548.33; the forward run survives 11 of 20
++PASS  control S224 [S224, 41 years, solve 6 s]: 731 household-years in step, the change live in 731; worst gap £1.9e-9 (pension), lump flag and tiers exact; picks differ in 1 years (the largest score gap 3.8e-17, ties); mismatched moves 0; planted (spend): parts by £1040693.77; the forward run survives 14 of 20
++PASS  control S008 [S008, 28 years, solve 4 s]: 556 household-years in step, the change live in 556; worst gap £8.1e-10 (wealth at the end), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (spend): parts by £228493.44; the forward run survives 18 of 20
++PASS  control S330F [S330F, 61 years, solve 10 s]: 1203 household-years in step, the change live in 1203; worst gap £5.6e-9 (wealth at the end), lump flag and tiers exact; picks differ in 2 years (the largest score gap 1.1e-16, ties); mismatched moves 0; planted (spend): parts by £1524359.23; the forward run survives 18 of 20
++PASS  the sweep's cash ISA money to the ISA (sweepCashIsaTo 'isa') [S116, 36 years, solve 5 s]: 695 household-years in step, the change live in 20; worst gap £3.5e-10 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (sweepIsa): parts by £709857.93; the forward run survives 18 of 20
++PASS  a deposit into the ISA in a year the sweep sends the cash ISA's money there [S116, 36 years, solve 5 s]: 697 household-years in step, the change live in 20; worst gap £6.1e-10 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (isaUncounted): parts by £21580.28; the forward run survives 18 of 20
++PASS  policy Bracket Fill Basic, an Auto deposit routed by it [S370, 46 years, solve 8 s]: 813 household-years in step, the change live in 20; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £49430.43; the forward run survives 13 of 20
++PASS  policy Bracket Fill, an Auto deposit routed by it [S370, 46 years, solve 7 s]: 813 household-years in step, the change live in 20; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £49430.43; the forward run survives 13 of 20
++PASS  policy Sequential, an Auto deposit routed by it [S370, 46 years, solve 7 s]: 813 household-years in step, the change live in 20; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £49430.43; the forward run survives 13 of 20
++PASS  policy ISA First, an Auto deposit routed by it [S370, 46 years, solve 7 s]: 813 household-years in step, the change live in 20; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £49430.43; the forward run survives 13 of 20
++PASS  policy Windfall to ISA, an Auto deposit routed by it [S370, 46 years, solve 8 s]: 812 household-years in step, the change live in 20; worst gap £5.6e-9 (pension), lump flag and tiers exact; picks differ in 1 years (the largest score gap 2.2e-16, ties); mismatched moves 0; planted (dep): parts by £67735.60; the forward run survives 13 of 20
++PASS  policy Windfall to ISA, an Auto deposit while working [S224, 41 years, solve 7 s]: 746 household-years in step, the change live in 20; worst gap £2.8e-9 (wealth at the end), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £46702.56; the forward run survives 16 of 20
++PASS  deposit into the ISA, the surplus staged into it [S380, 46 years, solve 7 s]: 792 household-years in step, the change live in 80; worst gap £4.7e-10 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (drip): parts by £77432.53; the forward run survives 14 of 20
++PASS  deposit into the ISA, staged, taxable household [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 80; worst gap £1.2e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (drip): parts by £553352.51; the forward run survives 20 of 20
++PASS  deposit into the pension while working, the surplus staged into it [S224, 41 years, solve 5 s]: 744 household-years in step, the change live in 40; worst gap £4.7e-10 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (drip): parts by £992004.94; the forward run survives 16 of 20
++PASS  deposit into the pension after retiring, staged at the no-earnings limit [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 120; worst gap £4.7e-10 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (drip): parts by £258941.96; the forward run survives 20 of 20
++PASS  deposit into cash [S380, 46 years, solve 6 s]: 786 household-years in step, the change live in 20; worst gap £4.7e-10 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (dep): parts by £1476258.39; the forward run survives 13 of 20
++PASS  deposit into the GIA [S370, 46 years, solve 6 s]: 127 household-years in step, the change live in 20; worst gap £6.1e-11 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (dep): parts by £1600.00; the forward run survives 0 of 20
++PASS  Bed and ISA: the GIA into the ISA, three years [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 60; worst gap £7.0e-10 (gain held), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (ded): parts by £606667.67; the forward run survives 20 of 20
++PASS  recycle: cash into the pension [S008, 28 years, solve 4 s]: 556 household-years in step, the change live in 20; worst gap £1.4e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (ded): parts by £15995.16; the forward run survives 17 of 20
++PASS  the ISA into cash [S380, 46 years, solve 8 s]: 753 household-years in step, the change live in 20; worst gap £2.1e-9 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (ded): parts by £662193.55; the forward run survives 11 of 20
++PASS  a one-off cost of a tenth of wealth in year 3 (carry) [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 20; worst gap £1.9e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (cost): parts by £657073.13; the forward run survives 20 of 20
++PASS  a one-off cost of a tenth of wealth in year 3 (S370) [S370, 46 years, solve 7 s]: 80 household-years in step, the change live in 20; worst gap £2.9e-11 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (cost): parts by £2851087.92; the forward run survives 0 of 20
++PASS  a one-off cost of a tenth of wealth in year 3 (S380) [S380, 46 years, solve 6 s]: 710 household-years in step, the change live in 20; worst gap £1.0e-9 (ISA), lump flag and tiers exact; picks differ in 1 years (the largest score gap 3.5e-18, ties); mismatched moves 0; planted (cost): parts by £2096946.24; the forward run survives 11 of 20
++PASS  a gift in year 4 [S380, 46 years, solve 6 s]: 736 household-years in step, the change live in 20; worst gap £1.4e-9 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (cost): parts by £483165.58; the forward run survives 11 of 20
++PASS  a regular gift out of surplus income [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 200; worst gap £1.4e-9 (taxable and cash), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (cost): parts by £224646.72; the forward run survives 20 of 20
++PASS  spend bands: 20% more to 75, 20% less after [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 600; worst gap £9.3e-10 (wealth at the end), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (band): parts by £334366.81; the forward run survives 20 of 20
++PASS  spend bands across the bridge [S370, 46 years, solve 6 s]: 803 household-years in step, the change live in 566; worst gap £7.0e-10 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (band): parts by £816478.17; the forward run survives 13 of 20
++PASS  a DB pension from 60 [S370, 46 years, solve 6 s]: 836 household-years in step, the change live in 636; worst gap £1.1e-9 (gain held), lump flag and tiers exact; picks differ in 4 years (the largest score gap 1.4e-17, ties); mismatched moves 0; planted (income): parts by £2017118.18; the forward run survives 15 of 20
++PASS  rental income, tax-free income and an income that ends [S380, 46 years, solve 6 s]: 827 household-years in step, the change live in 420; worst gap £1.2e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (income): parts by £3036718.26; the forward run survives 15 of 20
++PASS  part-time earnings after retiring [S370, 46 years, solve 7 s]: 821 household-years in step, the change live in 120; worst gap £1.1e-8 (wealth at the end), lump flag and tiers exact; picks differ in 2 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (income): parts by £2090121.31; the forward run survives 15 of 20
++PASS  guaranteed income above the spend: the surplus swept to cash and the ISA [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 567; worst gap £1.4e-9 (gain held), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (income): parts by £4978195.33; the forward run survives 20 of 20
++PASS  a cash buffer of 0 months (S370) [S370, 46 years, solve 7 s]: 812 household-years in step, the change live in 812; worst gap £1.5e-10 (gain held), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (buffer): parts by £394950.93; the forward run survives 13 of 20
++PASS  a cash buffer of 0 months (carry) [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 600; worst gap £7.0e-10 (taxable and cash), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (buffer): parts by £92500.68; the forward run survives 20 of 20
++PASS  a cash buffer of 24 months (S380) [S380, 46 years, solve 6 s]: 750 household-years in step, the change live in 750; worst gap £1.4e-10 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (buffer): parts by £102187.19; the forward run survives 11 of 20
++PASS  a cash buffer of 24 months (carry) [carry, 30 years, solve 3 s]: 600 household-years in step, the change live in 600; worst gap £1.9e-9 (wealth at the end), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (buffer): parts by £319924.16; the forward run survives 20 of 20
++PASS  a cash buffer of 3 months (S224) [S224, 41 years, solve 5 s]: 731 household-years in step, the change live in 731; worst gap £1.9e-9 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (buffer): parts by £117890.51; the forward run survives 14 of 20
++PASS  the full 25% lump sum (S370) [S370, 46 years, solve 6 s]: 816 household-years in step, the change live in 20; worst gap £3.7e-9 (wealth at the end), lump flag and tiers exact; picks differ in 1 years (the largest score gap -2.2e-16, ties); mismatched moves 0; planted (lump): parts by £Infinity; the forward run survives 13 of 20
++PASS  the full 25% lump sum (S380) [S380, 46 years, solve 7 s]: 754 household-years in step, the change live in 20; worst gap £2.3e-10 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (lump): parts by £Infinity; the forward run survives 11 of 20
++PASS  the full 25% lump sum (carry) [carry, 30 years, solve 5 s]: 600 household-years in step, the change live in 20; worst gap £7.0e-10 (gain held), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (lump): parts by £Infinity; the forward run survives 20 of 20
++PASS  a part first year: valued on 27 October (S370) [S370, 46 years, solve 6 s]: 811 household-years in step, the change live in 20; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (frac): parts by £10819607.82; the forward run survives 13 of 20
++PASS  a part first year: valued on 27 October (S224) [S224, 41 years, solve 6 s]: 708 household-years in step, the change live in 20; worst gap £4.7e-10 (pension), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (frac): parts by £2676532.30; the forward run survives 12 of 20
++PASS  a part first year: valued on 27 October (carry) [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 20; worst gap £4.7e-10 (gain held), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (frac): parts by £2147195.92; the forward run survives 20 of 20
++PASS  CGT gains already used this tax year, with a sale in year 0 [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 20; worst gap £1.9e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (cgt0): parts by £6380.58; the forward run survives 20 of 20
++PASS  carry-forward of the annual allowance, with a pension deposit [S224, 41 years, solve 5 s]: 740 household-years in step, the change live in 20; worst gap £1.4e-9 (wealth at the end), lump flag and tiers exact; picks differ in 2 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £1007671.29; the forward run survives 16 of 20
++PASS  a cash ISA paid into while working [S224, 41 years, solve 6 s]: 736 household-years in step, the change live in 60; worst gap £2.1e-9 (wealth at the end), lump flag and tiers exact; picks differ in 1 years (the largest score gap 2.2e-16, ties); mismatched moves 0; planted (cashisa): parts by £91812.63; the forward run survives 14 of 20
++PASS  a contribution schedule (contribByYear) [S224, 41 years, solve 5 s]: 735 household-years in step, the change live in 100; worst gap £6.4e-10 (ISA), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (con): parts by £259344.49; the forward run survives 14 of 20
++PASS  salary growth, self-employed, with a pension deposit [S224, 41 years, solve 6 s]: 736 household-years in step, the change live in 20; worst gap £1.9e-9 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (dep): parts by £766223.02; the forward run survives 15 of 20
++PASS  FIRE: contributions while working, then a bridge [S330F, 61 years, solve 10 s]: 1203 household-years in step, the change live in 300; worst gap £5.6e-9 (wealth at the end), lump flag and tiers exact; picks differ in 2 years (the largest score gap 1.1e-16, ties); mismatched moves 0; planted (con): parts by £2918582.28; the forward run survives 18 of 20
++PASS  FIRE with an Auto deposit under Windfall to ISA [S330F, 61 years, solve 9 s]: 1189 household-years in step, the change live in 20; worst gap £1.0e-8 (pension), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £502105.91; the forward run survives 17 of 20
++PASS  inflation at 4%, the GIA paying 3.5% in dividends [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 600; worst gap £1.2e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £313789.24; the forward run survives 20 of 20
++PASS  CGT off and cash interest untaxed [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 600; worst gap £1.2e-9 (taxable and cash), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (spend): parts by £272853.77; the forward run survives 20 of 20
++PASS  the pension at Medium/Low Risk, the ISA at Low Risk [S380, 46 years, solve 4 s]: 755 household-years in step, the change live in 755; worst gap £2.0e-10 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £656496.94; the forward run survives 8 of 20
++PASS  cash held at Low Risk [S370, 46 years, solve 7 s]: 812 household-years in step, the change live in 812; worst gap £9.3e-9 (wealth at the end), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (spend): parts by £2510696.74; the forward run survives 13 of 20
++PASS  no flexible spending (the floor at the target) [S380, 46 years, solve 4 s]: 670 household-years in step, the change live in 670; worst gap £5.6e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £863982.34; the forward run survives 10 of 20
++PASS  a horizon to 100 [S008, 33 years, solve 4 s]: 619 household-years in step, the change live in 619; worst gap £1.4e-9 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £368428.72; the forward run survives 16 of 20
++PASS  rUK tax for a Scottish household [S008, 28 years, solve 4 s]: 556 household-years in step, the change live in 556; worst gap £1.5e-9 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £216356.38; the forward run survives 19 of 20
++PASS  Welsh tax [S370, 46 years, solve 6 s]: 813 household-years in step, the change live in 813; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (spend): parts by £2513587.11; the forward run survives 13 of 20
++SWEEP: ALL 60 cases PASS
 diff --git a/research/solver/results-save-default-identity.txt b/research/solver/results-save-default-identity.txt
 new file mode 100644
 index 00000000..7836b7c8
@@ -422,6 +581,23 @@ index 47720f17..e555245f 100644
        `- 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (\`audit-7uf.mjs\`). Hash ${C.hashOf(Object.fromEntries(Object.entries(C.ASSEMBLED_OPTS).filter(([k]) => k !== 'readerRef' && k !== 'adaptiveLattice')))}.`,
        `- The product baseline (\`PRODUCT_BASELINE\`, src/solver/solve.js): ${Object.entries(S.PRODUCT_BASELINE).map(([k, v]) => `${k} ${JSON.stringify(v)}`).join(', ')}. Hash ${sha(S.PRODUCT_BASELINE)}.`,
        `- The solver code the e3pcls pin last passed on: ${P.readPin().fingerprint} (${P.readPin().at}); the code now: ${P.fingerprint()}.`
+diff --git a/research/tests/allowance-both.test.mjs b/research/tests/allowance-both.test.mjs
+index a740a2f7..a31bfe00 100644
+--- a/research/tests/allowance-both.test.mjs
++++ b/research/tests/allowance-both.test.mjs
+@@ -132,7 +132,11 @@ const gainOf = v => v[3] * (v[2] - v[12]);
+ const moveOf = (r, ai, code) => {
+   const a = r.actions[ai], ca = r.c.acts[ai];
+   return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
+-    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
++    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.sweepIsa ? { sweepIsa: true } : {}),
++    // the windfall split's and the savings split's parts, as the engine's own policy hands them (src/solver/bridge.js
++    // withTable; D138: a working saver's move carries `save`); none of this test's households takes either
++    ...(a.windfall ? { windfall: a.windfall } : {}), ...(a.save ? { save: a.save } : {}),
++    tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
+     tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
+ };
+ const usesRaw = a => a.steps.includes('penPAr') || (a.harvest && a.harvestCeil === 'paraw');
 diff --git a/research/tests/candidate.test.mjs b/research/tests/candidate.test.mjs
 index 4afda474..beb4de96 100644
 --- a/research/tests/candidate.test.mjs
@@ -566,6 +742,23 @@ index 4b655e89..24f0f440 100644
    const on = run(L, pathsL), q = replay(L, pathsL.slice(0, 50)); setTie(L, undefined); const off = run(L, pathsL); setTie(L, MARGIN);
    ok(8, 'a locked dial position (3, the app\'s solve): it carries the margin; wherever the choice differs, at the best move\'s level and tier pair, above the cap, with no more tax that year; no path\'s survival changes', !!L.lockTiers && L.tieAboveCap === MARGIN && q.differ > 0 && q.level === 0 && q.pair === 0 && q.atOrBelow === 0 && q.moreTax === 0 && on.every((x, k) => x[0] === off[k][0]),
      `locked ${!!L.lockTiers}, the margin ${L.tieAboveCap}; ${q.decisions} decisions (${q.above} above the cap), a different move at ${q.differ}: at another level ${q.level}, at another tier pair ${q.pair}, at or below the cap ${q.atOrBelow}, with more tax ${q.moreTax}; ${differ(on, off)} of 100 paths differ, ${on.filter((x, k) => x[0] !== off[k][0]).length} in survival`);
+diff --git a/research/tests/couple-solve-client.test.mjs b/research/tests/couple-solve-client.test.mjs
+index 3064571a..f75eb345 100644
+--- a/research/tests/couple-solve-client.test.mjs
++++ b/research/tests/couple-solve-client.test.mjs
+@@ -113,7 +113,11 @@ ok('2. the couple from two separate solves is solveCouple\'s whole: both tables
+ 
+ // 6. the key: every single keyed as on the code before D5 (the digest of their 210 keys, taken on 3cec591e, fefdb387's parent:
+ // research/solver/results-couple-solve-client.txt), and a person's key moved by their partner's age
+-{ const KEYS_BEFORE_D5 = '6825f36b3e1a20ff';
++// re-taken on D138's candidate (22 Nov; before: 6825f36b3e1a20ff): the key names the app's candidate whole, which gained the
++// savings split's two keys, so every single's key moves with it; with them left out (src/solverKey.js's plant 'nod138') the
++// digest is the one taken before D5, so nothing else keys a single differently (results-d138-fulltier.txt, printed by
++// research/solver/d138-fulltier.mjs)
++{ const KEYS_BEFORE_D5 = '9c3e304722255a5e';
+   const singles = lib.filter(s => s.plan.demographics.planningMode === 'single'), h = createHash('sha256');
+   for (const s of singles) h.update(`${s.id}:${await solveKey(E, s.plan, {})};`);
+   const got = h.digest('hex').slice(0, 16);
 diff --git a/research/tests/couple-tables.test.mjs b/research/tests/couple-tables.test.mjs
 index b3a62624..6a73a66d 100644
 --- a/research/tests/couple-tables.test.mjs
@@ -585,6 +778,47 @@ index b3a62624..6a73a66d 100644
    };
    const h = (x) => createHash('sha256').update(JSON.stringify(x)).digest('hex');
    const bad = [];
+diff --git a/research/tests/gaps-sweep.test.mjs b/research/tests/gaps-sweep.test.mjs
+index afe4d354..365eaa74 100644
+--- a/research/tests/gaps-sweep.test.mjs
++++ b/research/tests/gaps-sweep.test.mjs
+@@ -188,7 +188,11 @@ const gapsOf = (e, f, he, hf) => {
+ const moveOf = (r, ai, code) => {
+   const a = r.actions[ai], ca = r.c.acts[ai];
+   return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
+-    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
++    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}),
++    // the windfall split's and the savings split's parts, as the engine's own policy hands them (src/solver/bridge.js
++    // withTable): since D138 a working saver's move carries `save`, and a move built without it ran the plan's own saving
++    ...(a.windfall ? { windfall: a.windfall } : {}), ...(a.save ? { save: a.save } : {}),
++    tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
+     tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
+ };
+ 
+diff --git a/research/tests/household.test.mjs b/research/tests/household.test.mjs
+index eafbc7ef..394cdf26 100644
+--- a/research/tests/household.test.mjs
++++ b/research/tests/household.test.mjs
+@@ -30,7 +30,9 @@
+  *      its finally, on a throwing fn); (c) a couple's M.prepare and E.buildContext, called after solveHousehold, carry a
+  *      person's band (the same plant); (d) the solver's code id, 603eeb595679 to 19 Nov (D115: nothing under src/ and not the
+  *      engine edited), 71fb4271c681 since D130 (1)'s ISA fix, 9f9857213b75 since step 8's port (D134 (1), D136: the household
+- *      plan in src/solver/household.js, 20 Nov; every household run of this line read on the code before it);
++ *      plan in src/solver/household.js, 20 Nov; every household run of this line read on the code before it), 5eef43e81abe
++ *      since D138 (the savings split for singles who work and save, 22 Nov: src/solver/solve.js and fast.js, and the engine's
++ *      cap in the split's routes; a couple's solves keep the split off, so no household figure moves);
+  *   8. THE TWIN (PRESCRIPTIVE-PLAN.md step 3): on check 3's six units, the couple made of the first person twice (built as the
+  *      review's scripts/twin-trace.mjs builds it), under arm A's policy, 100 paths of seed 99001, the household plan
+  *      (through householdContext) against the couple, year by year: (1) on S205, S061-dbpart, S327F, S227-90 and S023-db
+@@ -293,7 +295,7 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
+   // household line's later runs on the fixed code; step 8's port (D134 (1), D136; 20 Nov) adds src/solver/household.js, the
+   // household plan the app solves a couple with, so the code moves again: re-pinned with that note (Full 506 on 89cd5995 failed
+   // here alone, the pin left at 71fb4271c681)
+-  check('(7d) the solver\'s code id 9f9857213b75 (D115\'s, then D130 (1)\'s fix, then step 8\'s port)', !!cid && cid.hash === '9f9857213b75', cid ? cid.hash : 'none');
++  check('(7d) the solver\'s code id 5eef43e81abe (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138)', !!cid && cid.hash === '5eef43e81abe', cid ? cid.hash : 'none');
+ }
+ 
+ // 8. the twin (PRESCRIPTIVE-PLAN.md step 3)
 diff --git a/research/tests/isa-allowance.test.mjs b/research/tests/isa-allowance.test.mjs
 index 59009c09..757f0bd2 100644
 --- a/research/tests/isa-allowance.test.mjs
@@ -1127,6 +1361,19 @@ index 4f649bd7..13df872c 100644
                {withRegion && ctlRegion()}
                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
                  {[
+diff --git a/src/PlannerCards.jsx b/src/PlannerCards.jsx
+index bcc09a46..cc9de38e 100644
+--- a/src/PlannerCards.jsx
++++ b/src/PlannerCards.jsx
+@@ -107,7 +107,7 @@ export function SolverSettings({ points, paths, solve = null, plan = null, isPho
+   return (
+   <section data-solver-settings className="p-4 bg-surface border border-slate-200/90 rounded-xl text-xs text-slate-600 space-y-1">
+     <h3 className="text-[15px] font-semibold text-slate-900">The solver&apos;s settings</h3>
+-    <p>{points} wealth points. The floor at 80% of your target where you set none. The dislike of cuts at 1, 3, 6 or 10 times its lowest setting. The headline on {paths.toLocaleString('en-GB')} simulated markets. The candidate 17ff82379838.</p>
++    <p>{points} wealth points. The floor at 80% of your target where you set none. The dislike of cuts at 1, 3, 6 or 10 times its lowest setting. The headline on {paths.toLocaleString('en-GB')} simulated markets. The candidate 06bc8f910b3f.</p>
+     {solve && <div className="pt-2"><DiagnosticCopy solve={solve} plan={plan} points={points} paths={paths} isPhone={isPhone} /></div>}
+   </section>
+   );
 diff --git a/src/solver/fast.js b/src/solver/fast.js
 index e30880dc..d1826354 100644
 --- a/src/solver/fast.js
@@ -1318,6 +1565,28 @@ index 484d5c38..a822d56e 100644
    const fitted = PLANT.rule === 'lockcoarse' ? asked : coarseWhereFits(E, M, solved, asked, off);
    // a stored solve made on the whole menu is never restored as one on anchors and shortlists, nor the reverse (the port's step
    // 8, D74): what names a stored solve (src/solverKey.js: the candidate with `coarse`, the plan, the dial's position, the code)
+diff --git a/src/solverKey.js b/src/solverKey.js
+index 95071059..a448cf25 100644
+--- a/src/solverKey.js
++++ b/src/solverKey.js
+@@ -10,7 +10,7 @@
+ import { prepareForSolve, aimsOptions, dialSettings, withAims, APP_CANDIDATE, APP_POINTS, APP_DIAL_VARIANT } from './solverSettings.js';
+ import { PLANNER_PLANT } from './plannerPlant.js';
+ 
+-export const PLANT = { rule: '' };   // research/tests/solve-key.test.mjs only: 'raw' keys the plan's aims, locks and view as stored; couple-solve-client.test.mjs: 'agenull' writes a partner's age of null into every key without one; cache-key.test.mjs: 'nod73' leaves `coarse` and `sweepCashIsaTo` out of the candidate the key names; household-client.test.mjs: 'bandsunkeyed' leaves a household table's band scaling out of its key
++export const PLANT = { rule: '' };   // research/tests/solve-key.test.mjs only: 'raw' keys the plan's aims, locks and view as stored; couple-solve-client.test.mjs: 'agenull' writes a partner's age of null into every key without one; cache-key.test.mjs: 'nod73' leaves `coarse` and `sweepCashIsaTo` out of the candidate the key names; household-client.test.mjs: 'bandsunkeyed' leaves a household table's band scaling out of its key; research/solver/d138-fulltier.mjs: 'nod138' leaves `saveSplit` and `saveIsaFirst` out of the candidate the key names (the keys before D138)
+ 
+ const canonical = v => {
+   if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
+@@ -36,7 +36,7 @@ export async function solveKey(E, plan, { lambda = undefined, points = APP_POINT
+   if (PLANT.rule === 'speedunkeyed' && p.solver && 'speed' in p.solver) { p.solver = { ...p.solver }; delete p.solver.speed; }
+   // a dial position above 1 adds its variant and its lock to the base (step L2); position 1's key is as before
+   // step U's plant 'keyguard' (research/ui-harnesses/solver-planner-ui.cjs, check 7): the key made to read the guardrails
+-  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ageWith: ageWith === undefined && PLANT.rule === 'agenull' ? null : ageWith, ...dialSettings(p, variant), bands: PLANT.rule === 'bandsunkeyed' || !bands ? undefined : bands }, code });
++  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : PLANT.rule === 'nod138' ? { ...APP_CANDIDATE, saveSplit: undefined, saveIsaFirst: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ageWith: ageWith === undefined && PLANT.rule === 'agenull' ? null : ageWith, ...dialSettings(p, variant), bands: PLANT.rule === 'bandsunkeyed' || !bands ? undefined : bands }, code });
+   return hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)));
+ }
+ export { canonical };
 diff --git a/src/solverSettings.js b/src/solverSettings.js
 index 16344e2f..9b833da7 100644
 --- a/src/solverSettings.js

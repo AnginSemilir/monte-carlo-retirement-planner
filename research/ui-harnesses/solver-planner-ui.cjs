@@ -690,13 +690,6 @@ const firstDiff = (a, b, at = '') => {
     // ---------------------------------------------------------------- 13. the quick start
     { const { p, errs, urls } = await open(b, null);
       const shown = !!(await p.$('[data-place="plan"] [data-quick-start]'));
-      // a fresh visitor (the new planner the default since 22 Nov 2026) at the quick start: nothing solved, no solver chunk fetched
-      // and the isolation not started, past the solve's debounce, until a plan is handed over (the reviewer on the default,
-      // BLOCKING 1; its plant 'blanksolve')
-      await p.waitForTimeout(4000);
-      const blank = { chunks: urls.filter(u => /solverClient|solverWorker/.test(u)).length, asks: await p.evaluate(() => window.__asks.length), strip: await strip(p) };
-      ok(13, 'a fresh visitor at the quick start: nothing solved and no solver chunk fetched until a plan is handed over',
-        blank.chunks === 0 && blank.asks === 0 && !(blank.strip && /solving|solved/.test(blank.strip.solve)), JSON.stringify({ chunks: blank.chunks, asks: blank.asks, solve: blank.strip && blank.strip.solve }));
       const potFields = await p.$$eval('[data-quick-start] [data-quick-pot] [data-quick-field]', els => els.map(el => el.getAttribute('data-quick-field'))).catch(() => []);
       const dis0 = await p.$eval('[data-quick-go]', el => el.disabled).catch(() => null);
       for (const [k, v] of [['ageSelf', '60'], ['retireSelf', '60'], ['spend', '30000']]) await p.fill(`[data-quick-field="${k}"]`, v);
@@ -727,6 +720,20 @@ const firstDiff = (a, b, at = '') => {
         server3 = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT3, '--port', COUPLES_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
         let up3 = false;
         for (let i = 0; i < 40 && !up3; i++) { try { const r = await fetch(`http://localhost:${COUPLES_PORT}/`); up3 = r.ok; } catch (e) { await new Promise(res => setTimeout(res, 500)); } }
+        // 13, here and not in the build above: a fresh visitor (the new planner the default since 22 Nov 2026) at the quick
+        // start: nothing solved, no solver chunk fetched and the isolation not started, past the solve's debounce, until a plan is
+        // handed over (the reviewer on the default, BLOCKING 1; its plant 'blanksolve'). A fresh visitor's empty plan is a couple
+        // (the engine's normalizePlan(null)), so only a build with couples on, as the site ships, would solve it: in the build above
+        // (COUPLES_OFF) the empty plan is never solved, plant or not, and the check was blind there (its plant, run alone, failed
+        // nothing; 22 Nov 2026)
+        { const { p, errs, urls } = await open(b, null, { port: COUPLES_PORT });
+          const shown = !!(await p.$('[data-place="plan"] [data-quick-start]'));
+          await p.waitForTimeout(4000);
+          const blank = { chunks: urls.filter(u => /solverClient|solverWorker/.test(u)).length, asks: await p.evaluate(() => window.__asks.length), strip: await strip(p) };
+          ok(13, 'a fresh visitor at the quick start (couples on, as the site ships): nothing solved and no solver chunk fetched until a plan is handed over',
+            up3 && shown && blank.chunks === 0 && blank.asks === 0 && !(blank.strip && /solving|solved/.test(blank.strip.solve)), JSON.stringify({ served: up3, shown, chunks: blank.chunks, asks: blank.asks, solve: blank.strip && blank.strip.solve }));
+          ok(13, 'a fresh visitor at the quick start (couples on): no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+          await p.context().close(); }
         const share = pl => { const of = w => pl.accounts.filter(a => a.id.endsWith('_' + w)).reduce((t, a) => t + (Number(a.balance) || 0), 0); return of('self') / (of('self') + of('part')); };
         const even = couple && Math.abs(share(couple.plan) - 0.6) < 0.05 ? couple : all.find(s2 => s2.plan.demographics.planningMode === 'couple' && Math.abs(share(s2.plan) - 0.6) < 0.05);
         // (a) an in-band couple solves on the page, its figures the reference's

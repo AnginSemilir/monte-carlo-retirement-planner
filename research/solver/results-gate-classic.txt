@@ -1,5 +1,5 @@
 == the batches' pause was already set: left in place when this run exits ==
-the code: code-stamp:dbf8ca69cf99214f; the classic planner's mode
+the code: code-stamp:d2f0990247cc796e; the classic planner's mode
 == build, the site as it ships ==
    ok
 == serve on :4173 ==
@@ -40,4 +40,3 @@ inheritance            optional  not run: SHOW_INHERITANCE is off
 
 ALL REQUIRED GREEN
 
-== the batches' pause was already set: left in place when this run exits ==

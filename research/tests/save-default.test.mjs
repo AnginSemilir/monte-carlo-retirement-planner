@@ -49,13 +49,23 @@
  *      every working year, so check 9 cannot see the forward run's filter): S242, an employee, under the hold, has a working
  *      year where the ISA first alone differs from the plan (plan year 12); its copies live exactly in the years where the
  *      pension first differs, so not in that one; at the registered configuration (the hold unset) that year live.
+ *  11. P1's memo in every year (the speed work after D138, D137 (1); research/solver/SPEED-D138.md): S188 under the split, the
+ *      repeats found once a decision in its years whose copies are live and in the years after, each world's memo at none,
+ *      and the engine's outcomes on 40 paths the same to the bit with the memo off (CHOOSER.once);
+ *  12. the shortlist keyed on the year's own count of moves (the same): S184, self-employed, in the speed mode, no counted
+ *      decision on a shortlist in a year whose copies are live, and decisions on a shortlist in the years after; and its
+ *      identity: after the last year whose copies are live, the menu from there to the plan's end is the base menu and each
+ *      year's table is read back from the next, so the tables are those of the solve without the split, and every decision
+ *      there is that solve's own in the speed mode at the same position.
  * Plants (--planted; each wants exactly the checks named): src/solverApp.js 'couplesplit' (a couple's solve keeps the split:
  * check 4), src/solverStrategy.js 'nosavepart' (a move's save left out of its parts: check 5), src/solver/solve.js
  * 'nattables' (the worlds' tables left without the moves a year, as before the fix: check 6) and 'noisahold' (an employee
  * offered the ISA first: checks 7, 9 and 10, checks 9's and 10's employees being under the hold, so that offered the ISA
  * first their moved saving differs from the plan and their copies are rightly there), src/App.jsx 'nocap' (the split's routes priced
  * without the cap: check 8), src/solver/solve.js 'anyroute' (the year read over both routes, whatever is offered:
- * check 9) and src/solver/fast.js 'anyyear' (the forward run's live years read over both routes: check 10).
+ * check 9), src/solver/fast.js 'anyyear' (the forward run's live years read over both routes: check 10) and, in
+ * src/solver/solve.js, 'oncenat' (P1's memo off wherever the copies exist, as before the speed work: check 11) and
+ * 'shortlive' (the shortlist in a year whose copies are live: check 12).
  *   node research/tests/save-default.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -64,8 +74,9 @@ import { solveForApp, APP_CANDIDATE, PLANT as APP_PLANT } from '../../src/solver
 import { householdCut, couplePlans } from '../../src/solverCouple.js';
 import { bandsAt } from '../../src/solver/household.js';
 import { firstMove, skipsOf, actionsOf, partsOf, solvedContext, runPath, PLANT as STRATEGY_PLANT } from '../../src/solverStrategy.js';
-import { CHOOSER, SAVE_ROUTES } from '../../src/solver/solve.js';
+import { CHOOSER, SAVE_ROUTES, SHARE_CHECKED, SHORTLIST } from '../../src/solver/solve.js';
 import { SAVE_YEAR } from '../../src/solver/fast.js';
+import { tablePolicy } from '../../src/solver/bridge.js';
 import { PART_WORDS, actionWords, aheadWords, ledgerWords } from '../../src/solverWords.js';
 import { tablesOf, digestOf } from '../../src/solverDigest.js';
 import { CANDIDATE_OPTS, BEFORE_D138_OPTS, D138_KEYS } from '../solver/candidate.mjs';
@@ -75,7 +86,7 @@ import { fileURLToPath } from 'node:url';
 
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['couplesplit', ['4']], ['nosavepart', ['5']], ['nattables', ['6']], ['noisahold', ['7', '9', '10']], ['nocap', ['8']], ['anyroute', ['9']], ['anyyear', ['10']]]) {
+  for (const [plant, want] of [['couplesplit', ['4']], ['nosavepart', ['5']], ['nattables', ['6']], ['noisahold', ['7', '9', '10']], ['nocap', ['8']], ['anyroute', ['9']], ['anyyear', ['10']], ['oncenat', ['11']], ['shortlive', ['12']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, SAVE_DEFAULT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d+)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
@@ -96,6 +107,8 @@ if (PLANT === 'noisahold') SAVE_ROUTES.plant = PLANT;
 if (PLANT === 'nocap') E.SAVE_NIC_CAP.on = false;
 if (PLANT === 'anyroute') SAVE_ROUTES.plant = PLANT;
 if (PLANT === 'anyyear') SAVE_YEAR.plant = PLANT;
+if (PLANT === 'oncenat') CHOOSER.plant = PLANT;
+if (PLANT === 'shortlive') SHORTLIST.plant = PLANT;
 const light = { points: 6, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };
 const lib = buildScenarios(), planOf = id => structuredClone(lib.find(s => s.id === id).plan);
 const js = x => JSON.stringify(x);
@@ -277,6 +290,53 @@ await (async () => {
     ok('10. the same year by year', held && isaOnly > 0 && agree && liveYears > 0 && regLive,
       `S242 (${secs()}), an employee under the hold (its record '${r.meta.saveIsaFirst}'): ${isaOnly} working year${isaOnly === 1 ? '' : 's'} where the ISA first alone differs from the plan (plan year ${at.join(', ') || 'none'}); the copies live in ${liveYears} years, ${agree ? 'exactly those where the pension first differs' : 'NOT those where the pension first differs'}; at the registered configuration that year ${regLive ? 'live' : 'NOT live'}`);
   } catch (e) { ok('10. the same year by year', false, `threw: ${e.message}`); }
+})();
+
+// 11. P1's memo in every year of a working saver's solve (the speed work after D138, D137 (1))
+guard('11. P1\'s memo in every year', () => {
+  if (!S188) throw new Error('check 2 did not solve S188');
+  const { r } = S188, sc = solvedContext(E, r), T = sc.totalYears, paths = E.pathsForSeed(99001, 40, T);
+  const live = t => r.nAt[Math.min(Math.max(t, 0), r.nAt.length - 1)] === r.actions.length;
+  const rec = o => JSON.stringify([o.survived, o.terminalPot, o.lifetimeTax, o.delivered, o.failT, ...o.level]);
+  let onceLive = 0, onceAfter = 0, worldMemo = 0;
+  const counted = { ...sc, policyOverride: { ...sc.policyOverride, choose(st, t, held) {
+    const a = SHARE_CHECKED.once, b = SHARE_CHECKED.onceOff, mv = sc.policyOverride.choose(st, t, held);
+    if (SHARE_CHECKED.once > a) { if (live(t)) onceLive++; else onceAfter++; }
+    if (SHARE_CHECKED.onceOff > b) worldMemo++;
+    return mv;
+  } } };
+  const on = paths.map(zs => rec(runPath(E, counted, zs)));
+  const was = CHOOSER.once;
+  let off;
+  CHOOSER.once = false;
+  try { off = paths.map(zs => rec(runPath(E, sc, zs))); } finally { CHOOSER.once = was; }
+  const differ = on.filter((x, i) => x !== off[i]).length;
+  ok('11. P1\'s memo in every year', onceLive > 0 && onceAfter > 0 && worldMemo === 0 && differ === 0,
+    `S188 (${secs()}): the repeats found once a decision at ${onceLive} decisions in years whose copies are live and ${onceAfter} in the years after, each world's memo at ${worldMemo}; the engine's outcomes on ${paths.length} paths with the memo off ${differ ? `DIFFERENT on ${differ}` : 'the same to the bit'}`);
+});
+
+// 12. the shortlist keyed on the year's own count of moves (the same): S184, self-employed, in the speed mode; and its
+// identity after the last live year against the solve without the split (r0), whose base menu is the split's first moves
+await (async () => {
+  try {
+    const r = solveForApp(E, M, planOf('S184'), light);
+    const r0 = solveForApp(E, M, planOf('S184'), { ...light, research: { ...light.research, saveSplit: undefined, saveIsaFirst: undefined } });
+    r.chooserShortlist = 'order'; r0.chooserShortlist = 'order';
+    const sc = solvedContext(E, r), T = sc.totalYears, paths = E.pathsForSeed(99001, 20, T), own0 = tablePolicy(r0);
+    const live = t => r.nAt[Math.min(Math.max(t, 0), r.nAt.length - 1)] === r.actions.length;
+    let lastLive = -1;
+    for (let t = 0; t <= T; t++) if (live(t)) lastLive = t;
+    let liveDecisions = 0, shortLive = 0, shortAfter = 0, afterLast = 0, sameAfter = 0;
+    const counted = { ...sc, policyOverride: { ...sc.policyOverride, choose(st, t, held) {
+      const a = SHORTLIST.stats.decisions, mv = sc.policyOverride.choose(st, t, held), used = SHORTLIST.stats.decisions > a;
+      if (live(t)) { liveDecisions++; if (used) shortLive++; } else if (used) shortAfter++;
+      if (t > lastLive) { afterLast++; if (own0.choose(st, t, held).index === mv.index) sameAfter++; }
+      return mv;
+    } } };
+    try { for (const zs of paths) runPath(E, counted, zs); } finally { r.chooserShortlist = undefined; r0.chooserShortlist = undefined; }
+    ok('12. the shortlist keyed on the year', liveDecisions > 0 && shortLive === 0 && shortAfter > 0 && afterLast > 0 && sameAfter === afterLast,
+      `S184 (${secs()}), self-employed, in the speed mode: ${liveDecisions} counted decisions in years whose copies are live, ${shortLive} of them on a shortlist; ${shortAfter} on a shortlist in the years after; after its last live year (plan year ${lastLive}) ${sameAfter} of ${afterLast} decisions the move of the solve without the split at the same position`);
+  } catch (e) { ok('12. the shortlist keyed on the year', false, `threw: ${e.message}`); }
 })();
 
 console.log(`\n${fail ? 'FAILED' : 'ALL PASS'}: ${pass} passed, ${fail} failed (${secs()})`);

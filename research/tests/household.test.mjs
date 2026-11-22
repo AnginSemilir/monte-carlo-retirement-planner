@@ -32,7 +32,9 @@
  *      engine edited), 71fb4271c681 since D130 (1)'s ISA fix, 9f9857213b75 since step 8's port (D134 (1), D136: the household
  *      plan in src/solver/household.js, 20 Nov; every household run of this line read on the code before it), fccd7bfdf0ef
  *      since D138 (the savings split for singles who work and save, 22 Nov: src/solver/solve.js and fast.js, and the engine's
- *      cap in the split's routes; a couple's solves keep the split off, so no household figure moves);
+ *      cap in the split's routes; a couple's solves keep the split off, so no household figure moves), 36e4d2a860b2 since the
+ *      speed work after D138 (D137 (1), 22 Nov: src/solver/solve.js, P1's memo and the shortlist keyed on the year's own count
+ *      of moves; P1 exact, the shortlist the speed mode's alone, and a couple's solves carry no copies, so no figure moves);
  *   8. THE TWIN (PRESCRIPTIVE-PLAN.md step 3): on check 3's six units, the couple made of the first person twice (built as the
  *      review's scripts/twin-trace.mjs builds it), under arm A's policy, 100 paths of seed 99001, the household plan
  *      (through householdContext) against the couple, year by year: (1) on S205, S061-dbpart, S327F, S227-90 and S023-db
@@ -295,7 +297,7 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   // household line's later runs on the fixed code; step 8's port (D134 (1), D136; 20 Nov) adds src/solver/household.js, the
   // household plan the app solves a couple with, so the code moves again: re-pinned with that note (Full 506 on 89cd5995 failed
   // here alone, the pin left at 71fb4271c681)
-  check('(7d) the solver\'s code id fccd7bfdf0ef (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138)', !!cid && cid.hash === 'fccd7bfdf0ef', cid ? cid.hash : 'none');
+  check('(7d) the solver\'s code id 36e4d2a860b2 (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work)', !!cid && cid.hash === '36e4d2a860b2', cid ? cid.hash : 'none');
 }
 
 // 8. the twin (PRESCRIPTIVE-PLAN.md step 3)

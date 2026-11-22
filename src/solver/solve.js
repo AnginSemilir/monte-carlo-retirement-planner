@@ -1854,7 +1854,11 @@ function chooseActionCore(r, s, t, held, after) {
     // (not inside wholeMenu: a decision the pages show keeps the whole menu, D90)
     const shown = SHORTLIST.whole > 0 && SHORTLIST.plant !== 'shown';
     if (shown && r.chooserShortlist) SHORTLIST.stats.shown++;
-    CHOOSER.mask = r.chooserShortlist && !shown && canShare && t < T && !r.nAt ? shortMask(r, s, t, after) : null;
+    // keyed on the year's own count of moves (D137 (1), SPEED-D138.md): a year whose split copies are live keeps the whole
+    // menu, and a year whose moves are the base menu's takes the shortlist as any household's does; plant 'shortlive'
+    // (save-default.test.mjs check 12): the shortlist in a live year too
+    const liveCopies = !!r.nAt && movesAt(r, t) === n && SHORTLIST.plant !== 'shortlive';
+    CHOOSER.mask = r.chooserShortlist && !shown && canShare && t < T && !liveCopies ? shortMask(r, s, t, after) : null;
     const D = canShare ? decisionFlows(r, s, t, held) : null;
     r._usedShort = !!CHOOSER.mask; CHOOSER.mask = null;
     // P1 (step P): the moves' repeats found once a decision, not once a world, where every world parts the moves alike
@@ -2242,8 +2246,10 @@ function sameClassesAt(r, t) {
   return (memo[t] = same);
 }
 function decisionRepeats(r, s, t, D) {
-  // a menu whose moves vary by year (the research splits' copies, movesAt) keeps each world's memo
-  if (r.nAt || !sameClassesAt(r, t)) { SHARE_CHECKED.onceOff++; return null; }
+  // a menu whose moves vary by year (the splits' copies, movesAt): the repeats are found over the year's own moves, and
+  // scoreWorldOnce writes the copies left out as unchoosable, as scoreMovesShared does (D137 (1), SPEED-D138.md); plant
+  // 'oncenat' (save-default.test.mjs check 11): each world's memo wherever the copies exist, as before
+  if ((r.nAt && CHOOSER.plant === 'oncenat') || !sameClassesAt(r, t)) { SHARE_CHECKED.onceOff++; return null; }
   SHARE_CHECKED.once++;
   const tab0 = r.mix.tables[0], n = r.actions.length, L = D.L;
   const cls = classesOf(tab0, t), plant = CHOOSER.plant, final = t >= r.m.ctx.totalYears;

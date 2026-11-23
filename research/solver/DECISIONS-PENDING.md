@@ -11,6 +11,23 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (23 Nov, night), for your word only where you want it otherwise: every couple on the solver, the rest of the way
+(D145 (3), `COUPLES-ANY.md`).**
+- **The plan,** written before any of it is built: the household plan takes the shapes it still refuses.
+  - Different risks in one wrapper, and the partner's own limits: the wrapper held at the more cautious of the two, each
+    person's tier mapped by name into their own ladder, so no one is moved riskier than they chose.
+  - Two salaries growing at different rates: a year-by-year salary schedule in the engine, as contributions have one.
+  - Nobody retiring within the plan: if the single solver solves a person who works to the plan's end.
+  - Then today's two-table route leaves the app's solve.
+- **Each way that is not exact is tested** against the app's rules by D141's rule. First a dress rehearsal on the tuning
+  seed, then a registered test on held-out couples and seed 7027 (reserved under D145's unlock), whose classes include step
+  4's shapes, so they are measured rather than taken by inference. Each class that passes opens by its own change of
+  default, with the reviewer and B1's gate.
+- **Two things go ahead as the agent proposes unless you say otherwise:**
+  - a plan running past the elder's 120th year keeps its card (end the plan at the elder's 120th year), not being a shape
+    of the couple but years past the model's range;
+  - the registered test is launched once its design review passes, as D140 (3) allowed for the last one.
+
 **ANSWERED by D145 (23 Nov, evening): "Go ahead, unlock enforcement. Work towards it handling any couple", read as the go
 on the recommendation (all three shapes; said so to the maintainer): the change of default under way. Was OPEN (23 Nov,
 evening), for your word: step 4's change of default, and the protected edits it needs, asked by name.**

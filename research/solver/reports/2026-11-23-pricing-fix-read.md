@@ -7,7 +7,8 @@ read) or `results-pricing-fix-beside.txt` (written after the read by `pricing-fi
 
 This write-up is corrected after the reviewer at the read (`reviews/2026-11-23-read-pricing-fix.md`: FAIL, one BLOCKING
 and three MINOR). The first version said the losses fit the draws being under-priced and recommended C on it; on four of
-the read's own units they do not.
+the read's own units they do not. The reviewer's second look passed it with three MINOR findings, answered here
+(`reviews/2026-11-23-read-pricing-fix-2.md`).
 
 ## What ran
 
@@ -61,6 +62,11 @@ the read's own units they do not.
 - **The couples trade's PA2** (the allowance two people's), on the same thirteen units and paths, beside FIX against ROUTE.
   PA2 loses 98 paths and saves 25, pooled `-0.140` (`-0.199` to `-0.082` by path). FIX loses 96 and saves 21, pooled
   `-0.144` (`-0.202` to `-0.087`). Unit by unit, the two arms' lost paths are within two of each other.
+  - Of PA2's 98 lost paths, 96 end below the minimum pot in the last plan year, and 2 have spending unmet: S037-G12P's in
+    plan year 11 of its 27, S279-E100's in its last.
+- **Each unit's taxable accounts** (the GIA and cash). The three controls' first person holds a GIA of `£45,000`
+  (S279-E100), `£47,500` (S199-E100) or `£120,000` (S119-E100); the partner holds none. S037-E100's first person holds a
+  GIA of `£18,000` and cash of `£9,000`.
 
 ## What it says
 
@@ -73,7 +79,12 @@ partner's fixed income off the household's schedule, but that schedule's allowan
 person's, the table may under-price the year's draws. That cannot be the whole cause.
 - **E100 and the three controls (S119-E100, S199-E100, S279-E100).** The elder holds every wrapper and `k` is 1. Every draw
   is the first person's, against their own allowance and bands, and the partner's state pension is taxed alone, as in the
-  engine. A prices these units' year as the engine does.
+  engine. So A prices these units' draws and fixed incomes as the engine does.
+  - Not all of the year, though: both arms still give the household two people's savings and dividend allowances,
+    starting-rate band and CGT exempt amount. The engine applies each person's own, and here the partner holds nothing
+    taxable.
+  - The controls hold `£45,000` to `£120,000` in their GIAs, so that part of their price is the household's, not the
+    engine's. It comes nearest on S037-E100, whose GIA is `£18,000`.
 - **Y100.** The younger partner holds every wrapper. The table prices the partner's draws against the allowance the first
   person's state pension leaves, which is less than the partner's own leaves. A prices those draws above the engine.
 - **FIX still loses paths on four of them:**
@@ -82,15 +93,22 @@ person's, the table may under-price the year's draws. That cannot be the whole c
   - S119-E100: `-0.200` points, lifetime tax `-£4,394` a path;
   - S199-E100: `-0.200` points, lifetime tax `-£34` a path.
   These four hold 37 of the 121 lost paths.
-- **And the couples trade's PA2**, which removed ROUTE's over-pricing another way, lost about as many paths on the same
-  units.
+- **And the couples trade's PA2** lost about as many paths on the same units, nearly all of them at the plan's end too.
+  - PA2 removes ROUTE's over-pricing of the fixed incomes. But it gives the household two people's allowance, so where one
+    person draws it under-prices the draws.
+  - Yet on S037-E100 it lost about as many paths as FIX (7 against 6). If anything, that tells against under-priced draws
+    as the driver.
 
-So both ways of removing ROUTE's over-pricing come with these end-of-plan losses. Which part of either drives them is not
-shown.
+So both arms, each taking ROUTE's over-pricing of the fixed incomes away, come with these end-of-plan losses. Which part of
+either drives them is not shown.
 
-One reading, not shown: ROUTE's over-pricing kept the household's spending down and its end pot up, a margin the household
-table's own judgement of the plan's end does not otherwise hold. The deep review of step 8 named the household table's
-thinner late cushion as its leading cause (`reviews/2026-11-20-deep-household-hsp.md`).
+One reading, not shown: ROUTE's over-pricing kept the household's spending down and its end pot up, as a margin.
+- The deep review of step 8 named the household table's thinner late cushion as its leading cause
+  (`reviews/2026-11-20-deep-household-hsp.md`).
+- But that review's own test bears against a spending margin (`results-late-tail-2.txt`, THE GROWTH):
+  - given K2's spending level, the household table's late gap grew (L restores `-97.2%` of it);
+  - given K2's tiers, it was explained (R `136.8%`);
+  - so by that test's rule, the table makes its late trade itself, on a right reading of the household.
 
 ## What next (to the maintainer)
 
@@ -99,8 +117,11 @@ thinner late cushion as its leading cause (`reviews/2026-11-20-deep-household-hs
   - Removing the over-pricing, by A here or by PA2 in the couples trade, costs survival at the plan's end. The product's
     order puts survival first.
   - If the pricing is to be corrected later, the plan's end comes first. That means a test (EXPLORATORY) of the household
-    table's judgement of the minimum pot against the engine's, on the units where A's price is already right (E100 and
-    the three controls). It is named here, not designed, and B or C would follow on what it finds.
+    table's judgement of the minimum pot against the engine's, on the units where A's price of the draws and fixed incomes
+    is right (most nearly S037-E100). It is named here, not designed.
+  - If it finds the table's judgement right, neither B nor C would remove these losses, and the pricing line ends there,
+    the trade the rule declined.
+  - If it finds the judgement wrong, its fix comes first, and B or C after.
 - **C now.** Two schedules in the household table's forward run, the year's draw split as the engine funds it.
   - It is not shown exact. The household table's state holds each wrapper summed over both people (`household.js`
     `mergedState`), so once one person's wrapper runs down it cannot tell whose allowance a draw meets.

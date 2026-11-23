@@ -14,7 +14,11 @@
  *   E. beside, the couples trade's PA2 (the household plan at the form 'pensions', the allowance two people's) against ROUTE on
  *      the same thirteen units and paths, from the trade's own unit files (results/couples-trade-7002), beside FIX against
  *      ROUTE: each unit's paths lost and saved, the totals and the pooled survival change by path (the reviewer at the read,
- *      finding 1: the two ways of closing ROUTE's over-pricing).
+ *      finding 1), and the kind of each of PA2's lost paths' failures, read as section B reads FIX's (the reviewer's second
+ *      look, MINOR 3);
+ *   F. each unit's holdings in its taxable accounts (the GIA and cash), each person's, from the couple's plan as the solvers
+ *      take it (the reviewer's second look, MINOR 1: both arms give the household two people's savings and dividend
+ *      allowances, starting-rate band and CGT exempt amount, which the engine applies per person).
  *   REG=1 node research/solver/pricing-fix-beside.mjs [dir] > research/solver/results-pricing-fix-beside.txt
  */
 import * as E from '../engine.mjs';
@@ -67,12 +71,18 @@ for (const id of UNITS) {
 /* the kind of failure on the paths FIX loses, read against each unit's own context (the household cut's: its minimum pot and its
    last plan year): spending unmet (the money short in some year), or none unmet and the end pot below the minimum pot in the
    last plan year, or neither */
-{ if (process.env.REG !== '1') { console.error('pricing-fix-beside: runs on the registered panel, REG=1'); process.exit(2); }
-  const plans = Object.fromEntries(unitsOf().map(u => [u.id, u]));
-  let unmet = 0, atFloor = 0, neither = 0, total = 0; const by = [];
+if (process.env.REG !== '1') { console.error('pricing-fix-beside: runs on the registered panel, REG=1'); process.exit(2); }
+const unitCtx = (() => { const plans = Object.fromEntries(unitsOf().map(u => [u.id, u])), out = {};
+  for (const id of UNITS) { const { hp } = solverPlanOf(plans[id].plan, 'own'), ctx = E.buildContext(E.resolveMpaa(householdCut(E, M, hp, FORM).household)); out[id] = { hp, floor: ctx.solvencyFloor, T: ctx.totalYears }; }
+  return out; })();
+/* the kind of each lost path's failure: spending unmet, or none unmet and the end pot below the minimum pot in the last plan
+   year, or neither */
+const kindsOf = (id, P, B) => { const { floor, T } = unitCtx[id], k = { unmet: 0, floor: 0, neither: 0, unmetYears: [] };
+  for (let i = 0; i < n; i++) if (B.survived[i] && !P.survived[i]) { if (P.unmet[i] > 1) { k.unmet++; k.unmetYears.push(P.failYear[i]); } else if (P.pot[i] < floor && P.failYear[i] === T) k.floor++; else k.neither++; }
+  return k; };
+{ let unmet = 0, atFloor = 0, neither = 0, total = 0; const by = [];
   for (const id of UNITS) {
-    const { hp } = solverPlanOf(plans[id].plan, 'own'), ctx = E.buildContext(E.resolveMpaa(householdCut(E, M, hp, FORM).household));
-    const floor = ctx.solvencyFloor, T = ctx.totalYears, R = byId[id].arms.ROUTE, X = byId[id].arms.FIX, unmetYears = [];
+    const { floor, T } = unitCtx[id], R = byId[id].arms.ROUTE, X = byId[id].arms.FIX, unmetYears = [];
     let u = 0, f = 0, o = 0;
     for (let i = 0; i < n; i++) if (R.survived[i] && !X.survived[i]) {
       total++;
@@ -111,5 +121,18 @@ out.push('E. Beside, the couples trade\'s PA2 against ROUTE on the same thirteen
   }
   const pq = survivalItem(ids.filter(id => trade[id]).map(id => [trade[id].arms.PA2, trade[id].arms.ROUTE]), n), pf = pool(ids);
   out.push(`  the thirteen: PA2 ${tq[0]} lost, ${tq[1]} saved, pooled ${sg(pq.d)} (${sg(pq.lo)} to ${sg(pq.hi)} by path); FIX ${tf[0]} lost, ${tf[1]} saved, pooled ${sg(pf.d)} (${sg(pf.lo)} to ${sg(pf.hi)} by path)`);
-  out.push(`  the couples trade's ROUTE arrays are this read's on all ${n} paths of the thirteen (check 2), so the two arms are compared on the same ROUTE`); }
+  out.push(`  the couples trade's ROUTE arrays are this read's on all ${n} paths of the thirteen (check 2), so the two arms are compared on the same ROUTE`);
+  // the kind of each lost path's failure, PA2's beside FIX's
+  const kq = ids.filter(id => trade[id]).map(id => [id, kindsOf(id, trade[id].arms.PA2, trade[id].arms.ROUTE)]), kf = ids.map(id => [id, kindsOf(id, byId[id].arms.FIX, byId[id].arms.ROUTE)]);
+  const tot = ks => ks.reduce((a, [, k]) => ({ unmet: a.unmet + k.unmet, floor: a.floor + k.floor, neither: a.neither + k.neither }), { unmet: 0, floor: 0, neither: 0 });
+  const tq2 = tot(kq), tf2 = tot(kf);
+  out.push(`  the kind of each lost path's failure, read as section B reads it: PA2 ${tq2.floor} below the minimum pot in the last plan year, ${tq2.unmet} with spending unmet, ${tq2.neither} neither; FIX on the thirteen ${tf2.floor}, ${tf2.unmet}, ${tf2.neither}`);
+  for (const [id, k] of kq) if (k.unmet || k.neither) out.push(`    PA2 on ${id}: ${k.unmet} with spending unmet (in plan years ${[...new Set(k.unmetYears)].sort((a, b) => a - b).join(', ')} of ${unitCtx[id].T}), ${k.neither} neither`); }
+out.push('');
+out.push('F. Each unit\'s taxable accounts, each person\'s (the GIA and cash balances in the couple\'s plan as the solvers take it):');
+for (const id of UNITS) {
+  const hp = unitCtx[id].hp, bal = (cat, owner) => hp.accounts.filter(a => a.category === cat && a.owner === owner).reduce((x, a) => x + (Number(a.balance) || 0), 0);
+  const g = o => `GIA ${gbp(bal('Other Investments (e.g. GIA)', o)).replace('+', '')}, cash ${gbp(bal('Cash Savings', o)).replace('+', '')}`;
+  out.push(`  ${id.padEnd(10)} the first person ${g('Myself')}; the partner ${g('Partner')}`);
+}
 console.log(out.join('\n'));

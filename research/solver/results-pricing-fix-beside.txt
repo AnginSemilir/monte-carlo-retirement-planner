@@ -99,3 +99,22 @@ E. Beside, the couples trade's PA2 against ROUTE on the same thirteen units and 
   S279-E100  PA2 8 / 13; FIX 9 / 14
   the thirteen: PA2 98 lost, 25 saved, pooled -0.140 (-0.199 to -0.082 by path); FIX 96 lost, 21 saved, pooled -0.144 (-0.202 to -0.087 by path)
   the couples trade's ROUTE arrays are this read's on all 4000 paths of the thirteen (check 2), so the two arms are compared on the same ROUTE
+  the kind of each lost path's failure, read as section B reads it: PA2 96 below the minimum pot in the last plan year, 2 with spending unmet, 0 neither; FIX on the thirteen 96, 0, 0
+    PA2 on S037-G12P: 1 with spending unmet (in plan years 11 of 27), 0 neither
+    PA2 on S279-E100: 1 with spending unmet (in plan years 51 of 51), 0 neither
+
+F. Each unit's taxable accounts, each person's (the GIA and cash balances in the couple's plan as the solvers take it):
+  S037-Y75   the first person GIA £4,500, cash £2,250; the partner GIA £13,500, cash £6,750
+  S037-Y90   the first person GIA £1,800, cash £900; the partner GIA £16,200, cash £8,100
+  S037-Y100  the first person GIA £0, cash £0; the partner GIA £18,000, cash £9,000
+  S037-E95   the first person GIA £17,100, cash £8,550; the partner GIA £900, cash £450
+  S037-E100  the first person GIA £18,000, cash £9,000; the partner GIA £0, cash £0
+  S037-S75   the first person GIA £13,500, cash £6,750; the partner GIA £4,500, cash £2,250
+  S037-G8    the first person GIA £10,800, cash £5,400; the partner GIA £7,200, cash £3,600
+  S037-G12   the first person GIA £10,800, cash £5,400; the partner GIA £7,200, cash £3,600
+  S037-G8Y75 the first person GIA £4,500, cash £2,250; the partner GIA £13,500, cash £6,750
+  S037-G12P  the first person GIA £10,800, cash £5,400; the partner GIA £7,200, cash £3,600
+  S119-E100  the first person GIA £120,000, cash £0; the partner GIA £0, cash £0
+  S199-E100  the first person GIA £47,500, cash £47,500; the partner GIA £0, cash £0
+  S279-E100  the first person GIA £45,000, cash £45,000; the partner GIA £0, cash £0
+  S191-90    the first person GIA £43,200, cash £0; the partner GIA £4,800, cash £0

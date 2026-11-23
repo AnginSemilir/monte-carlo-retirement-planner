@@ -152,8 +152,9 @@ no default, gate or candidate. After it, the outcomes below say what happens.
   changes.
 - **The reviewer at the read** (`reviews/2026-11-23-read-pricing-fix.md`; FAIL, answered in one fix) found two things in
   this note.
-  - What A leaves above, under-priced draws, cannot be the whole cause of its losses: A prices E100 and the three controls
-    as the engine does, and FIX loses paths there too.
+  - What A leaves above, under-priced draws, cannot be the whole cause of its losses. A prices E100's and the three
+    controls' draws and fixed incomes as the engine does, and FIX loses paths there too. Both arms still give the
+    household two people's savings and dividend allowances and CGT exempt amount there (the second look's MINOR 1).
   - C's "exact for the even split" is not shown: the household table's state holds each wrapper summed over both people,
     so once one person's wrapper runs down it cannot tell whose allowance a draw meets.
 - **The timing fix's pattern search** now includes the dress rehearsal's panel (the reviewer's MINOR 3): 876 household

@@ -25,23 +25,27 @@ below this section says "the beta", read it as history. The order from here:
   - FIX keeps fewer paths on 12 of the 14 units. 111 of its 121 lost paths end below the minimum pot in the last plan year;
     the other 10, all S191-90's, run short in its last three plan years.
   - The couples trade's PA2 (the allowance two people's), on the same 13 units and paths, loses 98 paths and saves 25
-    against ROUTE, pooled `-0.140` (`-0.199` to `-0.082`). FIX loses 96 and saves 21, pooled `-0.144`.
+    against ROUTE, pooled `-0.140` (`-0.199` to `-0.082`); 96 of its lost paths end below the minimum pot in the last
+    plan year. FIX loses 96 and saves 21, pooled `-0.144`.
 - **What drives the loss is not shown.**
   - The error `PRICING-FIX.md` named for A, under-priced draws, cannot be the whole cause. On E100 and the three controls
-    (the elder holding every wrapper, `k` 1), A prices the year as the engine does. On Y100 it prices the draws above the
-    engine. FIX still loses paths on four of them (Y100 `-0.225`, E100 `-0.150`, S119-E100 `-0.200`, S199-E100 `-0.200`
-    points), 37 of the 121.
-  - Both ways of removing ROUTE's over-pricing come with these end-of-plan losses. One reading, not shown: the
-    over-pricing has been a margin at the plan's end that the household table does not otherwise hold (step 8's deep
-    review: a thinner late cushion).
+    (the elder holding every wrapper, `k` 1), A prices the draws and fixed incomes as the engine does. Both arms still
+    give the household two people's savings and dividend allowances and CGT exempt amount, which matter on the controls'
+    GIAs of `£45,000` to `£120,000`. On Y100 A prices the draws above the engine. FIX still loses paths on four of them
+    (Y100 `-0.225`, E100 `-0.150`, S119-E100 `-0.200`, S199-E100 `-0.200` points), 37 of the 121.
+  - PA2, which under-prices a single drawer's draws, lost about as many paths on S037-E100 (7 against FIX's 6).
+  - One reading, not shown: the over-pricing has been a margin at the plan's end. Step 8's own late-tail test bears
+    against a spending margin (THE GROWTH: the table's late gap explained by its tiers, R `136.8%`, not its spending
+    level, L `-97.2%`).
 - **The reviewer at the read: FAIL**, one BLOCKING (the first write-up said the losses fit under-priced draws and
-  recommended C on it) and three MINOR, answered in one fix (`reviews/2026-11-23-read-pricing-fix.md`).
+  recommended C on it) and three MINOR, answered in one fix (`reviews/2026-11-23-read-pricing-fix.md`). Then PASS on the
+  second look, three MINOR, each answered (`-2.md`).
 - **The ways on:**
   - **(Keep) Recommended:** the route as shipped. The rule's outcome already keeps it: D143 accepted S037's shortfall, and
     removing the over-pricing costs survival at the plan's end, which comes first. If the pricing is to be corrected
     later, the plan's end comes first: a test (EXPLORATORY) of the household table's judgement of the minimum pot against
-    the engine's, on the units where A's price is right. It is named, not designed, and B or C would follow on what it
-    finds.
+    the engine's, most nearly on S037-E100. It is named, not designed. If it finds the judgement right, neither B nor C
+    would remove the losses, and the pricing line ends there; if wrong, its fix comes first, and B or C after.
   - **(C)** Two schedules in the household table's forward run, the year's draw split as the engine funds it. It is not
     shown exact: the household table's state holds each wrapper summed over both people, so once one person's wrapper
     runs down it cannot tell whose allowance a draw meets. On E100 and the controls it would price as A does. A day to

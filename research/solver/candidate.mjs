@@ -67,8 +67,14 @@ export const D73_KEYS = Object.freeze(['sweepCashIsaTo', 'coarse']);
  * of a point of score), after the couples' registered read and never between (D78, D80). BEFORE_D90_OPTS is the candidate
  * before it (af001697ce1b, the candidate that read read), every earlier candidate built from it */
 export const D90_KEYS = Object.freeze(['tieAboveCap']);
+/* D138 (21 Nov): the savings split joined for singles who work and save (`saveSplit`), by the savings split's v2 read once,
+ * PASS (registrations/save-v2.md; results-save-v2.txt), with the ISA first held back for an employee (`saveIsaFirst`
+ * 'selfEmployed', D137 (4)). BEFORE_D138_OPTS is the candidate before it (17ff82379838, the candidate that read and step 8's
+ * read), every earlier candidate built from it */
+export const D138_KEYS = Object.freeze(['saveSplit', 'saveIsaFirst']);
+export const BEFORE_D138_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !D138_KEYS.includes(k))));
 export const PRE_D73_LATTICE = Object.freeze({ na: 160, nb: 41, nz: 128, foot: true, stepAll: true });
-export const BEFORE_D90_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !D90_KEYS.includes(k))));
+export const BEFORE_D90_OPTS = deepFreeze(Object.fromEntries(Object.entries(BEFORE_D138_OPTS).filter(([k]) => !D90_KEYS.includes(k))));
 export const BEFORE_D73_OPTS = deepFreeze(Object.fromEntries(Object.entries(BEFORE_D90_OPTS).filter(([k]) => !D73_KEYS.includes(k)).map(([k, v]) => [k, k === 'adaptiveLattice' ? { ...PRE_D73_LATTICE } : v])));
 export const LATER_KEYS = Object.freeze(['tiersBelow', 'menuPlus', 'tableDealing', 'failDelivered']);
 export const ASSEMBLED_OPTS = deepFreeze(Object.fromEntries(Object.entries(BEFORE_D73_OPTS).filter(([k]) => !LATER_KEYS.includes(k))));
@@ -101,7 +107,7 @@ export function candidatePlan(E, plan, reals = blendReals()) {
 }
 /* the candidate's hash, 7u-F's (e65e5e99ba49), the frozen one's (a61dba4ee1f5 before the assembly) and Phase 4's (fcd8096217b7);
    candidate.test.mjs pins them */
-export const CANDIDATE_HASH = hashOf(CANDIDATE_OPTS), BEFORE_D90_HASH = hashOf(BEFORE_D90_OPTS), BEFORE_D73_HASH = hashOf(BEFORE_D73_OPTS), ASSEMBLED_HASH = hashOf(ASSEMBLED_OPTS), FROZEN_HASH = hashOf(FROZEN_OPTS), PHASE4_HASH = hashOf(PHASE4_OPTS);
+export const CANDIDATE_HASH = hashOf(CANDIDATE_OPTS), BEFORE_D138_HASH = hashOf(BEFORE_D138_OPTS), BEFORE_D90_HASH = hashOf(BEFORE_D90_OPTS), BEFORE_D73_HASH = hashOf(BEFORE_D73_OPTS), ASSEMBLED_HASH = hashOf(ASSEMBLED_OPTS), FROZEN_HASH = hashOf(FROZEN_OPTS), PHASE4_HASH = hashOf(PHASE4_OPTS);
 /* the candidate's solve: its plan and options, then the caller's own (lambda, points, an arm's settings) on top; `base`
    FROZEN_OPTS for the candidate before the assembly (7u's CAND, the development tests) */
 export function solveCandidate(E, M, plan, extra = {}, base = CANDIDATE_OPTS) {

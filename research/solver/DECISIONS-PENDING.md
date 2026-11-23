@@ -11,6 +11,227 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**ANSWERED by D141 (22 Nov, evening): "Household route only (Recommended)".** The reviewer's second look at the couples dress rehearsal's read (FAIL standing after one fix, D81 (F); `reviews/2026-11-22-read-couples-open-rehearsal-2.md`): today's two-table route measured below the app's rules on six couples of RY's, RE's and RG's reasons that no unit reads. The registered test reads Y, E, S and G on the household route alone; a couple whose plan's shape the household plan refuses keeps today's guard until the household plan takes its shape (`COUPLES-OPEN.md` amendment 2).
+
+**ANSWERED by D140 (22 Nov, afternoon): all three given; seed 7026 reserved (32db18ad). Was OPEN (22 Nov, midday), for D139 (every couple on the solver, `COUPLES-OPEN.md`), for your word: three things asked now so
+the registered test is not held up when the dress rehearsal reads.**
+1. An unlock by name for `research/solver/check-prediction.mjs`: seed 7026 reserved for `couples-open*.md`, that edit alone
+   (the registered test's held-out seed).
+2. An unlock by name for `research/tests/couple-default.test.mjs`: the guard's change for each class the registered read
+   passes (its checks on the band, the elder's ceiling, the same-age rule and `DB_GAP_UP_TO`, as the classes pass), made
+   only after that read and the reviewer on the change of default.
+3. Whether the agent launches the registered test itself once its design review passes, as D96, D107, D132 and D135 each
+   launched one after its design review on your word; otherwise the launch waits for it.
+
+The agent's recommendation: yes to all three (1 and 2 need the words "unlock enforcement"). Meanwhile the dress rehearsal
+runs (EXPLORATORY, seed 7002) and the registered panel is frozen and landed; nothing of a held-out seed is read.
+
+Updated 22 Nov, afternoon. The dress rehearsal read once: every class passes (`results-couples-open-rehearsal.txt`). Its
+reviewer at the read FAIL (`reviews/2026-11-22-read-couples-open-rehearsal.md`): today's two-table route, which a couple
+takes wherever the household plan refuses its plan's shape, was read only at one holding, while a class's pass would lift
+its reason on both routes. Answered in one fix by `COUPLES-OPEN.md` amendment 1: each class opens its reason on its own
+route alone (Y, E, S, G on the household route; RY, RE, RS, RG on today's), five units added to every couple so today's
+route is read at each reason (both panels now 64 units), and ROUTE run on the page's own context. So item 2's change, for
+the classes that pass, is the guard reading the household plan's refusal (its shape checks) before it lifts a reason, the
+reason lifted on its class's route alone; `couple-default.test.mjs` pins it. A class the rehearsal's addendum (the new units,
+EXPLORATORY, running now) shows harmed is left out of the registration and comes to you with its units.
+
+**OPEN (22 Nov, early), from the reviewer on D138's change of default (second look, finding 3,
+`reviews/2026-11-21-default-save-split-2.md`), for your word: the employer's NIC passed to the pension, a part of D137
+(4)'s price the split's routes do not carry.**
+- **What.** D137 (4) sent the change with "the law's price in the split's two routes". The deep review set that price for
+  a working single with no pass-through, as every plan of the panel is. Config's "Employer NIC passed to pension (%)"
+  (default nought) credits the employer's NIC saving into the pension on the whole sacrifice. From April 2029 the employer
+  saves NIC on the first £2,000 a year alone, so the cap should take the pass-through above it away too; D138's cap does
+  not (`SAVE_NIC_CAP`'s comment, (a)).
+- **Its size** (the reviewer's figures, by the app's own functions: a £30,000 salary, a sacrifice already past £2,000, from
+  April 2029): a further net pound buys £1.25 of pension with no pass-through under the cap, the law's price; with 100%
+  pass-through £1.4375 under the cap, 15% over the law's £1.25 (uncapped, £1.5972). So for such a plan the cap removes 46%
+  of the over-price.
+- **Who it reaches.** No plan of the library's 420, no panel and no test sets the pass-through.
+- **The ways on:**
+  - **(A)** Stated, as now: the D-line and the comment say the routes do not carry the law's price for such a plan.
+  - **(B)** No pension first from April 2029 where the pass-through is set, until the engine prices it (D134 (3)'s change).
+  - **(C)** Price the pass-through on the first £2,000 alone in the routes and in the engine's taxable pay together, as part
+    of D134 (3)'s engine change for every plan.
+- **The agent recommends (A) now and (C) with D134 (3)'s change.** (B) would take a route away from such a saver even
+  where it pays at the law's price, and no plan the app has been tested on sets the pass-through.
+
+**ANSWERED by D140 (22 Nov, afternoon: "Unlock enforcement and permission given for all"; the edits made as asked, each file named in its commit). Was OPEN (22 Nov, early), found by the full tier on D138's build, for your word: an unlock, by name, for four protected
+tests' hand-built moves.**
+- **What.** Four tests of the fast tier (protected) build the move they hand the engine by hand from the solver's action:
+  `state-check.test.mjs` (V2's state check), `n4-menu.test.mjs`, `speed-port.test.mjs` and `tier-steps.test.mjs`. None
+  hands the engine the move's `windfall` or `save`, as the engine's own policy does (`src/solver/bridge.js` `withTable`).
+  Since D138 a working saver's move carries `save`, so on a working saver under the new default the engine runs the plan's
+  own saving where the forward run runs the move's.
+- **Where it shows** (`results-d138-lockstep.txt`, in D138's build until its commit; EXPLORATORY). V2's state check in full (`state-check-full.test.mjs`, the
+  full tier) fails 3 of 14 on the build: S224 parts (the pension £904,569 apart at the worst), 194 mismatched moves. The same test with its builder handing the engine
+  `windfall` and `save` (a copy, the protected file untouched) passes all 14, the pension in step to £1.9e-9 (S224) and no mismatched move. The
+  fast tier's quick forms reach no working saver and pass. The `--full` forms of the other three are not in the full tier;
+  two of them name S224.
+- **The same class as D73's `sweepIsa`**, answered then under D82's unlock. The same builder, unprotected, is fixed in
+  D138's build: `gaps-sweep.test.mjs` (12 of its 60 cases had failed, on S224 and S330F; all 60 pass with the fix) and
+  `allowance-both.test.mjs` (passing before and after).
+- **What D138 needs, and what is preventive** (corrected on the reviewer on D138's change of default, second look,
+  finding 2, `reviews/2026-11-21-default-save-split-2.md`). D138 reaches `state-check.test.mjs` alone: it is the only one of
+  the four that solves on the candidate. `n4-menu`, `speed-port` and `tier-steps` solve with fixed options that carry no
+  split in either form, so no move of theirs carries a save; their builders are the same class, and fixing them is
+  preventive.
+- **The ask:** the unlock for `state-check.test.mjs`'s builder, the two fields added as `bridge.js` has them, named in its
+  commit; and, by your choice, the same for the three preventive ones. No figure any of them pins moves.
+- **The agent recommends all four in one unlock**, so the class is closed where it sits. Until then the full tier is red
+  on `state-check-full.test.mjs`. B1's gate needs both CI tiers green on the batch's release branch (D92), so batch 11
+  waits for this unlock.
+
+**ANSWERED by D140 (22 Nov, afternoon: "Unlock enforcement and permission given for all"; the edits made as asked, each file named in its commit). Was OPEN (21 Nov, night), from the reviewer on D138's change of default (MINOR 6, `reviews/2026-11-21-default-save-split.md`),
+for your word: two unlocks, by name, for what D138 adds that no protected file records.**
+- **The couples' exclusion.** A couple's solves keep the savings split off on both of the page's routes (`src/solverApp.js`
+  `solveForApp`, a solve with a partner's age). Only `save-default.test.mjs` check 4 pins it (the full tier, unprotected).
+  Every other decided couples default is pinned against the decided-defaults block by `couple-default.test.mjs`
+  (protected), and the block's `couples` entry says nothing of it. The ask: the unlock for `couple-default.test.mjs`, so
+  that the block's `couples` entry records the exclusion and the test pins it there, with a plant.
+- **The fair-test rows.** `fair-variables.mjs` (protected) has no row for the split's two keys (`saveSplit`,
+  `saveIsaFirst`), now candidate keys; D73 (rows 35, 36), D81 (37, 38) and D93 (39 to 43) gave each new setting a row. The
+  settings line each run records names the menu's size, which catches the copies and the hold indirectly, but a
+  registration's fair-test table does not list them. The ask: the unlock for `fair-variables.mjs`, one row for the two.
+- **The agent recommends both**, in one unlock, each protected file named in the commit that edits it. Until then D138's
+  D-line says each is missing and why.
+
+**OPEN (21 Nov, night), from test K's read (D137 (4)), for your word: does the app ask how an employee pays into their
+pension?**
+- **Where it comes from.** Test K (EXPLORATORY; `results-save-k.txt`, `reports/2026-11-21-save-k-read.md`) read THE CAUSE
+  HOLDS IN SIZE. By D137 (4), the change of default prices the split's routes at the law's price for a salary sacrificer:
+  employee NIC relief on the first £2,000 a year alone from April 2029, in full before (`src/App.jsx` `SAVE_NIC_CAP`).
+- **What it leaves** (corrected on the reviewer's second look at K's read, finding 1, `reviews/2026-11-21-read-save-k-2.md`;
+  that FAIL stands after one fix, so this entry and K's write-up are yours, D81 (F)).
+  - An employee who pays in by net pay or relief at source is relieved of income tax only, in every year. The app cannot
+    tell the two kinds of employee apart, so it prices every employee as a sacrificer.
+  - As the app prices it (the whole pension figure taken as the employee's own sacrifice), from April 2029 an employee's
+    pension first is K's on all 30 of the panel's employees: in `260` of their `260` working years from 2029, to the
+    penny (the change's identity, `results-save-default-identity.txt` part 2, in the change's build).
+  - So the question decides the routes of 2026 to 2028 alone: `90` of the 30 employees' `350` working years with a
+    saving to place (`results-save-k-beside.txt` A). Nothing measures them.
+  - K (`0.726`; the 13 basic-rate employees outside the three `0.580`) is the share of the gain at K's price against the
+    engine's uncapped price, in every year, with the ISA first offered. It is not the change's arm.
+  - In law the cap counts the employee's own sacrifice, which the app does not record: its pension figure includes the
+    employer's part.
+- **The ways on:**
+  - **(A)** Ask it: one question beside the employment status ("salary sacrifice", "net pay or relief at source", "not
+    sure"), the split pricing each employee by their own route. The app's own contribution strategies could read it too.
+  - **(B)** Leave it: every employee priced as a sacrificer, the D-line saying so.
+- **The agent recommends (A), with the work on the screens:** "salary sacrifice" the default answer, as the app assumes
+  today. Until then, (B) stands, said in the change's D-line.
+
+**RULED (21 Nov, evening, D137): the savings split's change of default, built and not committed.** The maintainer: "Unlock
+enforcement. Go ahead with your recommendations": (C) for the time, the speed work right after the change; the unlock for
+`candidate.test.mjs`'s pins, the three joining tests taking their solves without the split; the deep review's test K on
+seed 7025's first 4,000 paths before the change is committed (D110's form); ISA first held back for an employee, with its
+test and plant. The change is D138's, once K has read and the reviewer on the change of default has passed it. The items
+as they were put, kept as history:
+1. **The time and the speed mode for a working saver** (the reviewer at the read, MINOR 1;
+   `results-save-v2-beside.txt` section A).
+   - **The cost.** With the split, a working saver's path takes about twice as long on anchors, the menu the app solves on:
+     each arm's CPU a path, the median `x2.10` (`x1.84` to `x2.31`). The solve takes the median `x1.10`. So the page's
+     figures for a plan still saving take about twice as long. Gate 5 does not move, since its four households are all
+     retired.
+   - **The speed mode does nothing for them.** A menu with the split's copies sets `r.nAt`, which takes P1's memo and the
+     chooser's shortlist off in every year (`src/solver/solve.js` `decisionRepeats`, the chooser's `shortMask`). The speed
+     mode is the shortlist alone, so its "faster" would not hold for a working saver.
+   - **The ways on:**
+     - **(A)** Take the change as registered now, with the time cost.
+     - **(B)** Exact speed work first: P1's memo, and the shortlist, kept in the years where the copies are left out, each
+       with its identity test. Then the change, the time measured again. Box: half a day to a day.
+     - **(C)** Both: the change now as in (A), and (B) queued right after it as its own change.
+
+     In (A) and (C), the speed mode's words are yours to change for a plan still saving, or to keep.
+   - **The agent recommends (C).** The registered PASS makes the change. You took the same kind of trade for a couple's path
+     (D109). The memo is most of the loss: a five-working-year plan scores three times the moves in 5 of 41 years, which
+     alone would cost about `x1.25`, and it costs `x1.90`.
+2. **An unlock, asked for by name, before the change's commit:** `research/tests/candidate.test.mjs`'s pins. The candidate
+   moves from 17ff82379838 to bf1cac401c13; the new check pins `BEFORE_D137_OPTS` at 17ff82379838, and D90's check is
+   re-based on it.
+   - The classifier refused the edit as a re-pin of a test's expected value, and the agent has not worked around it.
+   - The exact edit is kept as `research/solver/drafts/d137-candidate-test.py`, a script that applies it.
+   - **The fast tier on the build** (`results-d137-fast-pins.txt`): 73 of 77 pass, `chooser-share` among them (see item 5).
+     `check-state` fails only on STATE.md's printed candidate line, which the change's commit takes. Three tests of the
+     joining list fail, each on a working saver the split now reaches:
+     - `windfall-relief.test.mjs` check 6 (pinned under D83's unlock): S210 with its deposit removed, 14c9a95ebb1b8c49 to
+       5c3195f474943629; S210 with its deposit typed into the taxable account, 70e557bd71a3d75b to 11666732d554a51f. S116,
+       retired, is unchanged.
+     - `chooser-tie.test.mjs` check 1: S328F's paths with the option off, against the code before the option,
+       f2fe4e1e6d872dc3 to 41612ebb2cf51a77.
+     - `chooser-shortlist.test.mjs` check 1, the same S328F digest; checks 2 to 5 have nothing to test, since the split
+       leaves the shortlist idle on S328F (item 1).
+   - **The working:** each of the three, run on the build with the split taken out of its solves, passes whole with every
+     figure as pinned. So the split alone moves them.
+   - **The agent proposes** that each of the three takes its solves without the split, every pinned figure the same, as
+     `save-split`, `windfall-split` and `isa-allowance` now do. These tests check another option's identity, and the
+     split's own effect is tested by `save-default.test.mjs`. The other way is to re-pin the three figures to the new
+     digests; `chooser-shortlist`'s checks 2 to 5 would still need the split out. The unlock asked for covers whichever you
+     choose, named in the commit.
+3. **Done without an unlock, to say so:** three tests of the full tier now solve on the candidate before D137, so every
+   figure they pin stays the same: `save-split`, `windfall-split` and `isa-allowance`. None is protected.
+   - `solve.js` refuses the windfall split beside the savings split, so those tests would otherwise fail outright.
+   - Without the re-base, `save-split`'s "option unset" arm would become the option on.
+   - Say if you would rather they waited for the unlock.
+4. **The deep review** (`reviews/2026-11-21-deep-save-v2.md`) finds the PASS sound for what it tested. Two of its items bear
+   on the change of default.
+   - **ISA first for an employee moves the employer's money** (its section 4, item 1).
+     - The app asks for the pension contribution gross, "including tax relief and employer amounts" (`src/App.jsx`). The
+       split's budget prices all of it as the employee's own sacrifice.
+     - So ISA first puts the net cost of the employer's part into the ISA. In law that is stopping a workplace pension and
+       forfeiting the employer's money.
+     - On the panel ISA first is 17% or more of the decisions on six younger employees, who carry 22% of the gain. The cost
+       of holding it back is not measured.
+     - The app's own contribution strategies build the same budget, so this is inherited, not new. The split would make it
+       the solver's default and this year's action on the page.
+     - **Its recommendation, which the agent shares:** until the plan records the employer's part, an employee's split
+       offers the plan's own saving and the pension first. ISA first stays for the self-employed. This is a change to the
+       split's routes, with its test and plant. The other way is that you take the trade, with words saying what ISA first
+       means.
+   - **The leading cause of the employees' 87% of the gain** is the price the engine puts on an employee's pension pound:
+     salary sacrifice relieved of employee NIC, uncapped and for every employee. Only the split's arm reads that price.
+   - **Its one test** (EXPLORATORY, its rule committed first): the 30 employees' plans priced on income tax relief alone,
+     the split on anchors, with an identity arm and a control, reading K, the share of the gain left at that price.
+     - **K at least 0.85:** the default goes ahead as the PASS has it.
+     - **K from 0.33 to 0.85:** the default goes with the law's price in the split's routes (D134 (3)'s cap brought
+       forward).
+     - **K under 0.33:** the default is held for employees and comes back to you.
+     - **Its seed is yours.** Seed 7025's first 4,000 paths, the registered arms' own, cost about 5.5 core-hours. That is
+       D110's form, run directly as a tracked task, since the launcher refuses a reserved seed outside its registration.
+       Otherwise seed 7002, with the two arms beside it, costs about 13 core-hours. The build is half a day.
+   - **The agent recommends** running the test before the change is committed, on seed 7025 (cheaper, and paired with the
+     registered arms), and holding back ISA first for an employee as above. The time (item 1) goes with it as (C).
+5. **A defect the fast tier found on the build, fixed with a test of its class** (CHECKLIST 7; `results-d137-fast-pins.txt`).
+   - **What it was.** Under the split, the chooser scores each market world's table. In a year where the copies are left
+     out, the year's shared flows (`src/solver/solve.js` `decisionFlows`) are taken for the year's moves alone, but each
+     world's table did not carry the solve's moves a year. So the worlds scored the copies from flows left over from an
+     earlier decision, and the chooser's argmax, over every move, could pick one on them. `movesAt`'s own comment meant those
+     copies to be unchoosable there; the mask reached the solve, not its worlds.
+   - **How it showed.** `chooser-share.test.mjs` (protected) on S224 under the split: the shared flows and `scoreMoves`
+     parted at move 800, a copy, in year 5.
+   - **The fix** (in the build): each world's table carries the solve's moves a year (set on `r.worlds` at the solve's
+     finish), and `movesAt` also gives the moves it makes unchoosable a tax of nought, so both scorers agree on every move.
+     A solve with no split's copies is untouched (`movesAt` returns at once). `chooser-share` passes on the build.
+   - **Its test:** `save-default.test.mjs` check 6, on S188 under the split: every world carries the moves a year; with the
+     share check on, the two scorers agree at all 820 decisions of 20 paths; no decision picks a copy in a year it is left
+     out. Its plant `nattables`, the worlds left without it, fails exactly check 6.
+   - **Its reach, measured as far as it goes.** A probe (EXPLORATORY, seed 7002, light settings; S188 and S224, 100 paths
+     each) found the stale copies never won: no copy picked in such a year at any of 8,200 decisions, and the decisions and
+     outcomes the same with the shared flows on and off. So it is not shown to have changed a decision.
+     - Whether it changed any decision in the registered run cannot be read from its records, which keep the save only in
+       the working years.
+     - The windfall split's copies, research and closed, had the same defect; the fix covers both.
+   - **Corrected (21 Nov, night; the reviewer on D138's change of default, MINOR 3,
+     `reviews/2026-11-21-default-save-split.md`).** No decision could change on the stale flows, in the registered run or
+     anywhere, so "could pick one on them" and "cannot be read from its records" above are withdrawn:
+     - the centre world is the solve itself (`solve.js`, the worlds built `k === centre ? r : {...}`), which carried the
+       moves a year before the fix;
+     - its scorer makes each copy left out unchoosable (`movesAt`), and the mixture fails a move that fails in any table;
+     - so a left-out copy's combined score was minus infinity at every decision, whatever the other worlds read.
+     - What the stale flows reached was the other worlds' scores and tax for those copies, which the share check (a test
+       mode) compares, and work wasted on them. Check 6's count of copies picked is a guard its plant cannot fail.
+
 **OPEN (20 Nov, evening), found while porting step 8; nothing decided, for your word:**
 1. **The speed mode reaches the household plan's table, unmeasured.** The opt-in "Beta - speed mode" (D97 (3)) hands a
    solve the chooser's shortlist, and since the household default (D135) a couple's one table takes it as a single's does.

@@ -1,0 +1,74 @@
+THE GUARD'S OWN UNITS, THE DRESS REHEARSAL'S PANEL (EXPLORATORY; COUPLES-OPEN.md step 1): couples-open-panel.json, built 2026-11-22T18:58:49.357Z, code 36e4d2a860b2
+S025 (lib; as the library holds it, ages 68/65):
+    S025-Y75     class Y; target 22600, arm A 84.1% (ISA First, lump sum); ages 68/65; the first person holds 25%; the guard off (uneven); the route household
+    S025-Y90     class Y; target 22600, arm A 84.1% (ISA First, lump sum); ages 68/65; the first person holds 10%; the guard off (uneven); the route household
+    S025-Y100    class Y; target 22600, arm A 84.5% (ISA First); ages 68/65; the first person holds 0%; the guard off (uneven); the route household
+    S025-E95     class E; target 22600, arm A 84.2% (ISA First, lump sum); ages 68/65; the first person holds 95%; the guard off (uneven); the route household
+    S025-E100    class E; target 22400, arm A 86.0% (ISA First, lump sum); ages 68/65; the first person holds 100%; the guard off (uneven); the route household
+    S025-S75     class S; target 24300, arm A 84.2% (ISA First (harvest off)); ages 68/68; the first person holds 75%; the guard off (uneven); the route household
+    S025-G8      class G; target 34200, arm A 85.0% (Bracket Fill Basic); ages 68/60; the first person holds 60%; the guard off (gapincome); the route household
+    S025-G12     class G; target 33600, arm A 85.3% (Bracket Fill Basic); ages 68/56; the first person holds 60%; the guard off (gapincome); the route household
+    S025-G8Y75   class G; target 34400, arm A 84.6% (Bracket Fill Basic); ages 68/60; the first person holds 25%; the guard off (uneven); the route household
+    S025-G12P    class G; target 25900, arm A 85.7% (ISA First, lump sum); ages 68/56; the first person holds 60%; the guard off (gapincome); the route household
+    S025-G12R    class G; target 33600, arm A 85.3% (Bracket Fill Basic); ages 68/56; the first person holds 60%; the guard off (gapincome); the route household
+    S025-RY75    class RY; target 22600, arm A 84.7% (ISA First); ages 68/65; the first person holds 25%; the guard off (uneven); the route today
+    S025-RWY75   class RY; target 24500, arm A 84.6% (ISA First, lump sum); ages 68/65; the first person holds 25%; the guard off (uneven); the route today
+    S025-RE100   class RE; target 22400, arm A 86.0% (ISA First, lump sum); ages 68/65; the first person holds 100%; the guard off (uneven); the route today
+    S025-RS75    class RS; target 24300, arm A 84.4% (ISA First); ages 68/68; the first person holds 75%; the guard off (uneven); the route today
+    S025-RG8     class RG; target 34200, arm A 84.9% (Bracket Fill Basic); ages 68/60; the first person holds 60%; the guard off (gapincome); the route today
+    S025-RG12P   class RG; target 26100, arm A 84.5% (ISA First, lump sum); ages 68/56; the first person holds 60%; the guard off (gapincome); the route today
+S273 (lib; as the library holds it, ages 45/42):
+    S273-Y75     class Y; target 161000, arm A 85.1% (Bracket Fill Basic); ages 45/42; the first person holds 25%; the guard off (uneven); the route household
+    S273-Y90     class Y; target 161000, arm A 84.8% (Bracket Fill Basic); ages 45/42; the first person holds 10%; the guard off (uneven); the route household
+    S273-Y100    class Y; target 161000, arm A 84.5% (Bracket Fill Basic); ages 45/42; the first person holds 0%; the guard off (uneven); the route household
+    S273-E95     class E; target 161000, arm A 85.0% (Bracket Fill Basic); ages 45/42; the first person holds 95%; the guard off (uneven); the route household
+    S273-E100    class E; target 161000, arm A 85.0% (Bracket Fill Basic, lump sum); ages 45/42; the first person holds 100%; the guard off (uneven); the route household
+    S273-S75     class S; target 156000, arm A 85.1% (Bracket Fill Basic, lump sum); ages 45/45; the first person holds 75%; the guard off (uneven); the route household
+    S273-G8      class G; target 181200, arm A 85.3% (Bracket Fill Basic); ages 45/37; the first person holds 60%; the guard off (gapincome); the route household
+    S273-G12     class G; target 191300, arm A 85.5% (Bracket Fill Basic, lump sum); ages 45/33; the first person holds 60%; the guard off (gapincome); the route household
+    S273-G8Y75   class G; target 181200, arm A 85.1% (Bracket Fill Basic, lump sum); ages 45/37; the first person holds 25%; the guard off (uneven); the route household
+    S273-G12P    class G; target 191300, arm A 84.2% (Bracket Fill Basic); ages 45/33; the first person holds 60%; the guard off (gapincome); the route household
+    S273-G12R    class G; target 192600, arm A 85.7% (Bracket Fill Basic); ages 45/33; the first person holds 60%; the guard off (gapincome); the route household
+    S273-RY75    class RY; target 166100, arm A 84.9% (Bracket Fill Basic); ages 45/42; the first person holds 25%; the guard off (uneven); the route today
+    S273-RWY75   class RY; target 110800, arm A 85.2% (Bracket Fill Basic); ages 45/42; the first person holds 25%; the guard off (uneven); the route today
+    S273-RE100   class RE; target 161000, arm A 84.8% (Bracket Fill Basic, lump sum); ages 45/42; the first person holds 100%; the guard off (uneven); the route today
+    S273-RS75    class RS; target 161000, arm A 84.0% (Bracket Fill Basic); ages 45/45; the first person holds 75%; the guard off (uneven); the route today
+    S273-RG8     class RG; target 186300, arm A 84.8% (Bracket Fill Basic); ages 45/37; the first person holds 60%; the guard off (gapincome); the route today
+    S273-RG12P   class RG; target 191300, arm A 84.7% (Bracket Fill Basic); ages 45/33; the first person holds 60%; the guard off (gapincome); the route today
+S351F (young; as the library holds it, ages 37/34):
+    S351F-Y75    class Y; target 43700, arm A 84.8% (Bracket Fill, lump sum); ages 37/34; the first person holds 25%; the guard off (uneven); the route household
+    S351F-Y90    class Y; target 42600, arm A 85.7% (Bracket Fill Basic); ages 37/34; the first person holds 10%; the guard off (uneven); the route household
+    S351F-Y100   class Y; target 42600, arm A 85.8% (Bracket Fill); ages 37/34; the first person holds 0%; the guard off (uneven); the route household
+    S351F-E95    class E; target 42600, arm A 85.7% (Bracket Fill Basic); ages 37/34; the first person holds 95%; the guard off (uneven); the route household
+    S351F-E100   class E; target 42600, arm A 85.7% (Bracket Fill Basic); ages 37/34; the first person holds 100%; the guard off (uneven); the route household
+    S351F-S75    class S; target 40300, arm A 85.7% (Bracket Fill, lump sum); ages 37/37; the first person holds 75%; the guard off (uneven); the route household
+    S351F-G8     class G; target 52100, arm A 85.2% (ISA First, lump sum); ages 37/29; the first person holds 60%; the guard off (gapincome); the route household
+    S351F-G12    class G; target 53700, arm A 85.7% (Bracket Fill, lump sum); ages 37/25; the first person holds 60%; the guard off (gapincome); the route household
+    S351F-G8Y75  class G; target 51500, arm A 85.9% (ISA First, lump sum); ages 37/29; the first person holds 25%; the guard off (uneven); the route household
+    S351F-G12P   class G; target 50400, arm A 84.7% (Bracket Fill); ages 37/25; the first person holds 60%; the guard off (gapincome); the route household
+    S351F-G12R   class G; target 62600, arm A 84.2% (Bracket Fill Basic); ages 37/25; the first person holds 60%; the guard off (gapincome); the route household
+    S351F-RY75   class RY; target 44800, arm A 84.9% (Bracket Fill); ages 37/34; the first person holds 25%; the guard off (uneven); the route today
+    S351F-RWY75  class RY; target 32500, arm A 84.6% (Bracket Fill); ages 37/34; the first person holds 25%; the guard off (uneven); the route today
+    S351F-RE100  class RE; target 42600, arm A 85.9% (Bracket Fill Basic); ages 37/34; the first person holds 100%; the guard off (uneven); the route today
+    S351F-RS75   class RS; target 41500, arm A 84.8% (Bracket Fill, lump sum); ages 37/37; the first person holds 75%; the guard off (uneven); the route today
+    S351F-RG8    class RG; target 52600, arm A 85.7% (Bracket Fill); ages 37/29; the first person holds 60%; the guard off (gapincome); the route today
+    S351F-RG12P  class RG; target 51500, arm A 84.4% (Bracket Fill); ages 37/25; the first person holds 60%; the guard off (gapincome); the route today
+S357F (young; as the library holds it, ages 37/34):
+    S357F-Y75    class Y; target 114900, arm A 85.1% (Bracket Fill Basic); ages 37/34; the first person holds 25%; the guard off (uneven); the route household
+    S357F-Y90    class Y; target 110800, arm A 84.8% (Bracket Fill, lump sum); ages 37/34; the first person holds 10%; the guard off (uneven); the route household
+    S357F-Y100   class Y; target 114900, arm A 84.4% (Bracket Fill Basic); ages 37/34; the first person holds 0%; the guard off (uneven); the route household
+    S357F-E95    class E; target 110800, arm A 85.2% (Bracket Fill Basic, lump sum); ages 37/34; the first person holds 95%; the guard off (uneven); the route household
+    S357F-E100   class E; target 110800, arm A 85.3% (Bracket Fill Basic, lump sum); ages 37/34; the first person holds 100%; the guard off (uneven); the route household
+    S357F-S75    class S; target 106700, arm A 85.8% (Bracket Fill Basic); ages 37/37; the first person holds 75%; the guard off (uneven); the route household
+    S357F-G8     class G; target 131300, arm A 84.2% (Bracket Fill Basic); ages 37/29; the first person holds 60%; the guard off (gapincome); the route household
+    S357F-G12    class G; target 135400, arm A 85.0% (Bracket Fill Basic); ages 37/25; the first person holds 60%; the guard off (gapincome); the route household
+    S357F-G8Y75  class G; target 131300, arm A 84.0% (Bracket Fill Basic, lump sum); ages 37/29; the first person holds 25%; the guard off (uneven); the route household
+    S357F-G12P   class G; target 131300, arm A 84.9% (Bracket Fill Basic); ages 37/25; the first person holds 60%; the guard off (gapincome); the route household
+    S357F-G12R   class G; target 139500, arm A 85.3% (Bracket Fill Basic); ages 37/25; the first person holds 60%; the guard off (gapincome); the route household
+    S357F-RY75   class RY; target 119000, arm A 84.0% (Bracket Fill); ages 37/34; the first person holds 25%; the guard off (uneven); the route today
+    S357F-RWY75  class RY; target 84200, arm A 84.6% (Bracket Fill); ages 37/34; the first person holds 25%; the guard off (uneven); the route today
+    S357F-RE100  class RE; target 110800, arm A 85.4% (Bracket Fill Basic, lump sum); ages 37/34; the first person holds 100%; the guard off (uneven); the route today
+    S357F-RS75   class RS; target 106700, arm A 85.4% (Bracket Fill, lump sum); ages 37/37; the first person holds 75%; the guard off (uneven); the route today
+    S357F-RG8    class RG; target 131300, arm A 84.7% (Bracket Fill); ages 37/29; the first person holds 60%; the guard off (gapincome); the route today
+    S357F-RG12P  class RG; target 135400, arm A 84.6% (Bracket Fill Basic); ages 37/25; the first person holds 60%; the guard off (gapincome); the route today
+68 units: Y 12, E 8, S 4, G 20, RY 8, RE 4, RS 4, RG 8; on the household route 44, on today's 24

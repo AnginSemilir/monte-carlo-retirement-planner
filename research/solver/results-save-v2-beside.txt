@@ -1,0 +1,78 @@
+THE SAVINGS SPLIT'S v2, BESIDE THE RULE (written after the read, deciding nothing): 40 households from /home/user/sv2-launch/research/solver/results/save-v2-run; code 71fb4271c681, audit ffc59974f036, seed 7025
+
+A. The time, the split over the candidate as it stands (each arm's CPU a path, its microseconds over its paths; a guide, four units at a time):
+  a path on anchors, CANDSA over CANDDA: the median x2.10 (x1.84 to x2.31); on the whole menu, CANDS over CANDD: the median x2.08 (x1.78 to x2.25)
+    with 5 working years to choose (16 households): on anchors the median x1.90 (x1.84 to x2.15)
+    with 15 working years to choose (24 households): on anchors the median x2.14 (x1.97 to x2.31)
+  the solve on anchors, CANDSA over CANDDA: the median x1.10 (x0.65 to x1.46); on the whole menu: the median x1.20 (x0.49 to x2.83)
+  why, from the code (src/solver/solve.js): a menu carrying the split's copies sets r.nAt (the solve's finish), and with r.nAt set the chooser
+  drops P1's once-a-decision memo (decisionRepeats) and the shortlist (chooseAction's shortMask) in every year of a path, the working years
+  and the rest alike; outside the working years the copies are left out of the moves scored (splitCounts, movesAt). So the speed mode
+  (chooserShortlist 'order', the shortlist alone) acts nowhere on a working saver's path once the split is on.
+
+B. Where the gain sits, CANDS against CANDD on the whole menu (every registered path):
+  all (40): saved 3820 (CANDD's path ran out 1736, ended below the minimum pot having met every year 2084); lost 649 (CANDS's ran out 123, below the pot 526); net 3171, of it the minimum pot's 1558 (49.1%)
+    the paths saved by the year CANDD's failed: in the first six retired years 285, in the plan's last three 2657, of 3820
+  the younger cohort (10): saved 1304 (CANDD's path ran out 775, ended below the minimum pot having met every year 529); lost 187 (CANDS's ran out 60, below the pot 127); net 1117, of it the minimum pot's 402 (36.0%)
+    the paths saved by the year CANDD's failed: in the first six retired years 285, in the plan's last three 656, of 1304
+  the library cohort (30): saved 2516 (CANDD's path ran out 961, ended below the minimum pot having met every year 1555); lost 462 (CANDS's ran out 63, below the pot 399); net 2054, of it the minimum pot's 1156 (56.3%)
+    the paths saved by the year CANDD's failed: in the first six retired years 0, in the plan's last three 2001, of 2516
+  the spending level by retired year band, percent of target, the mean over every path and year (a year after a path fails as recorded):
+    the younger cohort CANDD: retired years 0-4 94.68, 5-9 102.56, 10-19 104.29, 20 on 107.06
+    the younger cohort CANDS: retired years 0-4 98.32, 5-9 102.83, 10-19 104.42, 20 on 107.11
+    the library cohort CANDD: retired years 0-4 94.74, 5-9 99.06, 10-19 102.56, 20 on 106.63
+    the library cohort CANDS: retired years 0-4 95.43, 5-9 99.54, 10-19 102.83, 20 on 106.74
+  the employees (30): pooled survival +0.577 (+0.540 to +0.613) by path; spending +0.4915%; its households' share of the pooled gain 87.3%; a household below nought: none
+  the self-employed (10): pooled survival +0.252 (+0.214 to +0.290) by path; spending +0.2160%; its households' share of the pooled gain 12.7%; a household below nought: none
+  the employees' working-year decisions on the paths recorded beside (runPolicy's): 350000, from 2029 260000 (74.3%); the pension first in 77.5% of those (the read: 77.5%)
+
+C. The pot left and lifetime tax by household, CANDS against CANDD on the whole menu (the mean a path; the median; capped at the estate cap; the share of working-year decisions CANDS puts the saving ISA first, on the paths recorded beside):
+  S300F  younger employee: the mean -12.758% (-£258,007); the median -10.704%; capped -4.046%; ISA first 99.9%; lifetime tax £42 (+16.9%)
+  S302F  younger employee: the mean -34.650% (-£700,338); the median -25.026%; capped -6.054%; ISA first 99.3%; lifetime tax -£1,977 (-62.0%)
+  S312F  younger employee: the mean +3.309% (£65,480); the median +3.735%; capped +1.388%; ISA first 26.8%; lifetime tax £133 (+6.3%)
+  S318F  younger employee: the mean +9.545% (£952,502); the median +6.400%; capped +1.910%; ISA first 2.0%; lifetime tax £19,539 (+21.7%)
+  S324F  younger employee: the mean -13.054% (-£290,346); the median -2.293%; capped +1.216%; ISA first 17.0%; lifetime tax £410 (+0.9%)
+  S330F  younger employee: the mean -25.038% (-£2,930,915); the median -7.753%; capped -0.346%; ISA first 0.7%; lifetime tax -£37,154 (-5.9%)
+  S336F  younger employee: the mean -12.785% (-£294,909); the median -9.851%; capped -2.049%; ISA first 74.6%; lifetime tax -£896 (-16.0%)
+  S342F  younger employee: the mean -27.228% (-£3,350,460); the median -7.904%; capped +0.358%; ISA first 9.1%; lifetime tax £52,061 (+24.6%)
+  S348F  younger employee: the mean +23.418% (£432,977); the median +2.945%; capped +0.998%; ISA first 34.2%; lifetime tax £1,040 (+2.5%)
+  S354F  younger employee: the mean -19.510% (-£2,440,069); the median -13.416%; capped -0.645%; ISA first 1.0%; lifetime tax -£22,115 (-3.6%)
+  S180   library employee: the mean +3.901% (£21,275); the median +6.988%; capped +2.262%; ISA first 0.0%; lifetime tax £97 (+28.9%)
+  S182   library employee: the mean +3.181% (£18,693); the median +5.500%; capped +1.960%; ISA first 0.0%; lifetime tax £74 (+14.0%)
+  S186   library employee: the mean +1.301% (£36,481); the median +4.890%; capped +1.357%; ISA first 0.0%; lifetime tax £17,588 (+11.8%)
+  S192   library employee: the mean +6.328% (£31,235); the median +7.658%; capped +3.065%; ISA first 0.0%; lifetime tax £8 (+11.9%)
+  S196   library self-employed: the mean +2.556% (£29,754); the median +3.493%; capped +1.623%; ISA first 0.0%; lifetime tax £82 (+9.1%)
+  S198   library employee: the mean +4.950% (£134,267); the median +7.422%; capped +2.716%; ISA first 0.0%; lifetime tax £3,381 (+21.0%)
+  S202   library self-employed: the mean +5.810% (£445,150); the median +7.357%; capped +2.870%; ISA first 0.0%; lifetime tax £10,093 (+24.2%)
+  S208   library self-employed: the mean +1.513% (£17,116); the median +3.677%; capped +1.322%; ISA first 0.0%; lifetime tax £633 (+3.1%)
+  S212   library employee: the mean +4.800% (£141,552); the median +5.986%; capped +2.326%; ISA first 0.0%; lifetime tax £6,407 (+8.8%)
+  S214   library self-employed: the mean +3.753% (£351,616); the median +3.818%; capped +1.373%; ISA first 0.0%; lifetime tax £20,810 (+5.1%)
+  S218   library employee: the mean +3.697% (£20,317); the median +6.267%; capped +2.232%; ISA first 0.0%; lifetime tax £44 (+48.9%)
+  S222   library employee: the mean +3.595% (£124,659); the median +4.145%; capped +1.277%; ISA first 0.0%; lifetime tax £9,618 (+17.5%)
+  S226   library self-employed: the mean +4.819% (£399,356); the median +8.210%; capped +2.520%; ISA first 0.0%; lifetime tax £28,019 (+13.6%)
+  S230   library employee: the mean +4.323% (£22,611); the median +7.111%; capped +2.480%; ISA first 0.0%; lifetime tax £6 (+17.8%)
+  S234   library employee: the mean +2.253% (£71,139); the median +4.474%; capped +1.629%; ISA first 0.0%; lifetime tax £4,837 (+4.7%)
+  S238   library self-employed: the mean +3.351% (£268,325); the median +5.155%; capped +1.873%; ISA first 0.0%; lifetime tax £28,864 (+14.2%)
+  S242   library employee: the mean -13.902% (-£169,975); the median -3.087%; capped +0.106%; ISA first 0.0%; lifetime tax £16,682 (+84.4%)
+  S248   library employee: the mean +2.447% (£116,903); the median +2.593%; capped +2.253%; ISA first 0.0%; lifetime tax £171,549 (+60.0%)
+  S250   library self-employed: the mean +2.919% (£377,936); the median +2.240%; capped +1.698%; ISA first 0.1%; lifetime tax £399,442 (+32.0%)
+  S254   library employee: the mean +18.549% (£255,974); the median +12.154%; capped +3.834%; ISA first 0.0%; lifetime tax -£29 (-7.6%)
+  S258   library employee: the mean +9.601% (£650,289); the median +5.430%; capped +2.537%; ISA first 0.0%; lifetime tax £30,803 (+38.3%)
+  S264   library employee: the mean -19.423% (-£313,735); the median +1.602%; capped +2.174%; ISA first 0.0%; lifetime tax £4,471 (+20.3%)
+  S266   library employee: the mean +0.025% (£396); the median +2.554%; capped +1.681%; ISA first 0.0%; lifetime tax £592 (+2.6%)
+  S270   library employee: the mean -20.798% (-£1,521,321); the median -0.392%; capped +1.210%; ISA first 0.0%; lifetime tax -£646 (-0.1%)
+  S276   library employee: the mean +15.572% (£229,537); the median +7.861%; capped +2.716%; ISA first 0.1%; lifetime tax £2,043 (+104.9%)
+  S280   library self-employed: the mean +5.333% (£199,497); the median +1.482%; capped -0.145%; ISA first 0.0%; lifetime tax £19,094 (+39.0%)
+  S282   library employee: the mean -3.639% (-£298,955); the median -0.291%; capped +0.358%; ISA first 0.0%; lifetime tax £48,628 (+27.0%)
+  S286   library self-employed: the mean +7.785% (£1,578,224); the median +5.796%; capped +1.508%; ISA first 1.4%; lifetime tax £174,287 (+30.1%)
+  S292   library self-employed: the mean +10.358% (£378,504); the median +7.012%; capped +1.879%; ISA first 0.0%; lifetime tax £10,238 (+18.6%)
+  S296   library employee: the mean +12.813% (£891,261); the median +8.006%; capped +3.165%; ISA first 0.0%; lifetime tax £23,608 (+58.9%)
+  the mean pot lower on 11 of 40 (S300F, S302F, S324F, S330F, S336F, S342F, S354F, S242, S264, S270, S282); the median on 10; the capped pot on 6: S300F -4.046%, S302F -6.054%, S330F -0.346%, S336F -2.049%, S354F -0.645%, S280 -0.145%; lifetime tax higher on 34
+  what lifetime tax counts (audit-phase4.mjs runPath: taxPaid and cgtPaid summed over the years; src/App.jsx stepYear's note on the
+  taxable pay): taxPaid is the person's bill less the tax on their pay alone, so a working year's relief on a pension saving never
+  shows in it, while the tax on a larger pension's later draws does: a rise is not shown to be a cost.
+
+D. The panel's shape, from its plans (save-v2-panel.json):
+  employment: employed 30, self-employed 10; salary growth: none 40; region: ruk 30, scotland 10; the employer NIC pass-through: 0 40; the MPAA: none 40
+  the yearly saving as a share of salary: the pension 12.0% 40; the ISA 6.0% 40; the taxable account 0.0% 40; cash 0.0% 40; the saving's yearly increase (pension/ISA): 3% a year 40
+  the employees' salaries £29,500 to £85,000; the self-employed's £52,500 to £156,500; the working years: 5 16, 15 24

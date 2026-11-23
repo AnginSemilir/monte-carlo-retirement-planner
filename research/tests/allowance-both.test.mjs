@@ -132,7 +132,11 @@ const gainOf = v => v[3] * (v[2] - v[12]);
 const moveOf = (r, ai, code) => {
   const a = r.actions[ai], ca = r.c.acts[ai];
   return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
-    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
+    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.sweepIsa ? { sweepIsa: true } : {}),
+    // the windfall split's and the savings split's parts, as the engine's own policy hands them (src/solver/bridge.js
+    // withTable; D138: a working saver's move carries `save`); none of this test's households takes either
+    ...(a.windfall ? { windfall: a.windfall } : {}), ...(a.save ? { save: a.save } : {}),
+    tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
     tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
 };
 const usesRaw = a => a.steps.includes('penPAr') || (a.harvest && a.harvestCeil === 'paraw');

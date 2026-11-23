@@ -29,6 +29,9 @@
  * The plants, each in a patched copy of the engine: norelief (the money landing at face value, pensionRelief's net the gross
  * and the routes sizing the gross at no relief) fails cases 1 to 6; no75 (the pension keeping its room from 75) fails case 7. --planted runs it and reads which checks fail.
  *   node research/tests/windfall-relief.test.mjs [--planted]
+ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit`, with `saveIsaFirst`), which reaches a working
+ * saver's solve here: this test's solves take the candidate without it (NO_SPLIT), so it checks what it checked before and
+ * every figure it pins is the same; the split's own effect is save-default.test.mjs's.
  */
 import { readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -152,7 +155,8 @@ console.log(`windfall-relief: relief on the plan's own pension routes (the revie
   if (PLANT) ok(6, `S116 and S210 as before (the tables not solved under the plant); ${routeTxt}`, route);
   else {
     const M = await import('../../src/solver/model.js'), { solveForApp } = await import('../../src/solverApp.js'), { tablesOf, digestOf } = await import('../../src/solverDigest.js');
-    const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };
+    // D138: the candidate without the savings split (NO_SPLIT, as the header says)
+    const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true }, saveSplit: undefined, saveIsaFirst: undefined } };
     const got = {};
     for (const k of Object.keys(ITEM3)) got[k] = await digestOf(tablesOf(solveForApp(E, M, E.normalizePlan(plans[k]), LIGHT)));
     const same = Object.keys(ITEM3).every(k => got[k] === ITEM3[k]);

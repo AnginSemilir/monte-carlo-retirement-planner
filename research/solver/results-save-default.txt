@@ -1,0 +1,30 @@
+THE SAVINGS SPLIT AS A WORKING SINGLE'S DEFAULT, ITS TEST (D138; research/tests/save-default.test.mjs, the full tier), on the build with the hold, the 2029 cap and the year to choose read over the routes offered, and the speed work after it (D137 (1), research/solver/SPEED-D138.md: checks 11 and 12): code 36e4d2a860b2, 22 Nov
+
+-- node research/tests/save-default.test.mjs
+PASS  1. the candidate  -- candidate.json saveSplit true saveIsaFirst selfEmployed, APP_CANDIDATE saveSplit true saveIsaFirst selfEmployed; the two the same key for key; added to the candidate before D138: saveIsaFirst, saveSplit; every other key as before
+PASS  2. a working single  -- S188 (11 s): its record 'on'; 1600 moves, 800 and 800 save copies; the first year's move 'taxable before ISA, saving into the pension first', save 1
+PASS  3. a retired single  -- S002 (23 s): its record 'no year to choose' (the candidate before D138: none); 800 and 800 moves; its tables the same to the bit (3cbedd47e85c, 3cbedd47e85c)
+PASS  4. a couple  -- S181 (43 s), each solved with the partner's age: the household's one table at 'pensionsPA' household without the split; today's route, self without the split, part without the split
+PASS  5. the words  -- S188 (49 s): a save copy's parts name it (save 1), its base's none; this year's skips list the save, its skip 'taxable before ISA' save 0; this year's actions say "Pay your saving into your pension first, then your ISA (the same cost to you as your planned saving, with the pension's tax relief added)" (Skipping it costs no survival on 40 markets.); the rows name it and a year without it reads "nothing to change"; the ledger names it and a move with no save reads as before
+PASS  6. the worlds under the split  -- S188 (54 s): 3 worlds, each carrying the solve's moves a year; the copies left out in 36 of 41 years; with the share check on, every move's score, tax and estate agree at 820 decisions of 20 paths; a copy picked in a year it is left out at 0
+PASS  7. the hold  -- (71 s) S188, an employee: 800 moves, 800 pension-first and 0 ISA-first copies, its record 'held back (an employee)'; S184, self-employed: 800 moves, 800 pension-first and 800 ISA-first copies, its record 'offered'; S188 at the registered configuration (the hold unset): 800 moves, 800 pension-first and 800 ISA-first copies, its record 'undefined'
+PASS  8. the 2029 cap  -- S188, an employee: 5 working years with a saving to place (3 before 2029, 2 from it); each year's budget against the hand calculation, the worst gap £1.82e-12; the years before 2029 the same with the cap on and off; from 2029 dearer with it on in 2 of 2, and the pension first's route the flipped plan's to the penny in 2 of 2; S184, self-employed: every year the same with it on and off (5); without a cap the net cost and the gross-up the same to the bit (25 cases)
+PASS  9. a year to choose  -- S188 saving into the pension alone, under the hold: 0 save copies, its record 'no year to choose', its tables the candidate before D138's to the bit; with its pension saving filling its room: 0 copies, 'no year to choose', the same to the bit; the first at the registered configuration: 'on', 800 ISA-first copies; S188 as entered: its copies live in 5 years, the pension first differing in 5, the same years (111 s)
+PASS  10. the same year by year  -- S242 (133 s), an employee under the hold (its record 'held back (an employee)'): 1 working year where the ISA first alone differs from the plan (plan year 12); the copies live in 14 years, exactly those where the pension first differs; at the registered configuration that year live
+PASS  11. P1's memo in every year  -- S188 (138 s): the repeats found once a decision at 200 decisions in years whose copies are live and 1440 in the years after, each world's memo at 0; the engine's outcomes on 40 paths with the memo off the same to the bit
+PASS  12. the shortlist keyed on the year  -- S184 (161 s), self-employed, in the speed mode: 100 counted decisions in years whose copies are live, 0 of them on a shortlist; 700 on a shortlist in the years after; after its last live year (plan year 4) 720 of 720 decisions the move of the solve without the split at the same position
+
+ALL PASS: 12 passed, 0 failed (161 s)
+(exit 0)
+
+-- node research/tests/save-default.test.mjs --planted (the same files, 22 Nov)
+plant 'couplesplit': the checks that fail: 4; wanted exactly 4: yes
+plant 'nosavepart': the checks that fail: 5; wanted exactly 5: yes
+plant 'nattables': the checks that fail: 6; wanted exactly 6: yes
+plant 'noisahold': the checks that fail: 7, 9, 10; wanted exactly 7, 9, 10: yes
+plant 'nocap': the checks that fail: 8; wanted exactly 8: yes
+plant 'anyroute': the checks that fail: 9; wanted exactly 9: yes
+plant 'anyyear': the checks that fail: 10; wanted exactly 10: yes
+plant 'oncenat': the checks that fail: 11; wanted exactly 11: yes
+plant 'shortlive': the checks that fail: 12; wanted exactly 12: yes
+(exit 0)

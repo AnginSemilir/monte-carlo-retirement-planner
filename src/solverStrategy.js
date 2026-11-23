@@ -331,7 +331,10 @@ export function partsOf(a, ca) {
     draw: lead.length ? DRAW_PREFIX[lead[lead.length - 1]] || lead[lead.length - 1] : 'none',
     isaFirst: a.steps.indexOf('isa') < a.steps.indexOf('other'),
     harvest: a.harvest ? a.harvestCeil || 'pa' : null,
-    tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0
+    tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0,
+    // D138: a working year's saving placed by the savings split (1 the pension first, 2 the ISA first), said only where the
+    // move takes one, so a move without it reads as before. Plant 'nosavepart' (save-default.test.mjs): the save left out
+    ...(a.save > 0 && PLANT.rule !== 'nosavepart' ? { save: a.save } : {})
   };
 }
 /* the move as the engine takes it from the table (src/solver/bridge.js tablePolicy's choose), for move ai */
@@ -362,7 +365,7 @@ export function firstMove(E, solved) {
   E.runTrial(ctx, E.pathsForSeed(1, 1, T)[0]);
   return { ...rec, sc, base };
 }
-export const SKIP_PARTS = ['level', 'draw', 'harvest', 'tierPen', 'tierIsa'];
+export const SKIP_PARTS = ['level', 'draw', 'harvest', 'tierPen', 'tierIsa', 'save'];
 /* this year's skips: the move taken apart and, for each part it takes, the best-ranked move that differs in that part (null
  * where none does) */
 export function skipsOf(E, solved) {

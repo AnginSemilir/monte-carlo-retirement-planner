@@ -12,6 +12,10 @@
  *      world's memo and the outcomes are the same again.
  * Planted (CHOOSER.plant 'oncerep'): each repeat scored at the next repeat's first move; the check throws.
  *   node research/tests/chooser-once.test.mjs
+ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit`, with `saveIsaFirst`). S224 works and saves, so
+ * its solve sets the moves a year (`r.nAt`). Since the speed work after D138 (D137 (1), research/solver/SPEED-D138.md) the
+ * repeats are found over the year's own moves in every year, the copies left out scored unchoosable, so the CAND arm takes
+ * the candidate as it is: check 1 holds P1's memo exact on a working saver under the split, in its working years and after.
  */
 import { createHash } from 'node:crypto';
 import * as E from '../engine.mjs';

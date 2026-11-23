@@ -10,8 +10,11 @@
  *      entered first (ELDER_FIRST), the swap of a couple whose elder is entered second (SWAP_ELDER, D104 (1)), the couples'
  *      joint move (APP_COUPLE's tieJoint, tieLook and holdPast, D108: TIE-C2's LOOKHOLD), the age gap past which a couple
  *      with other taxable income keeps the app's rules (DB_GAP_UP_TO, D128) and the household plan's form (APP_COUPLE's
- *      household, D134 (1) and D135: step 8's HSPA, 'pensionsPA'); a block without the entry, with another rule, without the
- *      joint move, without the gap or without the household, fails it;
+ *      household, D134 (1) and D135: step 8's HSPA, 'pensionsPA') and a couple's solves keeping the savings split off (D138:
+ *      src/solverApp.js solveForApp drops it from a solve with a partner's age; the unlock of 22 Nov, D140), read from two
+ *      light solves of S188, a single who works and saves: without a partner's age the split on, with one off; a block
+ *      without the entry, with another rule, without the joint move, without the gap, without the household or without the
+ *      split's line, fails it;
  *   2. the guard (coupleSolverOn): over the library's 210 couples, each re-held at twelve shares of its first person's from 5%
  *      to 95% (every wrapper alike), with their ages as entered, swapped (the first person the younger), the same, and the
  *      partner's age left blank, on exactly where the first person holds 40% to 60% of the pots, or the first person is the
@@ -85,7 +88,8 @@
  * (src/solverApproximations.js: the coverage line without those couples, as before D128: check 4), 'nohousehold'
  * (src/solverClient.js: a couple solved on today's route though the couples' default names the household plan, as before
  * D135: check 3), 'nohouseline' (src/solverApproximations.js: the coverage line without how a couple is planned, as before
- * D135: check 4). Check 1's planted blocks run in every run.
+ * D135: check 4), 'couplesplit' (src/solverApp.js: a couple's solve keeps the savings split, as no default names: check 1).
+ * Check 1's planted blocks run in every run.
  *   node research/tests/couple-default.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -99,11 +103,12 @@ import { APP_COUPLE, appJoint, jointKey } from '../../src/solverSettings.js';
 import { couplePlans, householdCut, PLANT as COUPLE_PLANT } from '../../src/solverCouple.js';
 import { solverApproximations, COUPLES_LINE, HOUSEHOLD_SENTENCE, PLANT as WORDS_PLANT } from '../../src/solverApproximations.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
+import { solveForApp, PLANT as APP_PLANT } from '../../src/solverApp.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['firstnotelder', ['2', '8']], ['eldereither', ['2']], ['halfdefault', ['3']], ['notie', ['3', '7']], ['oldcouples', ['4']], ['rawages', ['5']], ['noagecap', ['6', '8']], ['nojointcheck', ['7']], ['nogapguard', ['8']], ['nogapline', ['4']], ['nohousehold', ['3']], ['nohouseline', ['4']]]) {
+  for (const [plant, want] of [['firstnotelder', ['2', '8']], ['eldereither', ['2']], ['halfdefault', ['3']], ['notie', ['3', '7']], ['oldcouples', ['4']], ['rawages', ['5']], ['noagecap', ['6', '8']], ['nojointcheck', ['7']], ['nogapguard', ['8']], ['nogapline', ['4']], ['nohousehold', ['3']], ['nohouseline', ['4']], ['couplesplit', ['1']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, COUPLE_DEFAULT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
@@ -116,13 +121,19 @@ const PLANTED = process.env.COUPLE_DEFAULT_PLANT || '';
 if (PLANTED === 'firstnotelder' || PLANTED === 'eldereither' || PLANTED === 'noagecap' || PLANTED === 'nogapguard') SWITCH_PLANT.rule = PLANTED;
 if (PLANTED === 'oldcouples' || PLANTED === 'nogapline' || PLANTED === 'nohouseline') WORDS_PLANT.rule = PLANTED;
 if (PLANTED === 'rawages') COUPLE_PLANT.rule = PLANTED;
+if (PLANTED === 'couplesplit') APP_PLANT.rule = PLANTED;
 
 let pass = 0, fail = 0;
 const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
 
 // 1. the decided-defaults block's couples entry against the code
 { const blockOf = text => { const m = /<!-- decided-defaults([\s\S]*?)-->/.exec(text); return m ? JSON.parse(m[1]) : null; };
-  const code = { on: COUPLES, shareRule: APP_COUPLE.shareRule, band: [...COUPLE_BAND], elderUpTo: ELDER_UP_TO, elderFirst: ELDER_FIRST, swapElder: SWAP_ELDER, tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast, dbGapUpTo: DB_GAP_UP_TO, household: APP_COUPLE.household };
+  // D138, pinned here under D140's unlock: a couple's solves keep the savings split off (a solve with a partner's age), read
+  // from two light solves of S188, a single who works and saves: the split on without a partner's age, off with one
+  const s188 = buildScenarios().find(s => s.id === 'S188').plan, light = { points: 6, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };
+  const splitOn = r => !!r.meta.saveSplit || r.actions.some(a => a.save);
+  const single = splitOn(solveForApp(E, M, s188, light)), couple = splitOn(solveForApp(E, M, s188, { ...light, ageWith: 60 }));
+  const code = { on: COUPLES, shareRule: APP_COUPLE.shareRule, band: [...COUPLE_BAND], elderUpTo: ELDER_UP_TO, elderFirst: ELDER_FIRST, swapElder: SWAP_ELDER, tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast, dbGapUpTo: DB_GAP_UP_TO, household: APP_COUPLE.household, saveSplit: couple };
   const agrees = D => !!(D && D.couples) && JSON.stringify(D.couples) === JSON.stringify(code);
   const D = blockOf(readFileSync(join(HERE, '../solver/STATE.md'), 'utf8'));
   const without = D ? { ...D } : null; if (without) delete without.couples;
@@ -130,9 +141,10 @@ const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS
   const noTie = D && D.couples ? { ...D, couples: Object.fromEntries(Object.entries(D.couples).filter(([k]) => !['tieJoint', 'tieLook', 'holdPast'].includes(k))) } : null;
   const noGap = D && D.couples ? { ...D, couples: Object.fromEntries(Object.entries(D.couples).filter(([k]) => k !== 'dbGapUpTo')) } : null;
   const noHouse = D && D.couples ? { ...D, couples: Object.fromEntries(Object.entries(D.couples).filter(([k]) => k !== 'household')) } : null;
-  ok('1. the decided-defaults block\'s couples entry is the code\'s (the switch, the share rule, the band, the elder\'s limit, the elder entered first, the swap, the joint move, the age gap with other taxable income, the household plan\'s form); planted, a block without it, with the half share, without the joint move, without the gap or without the household fails',
-    agrees(D) && !agrees(without) && !agrees(half) && !agrees(noTie) && !agrees(noGap) && !agrees(noHouse) && APP_COUPLE.tieJoint === 1e-4 && APP_COUPLE.tieLook === true && APP_COUPLE.holdPast === 2 && DB_GAP_UP_TO === 3 && APP_COUPLE.household === 'pensionsPA',
-    `the block ${JSON.stringify(D && D.couples)}; the code ${JSON.stringify(code)}`); }
+  const noSplit = D && D.couples ? { ...D, couples: Object.fromEntries(Object.entries(D.couples).filter(([k]) => k !== 'saveSplit')) } : null;
+  ok('1. the decided-defaults block\'s couples entry is the code\'s (the switch, the share rule, the band, the elder\'s limit, the elder entered first, the swap, the joint move, the age gap with other taxable income, the household plan\'s form, the savings split off for a couple); planted, a block without it, with the half share, without the joint move, without the gap, without the household or without the split\'s line fails',
+    agrees(D) && !agrees(without) && !agrees(half) && !agrees(noTie) && !agrees(noGap) && !agrees(noHouse) && !agrees(noSplit) && single && couple === false && APP_COUPLE.tieJoint === 1e-4 && APP_COUPLE.tieLook === true && APP_COUPLE.holdPast === 2 && DB_GAP_UP_TO === 3 && APP_COUPLE.household === 'pensionsPA',
+    `the block ${JSON.stringify(D && D.couples)}; the code ${JSON.stringify(code)}; S188's split without a partner's age ${single ? 'on' : 'OFF'}`); }
 
 // 2. the guard over the library's couples, re-held, under four arrangements of their ages
 const lib = buildScenarios(), couples = lib.filter(s => s.plan.demographics.planningMode === 'couple');

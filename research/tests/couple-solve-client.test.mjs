@@ -113,7 +113,11 @@ ok('2. the couple from two separate solves is solveCouple\'s whole: both tables 
 
 // 6. the key: every single keyed as on the code before D5 (the digest of their 210 keys, taken on 3cec591e, fefdb387's parent:
 // research/solver/results-couple-solve-client.txt), and a person's key moved by their partner's age
-{ const KEYS_BEFORE_D5 = '6825f36b3e1a20ff';
+// re-taken on D138's candidate (22 Nov; before: 6825f36b3e1a20ff): the key names the app's candidate whole, which gained the
+// savings split's two keys, so every single's key moves with it; with them left out (src/solverKey.js's plant 'nod138') the
+// digest is the one taken before D5, so nothing else keys a single differently (results-d138-fulltier.txt, printed by
+// research/solver/d138-fulltier.mjs)
+{ const KEYS_BEFORE_D5 = '9c3e304722255a5e';
   const singles = lib.filter(s => s.plan.demographics.planningMode === 'single'), h = createHash('sha256');
   for (const s of singles) h.update(`${s.id}:${await solveKey(E, s.plan, {})};`);
   const got = h.digest('hex').slice(0, 16);

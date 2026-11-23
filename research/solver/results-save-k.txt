@@ -1,0 +1,63 @@
+TEST K (EXPLORATORY; SAVE-K.md, D137 (4)): the employees' split at income tax relief alone (employmentSelf set to self-employed), against the registered anchors pair of the savings split's v2
+the registered run it reads: its 40 launch logs stamped under research/solver/registrations/save-v2.md as it stands (fair-gate.mjs requireFairLogs)
+THE GATE: fair - 31 units (30 employees and the control S280), seed 7025, 4000 paths, 45 points, weight 0.02; one stamp: code 71fb4271c681, the tree's audit ffc59974f036, k 1f8c8545bc80, Node v22.23.4; the identity on 30 of 30 employees (the table digest, the settings line and every array on the first 500 paths the registered CANDDA's); the control S280's CANDSA-T the registered CANDSA (the digest, the settings line and every array on all 4000 paths)
+
+THE GAIN, pooled survival by path over the 30 employees, points (each path's change averaged over the households; 4000 paths of seed 7025):
+  CANDSA less CANDDA, the registered pair on anchors: +0.590 (+0.518 to +0.662)
+  CANDSA-T less CANDDA, the split at income tax relief alone: +0.428 (+0.371 to +0.486)
+  CANDSA-T less CANDSA: -0.162 (-0.197 to -0.126)
+
+K, the share of the gain left at that price, (CANDSA-T less CANDDA) over (CANDSA less CANDDA), its 95% interval by the delta method: 0.726 (0.679 to 0.773)
+  K for the 13 basic-rate employees outside the three: 0.580 (0.505 to 0.654); the gain CANDSA less CANDDA +0.700, CANDSA-T less CANDDA +0.406
+  K for the 14 higher-rate employees: 0.875 (0.806 to 0.945); the gain CANDSA less CANDDA +0.473, CANDSA-T less CANDDA +0.414
+  K for the three that save ISA first most (S300F, S302F, S336F): 0.899 (0.733 to 1.064); the gain CANDSA less CANDDA +0.658, CANDSA-T less CANDDA +0.592
+  the higher-rate group's K less the basic-rate group's: +0.296 (+0.187 to +0.404): the basic-rate group's K below the higher-rate group's beyond its noise: the cause's signature
+
+THE RULE (SAVE-K.md; D137 (4)): K 0.726 and the basic-rate group's K 0.580 against 0.85; K against 0.33, with CANDSA-T's gain over CANDDA beyond noise (its lower end above nought)
+OUTCOME: THE CAUSE HOLDS IN SIZE: the change of default goes with the law's price in the split's two routes (D134 (3)'s cap brought forward for saveSplitRoutes), with its test; its D-line gives both figures; whether the app asks how an employee pays in goes to the maintainer; the signature printed above
+
+What the cause predicts (the deep review): the basic-rate group keeps about half or less, the higher-rate about nine-tenths, the three more than all, pooled about 0.7; the plans' shape instead: every group nine-tenths or more.
+
+BESIDE, DECIDING NOTHING:
+  by household, survival points over its paths (saved / lost against CANDDA): CANDSA less CANDDA | CANDSA-T less CANDDA
+    S312F  basic  £29500 ruk      +0.450 (20 / 2) | +0.075 (8 / 5)
+    S324F  basic  £29500 ruk      +1.300 (56 / 4) | +0.750 (34 / 4)
+    S348F  basic  £29500 ruk      +0.775 (38 / 7) | +0.025 (18 / 17)
+    S180   basic  £34000 ruk      +0.125 (6 / 1) | +0.050 (5 / 3)
+    S182   basic  £34000 scotland +0.075 (6 / 3) | +0.075 (6 / 3)
+    S192   basic  £34000 ruk      +0.500 (20 / 0) | +0.375 (15 / 0)
+    S218   basic  £34000 scotland +0.100 (8 / 4) | +0.175 (8 / 1)
+    S230   basic  £34000 scotland +0.350 (16 / 2) | +0.350 (15 / 1)
+    S242   basic  £37500 scotland +0.625 (29 / 4) | +0.275 (17 / 6)
+    S254   basic  £37500 scotland +0.925 (37 / 0) | +0.400 (20 / 4)
+    S264   basic  £37500 ruk      +1.375 (60 / 5) | +0.925 (42 / 5)
+    S266   basic  £37500 scotland +1.475 (61 / 2) | +0.975 (45 / 6)
+    S276   basic  £37500 ruk      +1.025 (41 / 0) | +0.825 (35 / 2)
+    S318F  higher £67500 ruk      +0.550 (24 / 2) | +0.425 (20 / 3)
+    S330F  higher £67500 ruk      +0.800 (36 / 4) | +0.650 (31 / 5)
+    S342F  higher £67500 ruk      +0.525 (26 / 5) | +0.375 (22 / 7)
+    S354F  higher £67500 ruk      +0.600 (27 / 3) | +0.650 (28 / 2)
+    S186   higher £77500 ruk      +0.250 (10 / 0) | +0.175 (7 / 0)
+    S198   higher £77500 ruk      +0.225 (11 / 2) | +0.325 (14 / 1)
+    S212   higher £77500 scotland +0.275 (16 / 5) | +0.300 (15 / 3)
+    S222   higher £77500 ruk      +0.000 (4 / 4) | +0.000 (4 / 4)
+    S234   higher £77500 ruk      +0.150 (9 / 3) | +0.100 (9 / 5)
+    S248   higher £85000 scotland +0.575 (26 / 3) | +0.325 (19 / 6)
+    S258   higher £85000 ruk      +0.625 (29 / 4) | +0.575 (27 / 4)
+    S270   higher £85000 ruk      +0.850 (37 / 3) | +0.650 (32 / 6)
+    S282   higher £85000 ruk      +0.725 (33 / 4) | +0.775 (33 / 2)
+    S296   higher £85000 scotland +0.475 (20 / 1) | +0.475 (19 / 0)
+    S300F  three  £29500 ruk      +1.625 (67 / 2) | +1.550 (65 / 3)
+    S302F  three  £29500 scotland +0.225 (23 / 14) | +0.500 (33 / 13)
+    S336F  three  £29500 ruk      +0.125 (17 / 12) | -0.275 (9 / 20)
+  the save of the working-year decisions from 2029 (runPolicy's first paths):
+    all 30: CANDSA the plan's own 4.8%, the pension first 77.6%, the ISA first 17.6% of 260000 | CANDSA-T the plan's own 6.6%, the pension first 74.3%, the ISA first 19.1% of 260000
+    basic: CANDSA the plan's own 7.3%, the pension first 81.7%, the ISA first 11.1% of 106000 | CANDSA-T the plan's own 11.2%, the pension first 75.5%, the ISA first 13.3% of 106000
+    higher: CANDSA the plan's own 3.6%, the pension first 94.7%, the ISA first 1.6% of 118000 | CANDSA-T the plan's own 3.9%, the pension first 94.5%, the ISA first 1.7% of 118000
+    three: CANDSA the plan's own 1.4%, the pension first 9.4%, the ISA first 89.2% of 36000 | CANDSA-T the plan's own 1.8%, the pension first 4.7%, the ISA first 93.5% of 36000
+  the mean tier step below the plan's tiers in the last 5 working years (a step a tier; above the plan's tiers counted below nought), runPolicy's first paths: CANDDA | CANDSA | CANDSA-T
+    basic: 2.28 | 2.45 | 2.39
+    higher: 2.22 | 2.39 | 2.39
+    three: 2.47 | 2.62 | 2.59
+  the paths saved and lost against CANDDA over the 30, by the failing arm's kind of failure: CANDSA saved 813 (528 running out, 285 the pot below the minimum), lost 105 (56, 49); CANDSA-T saved 655 (414 running out, 241 the pot below the minimum), lost 141 (74, 67)
+  the times (a guide, four units at a time): CANDSA-T's solve the median 86 s against the registered CANDSA's 53 s; a path 115.4 ms against 103.7 ms

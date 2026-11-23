@@ -12,7 +12,7 @@
 import { solvePlan, coarseWhereFits } from './solver/solve.js';
 import { APP_CANDIDATE, APP_COARSE, APP_POINTS, APP_DIAL_VARIANT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase, speedOptions } from './solverSettings.js';
 
-export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs: 'holdrecord' keeps a restored solve's record; solve-coarse.test.mjs: 'lockcoarse' hands `coarse` to a locked position, 'restoreany' restores a stored solve whatever menu it was made on
+export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs: 'holdrecord' keeps a restored solve's record; solve-coarse.test.mjs: 'lockcoarse' hands `coarse` to a locked position, 'restoreany' restores a stored solve whatever menu it was made on; save-default.test.mjs: 'couplesplit' keeps the savings split on a couple's solve
 
 export { APP_CANDIDATE, APP_COARSE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, APP_FLOOR, APP_DIAL_VARIANT, APP_AGE_WEIGHT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase, dialOf, dialSettings } from './solverSettings.js';
 
@@ -39,7 +39,9 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
   let lock = {};
   const bp = dialBase(norm);
   if (bp) {
-    const b = base || solveForApp(E, M, bp, { points, research, variant });
+    // a couple's base solved here carries the partner's age, as the app's own base solves do (src/solverClient.js), so it
+    // keeps the savings split off as its position does (D138) and weighs its cuts by the chance that either of the two lives
+    const b = base || solveForApp(E, M, bp, { points, research, variant, ...(ageWith !== undefined ? { ageWith } : {}) });
     // step P1 (b): the position's adaptive reference taken from its base's (solve.js refFromOf), not built again
     if (b.meta.tierState) lock = { lockTiers: b, riskAbove: aboveOf(b), refFrom: b };
   }
@@ -52,7 +54,11 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
   // one tier pair) keep the whole menu, at the speed before D73, and meta.coarse says so (D73; D74)
   const solved = appPlan(E, prepareForSolve(E, plan)), off = {};
   // the speed mode (D97 (3); src/solverSettings.js speedOptions): the chooser's shortlist, from the plan, as its key names it
-  const asked = { ...APP_CANDIDATE, ...aims, ...speedOptions(norm), ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again };
+  // D138: the savings split (APP_CANDIDATE.saveSplit) was tested on singles who work and save (registrations/save-v2.md); a
+  // couple's solves keep it off, each person's table on today's route and the household's one table alike, both solved with
+  // the partner's age (`ageWith`). Plant 'couplesplit' (save-default.test.mjs): a couple's solve keeps the split
+  const candidate = ageWith !== undefined && PLANT.rule !== 'couplesplit' ? (({ saveSplit, saveIsaFirst, ...rest }) => rest)(APP_CANDIDATE) : APP_CANDIDATE;
+  const asked = { ...candidate, ...aims, ...speedOptions(norm), ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again };
   const fitted = PLANT.rule === 'lockcoarse' ? asked : coarseWhereFits(E, M, solved, asked, off);
   // a stored solve made on the whole menu is never restored as one on anchors and shortlists, nor the reverse (the port's step
   // 8, D74): what names a stored solve (src/solverKey.js: the candidate with `coarse`, the plan, the dial's position, the code)

@@ -1,0 +1,1754 @@
+diff --git a/research/solver/candidate.json b/research/solver/candidate.json
+index 8162ebf7..e3c8dba3 100644
+--- a/research/solver/candidate.json
++++ b/research/solver/candidate.json
+@@ -18,5 +18,7 @@
+   "failDelivered": true,
+   "sweepCashIsaTo": "isa",
+   "coarse": { "w": 2, "a": 3, "b": 3, "g": 2, "c": 2, "src": "NT", "expand": "LRVOH", "climb": 3 },
+-  "tieAboveCap": 0.0001
++  "tieAboveCap": 0.0001,
++  "saveSplit": true,
++  "saveIsaFirst": "selfEmployed"
+ }
+diff --git a/research/solver/candidate.mjs b/research/solver/candidate.mjs
+index 5484638a..2b722372 100644
+--- a/research/solver/candidate.mjs
++++ b/research/solver/candidate.mjs
+@@ -67,8 +67,14 @@ export const D73_KEYS = Object.freeze(['sweepCashIsaTo', 'coarse']);
+  * of a point of score), after the couples' registered read and never between (D78, D80). BEFORE_D90_OPTS is the candidate
+  * before it (af001697ce1b, the candidate that read read), every earlier candidate built from it */
+ export const D90_KEYS = Object.freeze(['tieAboveCap']);
++/* D138 (21 Nov): the savings split joined for singles who work and save (`saveSplit`), by the savings split's v2 read once,
++ * PASS (registrations/save-v2.md; results-save-v2.txt), with the ISA first held back for an employee (`saveIsaFirst`
++ * 'selfEmployed', D137 (4)). BEFORE_D138_OPTS is the candidate before it (17ff82379838, the candidate that read and step 8's
++ * read), every earlier candidate built from it */
++export const D138_KEYS = Object.freeze(['saveSplit', 'saveIsaFirst']);
++export const BEFORE_D138_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !D138_KEYS.includes(k))));
+ export const PRE_D73_LATTICE = Object.freeze({ na: 160, nb: 41, nz: 128, foot: true, stepAll: true });
+-export const BEFORE_D90_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !D90_KEYS.includes(k))));
++export const BEFORE_D90_OPTS = deepFreeze(Object.fromEntries(Object.entries(BEFORE_D138_OPTS).filter(([k]) => !D90_KEYS.includes(k))));
+ export const BEFORE_D73_OPTS = deepFreeze(Object.fromEntries(Object.entries(BEFORE_D90_OPTS).filter(([k]) => !D73_KEYS.includes(k)).map(([k, v]) => [k, k === 'adaptiveLattice' ? { ...PRE_D73_LATTICE } : v])));
+ export const LATER_KEYS = Object.freeze(['tiersBelow', 'menuPlus', 'tableDealing', 'failDelivered']);
+ export const ASSEMBLED_OPTS = deepFreeze(Object.fromEntries(Object.entries(BEFORE_D73_OPTS).filter(([k]) => !LATER_KEYS.includes(k))));
+@@ -101,7 +107,7 @@ export function candidatePlan(E, plan, reals = blendReals()) {
+ }
+ /* the candidate's hash, 7u-F's (e65e5e99ba49), the frozen one's (a61dba4ee1f5 before the assembly) and Phase 4's (fcd8096217b7);
+    candidate.test.mjs pins them */
+-export const CANDIDATE_HASH = hashOf(CANDIDATE_OPTS), BEFORE_D90_HASH = hashOf(BEFORE_D90_OPTS), BEFORE_D73_HASH = hashOf(BEFORE_D73_OPTS), ASSEMBLED_HASH = hashOf(ASSEMBLED_OPTS), FROZEN_HASH = hashOf(FROZEN_OPTS), PHASE4_HASH = hashOf(PHASE4_OPTS);
++export const CANDIDATE_HASH = hashOf(CANDIDATE_OPTS), BEFORE_D138_HASH = hashOf(BEFORE_D138_OPTS), BEFORE_D90_HASH = hashOf(BEFORE_D90_OPTS), BEFORE_D73_HASH = hashOf(BEFORE_D73_OPTS), ASSEMBLED_HASH = hashOf(ASSEMBLED_OPTS), FROZEN_HASH = hashOf(FROZEN_OPTS), PHASE4_HASH = hashOf(PHASE4_OPTS);
+ /* the candidate's solve: its plan and options, then the caller's own (lambda, points, an arm's settings) on top; `base`
+    FROZEN_OPTS for the candidate before the assembly (7u's CAND, the development tests) */
+ export function solveCandidate(E, M, plan, extra = {}, base = CANDIDATE_OPTS) {
+diff --git a/research/solver/d138-fulltier.mjs b/research/solver/d138-fulltier.mjs
+new file mode 100644
+index 00000000..5223ad10
+--- /dev/null
++++ b/research/solver/d138-fulltier.mjs
+@@ -0,0 +1,111 @@
++/*
++ * D138, THE WORKING FOR THE FULL TIER'S PINNED FIGURES THE SAVINGS SPLIT MOVES (the reviewer on D138's change of default,
++ * reviews/2026-11-21-default-save-split.md, finding 1: the full tier failed on the build in tests the change did not name;
++ * d73-fulltier.mjs is the same working for D73's port). Two full-tier tests pin a digest of a solve at the candidate's
++ * settings, each at 4 points on a light reference lattice, on households that work and save, which the split's two keys
++ * (`saveSplit`, `saveIsaFirst`) now reach. Each pinned solve is made here twice on the build, as its test makes it: with both
++ * keys out, which must give the figure pinned before (nothing else in the change reaches it), and as the candidate now is,
++ * which gives the figure the test pins now. A figure of a household with no year to choose is the same both ways.
++ *   - couple-tables.test.mjs check 6: a single's tables, the engine's runs under them and its value reads (S116, S224), the
++ *     app's solve (solveForApp);
++ *   - lock-tiers.test.mjs check 1b: the tables and 40 forward runs of a Phase 4 panel household under APP's pick, both
++ *     options off (solveCandidate), at the candidate's settings (E5, on anchors) and on the layer loop (tsOnce: false, the
++ *     whole menu): S090 and S328F;
++ *   - couple-solve-client.test.mjs check 6: the digest of the library's 210 singles' stored-solve keys (src/solverKey.js),
++ *     which name the app's candidate whole, so every one moves with it; "both keys out" is the key plant 'nod138', which
++ *     names the candidate without the split's two keys (as 'nod73' did for D73's).
++ * One line a figure: the test and check, what is solved, the figure before, the figure with both keys out, the figure now.
++ *   node research/solver/d138-fulltier.mjs > research/solver/results-d138-fulltier.txt
++ */
++import { createHash } from 'node:crypto';
++import * as E from '../engine.mjs';
++import * as M from '../../src/solver/model.js';
++import * as S from '../../src/solver/solve.js';
++import { vecOf } from '../../src/solver/grid.js';
++import { withTable } from '../../src/solver/bridge.js';
++import { solveForApp } from '../../src/solverApp.js';
++import { solveKey, PLANT as KEY_PLANT } from '../../src/solverKey.js';
++import { APP_CANDIDATE } from '../../src/solverSettings.js';
++import { tablesOf, digestOf } from '../../src/solverDigest.js';
++import { buildScenarios } from '../policy-study/scenarios.mjs';
++import { solveCandidate, CANDIDATE_HASH, BEFORE_D138_HASH } from './candidate.mjs';
++import { readPanel, appPlan } from './phase4-panel.mjs';
++import { armA } from './select-phase4.mjs';
++import { solverPlanOf, LAMBDA } from './audit-phase4.mjs';
++import { codeId } from './code-id.mjs';
++
++const OUT = { saveSplit: undefined, saveIsaFirst: undefined };   // the split's two keys left out, as the re-based tests leave them
++const sha = x => createHash('sha256').update(x).digest('hex');
++
++// ---- couple-tables.test.mjs check 6: the app's solve of a library single, its runs under the engine and its value reads ----
++const library = buildScenarios();
++const single = async (id, extra) => {
++  const plan = E.normalizePlan(library.find(s => s.id === id).plan);
++  const r = solveForApp(E, M, plan, { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true }, ...extra } }), T = r.m.ctx.totalYears;
++  const ctx = E.buildContext(withTable(r.m.ctx.plan, r)), runs = [], reads = [];
++  for (const zs of E.pathsForSeed(99004, 10, T)) {
++    const st = E.freshState(ctx), out = [];
++    for (let t = 0; t <= T; t++) {
++      reads.push(r.value(vecOf(r.m, { pots: st.pots, basis: st.giaBasis, cgtCarry: st.cgtCarry, cumPcls: st.cumPcls, lumpTaken: st.lumpSumTaken, cashIsa: st.cashIsa, guard: null }), t));
++      out.push(E.stepYear(ctx, st, t, { z: zs[t], zPath: zs.length > T + 1 ? zs[T + 1] : 0 }));
++    }
++    runs.push(out);
++  }
++  return { tables: await digestOf(tablesOf(r)), runs: sha(JSON.stringify(runs)), reads: sha(JSON.stringify(reads)), moves: r.actions.length };
++};
++
++// ---- lock-tiers.test.mjs check 1b: a Phase 4 panel household under APP's pick, the light settings, both options off ----
++const panel = readPanel();
++const prep = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 } }));
++const planOf = id => { const h = structuredClone(panel.find(x => x.id === id)); const pk = armA(appPlan(h.plan), { tournament: false }).planState.spending.decumulationPolicy; return prep(solverPlanOf(h.plan, { decumulationPolicy: pk })); };
++const light = { lambda: LAMBDA, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true } };
++const panelDigest = (id, loop) => async extra => {
++  const r = solveCandidate(E, M, planOf(id), { ...light, ...(loop ? { tsOnce: false } : {}), ...extra });
++  const runs = E.pathsForSeed(99001, 40, r.m.ctx.totalYears).map(zs => JSON.stringify(S.runPolicy(r, Float64Array.from(zs))));
++  return { digest: createHash('sha256').update(await digestOf(tablesOf(r))).update(runs.join('\n')).digest('hex'), moves: r.actions.length };
++};
++
++// ---- couple-solve-client.test.mjs check 6: the library's singles' keys, their digest as the test takes it ----
++const keysDigest = async extra => {
++  const was = KEY_PLANT.rule;
++  KEY_PLANT.rule = extra === OUT ? 'nod138' : was;
++  try {
++    const h = createHash('sha256');
++    for (const s of library.filter(x => x.plan.demographics.planningMode === 'single')) h.update(`${s.id}:${await solveKey(E, s.plan, {})};`);
++    return { digest: h.digest('hex').slice(0, 16) };
++  } finally { KEY_PLANT.rule = was; }
++};
++
++// each pinned figure: the test and check, what is solved, how, and the figure pinned before D138
++const PINS = [
++  ['couple-tables.test.mjs check 6', 'S116', s => single('S116', s), { tables: 'e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3', runs: 'ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b', reads: '6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4' }],
++  ['couple-tables.test.mjs check 6', 'S224', s => single('S224', s), { tables: '401e8096847fdb5dad24c210243bd0f5dbc7273fceb9bc67a75f1895c4097be6', runs: '3c707d8249ba094d485daa7a66c854c62f52e84af6d396b13446d99177abc1dc', reads: '1f82d4ce3e21994044775a93665f786c7e50d92f494ddaceff21aeb915ba10b2' }],
++  ['lock-tiers.test.mjs check 1b (S090 e5)', "S090, its tables and 40 forward runs, the candidate's settings", panelDigest('S090', false), { digest: 'bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac' }],
++  ['lock-tiers.test.mjs check 1b (S090 loop)', 'S090, its tables and 40 forward runs, the layer loop (tsOnce: false)', panelDigest('S090', true), { digest: 'e82ad3e7329ba50b78e0a7d9445e5a7203885c163558f4f03d825a662abab144' }],
++  ['lock-tiers.test.mjs check 1b (S328F e5)', "S328F, its tables and 40 forward runs, the candidate's settings", panelDigest('S328F', false), { digest: '79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb' }],
++  ['lock-tiers.test.mjs check 1b (S328F loop)', 'S328F, its tables and 40 forward runs, the layer loop (tsOnce: false)', panelDigest('S328F', true), { digest: '9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa' }],
++  ['couple-solve-client.test.mjs check 6', "the library's 210 singles' stored-solve keys, their digest", keysDigest, { digest: '6825f36b3e1a20ff' }]
++];
++
++const id = codeId();
++console.log(`D138: the full tier's pinned figures the savings split moves, and the working (d138-fulltier.mjs; code ${id.hash})`);
++console.log(`the candidate ${CANDIDATE_HASH} (before D138 ${BEFORE_D138_HASH}); its keys since D138: saveSplit ${JSON.stringify(APP_CANDIDATE.saveSplit)}, saveIsaFirst ${JSON.stringify(APP_CANDIDATE.saveIsaFirst)}`);
++console.log('each solve at 4 points on its test\'s light reference lattice, as the test makes it; "both keys out": saveSplit and saveIsaFirst left out of the candidate\n');
++let bad = 0, n = 0;
++const moved = [];
++for (const [test, what, run, old] of PINS) {
++  const out = await run(OUT), now = await run({});
++  for (const k of Object.keys(old)) {
++    n++;
++    const same = out[k] === old[k], mv = now[k] !== old[k];
++    if (!same) bad++;
++    if (mv) moved.push(`${test}: ${what}${k === 'digest' ? '' : `, its ${k}`}`);
++    console.log(`${test} | ${what}${k === 'digest' ? '' : `, its ${k}`} | before ${old[k]} | both keys out ${out[k]} ${same ? '(= before)' : '(NOT the figure before)'} | now ${now[k]}${mv ? ' (moved)' : ' (the same)'}`);
++  }
++  if (Number.isFinite(out.moves)) console.log(`  the menu: ${out.moves} moves with both keys out, ${now.moves} now`);
++}
++console.log('');
++console.log(bad === 0
++  ? `VERDICT: with both keys out each of the ${n} figures is the figure pinned before, so the change moves them by the split's two keys alone; as the candidate now is, ${moved.length} move (${moved.join('; ')}) and the rest are the same.`
++  : `VERDICT: ${bad} of ${n} figures with both keys out are NOT the figures pinned before: something besides the split's two keys moves them.`);
++process.exit(bad === 0 ? 0 : 1);
+diff --git a/research/solver/d138-lockstep.sh b/research/solver/d138-lockstep.sh
+new file mode 100644
+index 00000000..37defef6
+--- /dev/null
++++ b/research/solver/d138-lockstep.sh
+@@ -0,0 +1,31 @@
++#!/bin/bash
++# D138, THE ENGINE AND THE FORWARD RUN IN STEP UNDER THE SAVINGS SPLIT (EXPLORATORY; the full tier on D138's build, the
++# reviewer on its change of default finding 1). Two lockstep tests build the move they hand the engine by hand from the
++# solver's action, and since D138 a working saver's move carries the split's `save`, which the engine's own policy hands it
++# (src/solver/bridge.js withTable) and those builders left out, so the engine ran the plan's own saving where the forward run
++# ran the move's. Printed here, each on this tree:
++#   1. V2's state check in full (state-check-full.test.mjs; state-check.test.mjs is protected) as it stands: S224 parts;
++#   2. the same test with its builder handing the engine `windfall` and `save` as bridge.js does (a copy made here, in a
++#      folder of its own beside research/tests so its imports resolve alike, and removed after; the protected file is not
++#      touched): every check;
++#   3. the gaps sweep (gaps-sweep.test.mjs, not protected) with its builder so fixed, all 60 cases.
++#   bash research/solver/d138-lockstep.sh > research/solver/results-d138-lockstep.txt
++cd "$(dirname "$0")/../.." || exit 2
++echo "D138: the engine and the forward run in step under the savings split (EXPLORATORY; d138-lockstep.sh), code $(node -e 'import("./research/solver/code-id.mjs").then(m => console.log(m.codeId().hash))'), $(TZ=Europe/London date '+%-d %b %H:%M UK')"
++echo
++echo "-- 1. node research/tests/state-check-full.test.mjs (state-check.test.mjs --full, as it stands)"
++node research/tests/state-check-full.test.mjs 2>&1 | grep -E "^(PASS|FAIL)|ALL PASS|FAILED"
++echo
++echo "-- 2. the same, its move builder handing the engine windfall and save as bridge.js does (a copy, removed after)"
++d=research/.d138-lockstep; rm -rf "$d"; mkdir -p "$d"
++node -e '
++const fs = require("fs"); let s = fs.readFileSync("research/tests/state-check.test.mjs", "utf8");
++const old = "...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0,";
++if (s.split(old).length !== 2) { console.error("the builder is not as expected"); process.exit(2); }
++s = s.replace(old, "...(a.sweepIsa ? { sweepIsa: true } : {}), ...(a.windfall ? { windfall: a.windfall } : {}), ...(a.save ? { save: a.save } : {}), tierPen: ca.tierPen || 0,");
++fs.writeFileSync(process.argv[1], s);' "$d/state-check-save.mjs" || exit 2
++node "$d/state-check-save.mjs" --full 2>&1 | grep -E "^(PASS|FAIL)|ALL PASS|FAILED"
++rm -rf "$d"
++echo
++echo "-- 3. node research/tests/gaps-sweep.test.mjs (its builder handing the engine windfall and save)"
++node research/tests/gaps-sweep.test.mjs 2>&1 | grep -E "^(PASS|FAIL)|SWEEP"
+diff --git a/research/solver/e3pcls-pin.json b/research/solver/e3pcls-pin.json
+index d918b2cd..e3dca08e 100644
+--- a/research/solver/e3pcls-pin.json
++++ b/research/solver/e3pcls-pin.json
+@@ -1,6 +1,6 @@
+ {
+-  "fingerprint": "73ce155c3f4c16d2",
+-  "at": "20 Nov, 18:12 UK",
++  "fingerprint": "6310f87d90e86c00",
++  "at": "21 Nov, 23:00 UK",
+   "points": 4,
+   "passed": 27,
+   "test": "research/tests/solver-e3pcls.test.mjs",
+diff --git a/research/solver/results-d138-fast.txt b/research/solver/results-d138-fast.txt
+new file mode 100644
+index 00000000..0c5ac619
+--- /dev/null
++++ b/research/solver/results-d138-fast.txt
+@@ -0,0 +1,80 @@
++THE FAST TIER ON THE CHANGE OF DEFAULT'S BUILD (D138: the split, the ISA first held back for an employee, the 2029 cap in the split's routes), in the worktree, code ae7ad547d29d, 21 Nov (node research/tests/run-all.mjs fast, its output whole). The one failure, check-state.test.mjs, is STATE.md's printed candidate block, which state.mjs --write regenerates in the change's commit (check-state: "STATE.md's printed block \"candidate\" is not what state.mjs prints from the files now").
++
++ok   solver-invariants.test.mjs (90 s)
++ok   known-answer.test.mjs (111 s)
++ok   engine-fidelity.test.mjs (182 s)
++ok   solver-carry.test.mjs (2 s)
++ok   tier-above.test.mjs (16 s)
++ok   tax-2026.test.mjs (0 s)
++ok   table-guards.test.mjs (5 s)
++ok   final-integral.test.mjs (18 s)
++FAIL check-state.test.mjs (0 s): } |  | Node.js v22.23.4
++ok   hooks.test.mjs (0 s)
++ok   fair-gate.test.mjs (0 s)
++ok   plan-defaults.test.mjs (0 s)
++ok   e3pcls-guard.test.mjs (1 s)
++ok   scottax.test.mjs (0 s)
++ok   savings-tax.test.mjs (0 s)
++ok   bridge.test.mjs (6 s)
++ok   cf.test.mjs (0 s)
++ok   diff.test.mjs (0 s)
++ok   entrants.test.mjs (1 s)
++ok   guardrails.test.mjs (3 s)
++ok   inheritance.test.mjs (0 s)
++ok   lookahead.test.mjs (1 s)
++ok   pctband.test.mjs (1 s)
++ok   policy.test.mjs (0 s)
++ok   priorities.test.mjs (0 s)
++ok   salarygrowth.test.mjs (0 s)
++ok   settings.test.mjs (0 s)
++ok   reader.test.mjs (0 s)
++ok   hygiene.test.mjs (0 s)
++ok   reduce-7uf.test.mjs (0 s)
++ok   check-prediction.test.mjs (0 s)
++ok   solver-cash.test.mjs (7 s)
++ok   audit-7uf-checks.test.mjs (1 s)
++ok   solver-guards.test.mjs (23 s)
++ok   state-check.test.mjs (34 s)
++ok   solver-scratch.test.mjs (37 s)
++ok   solver-memo.test.mjs (275 s)
++ok   adaptive-dup.test.mjs (39 s)
++ok   chooser-share.test.mjs (218 s)
++ok   n4-menu.test.mjs (392 s)
++ok   tier-steps.test.mjs (55 s)
++ok   speed-port.test.mjs (792 s)
++ok   bed-sipp.test.mjs (1 s)
++ok   phase4-audit.test.mjs (4 s)
++ok   risk-consent.test.mjs (64 s)
++ok   fail-delivered.test.mjs (447 s)
++ok   solver-progress.test.mjs (65 s)
++ok   solver-app.test.mjs (28 s)
++ok   solver-cache.test.mjs (140 s)
++ok   solver-locks.test.mjs (143 s)
++ok   solve-size.test.mjs (1 s)
++ok   solver-floor.test.mjs (12 s)
++ok   lock-split.test.mjs (129 s)
++ok   lever-matrix.test.mjs (144 s)
++ok   sim-split.test.mjs (40 s)
++ok   couple-quick.test.mjs (28 s)
++ok   couple-rank.test.mjs (129 s)
++ok   engine-hmrc.test.mjs (14 s)
++ok   windfall-relief.test.mjs (21 s)
++ok   couple-share.test.mjs (45 s)
++ok   chooser-shortlist.test.mjs (93 s)
++ok   couple-flat.test.mjs (140 s)
++ok   couple-sweep.test.mjs (26 s)
++ok   chooser-tie.test.mjs (278 s)
++ok   couple-default.test.mjs (12 s)
++ok   couple-estate.test.mjs (21 s)
++ok   couple-tie.test.mjs (27 s)
++ok   allowance-both.test.mjs (140 s)
++ok   couple-cut.test.mjs (1 s)
++ok   income-end.test.mjs (2 s)
++ok   couple-share-rules.test.mjs (20 s)
++ok   couple-order.test.mjs (3 s)
++ok   couple-swap.test.mjs (35 s)
++ok   paired-exact.test.mjs (0 s)
++ok   couple-horizon.test.mjs (43 s)
++ok   couple-tie-look.test.mjs (90 s)
++ok   stats-newcombe.test.mjs (0 s)
++run-all fast: 77 files found, 77 run, 76 passed, FAILED: check-state.test.mjs (1)
+diff --git a/research/solver/results-d138-fulltier.txt b/research/solver/results-d138-fulltier.txt
+new file mode 100644
+index 00000000..3ea906e1
+--- /dev/null
++++ b/research/solver/results-d138-fulltier.txt
+@@ -0,0 +1,23 @@
++D138: the full tier's pinned figures the savings split moves, and the working (d138-fulltier.mjs; code 5eef43e81abe)
++the candidate 06bc8f910b3f (before D138 17ff82379838); its keys since D138: saveSplit true, saveIsaFirst "selfEmployed"
++each solve at 4 points on its test's light reference lattice, as the test makes it; "both keys out": saveSplit and saveIsaFirst left out of the candidate
++
++couple-tables.test.mjs check 6 | S116, its tables | before e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3 | both keys out e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3 (= before) | now e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3 (the same)
++couple-tables.test.mjs check 6 | S116, its runs | before ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b | both keys out ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b (= before) | now ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b (the same)
++couple-tables.test.mjs check 6 | S116, its reads | before 6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4 | both keys out 6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4 (= before) | now 6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4 (the same)
++  the menu: 800 moves with both keys out, 800 now
++couple-tables.test.mjs check 6 | S224, its tables | before 401e8096847fdb5dad24c210243bd0f5dbc7273fceb9bc67a75f1895c4097be6 | both keys out 401e8096847fdb5dad24c210243bd0f5dbc7273fceb9bc67a75f1895c4097be6 (= before) | now 6f9b367a1be20ce42822ac1a8c3dd0348c6545d0a1cc1d00cd663588ea1c88b1 (moved)
++couple-tables.test.mjs check 6 | S224, its runs | before 3c707d8249ba094d485daa7a66c854c62f52e84af6d396b13446d99177abc1dc | both keys out 3c707d8249ba094d485daa7a66c854c62f52e84af6d396b13446d99177abc1dc (= before) | now b302153a11ef1baa9e44574ee10676bc79f711c9efc98e0a23bd43a9fa960d7c (moved)
++couple-tables.test.mjs check 6 | S224, its reads | before 1f82d4ce3e21994044775a93665f786c7e50d92f494ddaceff21aeb915ba10b2 | both keys out 1f82d4ce3e21994044775a93665f786c7e50d92f494ddaceff21aeb915ba10b2 (= before) | now 8fc9cb32870d68a97d6369a60b5b4a5871fb2d2f31d35af8019b6e5ce3c69524 (moved)
++  the menu: 800 moves with both keys out, 1600 now
++lock-tiers.test.mjs check 1b (S090 e5) | S090, its tables and 40 forward runs, the candidate's settings | before bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac | both keys out bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac (= before) | now bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac (the same)
++  the menu: 800 moves with both keys out, 800 now
++lock-tiers.test.mjs check 1b (S090 loop) | S090, its tables and 40 forward runs, the layer loop (tsOnce: false) | before e82ad3e7329ba50b78e0a7d9445e5a7203885c163558f4f03d825a662abab144 | both keys out e82ad3e7329ba50b78e0a7d9445e5a7203885c163558f4f03d825a662abab144 (= before) | now e82ad3e7329ba50b78e0a7d9445e5a7203885c163558f4f03d825a662abab144 (the same)
++  the menu: 800 moves with both keys out, 800 now
++lock-tiers.test.mjs check 1b (S328F e5) | S328F, its tables and 40 forward runs, the candidate's settings | before 79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb | both keys out 79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb (= before) | now 0070499cc265bf15a2703ab5d540167892ed991a36f43040aba934bfb5ef70b9 (moved)
++  the menu: 800 moves with both keys out, 2400 now
++lock-tiers.test.mjs check 1b (S328F loop) | S328F, its tables and 40 forward runs, the layer loop (tsOnce: false) | before 9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa | both keys out 9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa (= before) | now 18a7fcf425645e2e4834abd56f8ec45be7b35f454fe6aeff3f520c33ceea091f (moved)
++  the menu: 800 moves with both keys out, 2400 now
++couple-solve-client.test.mjs check 6 | the library's 210 singles' stored-solve keys, their digest | before 6825f36b3e1a20ff | both keys out 6825f36b3e1a20ff (= before) | now 9c3e304722255a5e (moved)
++
++VERDICT: with both keys out each of the 11 figures is the figure pinned before, so the change moves them by the split's two keys alone; as the candidate now is, 6 move (couple-tables.test.mjs check 6: S224, its tables; couple-tables.test.mjs check 6: S224, its runs; couple-tables.test.mjs check 6: S224, its reads; lock-tiers.test.mjs check 1b (S328F e5): S328F, its tables and 40 forward runs, the candidate's settings; lock-tiers.test.mjs check 1b (S328F loop): S328F, its tables and 40 forward runs, the layer loop (tsOnce: false); couple-solve-client.test.mjs check 6: the library's 210 singles' stored-solve keys, their digest) and the rest are the same.
+diff --git a/research/solver/results-d138-lockstep.txt b/research/solver/results-d138-lockstep.txt
+new file mode 100644
+index 00000000..83ae2df7
+--- /dev/null
++++ b/research/solver/results-d138-lockstep.txt
+@@ -0,0 +1,99 @@
++D138: the engine and the forward run in step under the savings split (EXPLORATORY; d138-lockstep.sh), code 5eef43e81abe, 22 Nov 00:47 UK
++
++-- 1. node research/tests/state-check-full.test.mjs (state-check.test.mjs --full, as it stands)
++FAIL  1. lockstep, 8181 household-years: the engine's state in the solver's slots against the forward run's, worst gaps: pension £904568.8328 (S224 path 39 year 28); ISA £295729.9668 (S224 path 39 year 37); taxable and cash £6821.4936 (S224 path 12 year 37); tax-free cash taken £68435.7421 (S224 path 30 year 40); cash ISA £6104.6751 (S224 path 31 year 27); gains carried 8.7e-11 (carry path 19 year 20); cash £6821.4936 (S224 path 12 year 37); basis of an emptied account 1.1e-9 (S370 path 11 year 9); gain held 1.7e-9 (carry path 23 year 28); lump sum taken 0.0e+0; tiers held 0.0e+0; wealth at the end £480397.4171 (S224 path 30)
++FAIL  1. where the engine's own pick differs from the forward run's (138 of 8181 years), the two moves score alike to the engine's chooser: the largest gap 1.6e-3 (S224 path 34 year 20, moves 36 and 38), its tie tolerance 1.0e-12 (a near-tie, broken by noise in the last digits; a larger gap means the chooser reads something the state does not carry)
++FAIL  the move handed to the engine is tablePolicy's own whenever both pick the same index (mismatches 194)
++PASS  2. planted: a forward run that forgets an emptied account's basis each year (slot 13 at nothing, the code before 23 Oct) parts from the engine on S370 (gain held, worst £6231; basis of an emptied account £68401; gains carried £1003)
++PASS  2. planted: with the carried gains dropped, the forward run's picks part from the engine chooser's by more than a tie (the largest gap 1.3e-4)
++PASS  2. planted: a forward run that drops its carried gains each year parts from the engine (gains carried, worst £13466; pension £36612, taxable and cash £187483)
++PASS  3. inventory: 22 fields of the engine's state seen over every year of every run, each listed: 4 pots carried (pots.pen_self, pots.isa_self, pots.other_self, pots.cash_self), 7 more carried (giaBasis.self as slot 3, the gain share of slot 2 less slot 12, and slot 13 when that is empty; cgtCarry.self as slot 11; cumPcls.self as slot 4; lumpSumTaken.self as slot 5; cashIsa.self as slot 6; tierHeld.self.pen as the tiers held; tierHeld.self.isa as the tiers held), 7 constant for a single (giaBasis.part, cgtCarry.part, cumPcls.part, lumpSumTaken.part, cashIsa.part, tierHeld.part.pen, tierHeld.part.isa), 4 inert under a table (guard.rate0, guard.mult, guard.lostLastYear, guard.lastBaseDraw)
++PASS  3. the constants are at nothing in every year of every run
++PASS  3. each inert field (the guardrails' memory) perturbed at every year of path 0 on every household (884 trials) leaves the engine's year unchanged: its row to a penny, every slot but the guardrails', the tiers held
++PASS  3. the forward run's guardrail slots (7 to 10) perturbed from each year of path 0 on (171 runs) leave the rest of its run unchanged
++PASS  3. no run writes to the engine's context (households whose context changed: 0)
++PASS  4. planted: a field added to the state fails the inventory (not listed: extra.flag)
++PASS  4. planted: a partner's carried gains of 1,200 fail the constants (off: cgtCarry.part)
++PASS  4. planted: the carried gains listed as inert fail the perturbation (the year moved in 221 of 221; first carry year 0)
++FAILED: 3 of 14 checks
++
++-- 2. the same, its move builder handing the engine windfall and save as bridge.js does (a copy, removed after)
++PASS  1. lockstep, 8181 household-years: the engine's state in the solver's slots against the forward run's, worst gaps: pension 1.9e-9 (S224 path 7 year 32); ISA 2.1e-9 (S380 path 3 year 45); taxable and cash 2.4e-9 (carry path 23 year 29); tax-free cash taken 2.9e-10 (S224 path 7 year 34); cash ISA 2.0e-10 (carry path 19 year 20); gains carried 8.7e-11 (carry path 19 year 20); cash 2.0e-10 (carry path 19 year 20); basis of an emptied account 1.1e-9 (S370 path 11 year 9); gain held 1.7e-9 (carry path 23 year 28); lump sum taken 0.0e+0; tiers held 0.0e+0; wealth at the end 2.3e-9 (carry path 23)
++PASS  1. where the engine's own pick differs from the forward run's (10 of 8181 years), the two moves score alike to the engine's chooser: the largest gap 5.6e-16 (S370 path 32 year 10, moves 336 and 56), its tie tolerance 1.0e-12 (a near-tie, broken by noise in the last digits; a larger gap means the chooser reads something the state does not carry)
++PASS  the move handed to the engine is tablePolicy's own whenever both pick the same index (mismatches 0)
++PASS  2. planted: a forward run that forgets an emptied account's basis each year (slot 13 at nothing, the code before 23 Oct) parts from the engine on S370 (gain held, worst £6231; basis of an emptied account £68401; gains carried £1003)
++PASS  2. planted: with the carried gains dropped, the forward run's picks part from the engine chooser's by more than a tie (the largest gap 1.3e-4)
++PASS  2. planted: a forward run that drops its carried gains each year parts from the engine (gains carried, worst £13466; pension £36612, taxable and cash £187483)
++PASS  3. inventory: 22 fields of the engine's state seen over every year of every run, each listed: 4 pots carried (pots.pen_self, pots.isa_self, pots.other_self, pots.cash_self), 7 more carried (giaBasis.self as slot 3, the gain share of slot 2 less slot 12, and slot 13 when that is empty; cgtCarry.self as slot 11; cumPcls.self as slot 4; lumpSumTaken.self as slot 5; cashIsa.self as slot 6; tierHeld.self.pen as the tiers held; tierHeld.self.isa as the tiers held), 7 constant for a single (giaBasis.part, cgtCarry.part, cumPcls.part, lumpSumTaken.part, cashIsa.part, tierHeld.part.pen, tierHeld.part.isa), 4 inert under a table (guard.rate0, guard.mult, guard.lostLastYear, guard.lastBaseDraw)
++PASS  3. the constants are at nothing in every year of every run
++PASS  3. each inert field (the guardrails' memory) perturbed at every year of path 0 on every household (884 trials) leaves the engine's year unchanged: its row to a penny, every slot but the guardrails', the tiers held
++PASS  3. the forward run's guardrail slots (7 to 10) perturbed from each year of path 0 on (171 runs) leave the rest of its run unchanged
++PASS  3. no run writes to the engine's context (households whose context changed: 0)
++PASS  4. planted: a field added to the state fails the inventory (not listed: extra.flag)
++PASS  4. planted: a partner's carried gains of 1,200 fail the constants (off: cgtCarry.part)
++PASS  4. planted: the carried gains listed as inert fail the perturbation (the year moved in 221 of 221; first carry year 0)
++ALL PASS: 14 checks
++
++-- 3. node research/tests/gaps-sweep.test.mjs (its builder handing the engine windfall and save)
++THE GAPS SWEEP: code 6b40bca736d7, the light candidate, 20 paths each of seed 99001; 60 cases
++PASS  control carry [carry, 30 years, solve 7 s]: 600 household-years in step, the change live in 600; worst gap £9.3e-10 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £257964.86; the forward run survives 20 of 20
++PASS  control S370 [S370, 46 years, solve 10 s]: 813 household-years in step, the change live in 813; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (spend): parts by £2513587.11; the forward run survives 13 of 20
++PASS  control S380 [S380, 46 years, solve 9 s]: 753 household-years in step, the change live in 753; worst gap £2.1e-9 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £840548.33; the forward run survives 11 of 20
++PASS  control S224 [S224, 41 years, solve 6 s]: 731 household-years in step, the change live in 731; worst gap £1.9e-9 (pension), lump flag and tiers exact; picks differ in 1 years (the largest score gap 3.8e-17, ties); mismatched moves 0; planted (spend): parts by £1040693.77; the forward run survives 14 of 20
++PASS  control S008 [S008, 28 years, solve 4 s]: 556 household-years in step, the change live in 556; worst gap £8.1e-10 (wealth at the end), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (spend): parts by £228493.44; the forward run survives 18 of 20
++PASS  control S330F [S330F, 61 years, solve 10 s]: 1203 household-years in step, the change live in 1203; worst gap £5.6e-9 (wealth at the end), lump flag and tiers exact; picks differ in 2 years (the largest score gap 1.1e-16, ties); mismatched moves 0; planted (spend): parts by £1524359.23; the forward run survives 18 of 20
++PASS  the sweep's cash ISA money to the ISA (sweepCashIsaTo 'isa') [S116, 36 years, solve 5 s]: 695 household-years in step, the change live in 20; worst gap £3.5e-10 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (sweepIsa): parts by £709857.93; the forward run survives 18 of 20
++PASS  a deposit into the ISA in a year the sweep sends the cash ISA's money there [S116, 36 years, solve 5 s]: 697 household-years in step, the change live in 20; worst gap £6.1e-10 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (isaUncounted): parts by £21580.28; the forward run survives 18 of 20
++PASS  policy Bracket Fill Basic, an Auto deposit routed by it [S370, 46 years, solve 8 s]: 813 household-years in step, the change live in 20; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £49430.43; the forward run survives 13 of 20
++PASS  policy Bracket Fill, an Auto deposit routed by it [S370, 46 years, solve 7 s]: 813 household-years in step, the change live in 20; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £49430.43; the forward run survives 13 of 20
++PASS  policy Sequential, an Auto deposit routed by it [S370, 46 years, solve 7 s]: 813 household-years in step, the change live in 20; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £49430.43; the forward run survives 13 of 20
++PASS  policy ISA First, an Auto deposit routed by it [S370, 46 years, solve 7 s]: 813 household-years in step, the change live in 20; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £49430.43; the forward run survives 13 of 20
++PASS  policy Windfall to ISA, an Auto deposit routed by it [S370, 46 years, solve 8 s]: 812 household-years in step, the change live in 20; worst gap £5.6e-9 (pension), lump flag and tiers exact; picks differ in 1 years (the largest score gap 2.2e-16, ties); mismatched moves 0; planted (dep): parts by £67735.60; the forward run survives 13 of 20
++PASS  policy Windfall to ISA, an Auto deposit while working [S224, 41 years, solve 7 s]: 746 household-years in step, the change live in 20; worst gap £2.8e-9 (wealth at the end), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £46702.56; the forward run survives 16 of 20
++PASS  deposit into the ISA, the surplus staged into it [S380, 46 years, solve 7 s]: 792 household-years in step, the change live in 80; worst gap £4.7e-10 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (drip): parts by £77432.53; the forward run survives 14 of 20
++PASS  deposit into the ISA, staged, taxable household [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 80; worst gap £1.2e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (drip): parts by £553352.51; the forward run survives 20 of 20
++PASS  deposit into the pension while working, the surplus staged into it [S224, 41 years, solve 5 s]: 744 household-years in step, the change live in 40; worst gap £4.7e-10 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (drip): parts by £992004.94; the forward run survives 16 of 20
++PASS  deposit into the pension after retiring, staged at the no-earnings limit [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 120; worst gap £4.7e-10 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (drip): parts by £258941.96; the forward run survives 20 of 20
++PASS  deposit into cash [S380, 46 years, solve 6 s]: 786 household-years in step, the change live in 20; worst gap £4.7e-10 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (dep): parts by £1476258.39; the forward run survives 13 of 20
++PASS  deposit into the GIA [S370, 46 years, solve 6 s]: 127 household-years in step, the change live in 20; worst gap £6.1e-11 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (dep): parts by £1600.00; the forward run survives 0 of 20
++PASS  Bed and ISA: the GIA into the ISA, three years [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 60; worst gap £7.0e-10 (gain held), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (ded): parts by £606667.67; the forward run survives 20 of 20
++PASS  recycle: cash into the pension [S008, 28 years, solve 4 s]: 556 household-years in step, the change live in 20; worst gap £1.4e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (ded): parts by £15995.16; the forward run survives 17 of 20
++PASS  the ISA into cash [S380, 46 years, solve 8 s]: 753 household-years in step, the change live in 20; worst gap £2.1e-9 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (ded): parts by £662193.55; the forward run survives 11 of 20
++PASS  a one-off cost of a tenth of wealth in year 3 (carry) [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 20; worst gap £1.9e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (cost): parts by £657073.13; the forward run survives 20 of 20
++PASS  a one-off cost of a tenth of wealth in year 3 (S370) [S370, 46 years, solve 7 s]: 80 household-years in step, the change live in 20; worst gap £2.9e-11 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (cost): parts by £2851087.92; the forward run survives 0 of 20
++PASS  a one-off cost of a tenth of wealth in year 3 (S380) [S380, 46 years, solve 6 s]: 710 household-years in step, the change live in 20; worst gap £1.0e-9 (ISA), lump flag and tiers exact; picks differ in 1 years (the largest score gap 3.5e-18, ties); mismatched moves 0; planted (cost): parts by £2096946.24; the forward run survives 11 of 20
++PASS  a gift in year 4 [S380, 46 years, solve 6 s]: 736 household-years in step, the change live in 20; worst gap £1.4e-9 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (cost): parts by £483165.58; the forward run survives 11 of 20
++PASS  a regular gift out of surplus income [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 200; worst gap £1.4e-9 (taxable and cash), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (cost): parts by £224646.72; the forward run survives 20 of 20
++PASS  spend bands: 20% more to 75, 20% less after [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 600; worst gap £9.3e-10 (wealth at the end), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (band): parts by £334366.81; the forward run survives 20 of 20
++PASS  spend bands across the bridge [S370, 46 years, solve 6 s]: 803 household-years in step, the change live in 566; worst gap £7.0e-10 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (band): parts by £816478.17; the forward run survives 13 of 20
++PASS  a DB pension from 60 [S370, 46 years, solve 6 s]: 836 household-years in step, the change live in 636; worst gap £1.1e-9 (gain held), lump flag and tiers exact; picks differ in 4 years (the largest score gap 1.4e-17, ties); mismatched moves 0; planted (income): parts by £2017118.18; the forward run survives 15 of 20
++PASS  rental income, tax-free income and an income that ends [S380, 46 years, solve 6 s]: 827 household-years in step, the change live in 420; worst gap £1.2e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (income): parts by £3036718.26; the forward run survives 15 of 20
++PASS  part-time earnings after retiring [S370, 46 years, solve 7 s]: 821 household-years in step, the change live in 120; worst gap £1.1e-8 (wealth at the end), lump flag and tiers exact; picks differ in 2 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (income): parts by £2090121.31; the forward run survives 15 of 20
++PASS  guaranteed income above the spend: the surplus swept to cash and the ISA [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 567; worst gap £1.4e-9 (gain held), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (income): parts by £4978195.33; the forward run survives 20 of 20
++PASS  a cash buffer of 0 months (S370) [S370, 46 years, solve 7 s]: 812 household-years in step, the change live in 812; worst gap £1.5e-10 (gain held), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (buffer): parts by £394950.93; the forward run survives 13 of 20
++PASS  a cash buffer of 0 months (carry) [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 600; worst gap £7.0e-10 (taxable and cash), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (buffer): parts by £92500.68; the forward run survives 20 of 20
++PASS  a cash buffer of 24 months (S380) [S380, 46 years, solve 6 s]: 750 household-years in step, the change live in 750; worst gap £1.4e-10 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (buffer): parts by £102187.19; the forward run survives 11 of 20
++PASS  a cash buffer of 24 months (carry) [carry, 30 years, solve 3 s]: 600 household-years in step, the change live in 600; worst gap £1.9e-9 (wealth at the end), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (buffer): parts by £319924.16; the forward run survives 20 of 20
++PASS  a cash buffer of 3 months (S224) [S224, 41 years, solve 5 s]: 731 household-years in step, the change live in 731; worst gap £1.9e-9 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (buffer): parts by £117890.51; the forward run survives 14 of 20
++PASS  the full 25% lump sum (S370) [S370, 46 years, solve 6 s]: 816 household-years in step, the change live in 20; worst gap £3.7e-9 (wealth at the end), lump flag and tiers exact; picks differ in 1 years (the largest score gap -2.2e-16, ties); mismatched moves 0; planted (lump): parts by £Infinity; the forward run survives 13 of 20
++PASS  the full 25% lump sum (S380) [S380, 46 years, solve 7 s]: 754 household-years in step, the change live in 20; worst gap £2.3e-10 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (lump): parts by £Infinity; the forward run survives 11 of 20
++PASS  the full 25% lump sum (carry) [carry, 30 years, solve 5 s]: 600 household-years in step, the change live in 20; worst gap £7.0e-10 (gain held), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (lump): parts by £Infinity; the forward run survives 20 of 20
++PASS  a part first year: valued on 27 October (S370) [S370, 46 years, solve 6 s]: 811 household-years in step, the change live in 20; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (frac): parts by £10819607.82; the forward run survives 13 of 20
++PASS  a part first year: valued on 27 October (S224) [S224, 41 years, solve 6 s]: 708 household-years in step, the change live in 20; worst gap £4.7e-10 (pension), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (frac): parts by £2676532.30; the forward run survives 12 of 20
++PASS  a part first year: valued on 27 October (carry) [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 20; worst gap £4.7e-10 (gain held), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (frac): parts by £2147195.92; the forward run survives 20 of 20
++PASS  CGT gains already used this tax year, with a sale in year 0 [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 20; worst gap £1.9e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (cgt0): parts by £6380.58; the forward run survives 20 of 20
++PASS  carry-forward of the annual allowance, with a pension deposit [S224, 41 years, solve 5 s]: 740 household-years in step, the change live in 20; worst gap £1.4e-9 (wealth at the end), lump flag and tiers exact; picks differ in 2 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £1007671.29; the forward run survives 16 of 20
++PASS  a cash ISA paid into while working [S224, 41 years, solve 6 s]: 736 household-years in step, the change live in 60; worst gap £2.1e-9 (wealth at the end), lump flag and tiers exact; picks differ in 1 years (the largest score gap 2.2e-16, ties); mismatched moves 0; planted (cashisa): parts by £91812.63; the forward run survives 14 of 20
++PASS  a contribution schedule (contribByYear) [S224, 41 years, solve 5 s]: 735 household-years in step, the change live in 100; worst gap £6.4e-10 (ISA), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (con): parts by £259344.49; the forward run survives 14 of 20
++PASS  salary growth, self-employed, with a pension deposit [S224, 41 years, solve 6 s]: 736 household-years in step, the change live in 20; worst gap £1.9e-9 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (dep): parts by £766223.02; the forward run survives 15 of 20
++PASS  FIRE: contributions while working, then a bridge [S330F, 61 years, solve 10 s]: 1203 household-years in step, the change live in 300; worst gap £5.6e-9 (wealth at the end), lump flag and tiers exact; picks differ in 2 years (the largest score gap 1.1e-16, ties); mismatched moves 0; planted (con): parts by £2918582.28; the forward run survives 18 of 20
++PASS  FIRE with an Auto deposit under Windfall to ISA [S330F, 61 years, solve 9 s]: 1189 household-years in step, the change live in 20; worst gap £1.0e-8 (pension), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (dep): parts by £502105.91; the forward run survives 17 of 20
++PASS  inflation at 4%, the GIA paying 3.5% in dividends [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 600; worst gap £1.2e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £313789.24; the forward run survives 20 of 20
++PASS  CGT off and cash interest untaxed [carry, 30 years, solve 4 s]: 600 household-years in step, the change live in 600; worst gap £1.2e-9 (taxable and cash), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (spend): parts by £272853.77; the forward run survives 20 of 20
++PASS  the pension at Medium/Low Risk, the ISA at Low Risk [S380, 46 years, solve 4 s]: 755 household-years in step, the change live in 755; worst gap £2.0e-10 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £656496.94; the forward run survives 8 of 20
++PASS  cash held at Low Risk [S370, 46 years, solve 7 s]: 812 household-years in step, the change live in 812; worst gap £9.3e-9 (wealth at the end), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (spend): parts by £2510696.74; the forward run survives 13 of 20
++PASS  no flexible spending (the floor at the target) [S380, 46 years, solve 4 s]: 670 household-years in step, the change live in 670; worst gap £5.6e-9 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £863982.34; the forward run survives 10 of 20
++PASS  a horizon to 100 [S008, 33 years, solve 4 s]: 619 household-years in step, the change live in 619; worst gap £1.4e-9 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £368428.72; the forward run survives 16 of 20
++PASS  rUK tax for a Scottish household [S008, 28 years, solve 4 s]: 556 household-years in step, the change live in 556; worst gap £1.5e-9 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (spend): parts by £216356.38; the forward run survives 19 of 20
++PASS  Welsh tax [S370, 46 years, solve 6 s]: 813 household-years in step, the change live in 813; worst gap £1.1e-9 (basis of an emptied account), lump flag and tiers exact; picks differ in 3 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (spend): parts by £2513587.11; the forward run survives 13 of 20
++SWEEP: ALL 60 cases PASS
+diff --git a/research/solver/results-save-default-identity.txt b/research/solver/results-save-default-identity.txt
+new file mode 100644
+index 00000000..7836b7c8
+--- /dev/null
++++ b/research/solver/results-save-default-identity.txt
+@@ -0,0 +1,8 @@
++THE SAVINGS SPLIT'S CHANGE OF DEFAULT, THE IDENTITY (EXPLORATORY; D138): the app's route for a working single on this code 5eef43e81abe against the registered CANDSA (the read's code 71fb4271c681), on the first 1000 paths of seed 7025, at 45 points
++S300F (employee, the hold and the cap unset): IDENTICAL; the menu 2400 moves (800 ISA-first copies), its record saveSplit 'on' saveIsaFirst 'undefined'; the table 7ef7c1ab002e against the registered CANDSA's 7ef7c1ab002e (the same); paths differing of 1000: {"survived":0,"failYear":0,"pot":0,"estate":0,"tax":0,"delivered":0,"unmet":0}; the solve 90 s
++S270 (employee, the hold and the cap unset): IDENTICAL; the menu 2400 moves (800 ISA-first copies), its record saveSplit 'on' saveIsaFirst 'undefined'; the table 475a004a9619 against the registered CANDSA's 475a004a9619 (the same); paths differing of 1000: {"survived":0,"failYear":0,"pot":0,"estate":0,"tax":0,"delivered":0,"unmet":0}; the solve 59 s
++S280 (self-employed, the default): IDENTICAL; the menu 2400 moves (800 ISA-first copies), its record saveSplit 'on' saveIsaFirst 'offered'; the table 75e86bc38ca0 against the registered CANDSA's 75e86bc38ca0 (the same); paths differing of 1000: {"survived":0,"failYear":0,"pot":0,"estate":0,"tax":0,"delivered":0,"unmet":0}; the solve 58 s
++S196 (self-employed, the default): IDENTICAL; the menu 2400 moves (800 ISA-first copies), its record saveSplit 'on' saveIsaFirst 'offered'; the table 81ff168a0490 against the registered CANDSA's 81ff168a0490 (the same); paths differing of 1000: {"survived":0,"failYear":0,"pot":0,"estate":0,"tax":0,"delivered":0,"unmet":0}; the solve 51 s
++4 of 4 units IDENTICAL
++
++2. THE 2029 ROUTE: on the panel's 30 employees, the working years from 2029 with a saving to place: 260; the pension first's route under the cap the flipped plan's (K's price) to the penny in 260 of them (the largest gap £0.00e+0); the ISA first's ISA different in 260 (held back for an employee at the default)
+diff --git a/research/solver/results-save-default.txt b/research/solver/results-save-default.txt
+new file mode 100644
+index 00000000..44dc21ea
+--- /dev/null
++++ b/research/solver/results-save-default.txt
+@@ -0,0 +1,24 @@
++THE SAVINGS SPLIT AS A WORKING SINGLE'S DEFAULT, ITS TEST (D138; research/tests/save-default.test.mjs, the full tier), on the build with the hold, the 2029 cap and the year to choose read over the routes offered: code 5eef43e81abe, 21 Nov 23:21 UK
++
++-- node research/tests/save-default.test.mjs
++PASS  1. the candidate  -- candidate.json saveSplit true saveIsaFirst selfEmployed, APP_CANDIDATE saveSplit true saveIsaFirst selfEmployed; the two the same key for key; added to the candidate before D138: saveIsaFirst, saveSplit; every other key as before
++PASS  2. a working single  -- S188 (14 s): its record 'on'; 1600 moves, 800 and 800 save copies; the first year's move 'taxable before ISA, saving into the pension first', save 1
++PASS  3. a retired single  -- S002 (27 s): its record 'no year to choose' (the candidate before D138: none); 800 and 800 moves; its tables the same to the bit (3cbedd47e85c, 3cbedd47e85c)
++PASS  4. a couple  -- S181 (49 s), each solved with the partner's age: the household's one table at 'pensionsPA' household without the split; today's route, self without the split, part without the split
++PASS  5. the words  -- S188 (57 s): a save copy's parts name it (save 1), its base's none; this year's skips list the save, its skip 'taxable before ISA' save 0; this year's actions say "Pay your saving into your pension first, then your ISA (the same cost to you as your planned saving, with the pension's tax relief added)" (Skipping it costs no survival on 40 markets.); the rows name it and a year without it reads "nothing to change"; the ledger names it and a move with no save reads as before
++PASS  6. the worlds under the split  -- S188 (63 s): 3 worlds, each carrying the solve's moves a year; the copies left out in 36 of 41 years; with the share check on, every move's score, tax and estate agree at 820 decisions of 20 paths; a copy picked in a year it is left out at 0
++PASS  7. the hold  -- (80 s) S188, an employee: 800 moves, 800 pension-first and 0 ISA-first copies, its record 'held back (an employee)'; S184, self-employed: 800 moves, 800 pension-first and 800 ISA-first copies, its record 'offered'; S188 at the registered configuration (the hold unset): 800 moves, 800 pension-first and 800 ISA-first copies, its record 'undefined'
++PASS  8. the 2029 cap  -- S188, an employee: 5 working years with a saving to place (3 before 2029, 2 from it); each year's budget against the hand calculation, the worst gap £1.82e-12; the years before 2029 the same with the cap on and off; from 2029 dearer with it on in 2 of 2, and the pension first's route the flipped plan's to the penny in 2 of 2; S184, self-employed: every year the same with it on and off (5); without a cap the net cost and the gross-up the same to the bit (25 cases)
++PASS  9. a year to choose  -- S188 saving into the pension alone, under the hold: 0 save copies, its record 'no year to choose', its tables the candidate before D138's to the bit; with its pension saving filling its room: 0 copies, 'no year to choose', the same to the bit; the first at the registered configuration: 'on', 800 ISA-first copies; S188 as entered: its copies live in 5 years, the pension first differing in 5, the same years (117 s)
++
++ALL PASS: 9 passed, 0 failed (117 s)
++(exit 0)
++
++-- node research/tests/save-default.test.mjs --planted (the same files, 21 Nov)
++plant 'couplesplit': the checks that fail: 4; wanted exactly 4: yes
++plant 'nosavepart': the checks that fail: 5; wanted exactly 5: yes
++plant 'nattables': the checks that fail: 6; wanted exactly 6: yes
++plant 'noisahold': the checks that fail: 7, 9; wanted exactly 7, 9: yes
++plant 'nocap': the checks that fail: 8; wanted exactly 8: yes
++plant 'anyroute': the checks that fail: 9; wanted exactly 9: yes
++(exit 0)
+diff --git a/research/solver/results-v-candidate-d138.txt b/research/solver/results-v-candidate-d138.txt
+new file mode 100644
+index 00000000..a911fd99
+--- /dev/null
++++ b/research/solver/results-v-candidate-d138.txt
+@@ -0,0 +1,30 @@
++S008  solve S008: the candidate 06bc8f910b3f, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 26 s
++S008  V1 S008 PASS: 3265920 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
++S008  REPORTED S008: survival falls as wealth rises (beyond a millionth) at 1780 of 3157056 neighbouring wealth nodes (0.056%)
++S008  V2 S008 model-only 0 engine-only 0 of 2000 (runPolicy 95.55%, the engine 95.55%; seed 99001)
++S194  solve S194: the candidate 06bc8f910b3f, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 36 s
++S194  V1 S194 PASS: 4782240 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
++S194  REPORTED S194: survival falls as wealth rises (beyond a millionth) at 6082 of 4622832 neighbouring wealth nodes (0.132%)
++S194  V2 S194 model-only 0 engine-only 0 of 2000 (runPolicy 99.30%, the engine 99.30%; seed 99001)
++S330  solve S330: the candidate 06bc8f910b3f, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 45 s
++S330  V1 S330 PASS: 7115040 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
++S330  REPORTED S330: survival falls as wealth rises (beyond a millionth) at 2151 of 6877872 neighbouring wealth nodes (0.031%)
++S330  V2 S330 model-only 0 engine-only 0 of 2000 (runPolicy 89.60%, the engine 89.60%; seed 99001)
++S224  solve S224: the candidate 06bc8f910b3f, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 34 s
++S224  V1 S224 PASS: 4782240 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
++S224  REPORTED S224: survival falls as wealth rises (beyond a millionth) at 2572 of 4622832 neighbouring wealth nodes (0.056%)
++S224  V2 S224 model-only 0 engine-only 0 of 2000 (runPolicy 71.20%, the engine 71.20%; seed 99001)
++S070  solve S070: the candidate 06bc8f910b3f, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 37 s
++S070  V1 S070 PASS: 4199040 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
++S070  REPORTED S070: survival falls as wealth rises (beyond a millionth) at 1520 of 4059072 neighbouring wealth nodes (0.037%)
++S070  V2 S070 model-only 0 engine-only 0 of 2000 (runPolicy 95.35%, the engine 95.35%; seed 99001)
++S370  solve S370: the candidate 06bc8f910b3f, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 56 s
++S370  V1 S370 PASS: 5365440 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
++S370  REPORTED S370: survival falls as wealth rises (beyond a millionth) at 1498 of 5186592 neighbouring wealth nodes (0.029%)
++S370  V2 S370 model-only 0 engine-only 0 of 2000 (runPolicy 82.50%, the engine 82.50%; seed 99001)
++S380  solve S380: the candidate 06bc8f910b3f, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 56 s
++S380  V1 S380 PASS: 5365440 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
++S380  REPORTED S380: survival falls as wealth rises (beyond a millionth) at 2199 of 5186592 neighbouring wealth nodes (0.042%)
++S380  V2 S380 model-only 0 engine-only 0 of 2000 (runPolicy 73.15%, the engine 73.15%; seed 99001)
++V1 on the candidate 06bc8f910b3f: ALL PASS (7 of 7 households)
++V2 on the candidate 06bc8f910b3f: the controls' bar 1; S330 0 / 0, S224 0 / 0, S070 0 / 0, S370 0 / 0, S380 0 / 0: ALL PASS
+diff --git a/research/solver/save-default-identity.mjs b/research/solver/save-default-identity.mjs
+new file mode 100644
+index 00000000..d4590ef5
+--- /dev/null
++++ b/research/solver/save-default-identity.mjs
+@@ -0,0 +1,91 @@
++/*
++ * THE SAVINGS SPLIT'S CHANGE OF DEFAULT, THE IDENTITY (D138; the reviewer at the savings split's v2 read, MINOR 4 (b),
++ * reviews/2026-11-21-read-save-v2.md; EXPLORATORY). The app's route for a working single on the code the change lands on,
++ * against the tested arm (the registered CANDSA, on anchors) path for path, as D99's, D109's and D136's identities held
++ * theirs:
++ *   - the plan: the one the registered audit handed the solvers (audit-save-v2.mjs: arm A's policy, guardrails off, the
++ *     lookahead off, the MPAA resolved), handed to the page's solve;
++ *   - the table: solved as the page solves it (src/solverApp.js solveForApp at the app's 45 points), its digest against the
++ *     registered CANDSA's;
++ *   - the paths: the engine's run of it (audit-phase4.mjs runPath, as the registered audit ran it) on the first N paths of
++ *     seed 7025, already read by the registered read (D137 (4)), every array against the registered CANDSA's, bit for bit.
++ * Two kinds of unit: an employee with the hold unset and the split's routes priced without the 2029 cap on salary sacrifice's
++ * NIC relief (`saveIsaFirst` off, src/App.jsx SAVE_NIC_CAP.on false: the configuration and the price the split's v2
++ * registered), and a self-employed saver at the default itself (the hold offers the ISA first to the self-employed and the
++ * cap is an employee's, so neither changes anything there). At the default an employee's split holds the ISA first back and
++ * prices its routes with the cap from 2029 (D137 (4)), which no run has measured; nothing here says otherwise. It prints each
++ * unit's verdict and the paths that differ, no outcome.
++ * Then (2.) the 2029 route on the panel's 30 employees, from their plans alone (no solve).
++ *   node research/solver/save-default-identity.mjs <the read's tree> [N] > research/solver/results-save-default-identity.txt
++ */
++import * as E from '../engine.mjs';
++import * as M from '../../src/solver/model.js';
++import { readFileSync } from 'node:fs';
++import { gunzipSync } from 'node:zlib';
++import { join, resolve } from 'node:path';
++import { solveForApp } from '../../src/solverApp.js';
++import { APP_POINTS } from '../../src/solverSettings.js';
++import { tablesOf, digestOf } from '../../src/solverDigest.js';
++import { withTable } from '../../src/solver/bridge.js';
++import { appPlan as panelPlan } from './phase4-panel.mjs';
++import { armA } from './select-phase4.mjs';
++import { runPath, solverPlanOf } from './audit-phase4.mjs';
++import { KEYS } from './audit-save-v2.mjs';
++import { readSaveV2Panel } from './save-v2-panel.mjs';
++import { codeId } from './code-id.mjs';
++
++const TREE = process.argv[2] && resolve(process.argv[2]), N = Number(process.argv[3]) || 1000;
++if (!TREE) { console.error('save-default-identity: <the read\'s tree> [N]'); process.exit(2); }
++const UNITS = [['S300F', 'employee, the hold and the cap unset'], ['S270', 'employee, the hold and the cap unset'], ['S280', 'self-employed, the default'], ['S196', 'self-employed, the default']];
++const dec = (str, Ty) => { const b = Buffer.from(str, 'base64'), c = new Uint8Array(b.length); c.set(b); return new Ty(c.buffer, 0, b.length / Ty.BYTES_PER_ELEMENT); };
++const panel = readSaveV2Panel(), cid = codeId();
++console.log(`THE SAVINGS SPLIT'S CHANGE OF DEFAULT, THE IDENTITY (EXPLORATORY; D138): the app's route for a working single on this code ${cid ? cid.hash : '?'} against the registered CANDSA (the read's code 71fb4271c681), on the first ${N} paths of seed 7025, at ${APP_POINTS} points`);
++let same = 0;
++for (const [id, kind] of UNITS) {
++  const U = panel.find(u => u.id === id), R = JSON.parse(gunzipSync(readFileSync(join(TREE, 'research/solver/results/save-v2-run', `${id}.json.gz`))).toString()), S = R.arms.CANDSA;
++  const reg = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, dec(S[k], Ty)]));
++  const a = armA(panelPlan(U.plan), { tournament: false });
++  const prep = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 } }));
++  const plan = prep(solverPlanOf(U.plan, { decumulationPolicy: a.planState.spending.decumulationPolicy }));
++  const registered = /unset/.test(kind), hold = registered ? { research: { saveIsaFirst: undefined } } : {};
++  E.SAVE_NIC_CAP.on = !registered;   // an employee's routes at the registered price; the self-employed's at the default's
++  const t0 = Date.now(), r = solveForApp(E, M, plan, { points: APP_POINTS, ...hold }), secs = Math.round((Date.now() - t0) / 1000);
++  const digest = await digestOf(tablesOf(r)), ctx = E.buildContext(withTable(r.m.ctx.plan, r)), paths = E.pathsForSeed(7025, N, ctx.totalYears).map(z => Float64Array.from(z));
++  const D = Object.fromEntries(Object.keys(KEYS).map(k => [k, 0]));
++  for (let i = 0; i < N; i++) {
++    const q = runPath(ctx, paths[i], false), got = { survived: q.survived ? 1 : 0, failYear: q.failYear, pot: q.wealth, estate: q.estate, tax: q.tax, delivered: q.delivered, unmet: q.unmet };
++    for (const k of Object.keys(KEYS)) if (!Object.is(got[k], reg[k][i])) D[k]++;
++  }
++  const ok = digest === S.digest && Object.values(D).every(v => v === 0);
++  if (ok) same++;
++  console.log(`${id} (${kind}): ${ok ? 'IDENTICAL' : 'DIFFERENT'}; the menu ${r.actions.length} moves (${r.actions.filter(x => x.save === 2).length} ISA-first copies), its record saveSplit '${r.meta.saveSplit}' saveIsaFirst '${r.meta.saveIsaFirst}'; the table ${digest.slice(0, 12)} against the registered CANDSA's ${S.digest.slice(0, 12)} (${digest === S.digest ? 'the same' : 'DIFFERENT'}); paths differing of ${N}: ${JSON.stringify(D)}; the solve ${secs} s`);
++}
++E.SAVE_NIC_CAP.on = true;
++console.log(`${same} of ${UNITS.length} units IDENTICAL`);
++/*
++ * 2. THE 2029 ROUTE (the reviewer at test K's read, finding 1, reviews/2026-11-21-read-save-k.md): from April 2029, under the
++ * cap, an employee whose plan pays more than the £2,000 the cap relieves into the pension (every one of the panel's 30) is
++ * priced on each further pound as test K priced it, so the pension first's route (save 1: the pension, the ISA and the
++ * overflow) must be the flipped plan's (employmentSelf 'self-employed', K's lever) to the penny; the ISA first (save 2) is
++ * not, its budget the NIC relief on the first £2,000 lower, and is held back for an employee at the default (D137 (4)).
++ * No solve: each plan's context and its routes, year by year.
++ */
++{
++  const prepP = plan => E.resolveMpaa(E.normalizePlan(plan)), flip = plan => ({ ...plan, demographics: { ...plan.demographics, employmentSelf: 'self-employed' } });
++  let years = 0, same1 = 0, worst = 0, differ2 = 0, units = 0;
++  for (const U of panel.filter(u => u.plan.demographics.employmentSelf !== 'self-employed')) {
++    units++;
++    const a = E.buildContext(prepP(structuredClone(U.plan))), b = E.buildContext(prepP(flip(structuredClone(U.plan)))), ids = a.owners[0].ids;
++    for (let t = 0; t <= a.totalYears; t++) {
++      if (a.baseYear + t < E.SAVE_NIC_CAP.from) continue;
++      const ra = a.saveSplitAt(t), rb = b.saveSplitAt(t);
++      if (!ra && !rb) continue;
++      years++;
++      if (!ra || !rb) continue;
++      const g = Math.max(...[ids.pen, ids.isa, ids.other].map(id => Math.abs(ra.variants[1][id] - rb.variants[1][id])));
++      worst = Math.max(worst, g); if (g < 0.01) same1++;
++      if (Math.abs(ra.variants[2][ids.isa] - rb.variants[2][ids.isa]) >= 0.01) differ2++;
++    }
++  }
++  console.log(`\n2. THE 2029 ROUTE: on the panel's ${units} employees, the working years from ${E.SAVE_NIC_CAP.from} with a saving to place: ${years}; the pension first's route under the cap the flipped plan's (K's price) to the penny in ${same1} of them (the largest gap £${worst.toExponential(2)}); the ISA first's ISA different in ${differ2} (held back for an employee at the default)`);
++}
+diff --git a/research/solver/state.mjs b/research/solver/state.mjs
+index 47720f17..8d74a037 100644
+--- a/research/solver/state.mjs
++++ b/research/solver/state.mjs
+@@ -36,7 +36,7 @@ const BLOCKS = {
+     const cand = { opts: C.CANDIDATE_OPTS, tiers: C.CANDIDATE_TIERS, reals: C.blendReals() };
+     const opts = Object.entries(C.CANDIDATE_OPTS).map(([k, v]) => `${k} ${JSON.stringify(v)}`).join(', ');
+     return [
+-      `- The candidate (\`research/solver/candidate.json\`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then ${C.ASSEMBLED_HASH} (\`ASSEMBLED_OPTS\`); the third tier step and HR whole joined after the factorial, D28, D29, the table without the dealing cost after D30's check, the failure year at what it can pay after Phase 4, D43, item 5's sweep to the ISA, item 10's solve on anchors and its thinner bridge reference, D73, and item 13's tie-break above the estate cap, D90): ${opts}; tiers ${C.CANDIDATE_TIERS} (O60's blend medians: ${Object.entries(cand.reals).map(([k, v]) => `${k} ${v}%`).join(', ')}). Hash ${C.CANDIDATE_HASH}${C.CANDIDATE_HASH === sha(cand) ? '' : ' (state.mjs reads ' + sha(cand) + ')'}; before D90's tie-break (\`BEFORE_D90_OPTS\`, the couples' read's): ${C.BEFORE_D90_HASH}; before D73 (\`BEFORE_D73_OPTS\`): ${C.BEFORE_D73_HASH}; Phase 4's, failDelivered removed (\`PHASE4_OPTS\`): ${C.PHASE4_HASH}; before the assembly, the package's keys removed (\`FROZEN_OPTS\`, 7u's CAND): ${C.FROZEN_HASH}.`,
++      `- The candidate (\`research/solver/candidate.json\`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then ${C.ASSEMBLED_HASH} (\`ASSEMBLED_OPTS\`); the third tier step and HR whole joined after the factorial, D28, D29, the table without the dealing cost after D30's check, the failure year at what it can pay after Phase 4, D43, item 5's sweep to the ISA, item 10's solve on anchors and its thinner bridge reference, D73, item 13's tie-break above the estate cap, D90, and the savings split for singles who work and save, a couple's solves kept off it, D138): ${opts}; tiers ${C.CANDIDATE_TIERS} (O60's blend medians: ${Object.entries(cand.reals).map(([k, v]) => `${k} ${v}%`).join(', ')}). Hash ${C.CANDIDATE_HASH}${C.CANDIDATE_HASH === sha(cand) ? '' : ' (state.mjs reads ' + sha(cand) + ')'}; before D138's savings split (\`BEFORE_D138_OPTS\`, the savings split's v2 read's and step 8's): ${C.BEFORE_D138_HASH}; before D90's tie-break (\`BEFORE_D90_OPTS\`, the couples' read's): ${C.BEFORE_D90_HASH}; before D73 (\`BEFORE_D73_OPTS\`): ${C.BEFORE_D73_HASH}; Phase 4's, failDelivered removed (\`PHASE4_OPTS\`): ${C.PHASE4_HASH}; before the assembly, the package's keys removed (\`FROZEN_OPTS\`, 7u's CAND): ${C.FROZEN_HASH}.`,
+       `- 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (\`audit-7uf.mjs\`). Hash ${C.hashOf(Object.fromEntries(Object.entries(C.ASSEMBLED_OPTS).filter(([k]) => k !== 'readerRef' && k !== 'adaptiveLattice')))}.`,
+       `- The product baseline (\`PRODUCT_BASELINE\`, src/solver/solve.js): ${Object.entries(S.PRODUCT_BASELINE).map(([k, v]) => `${k} ${JSON.stringify(v)}`).join(', ')}. Hash ${sha(S.PRODUCT_BASELINE)}.`,
+       `- The solver code the e3pcls pin last passed on: ${P.readPin().fingerprint} (${P.readPin().at}); the code now: ${P.fingerprint()}.`
+@@ -134,12 +134,14 @@ const BLOCKS = {
+   },
+   // the candidate as D29 and D30 left it (THIRD-STEP.md and SPEED-PORT.md step 4): its pin with the decided defaults, V1 and V2 on it
+   async cand29() {
+-    const T = 'research/tests/results-candidate.txt', V = 'research/solver/results-v-candidate-d95.txt';
++    const T = 'research/tests/results-candidate.txt', V = 'research/solver/results-v-candidate-d138.txt';
+     if (read(T) === null || read(V) === null) return [`- pending: ${read(T) === null ? T : V}`];
+     const got = pick(T, /^PASS {2}7u-F's candidate reproduces its registered hash (\w+) \((\w+)\)/m, m => m[2]), fz = pick(T, /^PASS {2}the candidate before the assembly reproduces its recorded hash (\w+) \((\w+)\)/m, m => m[2]);
+     const d73 = pick(T, /^PASS {2}the candidate before D73 reproduces its hash (\w+) \((\w+)\)/m, m => ({ pre: m[2] }));
+-    const d90 = pick(T, /^PASS {2}the candidate before D90's tie-break reproduces its hash (\w+) \((\w+)\); the candidate (\w+) adds/m, m => ({ pre: m[2], cand: m[3] }));
+-    return [`- \`candidate.test.mjs\` ${pick(T, /^=+ (\d+ passed, \d+ failed) =+$/m, m => m[1])} (\`results-candidate.txt\`): the candidate ${d90.cand} the same as the decided defaults key for key; the candidate before D90's tie-break ${d90.pre}, before D73 ${d73.pre}, 7u-F's ${got} and the frozen ${fz} reproduced; its smoke solve running the third step, HR whole, the table without the dealing cost (E5), the failure year at what it can pay (D43), the sweep's cash ISA money to the ISA and the solve on anchors on the thinner bridge reference (D73) and the tie-break above the estate cap on every world (D95); Phase 4's fcd8096217b7 reproduced. ${pick(V, /^V1 on .*$/m)}; ${pick(V, /^V2 on .*$/m)} (\`results-v-candidate-d95.txt\`; on D73's candidate, \`-d73.txt\`; on D43's, \`-d43.txt\`; on D30's, \`-d30.txt\`; on D29's, \`-d29.txt\`).`];
++    // D138: the candidate's own line is the savings split's, and D90's names the candidate after it (the one before D138)
++    const d138 = pick(T, /^PASS {2}the candidate before D138 reproduces its hash (\w+) \((\w+)\); the candidate (\w+) adds .*?; with the split alone, the registered CANDSA's (\w+) \((\w+)\)/m, m => ({ pre: m[2], cand: m[3], sa: m[5] }));
++    const d90 = pick(T, /^PASS {2}the candidate before D90's tie-break reproduces its hash (\w+) \((\w+)\); the candidate after it \((\w+)\) adds/m, m => ({ pre: m[2] }));
++    return [`- \`candidate.test.mjs\` ${pick(T, /^=+ (\d+ passed, \d+ failed) =+$/m, m => m[1])} (\`results-candidate.txt\`): the candidate ${d138.cand} the same as the decided defaults key for key; the candidate before D138's savings split ${d138.pre} (with the split alone the registered CANDSA's ${d138.sa}), before D90's tie-break ${d90.pre}, before D73 ${d73.pre}, 7u-F's ${got} and the frozen ${fz} reproduced; its smoke solve running the third step, HR whole, the table without the dealing cost (E5), the failure year at what it can pay (D43), the sweep's cash ISA money to the ISA and the solve on anchors on the thinner bridge reference (D73) and the tie-break above the estate cap on every world (D95); Phase 4's fcd8096217b7 reproduced. ${pick(V, /^V1 on .*$/m)}; ${pick(V, /^V2 on .*$/m)} (\`results-v-candidate-d138.txt\`; on D95's candidate, \`-d95.txt\`; on D73's, \`-d73.txt\`; on D43's, \`-d43.txt\`; on D30's, \`-d30.txt\`; on D29's, \`-d29.txt\`).`];
+   },
+   // the speed port's build (D30, SPEED-PORT.md step 2): its test in the full form
+   speedport() {
+diff --git a/research/tests/allowance-both.test.mjs b/research/tests/allowance-both.test.mjs
+index a740a2f7..a31bfe00 100644
+--- a/research/tests/allowance-both.test.mjs
++++ b/research/tests/allowance-both.test.mjs
+@@ -132,7 +132,11 @@ const gainOf = v => v[3] * (v[2] - v[12]);
+ const moveOf = (r, ai, code) => {
+   const a = r.actions[ai], ca = r.c.acts[ai];
+   return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
+-    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
++    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.sweepIsa ? { sweepIsa: true } : {}),
++    // the windfall split's and the savings split's parts, as the engine's own policy hands them (src/solver/bridge.js
++    // withTable; D138: a working saver's move carries `save`); none of this test's households takes either
++    ...(a.windfall ? { windfall: a.windfall } : {}), ...(a.save ? { save: a.save } : {}),
++    tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
+     tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
+ };
+ const usesRaw = a => a.steps.includes('penPAr') || (a.harvest && a.harvestCeil === 'paraw');
+diff --git a/research/tests/candidate.test.mjs b/research/tests/candidate.test.mjs
+index 4afda474..beb4de96 100644
+--- a/research/tests/candidate.test.mjs
++++ b/research/tests/candidate.test.mjs
+@@ -20,7 +20,7 @@ import * as E from '../engine.mjs';
+ import * as M from '../../src/solver/model.js';
+ import { solvePlan, PRODUCT_BASELINE } from '../../src/solver/solve.js';
+ import { RESEARCH_OPTS } from '../solver/research-opts.mjs';
+-import { CANDIDATE_OPTS, CANDIDATE_TIERS, TIERS, blendReals, candidatePlan, solveCandidate, FROZEN_OPTS, FROZEN_HASH, CANDIDATE_HASH, PACKAGE_KEYS, hashOf, ASSEMBLED_OPTS, ASSEMBLED_HASH, LATER_KEYS, PHASE4_OPTS, PHASE4_HASH, AFTER_PHASE4_KEYS, BEFORE_D73_OPTS, BEFORE_D73_HASH, D73_KEYS, PRE_D73_LATTICE, BEFORE_D90_OPTS, BEFORE_D90_HASH, D90_KEYS } from '../solver/candidate.mjs';
++import { CANDIDATE_OPTS, CANDIDATE_TIERS, TIERS, blendReals, candidatePlan, solveCandidate, FROZEN_OPTS, FROZEN_HASH, CANDIDATE_HASH, PACKAGE_KEYS, hashOf, ASSEMBLED_OPTS, ASSEMBLED_HASH, LATER_KEYS, PHASE4_OPTS, PHASE4_HASH, AFTER_PHASE4_KEYS, BEFORE_D73_OPTS, BEFORE_D73_HASH, D73_KEYS, PRE_D73_LATTICE, BEFORE_D90_OPTS, BEFORE_D90_HASH, D90_KEYS, BEFORE_D138_OPTS, BEFORE_D138_HASH, D138_KEYS } from '../solver/candidate.mjs';
+ import { buildScenarios } from '../policy-study/scenarios.mjs';
+ 
+ const HERE = dirname(fileURLToPath(import.meta.url)), SOLVER = join(HERE, '../solver');
+@@ -43,12 +43,20 @@ ok(Object.isFrozen(CANDIDATE_OPTS) && Object.isFrozen(RESEARCH_OPTS), 'CANDIDATE
+ // key added after Phase 4 (failDelivered, D43), and hashes as Phase 4 registered it (fcd8096217b7)
+ // D73 (11 Nov): the candidate before it (d71f65ae871e, the launch candidate) is candidate.json less D73's two keys with the
+ // bridge reference's lattice as it was; every earlier candidate is built from it, so each still reproduces its hash
++// D138 (21 Nov): the savings split joined for singles who work and save, by the savings split's v2 read (registered, seed 7025,
++// PASS: results-save-v2.txt), with the ISA first held back for an employee (D137 (4)). The candidate before it (17ff82379838,
++// the candidate that read and step 8's read read) is candidate.json less its two keys; with the split alone it is the
++// registered CANDSA's configuration (bf1cac401c13); every earlier candidate is built from it
++ok(BEFORE_D138_HASH === '17ff82379838' && hashOf(BEFORE_D138_OPTS) === BEFORE_D138_HASH && Object.keys(CANDIDATE_OPTS).length === Object.keys(BEFORE_D138_OPTS).length + D138_KEYS.length && D138_KEYS.every(k => k in CANDIDATE_OPTS && !(k in BEFORE_D138_OPTS))
++  && CANDIDATE_OPTS.saveSplit === true && CANDIDATE_OPTS.saveIsaFirst === 'selfEmployed' && CANDIDATE_HASH === '06bc8f910b3f' && hashOf({ ...BEFORE_D138_OPTS, saveSplit: true }) === 'bf1cac401c13',
++  `the candidate before D138 reproduces its hash 17ff82379838 (${BEFORE_D138_HASH}); the candidate ${CANDIDATE_HASH} adds ${D138_KEYS.join(', ')}; with the split alone, the registered CANDSA's bf1cac401c13 (${hashOf({ ...BEFORE_D138_OPTS, saveSplit: true })})`);
++ok(hashOf({ ...BEFORE_D138_OPTS, saveSplit: true, saveIsaFirst: 'selfEmployed' }) === CANDIDATE_HASH && hashOf({ ...BEFORE_D138_OPTS, saveSplit: false }) !== BEFORE_D138_HASH && hashOf({ ...CANDIDATE_OPTS, saveIsaFirst: 'all' }) !== CANDIDATE_HASH && hashOf({ ...CANDIDATE_OPTS, saveSplit: 'yes' }) !== CANDIDATE_HASH, 'planted: the split written out as off on the candidate before it, the hold or the split given another value, each moves the hash; the candidate before it with the two keys added is the candidate');
+ // D90 (1) (13 Nov): item 13's tie-break above the estate cap joined after the couples' registered read. The candidate before it
+-// (af001697ce1b, the candidate that read read) is candidate.json less its one key; every earlier candidate is built from it
+-ok(BEFORE_D90_HASH === 'af001697ce1b' && hashOf(BEFORE_D90_OPTS) === BEFORE_D90_HASH && Object.keys(CANDIDATE_OPTS).length === Object.keys(BEFORE_D90_OPTS).length + D90_KEYS.length && D90_KEYS.every(k => k in CANDIDATE_OPTS && !(k in BEFORE_D90_OPTS))
+-  && CANDIDATE_OPTS.tieAboveCap === 1e-4 && CANDIDATE_HASH === '17ff82379838',
+-  `the candidate before D90's tie-break reproduces its hash af001697ce1b (${BEFORE_D90_HASH}); the candidate ${CANDIDATE_HASH} adds ${D90_KEYS.join(', ')} at 1e-4 (D85's margin)`);
+-ok(hashOf({ ...CANDIDATE_OPTS, tieAboveCap: 1e-5 }) !== CANDIDATE_HASH && hashOf({ ...BEFORE_D90_OPTS, tieAboveCap: 1e-4 }) === CANDIDATE_HASH && hashOf({ ...BEFORE_D90_OPTS, tieAboveCap: 0 }) !== BEFORE_D90_HASH, 'planted: another margin, or the margin written out as nought on the candidate before it, moves the hash; the candidate before it with the margin added is the candidate');
++// (af001697ce1b, the candidate that read read) is the candidate before D138 less its one key; every earlier candidate is built from it
++ok(BEFORE_D90_HASH === 'af001697ce1b' && hashOf(BEFORE_D90_OPTS) === BEFORE_D90_HASH && Object.keys(BEFORE_D138_OPTS).length === Object.keys(BEFORE_D90_OPTS).length + D90_KEYS.length && D90_KEYS.every(k => k in BEFORE_D138_OPTS && !(k in BEFORE_D90_OPTS))
++  && BEFORE_D138_OPTS.tieAboveCap === 1e-4 && CANDIDATE_OPTS.tieAboveCap === 1e-4,
++  `the candidate before D90's tie-break reproduces its hash af001697ce1b (${BEFORE_D90_HASH}); the candidate after it (${BEFORE_D138_HASH}) adds ${D90_KEYS.join(', ')} at 1e-4 (D85's margin)`);
++ok(hashOf({ ...BEFORE_D138_OPTS, tieAboveCap: 1e-5 }) !== BEFORE_D138_HASH && hashOf({ ...BEFORE_D90_OPTS, tieAboveCap: 1e-4 }) === BEFORE_D138_HASH && hashOf({ ...BEFORE_D90_OPTS, tieAboveCap: 0 }) !== BEFORE_D90_HASH, 'planted: another margin, or the margin written out as nought on the candidate before it, moves the hash; the candidate before it with the margin added is the candidate before D138');
+ ok(BEFORE_D73_HASH === 'd71f65ae871e' && hashOf(BEFORE_D73_OPTS) === BEFORE_D73_HASH && Object.keys(BEFORE_D90_OPTS).length === Object.keys(BEFORE_D73_OPTS).length + D73_KEYS.length && D73_KEYS.every(k => k in CANDIDATE_OPTS && !(k in BEFORE_D73_OPTS))
+   && JSON.stringify(BEFORE_D73_OPTS.adaptiveLattice) === JSON.stringify(PRE_D73_LATTICE) && JSON.stringify(CANDIDATE_OPTS.adaptiveLattice) === JSON.stringify({ ...PRE_D73_LATTICE, na: 80, nb: 21, nz: 64 }),
+   `the candidate before D73 reproduces its hash d71f65ae871e (${BEFORE_D73_HASH}); the candidate after it (${BEFORE_D90_HASH}) adds ${D73_KEYS.join(', ')} and thins the bridge reference's lattice`);
+diff --git a/research/tests/chooser-once.test.mjs b/research/tests/chooser-once.test.mjs
+index 2535c840..9702e513 100644
+--- a/research/tests/chooser-once.test.mjs
++++ b/research/tests/chooser-once.test.mjs
+@@ -12,6 +12,12 @@
+  *      world's memo and the outcomes are the same again.
+  * Planted (CHOOSER.plant 'oncerep'): each repeat scored at the next repeat's first move; the check throws.
+  *   node research/tests/chooser-once.test.mjs
++ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit`, with `saveIsaFirst`). S224 works and saves, so
++ * under it its solve sets the moves a year (`r.nAt`), and the repeats are not found once a decision where `r.nAt` is set
++ * (solve.js decisionRepeats): every decision would fall back to each world's memo, and the plant 'oncerep' would have
++ * nothing to catch (the reviewer on D138's change of default, finding 1). The CAND arm takes the candidate without the split
++ * (NO_SPLIT), so it tests P1's memo as before; a pass says nothing of a working saver under the default, whose every
++ * decision falls back until the speed work D137 (1) puts next keys P1's memo on the year's own count of moves.
+  */
+ import { createHash } from 'node:crypto';
+ import * as E from '../engine.mjs';
+@@ -30,7 +36,8 @@ const all = buildScenarios();
+ const planOf = id => { const h = all.find(s => s.id === id).plan; return E.resolveMpaa(E.normalizePlan({ ...h, config: { ...h.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.spending, floorSpend: Math.round(0.8 * E.num(h.spending.targetSpend, 0)) } })); };
+ const ARMS = {
+   SHIP: plan => solvePlan(E, M, candidatePlan(E, plan), { lambda: LAMBDA, points: 6, bequestWeight: 0.02 }),
+-  CAND: plan => solveCandidate(E, M, plan, { lambda: LAMBDA, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true } })
++  // D138: the candidate without the savings split (NO_SPLIT, as the header says)
++  CAND: plan => solveCandidate(E, M, plan, { lambda: LAMBDA, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true }, saveSplit: undefined, saveIsaFirst: undefined })
+ };
+ const thrown = f => { try { f(); return null; } catch (e) { return e.message; } };
+ const runAll = (ctx, paths) => {
+diff --git a/research/tests/chooser-shortlist.test.mjs b/research/tests/chooser-shortlist.test.mjs
+index 7f12a742..caae011b 100644
+--- a/research/tests/chooser-shortlist.test.mjs
++++ b/research/tests/chooser-shortlist.test.mjs
+@@ -22,6 +22,9 @@
+  *   6. --full only, the known answer: S116 at 45 points, 1,000 paths of seed 99001, survival within 0.5 points of the whole
+  *      menu's.
+  *   node research/tests/chooser-shortlist.test.mjs [--full]
++ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit`, with `saveIsaFirst`), which reaches a working
++ * saver's solve here: this test's solves take the candidate without it (NO_SPLIT), so it checks what it checked before and
++ * every figure it pins is the same; the split's own effect is save-default.test.mjs's.
+  */
+ import { createHash } from 'node:crypto';
+ import * as E from '../engine.mjs';
+@@ -40,7 +43,8 @@ const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: t
+ const lib = buildScenarios(), planOf = id => { const h = readPanel().find(x => x.id === id); return h ? h.plan : E.normalizePlan(lib.find(s => s.id === id).plan); };
+ // 13 Nov 2026 (D95): the candidate now carries the tie-break's margin; these checks are of the shortlist against the whole
+ // menu without it, so the margin is handed in as nought unless a check sets it (the slice's checks do)
+-const solve = (id, research = {}, points = 4) => solveForApp(E, M, planOf(id), { points, research: points <= 6 ? { ...LIGHT, tieAboveCap: 0, ...research } : { tieAboveCap: 0, ...research } });
++const NO_SPLIT = Object.freeze({ saveSplit: undefined, saveIsaFirst: undefined });   // D138: the candidate without the savings split
++const solve = (id, research = {}, points = 4) => solveForApp(E, M, planOf(id), { points, research: points <= 6 ? { ...LIGHT, ...NO_SPLIT, tieAboveCap: 0, ...research } : { ...NO_SPLIT, tieAboveCap: 0, ...research } });
+ // the chooser's switches on a solved plan, as the solve's options would set them
+ const set = (r, width, tie) => { if (width) r.chooserShortlist = width; else delete r.chooserShortlist; for (const x of [r, ...(r.worlds || [])]) { if (tie) x.tieAboveCap = tie; else delete x.tieAboveCap; } };
+ const resetStats = () => { for (const k of Object.keys(SHORTLIST.stats)) SHORTLIST.stats[k] = 0; };
+diff --git a/research/tests/chooser-tie.test.mjs b/research/tests/chooser-tie.test.mjs
+index 4b655e89..24f0f440 100644
+--- a/research/tests/chooser-tie.test.mjs
++++ b/research/tests/chooser-tie.test.mjs
+@@ -23,6 +23,9 @@
+  * its level or tier pair) fails check 4; 'anywhere' (the cap test dropped) fails checks 3 and 4. --plants runs each and
+  * reads which checks fail.
+  *   node research/tests/chooser-tie.test.mjs [--plants] [--record]
++ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit`, with `saveIsaFirst`), which reaches a working
++ * saver's solve here: this test's solves take the candidate without it (NO_SPLIT), so it checks what it checked before and
++ * every figure it pins is the same; the split's own effect is save-default.test.mjs's.
+  */
+ import { spawnSync } from 'node:child_process';
+ import { createHash } from 'node:crypto';
+@@ -57,10 +60,11 @@ CHOOSER.tiePlant = process.env.CHOOSER_TIE_PLANT || '';
+ let passed = 0, failed = 0;
+ const ok = (n, label, c, detail = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'} ${n}. ${label}${detail ? '   ' + detail : ''}`); if (c) passed++; else failed++; };
+ const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, SEED = 99004, NP = 200, MARGIN = 1e-4;
++const NO_SPLIT = Object.freeze({ saveSplit: undefined, saveIsaFirst: undefined });   // D138: the candidate without the savings split
+ const lib = buildScenarios(), planOf = id => { const h = readPanel().find(x => x.id === id); return h ? h.plan : E.normalizePlan(lib.find(s => s.id === id).plan); };
+ // 13 Nov 2026 (D95): the candidate now carries the margin, so the app's solve with nothing passed has the option on. "Off"
+ // here is the margin handed in as nought, which the chooser reads as no tie-break; check 7 holds the app's own solve
+-const solve = (id, research = {}) => solveForApp(E, M, planOf(id), { points: 4, research: { ...LIGHT, tieAboveCap: 0, ...research } });
++const solve = (id, research = {}) => solveForApp(E, M, planOf(id), { points: 4, research: { ...LIGHT, ...NO_SPLIT, tieAboveCap: 0, ...research } });
+ const setTie = (r, m) => { for (const x of [r, ...(r.worlds || [])]) { if (m === undefined) delete x.tieAboveCap; else x.tieAboveCap = m; } };
+ // every path's outcome under the solved plan as it stands: survival, the pot left, lifetime tax, spending delivered, each year's level
+ const run = (r, paths) => { const sc = solvedContext(E, r); return paths.map(zs => { const o = runPath(E, sc, zs); return [o.survived, o.terminalPot, o.lifetimeTax, o.delivered, o.failT, ...o.level]; }); };
+@@ -132,7 +136,7 @@ ok(1, 'the option off (the margin nought): S328F\'s paths the code before the op
+ // ---- 5. a couple ----
+ {
+   const plan = appPlan(E, prepareForSolve(E, lib.find(s => s.id === 'S007').plan));
+-  const cpOf = research => solveCouple(E, M, plan, { solveOne: (p, o) => solveForApp(E, M, p, { points: 4, research: { ...LIGHT, ...research }, ageWith: o.partnerAge0 }) });
++  const cpOf = research => solveCouple(E, M, plan, { solveOne: (p, o) => solveForApp(E, M, p, { points: 4, research: { ...LIGHT, ...NO_SPLIT, ...research }, ageWith: o.partnerAge0 }) });
+   const off = cpOf({ tieAboveCap: 0 }), on = cpOf({ tieAboveCap: MARGIN }), zsAll = E.pathsForSeed(SEED, 40, off.m.ctx.totalYears);
+   const paths = cp => zsAll.map(zs => { const trace = []; const o = runCouplePolicy(cp, Float64Array.from(zs), trace); return [o.survived, o.terminal, o.lifetimeTax, ...trace.flatMap(j => [j.ia, j.ib, j.split, j.spendLevel, j.score])]; });
+   const pOff = paths(off), pOn = paths(on);
+@@ -149,7 +153,7 @@ ok(1, 'the option off (the margin nought): S328F\'s paths the code before the op
+ }
+ // ---- 7. the app's own solve (D95, 13 Nov): nothing passed, the candidate's margin ----
+ {
+-  const D = solveForApp(E, M, planOf('S328F'), { points: 4, research: { ...LIGHT } });
++  const D = solveForApp(E, M, planOf('S328F'), { points: 4, research: { ...LIGHT, ...NO_SPLIT } });
+   setTie(A, MARGIN); const on = run(A, pathsA); setTie(A, undefined);
+   const own = run(D, pathsA);
+   ok(7, 'the app\'s solve with nothing passed carries the candidate\'s margin, and its paths are the option\'s, bit for bit', D.tieAboveCap === MARGIN && D.meta.tieAboveCap === MARGIN && hashOf(own) === hashOf(on) && hashOf(own) !== dOff,
+@@ -161,7 +165,7 @@ ok(1, 'the option off (the margin nought): S328F\'s paths the code before the op
+ // app solves it with nothing passed: the rule holds decision by decision, and no path's survival changes with it
+ {
+   const p3 = { ...planOf('S328F'), solver: { aims: { cuts: 3, estate: 'standard', raises: 'capped', riskConsent: true } } };
+-  const L = solveForApp(E, M, p3, { points: 4, research: { ...LIGHT } }), pathsL = E.pathsForSeed(SEED, 100, solvedContext(E, L).totalYears);
++  const L = solveForApp(E, M, p3, { points: 4, research: { ...LIGHT, ...NO_SPLIT } }), pathsL = E.pathsForSeed(SEED, 100, solvedContext(E, L).totalYears);
+   const on = run(L, pathsL), q = replay(L, pathsL.slice(0, 50)); setTie(L, undefined); const off = run(L, pathsL); setTie(L, MARGIN);
+   ok(8, 'a locked dial position (3, the app\'s solve): it carries the margin; wherever the choice differs, at the best move\'s level and tier pair, above the cap, with no more tax that year; no path\'s survival changes', !!L.lockTiers && L.tieAboveCap === MARGIN && q.differ > 0 && q.level === 0 && q.pair === 0 && q.atOrBelow === 0 && q.moreTax === 0 && on.every((x, k) => x[0] === off[k][0]),
+     `locked ${!!L.lockTiers}, the margin ${L.tieAboveCap}; ${q.decisions} decisions (${q.above} above the cap), a different move at ${q.differ}: at another level ${q.level}, at another tier pair ${q.pair}, at or below the cap ${q.atOrBelow}, with more tax ${q.moreTax}; ${differ(on, off)} of 100 paths differ, ${on.filter((x, k) => x[0] !== off[k][0]).length} in survival`);
+diff --git a/research/tests/couple-solve-client.test.mjs b/research/tests/couple-solve-client.test.mjs
+index 3064571a..f75eb345 100644
+--- a/research/tests/couple-solve-client.test.mjs
++++ b/research/tests/couple-solve-client.test.mjs
+@@ -113,7 +113,11 @@ ok('2. the couple from two separate solves is solveCouple\'s whole: both tables
+ 
+ // 6. the key: every single keyed as on the code before D5 (the digest of their 210 keys, taken on 3cec591e, fefdb387's parent:
+ // research/solver/results-couple-solve-client.txt), and a person's key moved by their partner's age
+-{ const KEYS_BEFORE_D5 = '6825f36b3e1a20ff';
++// re-taken on D138's candidate (22 Nov; before: 6825f36b3e1a20ff): the key names the app's candidate whole, which gained the
++// savings split's two keys, so every single's key moves with it; with them left out (src/solverKey.js's plant 'nod138') the
++// digest is the one taken before D5, so nothing else keys a single differently (results-d138-fulltier.txt, printed by
++// research/solver/d138-fulltier.mjs)
++{ const KEYS_BEFORE_D5 = '9c3e304722255a5e';
+   const singles = lib.filter(s => s.plan.demographics.planningMode === 'single'), h = createHash('sha256');
+   for (const s of singles) h.update(`${s.id}:${await solveKey(E, s.plan, {})};`);
+   const got = h.digest('hex').slice(0, 16);
+diff --git a/research/tests/couple-tables.test.mjs b/research/tests/couple-tables.test.mjs
+index b3a62624..6a73a66d 100644
+--- a/research/tests/couple-tables.test.mjs
++++ b/research/tests/couple-tables.test.mjs
+@@ -356,9 +356,13 @@ for (const f of FIX) {
+   // and nothing else in its commit does (with the ceiling's one function switched off this test passes on the figures before: results-harvest-ceiling.txt)
+   // S224's runs and reads again on 13 Nov (before: runs 8ab0d7a33f73, reads 82e3915b1a17): the tie-break above the estate cap joined the
+   // candidate (D95), which moves a single's forward runs above the cap and no table; S116's three and S224's tables unchanged
++  // S224's three again on 21 Nov (before: tables 401e8096847f, runs 3c707d8249ba, reads 1f82d4ce3e21): the savings split joined the candidate for singles
++  // who work and save (D138), and S224 is an employee with five working years, so it takes the split's pension-first copies
++  // (1,600 moves); with saveSplit and saveIsaFirst left out each solve gives the figures before, and S116's three, with no
++  // year to choose, are unchanged (results-d138-fulltier.txt, printed by research/solver/d138-fulltier.mjs)
+   const BEFORE = {
+     S116: { tables: 'e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3', runs: 'ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b', reads: '6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4' },
+-    S224: { tables: '401e8096847fdb5dad24c210243bd0f5dbc7273fceb9bc67a75f1895c4097be6', runs: '3c707d8249ba094d485daa7a66c854c62f52e84af6d396b13446d99177abc1dc', reads: '1f82d4ce3e21994044775a93665f786c7e50d92f494ddaceff21aeb915ba10b2' }
++    S224: { tables: '6f9b367a1be20ce42822ac1a8c3dd0348c6545d0a1cc1d00cd663588ea1c88b1', runs: 'b302153a11ef1baa9e44574ee10676bc79f711c9efc98e0a23bd43a9fa960d7c', reads: '8fc9cb32870d68a97d6369a60b5b4a5871fb2d2f31d35af8019b6e5ce3c69524' }
+   };
+   const h = (x) => createHash('sha256').update(JSON.stringify(x)).digest('hex');
+   const bad = [];
+diff --git a/research/tests/gaps-sweep.test.mjs b/research/tests/gaps-sweep.test.mjs
+index afe4d354..365eaa74 100644
+--- a/research/tests/gaps-sweep.test.mjs
++++ b/research/tests/gaps-sweep.test.mjs
+@@ -188,7 +188,11 @@ const gapsOf = (e, f, he, hf) => {
+ const moveOf = (r, ai, code) => {
+   const a = r.actions[ai], ca = r.c.acts[ai];
+   return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
+-    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
++    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}),
++    // the windfall split's and the savings split's parts, as the engine's own policy hands them (src/solver/bridge.js
++    // withTable): since D138 a working saver's move carries `save`, and a move built without it ran the plan's own saving
++    ...(a.windfall ? { windfall: a.windfall } : {}), ...(a.save ? { save: a.save } : {}),
++    tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
+     tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
+ };
+ 
+diff --git a/research/tests/household.test.mjs b/research/tests/household.test.mjs
+index eafbc7ef..394cdf26 100644
+--- a/research/tests/household.test.mjs
++++ b/research/tests/household.test.mjs
+@@ -30,7 +30,9 @@
+  *      its finally, on a throwing fn); (c) a couple's M.prepare and E.buildContext, called after solveHousehold, carry a
+  *      person's band (the same plant); (d) the solver's code id, 603eeb595679 to 19 Nov (D115: nothing under src/ and not the
+  *      engine edited), 71fb4271c681 since D130 (1)'s ISA fix, 9f9857213b75 since step 8's port (D134 (1), D136: the household
+- *      plan in src/solver/household.js, 20 Nov; every household run of this line read on the code before it);
++ *      plan in src/solver/household.js, 20 Nov; every household run of this line read on the code before it), 5eef43e81abe
++ *      since D138 (the savings split for singles who work and save, 22 Nov: src/solver/solve.js and fast.js, and the engine's
++ *      cap in the split's routes; a couple's solves keep the split off, so no household figure moves);
+  *   8. THE TWIN (PRESCRIPTIVE-PLAN.md step 3): on check 3's six units, the couple made of the first person twice (built as the
+  *      review's scripts/twin-trace.mjs builds it), under arm A's policy, 100 paths of seed 99001, the household plan
+  *      (through householdContext) against the couple, year by year: (1) on S205, S061-dbpart, S327F, S227-90 and S023-db
+@@ -293,7 +295,7 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
+   // household line's later runs on the fixed code; step 8's port (D134 (1), D136; 20 Nov) adds src/solver/household.js, the
+   // household plan the app solves a couple with, so the code moves again: re-pinned with that note (Full 506 on 89cd5995 failed
+   // here alone, the pin left at 71fb4271c681)
+-  check('(7d) the solver\'s code id 9f9857213b75 (D115\'s, then D130 (1)\'s fix, then step 8\'s port)', !!cid && cid.hash === '9f9857213b75', cid ? cid.hash : 'none');
++  check('(7d) the solver\'s code id 5eef43e81abe (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138)', !!cid && cid.hash === '5eef43e81abe', cid ? cid.hash : 'none');
+ }
+ 
+ // 8. the twin (PRESCRIPTIVE-PLAN.md step 3)
+diff --git a/research/tests/isa-allowance.test.mjs b/research/tests/isa-allowance.test.mjs
+index 59009c09..757f0bd2 100644
+--- a/research/tests/isa-allowance.test.mjs
++++ b/research/tests/isa-allowance.test.mjs
+@@ -83,7 +83,7 @@ const EI = await import(pathToFileURL(join(tmp, 'engine.mjs')).href);
+ const E = await imp('research/engine.mjs'), M = await imp('src/solver/model.js');
+ const { ratesAt } = await imp('src/solver/couple.js');
+ const { withTable } = await imp('src/solver/bridge.js');
+-const { solveCandidate } = await imp('research/solver/candidate.mjs');
++const { solveCandidate, BEFORE_D138_OPTS } = await imp('research/solver/candidate.mjs');
+ const { readPanel, appPlan } = await imp('research/solver/phase4-panel.mjs');
+ const { armA } = await imp('research/solver/select-phase4.mjs');
+ const { solverPlanOf, LAMBDA } = await imp('research/solver/audit-phase4.mjs');
+@@ -137,7 +137,8 @@ const scanHow = how => scan.filter(x => x.how === how).length;
+ const h026 = byId.S026, a026 = armA(appPlan(h026.plan), { tournament: false });
+ const plan026 = prep(solverPlanOf(h026.plan, { decumulationPolicy: a026.planState.spending.decumulationPolicy }));
+ const LIGHT = { lambda: LAMBDA, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true } };
+-const r026 = solveCandidate(E, M, plan026, { ...LIGHT, windfallSplit: true });
++// the windfall split on the candidate before D138: solve.js refuses it beside the savings split the candidate carries since
++const r026 = solveCandidate(E, M, plan026, { ...LIGHT, windfallSplit: true }, BEFORE_D138_OPTS);
+ const r1c = allowanceOf(EI, withTable(r026.m.ctx.plan, r026), 200);
+ ok(1, "the year's own flows into an ISA never take it past the allowance its fixed flows leave (engine)", r1a.worst <= 0.01 && r1b.worst <= 0.01 && r1c.worst <= 0.01,
+   `a. S090 under its own pick (${s090.label}), ${r1a.n} paths: the worst overshoot ${gbp(r1a.worst)}${r1a.worst > 0.01 ? ` at ${r1a.at}` : ''}; b. the library's ${lib.length} plans: ${scanHow('as entered')} as entered and ${scanHow('Windfall to ISA')} under Windfall to ISA with a deposit or staged transfer into an ISA, 40 paths each: ${gbp(r1b.worst)}${r1b.worst > 0.01 ? ` at ${r1b.at}` : ''}; c. S026 under the windfall split's table at 4 points, ${r1c.n} paths: ${gbp(r1c.worst)}${r1c.worst > 0.01 ? ` at ${r1c.at}` : ''}`);
+diff --git a/research/tests/lock-tiers.test.mjs b/research/tests/lock-tiers.test.mjs
+index 7cb7a34b..958a936d 100644
+--- a/research/tests/lock-tiers.test.mjs
++++ b/research/tests/lock-tiers.test.mjs
+@@ -94,10 +94,14 @@ const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light set
+   // 675090f5). S090's own pick, Windfall to ISA, puts £20,000 of its Auto deposit into its ISA in plan year 4, which now counts against that year's
+   // allowance, so the year's own flows into the ISA read only the room it leaves; S328F's pins hold. On the code before the fix (9d2b0a75) this test
+   // passes on the figures before, and on the fix S090's two alone move: results-isa-allowance-pins.txt
++  // S328F's two again on 21 Nov (before: S328F e5 79d3eb8d19e0c7b5..., S328F loop 9a7e04cf0a63e599...): the savings split joined the candidate for
++  // singles who work and save (D138), and S328F is self-employed with fifteen working years, so it takes both of the split's
++  // copies (2,400 moves); with saveSplit and saveIsaFirst left out each solve gives the figure before, and S090's two, with
++  // no year to choose, hold (results-d138-fulltier.txt, printed by research/solver/d138-fulltier.mjs)
+   'S090 e5': 'bf4b261da569350ec97b2b7625ca3463ac57863948a64daa98d1c3a7a80997ac',
+   'S090 loop': 'e82ad3e7329ba50b78e0a7d9445e5a7203885c163558f4f03d825a662abab144',
+-  'S328F e5': '79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb',
+-  'S328F loop': '9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa'
++  'S328F e5': '0070499cc265bf15a2703ab5d540167892ed991a36f43040aba934bfb5ef70b9',
++  'S328F loop': '18a7fcf425645e2e4834abd56f8ec45be7b35f454fe6aeff3f520c33ceea091f'
+ };
+ const { tablesOf, digestOf } = await import(pathToFileURL(resolve(ROOT, 'src/solverDigest.js')).href);
+ const { createHash } = await import('node:crypto');
+diff --git a/research/tests/results-candidate.txt b/research/tests/results-candidate.txt
+index afba226d..bd99ac8a 100644
+--- a/research/tests/results-candidate.txt
++++ b/research/tests/results-candidate.txt
+@@ -1,11 +1,13 @@
+-PASS  the candidate: decided {"bridgeRead":"reader","tierState":true,"jointWorlds":true,"bequestWeight":0.02,"bridgeStep":"exact","switchCharge":0.001,"switchMargin":0,"e3":true,"pclsInterp":true,"e3pcls":true,"readerRef":"adaptive","adaptiveLattice":{"na":80,"nb":21,"nz":64,"foot":true,"stepAll":true},"readerSplit":"rs","tiersBelow":3,"menuPlus":["hr"],"tableDealing":false,"failDelivered":true,"sweepCashIsaTo":"isa","coarse":{"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3},"tieAboveCap":0.0001,"tiers":"o60-blend"}, code {"bridgeRead":"reader","tierState":true,"jointWorlds":true,"bequestWeight":0.02,"bridgeStep":"exact","switchCharge":0.001,"switchMargin":0,"e3":true,"pclsInterp":true,"e3pcls":true,"readerRef":"adaptive","adaptiveLattice":{"na":80,"nb":21,"nz":64,"foot":true,"stepAll":true},"readerSplit":"rs","tiersBelow":3,"menuPlus":["hr"],"tableDealing":false,"failDelivered":true,"sweepCashIsaTo":"isa","coarse":{"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3},"tieAboveCap":0.0001,"tiers":"o60-blend"}
++PASS  the candidate: decided {"bridgeRead":"reader","tierState":true,"jointWorlds":true,"bequestWeight":0.02,"bridgeStep":"exact","switchCharge":0.001,"switchMargin":0,"e3":true,"pclsInterp":true,"e3pcls":true,"readerRef":"adaptive","adaptiveLattice":{"na":80,"nb":21,"nz":64,"foot":true,"stepAll":true},"readerSplit":"rs","tiersBelow":3,"menuPlus":["hr"],"tableDealing":false,"failDelivered":true,"sweepCashIsaTo":"isa","coarse":{"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3},"tieAboveCap":0.0001,"saveSplit":true,"saveIsaFirst":"selfEmployed","tiers":"o60-blend"}, code {"bridgeRead":"reader","tierState":true,"jointWorlds":true,"bequestWeight":0.02,"bridgeStep":"exact","switchCharge":0.001,"switchMargin":0,"e3":true,"pclsInterp":true,"e3pcls":true,"readerRef":"adaptive","adaptiveLattice":{"na":80,"nb":21,"nz":64,"foot":true,"stepAll":true},"readerSplit":"rs","tiersBelow":3,"menuPlus":["hr"],"tableDealing":false,"failDelivered":true,"sweepCashIsaTo":"isa","coarse":{"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3},"tieAboveCap":0.0001,"saveSplit":true,"saveIsaFirst":"selfEmployed","tiers":"o60-blend"}
+ PASS  planted: a decided value the code does not carry fails the comparison
+ PASS  planted: a code value the block does not carry fails it
+ PASS  planted: a key missing from the block fails it
+ PASS  planted: a block without "candidate" fails it
+ PASS  CANDIDATE_OPTS and RESEARCH_OPTS are frozen
+-PASS  the candidate before D90's tie-break reproduces its hash af001697ce1b (af001697ce1b); the candidate 17ff82379838 adds tieAboveCap at 1e-4 (D85's margin)
+-PASS  planted: another margin, or the margin written out as nought on the candidate before it, moves the hash; the candidate before it with the margin added is the candidate
++PASS  the candidate before D138 reproduces its hash 17ff82379838 (17ff82379838); the candidate 06bc8f910b3f adds saveSplit, saveIsaFirst; with the split alone, the registered CANDSA's bf1cac401c13 (bf1cac401c13)
++PASS  planted: the split written out as off on the candidate before it, the hold or the split given another value, each moves the hash; the candidate before it with the two keys added is the candidate
++PASS  the candidate before D90's tie-break reproduces its hash af001697ce1b (af001697ce1b); the candidate after it (17ff82379838) adds tieAboveCap at 1e-4 (D85's margin)
++PASS  planted: another margin, or the margin written out as nought on the candidate before it, moves the hash; the candidate before it with the margin added is the candidate before D138
+ PASS  the candidate before D73 reproduces its hash d71f65ae871e (d71f65ae871e); the candidate after it (af001697ce1b) adds sweepCashIsaTo, coarse and thins the bridge reference's lattice
+ PASS  planted: the sweep sent elsewhere, a round fewer on the shortlists, or the sweep added to the candidate before D73 moves the hash
+ PASS  7u-F's candidate reproduces its registered hash e65e5e99ba49 (e65e5e99ba49); the candidate before D73 adds tiersBelow, menuPlus, tableDealing, failDelivered
+@@ -53,7 +55,7 @@ PASS  a destructuring of RESEARCH_OPTS is not flagged
+ PASS  planted: an earlier Object.assign source that is a call result is flagged
+ PASS  planted: a carried computed key before the spread is flagged
+ PASS  planted: a spread call result before the spread is flagged
+-PASS  the scan finds the research scripts and tests (709): a scan that ran on nothing is an error
++PASS  the scan finds the research scripts and tests (852): a scan that ran on nothing is an error
+ PASS  no research script sets a candidate key before spreading RESEARCH_OPTS or CANDIDATE_OPTS
+ 
+-=========== 57 passed, 0 failed ===========
++=========== 59 passed, 0 failed ===========
+diff --git a/research/tests/save-default.test.mjs b/research/tests/save-default.test.mjs
+new file mode 100644
+index 00000000..1c34f7f7
+--- /dev/null
++++ b/research/tests/save-default.test.mjs
+@@ -0,0 +1,256 @@
++/*
++ * THE SAVINGS SPLIT AS A WORKING SINGLE'S DEFAULT (D138; the savings split's v2, registered on seed 7025 and read once: PASS,
++ * research/solver/results-save-v2.txt; its registration's Outcomes: `saveSplit: true` joins the candidate for singles who work
++ * and save, a couple's solves kept off it). Light settings, each solve as the page makes it (src/solverApp.js solveForApp):
++ *   1. the candidate: research/solver/candidate.json and the app's APP_CANDIDATE carry `saveSplit: true` and `saveIsaFirst:
++ *      'selfEmployed'`, the two keys D138 adds to the candidate before it (candidate.mjs BEFORE_D138_OPTS); the two the same key
++ *      for key;
++ *   2. a single who works and saves (S188, an employee taxed in Scotland, five working years): its record 'on', its menu each
++ *      move and its save-1 copy (save 1 the pension first, save 2 the ISA first, src/App.jsx saveSplitRoutes; check 7 has the
++ *      ISA first), and its first year's move placing the year's saving;
++ *   3. a single with no working year (S002): its record 'no year to choose' and its tables those of the candidate before D138
++ *      to the bit (by digest): the default reaches no table of a retired single;
++ *   4. a couple who work and save (S181) keeps off the split on both of the page's routes, each solved with the partner's age:
++ *      the household's one table (src/solverCouple.js householdCut at 'pensionsPA', step 8's port, D136) and today's route,
++ *      each person's table on the pots' share (couplePlans, as a couple the household plan refuses is solved). Each plan has
++ *      a saving to place in its first year (its context's saveSplitAt), so the split would act there; no table records it
++ *      and none has a save copy on its menu;
++ *   5. the page's words for a year's saving: the move taken apart names it (src/solverStrategy.js partsOf: a save copy's
++ *      `save`, its base none); this year's actions list it with its skip, the best-ranked move placing the saving otherwise,
++ *      and that skip's cost on the paths (actionsOf), worded (src/solverWords.js actionWords); the next years' rows and the
++ *      ledger name it (aheadWords, ledgerWords); a move with no save reads word for word as before;
++ *   6. the chooser under the split, every world (a defect found by the fast tier on this change: chooser-share.test.mjs on
++ *      S224 under the split, the share check parting at a copy in a year the copies are left out): each world's table carries
++ *      the solve's moves a year (src/solver/solve.js, the solve's finish), so in a year the copies are left out every scorer
++ *      makes them unchoosable; with the share check on (CHOOSER.check), the year's shared flows and scoreMoves agree on every
++ *      move's score, tax and estate at every decision of S188's 20 paths (the terms the plant parts), and no decision there
++ *      picks a copy, which no decision could do before the fix either (the centre world, the solve itself, carried the
++ *      moves a year, and the mixture fails a move that fails in any table: the reviewer on D138's change of default, MINOR
++ *      3), so that count is a guard the plant cannot fail;
++ *   7. the ISA first held back for an employee (D137 (4); src/solver/solve.js saveOn): the app asks for the pension figure
++ *      gross, the employer's part included, and the split would move it as the employee's own. S188, an employee: no save-2
++ *      copy on its menu, its record 'held back (an employee)'; S184, self-employed (five working years): both copies, its record
++ *      'offered'; S188 at the registered configuration (the hold unset): both copies, as the split's v2 ran it;
++ *   8. the law's price in the split's routes (D137 (4), test K's outcome; src/App.jsx SAVE_NIC_CAP): from April 2029 an
++ *      employee's salary sacrifice is relieved of employee NIC on its first £2,000 a year alone. S188, an employee: each
++ *      working year's budget (saveSplitRoutes' record, the plan's pension saving at its net cost plus its ISA saving) against a
++ *      hand calculation from the engine's income tax and NIC (incomeTax, nicFor), the NIC relief on the first £2,000 alone
++ *      from 2029 and in full before; the years before 2029 the same with the cap on and off, and the years from 2029
++ *      dearer with it on, the pension first's route then the flipped plan's (income tax relief alone) to the penny, the
++ *      plan sacrificing past the £2,000 already; S184, self-employed: every year the same with it on and off; and the net cost and the gross-up
++ *      without a cap the same to the bit as before, on a grid of salaries and contributions.
++ *   9. a year has a choice only where a route offered differs from the plan (the reviewer on the change of default, finding
++ *      2; src/App.jsx saveSplitRoutes' `differs`, src/solver/solve.js saveOn, src/solver/fast.js the live years): S188 saving
++ *      into the pension alone, and S188 with its pension saving filling its room, each under the hold: no save copy, its
++ *      record 'no year to choose', its tables the candidate before D138's to the bit; the first at the registered
++ *      configuration (the hold unset): its copies, the ISA first differing; S188 as entered under the hold: a working year's
++ *      copies live exactly where the pension first differs from the plan.
++ * Plants (--planted; each wants exactly the checks named): src/solverApp.js 'couplesplit' (a couple's solve keeps the split:
++ * check 4), src/solverStrategy.js 'nosavepart' (a move's save left out of its parts: check 5), src/solver/solve.js
++ * 'nattables' (the worlds' tables left without the moves a year, as before the fix: check 6) and 'noisahold' (an employee
++ * offered the ISA first: checks 7 and 9, check 9's employees being under the hold, so that offered the ISA first their
++ * moved saving differs from the plan and their copies are rightly there), src/App.jsx 'nocap' (the split's routes priced
++ * without the cap: check 8) and src/solver/solve.js 'anyroute' (the year read over both routes, whatever is offered:
++ * check 9).
++ *   node research/tests/save-default.test.mjs [--planted]
++ */
++import * as E from '../engine.mjs';
++import * as M from '../../src/solver/model.js';
++import { solveForApp, APP_CANDIDATE, PLANT as APP_PLANT } from '../../src/solverApp.js';
++import { householdCut, couplePlans } from '../../src/solverCouple.js';
++import { bandsAt } from '../../src/solver/household.js';
++import { firstMove, skipsOf, actionsOf, partsOf, solvedContext, runPath, PLANT as STRATEGY_PLANT } from '../../src/solverStrategy.js';
++import { CHOOSER, SAVE_ROUTES } from '../../src/solver/solve.js';
++import { PART_WORDS, actionWords, aheadWords, ledgerWords } from '../../src/solverWords.js';
++import { tablesOf, digestOf } from '../../src/solverDigest.js';
++import { CANDIDATE_OPTS, BEFORE_D138_OPTS, D138_KEYS } from '../solver/candidate.mjs';
++import { buildScenarios } from '../policy-study/scenarios.mjs';
++import { execFileSync } from 'node:child_process';
++import { fileURLToPath } from 'node:url';
++
++if (process.argv.includes('--planted')) {
++  let bad = 0;
++  for (const [plant, want] of [['couplesplit', ['4']], ['nosavepart', ['5']], ['nattables', ['6']], ['noisahold', ['7', '9']], ['nocap', ['8']], ['anyroute', ['9']]]) {
++    let out = '';
++    try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, SAVE_DEFAULT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
++    const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
++    console.log(`plant '${plant}': the checks that fail: ${failed.join(', ') || 'none'}; wanted exactly ${want.join(', ')}: ${okp ? 'yes' : 'NO'}`);
++    if (!okp) bad++;
++  }
++  process.exit(bad ? 1 : 0);
++}
++
++let pass = 0, fail = 0;
++const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
++const guard = (n, f) => { try { f(); } catch (e) { ok(n, false, `threw: ${e.message}`); } };
++const PLANT = process.env.SAVE_DEFAULT_PLANT || '';
++if (PLANT === 'couplesplit') APP_PLANT.rule = PLANT;
++if (PLANT === 'nosavepart') STRATEGY_PLANT.rule = PLANT;
++if (PLANT === 'nattables') CHOOSER.plant = PLANT;
++if (PLANT === 'noisahold') SAVE_ROUTES.plant = PLANT;
++if (PLANT === 'nocap') E.SAVE_NIC_CAP.on = false;
++if (PLANT === 'anyroute') SAVE_ROUTES.plant = PLANT;
++const light = { points: 6, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };
++const lib = buildScenarios(), planOf = id => structuredClone(lib.find(s => s.id === id).plan);
++const js = x => JSON.stringify(x);
++const choiceAt0 = plan => { const ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(plan))); return !!(ctx.saveSplitAt && ctx.saveSplitAt(0)); };
++const noSplit = r => !r.meta.saveSplit && !r.actions.some(a => a.save);
++const t0 = Date.now(), secs = () => `${((Date.now() - t0) / 1000).toFixed(0)} s`;
++
++// 1. the candidate
++{
++  const keys = o => Object.keys(o).sort();
++  const sameKeys = js(keys(CANDIDATE_OPTS)) === js(keys(APP_CANDIDATE)) && keys(CANDIDATE_OPTS).every(k => js(CANDIDATE_OPTS[k]) === js(APP_CANDIDATE[k]));
++  const added = keys(CANDIDATE_OPTS).filter(k => !(k in BEFORE_D138_OPTS));
++  const rest = keys(BEFORE_D138_OPTS).every(k => js(BEFORE_D138_OPTS[k]) === js(CANDIDATE_OPTS[k]));
++  ok('1. the candidate', CANDIDATE_OPTS.saveSplit === true && APP_CANDIDATE.saveSplit === true && CANDIDATE_OPTS.saveIsaFirst === 'selfEmployed' && APP_CANDIDATE.saveIsaFirst === 'selfEmployed' && sameKeys && js(added) === js(['saveIsaFirst', 'saveSplit']) && js(D138_KEYS) === js(['saveSplit', 'saveIsaFirst']) && rest,
++    `candidate.json saveSplit ${CANDIDATE_OPTS.saveSplit} saveIsaFirst ${CANDIDATE_OPTS.saveIsaFirst}, APP_CANDIDATE saveSplit ${APP_CANDIDATE.saveSplit} saveIsaFirst ${APP_CANDIDATE.saveIsaFirst}; the two ${sameKeys ? 'the same key for key' : 'DIFFERENT'}; added to the candidate before D138: ${added.join(', ') || 'none'}; every other key ${rest ? 'as before' : 'MOVED'}`);
++}
++
++// 2. a single who works and saves
++let S188 = null;
++guard('2. a working single', () => {
++  const plan = planOf('S188'), r = solveForApp(E, M, plan, light), base = r.actions.filter(a => !a.save), copies = r.actions.filter(a => a.save);
++  const f = firstMove(E, r), a0 = r.actions[f.mv.index];
++  S188 = { plan, r, a0 };
++  ok('2. a working single', r.meta.saveSplit === 'on' && copies.filter(a => a.save === 1).length === base.length && copies.every(a => a.save === 1 || a.save === 2) && a0.save > 0,
++    `S188 (${secs()}): its record '${r.meta.saveSplit}'; ${r.actions.length} moves, ${base.length} and ${copies.length} save copies; the first year's move '${a0.label}', save ${a0.save || 0}`);
++});
++
++// 3. a single with no working year
++await (async () => {
++  try {
++    const plan = planOf('S002'), on = solveForApp(E, M, plan, light), off = solveForApp(E, M, plan, { ...light, research: { ...light.research, saveSplit: undefined } });
++    const dOn = await digestOf(tablesOf(on)), dOff = await digestOf(tablesOf(off));
++    ok('3. a retired single', on.meta.saveSplit === 'no year to choose' && off.meta.saveSplit === undefined && dOn === dOff && on.actions.length === off.actions.length && !choiceAt0(plan),
++      `S002 (${secs()}): its record '${on.meta.saveSplit}' (the candidate before D138: ${off.meta.saveSplit === undefined ? 'none' : off.meta.saveSplit}); ${on.actions.length} and ${off.actions.length} moves; its tables ${dOn === dOff ? 'the same to the bit' : 'DIFFERENT'} (${dOn.slice(0, 12)}, ${dOff.slice(0, 12)})`);
++  } catch (e) { ok('3. a retired single', false, `threw: ${e.message}`); }
++})();
++
++// 4. a couple keeps off the split on both routes
++guard('4. a couple', () => {
++  const plan = planOf('S181'), cut = householdCut(E, M, plan, 'pensionsPA'), b = cut.bands;
++  const H = bandsAt(E, b.k, b.paOne, () => solveForApp(E, M, cut.hplan, { ...light, ageWith: cut.ageWith }), b.paK);
++  const cp = couplePlans(E, plan, { shareRule: 'pots' }), P = {};
++  for (const who of ['self', 'part']) P[who] = solveForApp(E, M, cp.plans[who], { ...light, ageWith: cp.ageWith[who] });
++  const choice = { household: choiceAt0(cut.hplan), self: choiceAt0(cp.plans.self), part: choiceAt0(cp.plans.part) };
++  const off = { household: noSplit(H), self: noSplit(P.self), part: noSplit(P.part) };
++  const says = (w, r) => `${w} ${off[w] ? 'without the split' : `WITH IT ('${r.meta.saveSplit}', ${r.actions.filter(a => a.save).length} save copies)`}${choice[w] ? '' : ' (no saving to place in year 0)'}`;
++  ok('4. a couple', off.household && off.self && off.part && choice.household && (choice.self || choice.part),
++    `S181 (${secs()}), each solved with the partner's age: the household's one table at 'pensionsPA' ${says('household', H)}; today's route, ${says('self', P.self)}, ${says('part', P.part)}`);
++});
++
++// 5. the page's words for a year's saving
++guard('5. the words', () => {
++  if (!S188) throw new Error('check 2 did not solve S188');
++  const { plan, r, a0 } = S188;
++  // the menu is each move, then each move's save-1 copy, then each move's save-2 copy (solve.js withSaveCopies)
++  const n0 = r.actions.filter(a => !a.save).length, ci = r.actions.findIndex(a => a.save === 1), bi = ci - n0;
++  const pc = partsOf(r.actions[ci], r.c.acts[ci]), pb = bi >= 0 && !r.actions[bi].save && r.actions[ci].label.startsWith(r.actions[bi].label) ? partsOf(r.actions[bi], r.c.acts[bi]) : null;
++  const apart = pc.save === 1 && pb !== null && !('save' in pb) && js({ ...pc, save: undefined }) === js(pb);
++  const sk = skipsOf(E, r), sx = sk.list.find(x => x.part === 'save');
++  const skipOk = !!sx && sx.value === a0.save && sx.skip !== null && (r.actions[sx.skip].save || 0) !== a0.save;
++  const acts = actionsOf(E, r, plan, { n: 40 }), ax = acts.actions.find(x => x.part === 'save');
++  const wctx = { target: 30000, fmt: v => `£${Math.round(v).toLocaleString('en-GB')}` };
++  const aw = ax ? actionWords(ax, wctx) : null;
++  const listed = !!ax && ax.skip !== null && Number.isFinite(ax.cost) && aw.what === PART_WORDS.save(a0.save) && /^Pay your saving into your (pension|ISA) first, then your (ISA|pension)/.test(aw.what);
++  const row = { year: 2027, age: 55, spend: 0, parts: { level: 1, draw: 'none', isaFirst: true, harvest: null, tierPen: 0, tierIsa: 0, save: 1 }, swept: null };
++  const ah = aheadWords(row, wctx), ahNone = aheadWords({ ...row, parts: { ...row.parts, save: undefined } }, wctx);
++  const rows = ah.lines[0] === PART_WORDS.save(1) && ah.spend === 'still working' && js(ahNone.lines) === js(['nothing to change']);
++  const before = { level: 0.9, draw: 'pa', isaFirst: true, harvest: null, tierPen: 1, tierIsa: 0 };
++  const ledger = ledgerWords({ ...before, save: 2 }, false) === 'saving: ISA first · pension first, to the personal allowance · pension 1 step safer'
++    && ledgerWords(before, true) === 'spend 90% · pension first, to the personal allowance · pension 1 step safer' && ledgerWords({ ...before, draw: 'none', tierPen: 0 }, false) === 'as planned';
++  ok('5. the words', apart && skipOk && listed && rows && ledger,
++    `S188 (${secs()}): a save copy's parts ${apart ? `name it (save ${pc.save}), its base's none` : `DO NOT (${js(pc)})`}; this year's skips ${skipOk ? `list the save, its skip '${r.actions[sx.skip].label}' save ${r.actions[sx.skip].save || 0}` : 'DO NOT list the save'}; `
++    + `this year's actions ${listed ? `say "${aw.what}" (${aw.cost})` : 'DO NOT word it'}; the rows ${rows ? 'name it and a year without it reads "nothing to change"' : `DO NOT (${js(ah.lines)})`}; the ledger ${ledger ? 'names it and a move with no save reads as before' : 'DOES NOT'}`);
++});
++
++// 6. the chooser under the split, every world: each world's table scores the year's moves alone
++guard('6. the worlds under the split', () => {
++  if (!S188) throw new Error('check 2 did not solve S188');
++  const { r } = S188, worlds = r.mix ? r.mix.tables : [], n = r.actions.length;
++  const live = t => r.nAt[Math.min(Math.max(t, 0), r.nAt.length - 1)];
++  const carried = worlds.length > 1 && worlds.every(w => w.nAt === r.nAt);
++  const sc = solvedContext(E, r), T = sc.totalYears, paths = E.pathsForSeed(7002, 20, T), left = [...Array(T + 1).keys()].filter(t => live(t) < n).length;
++  let threw = null, copies = 0, decisions = 0;
++  CHOOSER.check = true;
++  try {
++    for (const zs of paths) runPath(E, { ...sc, policyOverride: { ...sc.policyOverride, choose(st, t, held) { const mv = sc.policyOverride.choose(st, t, held); decisions++; if (mv && mv.index >= live(t)) copies++; return mv; } } }, zs);
++  } catch (e) { threw = e.message; } finally { CHOOSER.check = false; }
++  ok('6. the worlds under the split', carried && !threw && copies === 0 && left > 0,
++    `S188 (${secs()}): ${worlds.length} worlds, each ${carried ? 'carrying the solve\'s moves a year' : 'WITHOUT the solve\'s moves a year'}; the copies left out in ${left} of ${T + 1} years; with the share check on, ${threw ? `it THREW: ${threw.slice(0, 160)}` : `every move's score, tax and estate agree at ${decisions} decisions of ${paths.length} paths`}; a copy picked in a year it is left out at ${copies}`);
++});
++
++// 7. the ISA first held back for an employee (D138; D137 (4)): an employee's split offers the plan's own and the pension first
++guard('7. the hold', () => {
++  if (!S188) throw new Error('check 2 did not solve S188');
++  const e = S188.r, s = solveForApp(E, M, planOf('S184'), light), reg = solveForApp(E, M, planOf('S188'), { ...light, research: { ...light.research, saveIsaFirst: undefined } });
++  const nBase = r => r.actions.filter(a => !a.save).length, nSave = (r, v) => r.actions.filter(a => a.save === v).length;
++  const emp = nSave(e, 1) === nBase(e) && nSave(e, 2) === 0 && e.meta.saveIsaFirst === 'held back (an employee)';
++  const self = nSave(s, 1) === nBase(s) && nSave(s, 2) === nBase(s) && s.meta.saveIsaFirst === 'offered';
++  const registered = nSave(reg, 1) === nBase(reg) && nSave(reg, 2) === nBase(reg) && reg.meta.saveIsaFirst === undefined && reg.meta.saveSplit === 'on';
++  const said = r => `${nBase(r)} moves, ${nSave(r, 1)} pension-first and ${nSave(r, 2)} ISA-first copies, its record '${r.meta.saveIsaFirst}'`;
++  ok('7. the hold', emp && self && registered,
++    `(${secs()}) S188, an employee: ${said(e)}; S184, self-employed: ${said(s)}; S188 at the registered configuration (the hold unset): ${said(reg)}`);
++});
++
++// 8. the law's price in the split's routes: the 2029 cap on salary sacrifice's NIC relief (D138; D137 (4))
++guard('8. the 2029 cap', () => {
++  const prep = plan => E.resolveMpaa(E.normalizePlan(plan));
++  const routes = id => { const ctx = E.buildContext(prep(planOf(id))), o = ctx.owners.find(x => x.key === 'self'), out = [];
++    for (let t = 0; t <= ctx.totalYears; t++) { const R = ctx.saveSplitAt && ctx.saveSplitAt(t); if (R) out.push({ t, year: ctx.baseYear + t, R, salary: E.salaryAtYear(o, t), ctx, o }); } return out; };
++  const was = E.SAVE_NIC_CAP.on, on = routes('S188');
++  E.SAVE_NIC_CAP.on = false; const off = routes('S188'), selfOff = routes('S184');
++  E.SAVE_NIC_CAP.on = was; const selfOn = routes('S184');
++  const cap = E.SAVE_NIC_CAP.amount, from = E.SAVE_NIC_CAP.from;
++  // the hand calculation: the net cost of a gross contribution g to an employee on salary s, NIC relieved on min(g, c)
++  const hand = (g, s, P, c) => g - (E.incomeTax(s, P) - E.incomeTax(s - g, P)) - (E.nicFor(s, P) - E.nicFor(s - Math.min(g, c), P));
++  let worst = 0, before = 0, after = 0, dearer = 0;
++  for (const r of on) {
++    const P = r.ctx.P, acc = Object.fromEntries(r.ctx.accounts.map(a => [a.id, a])), pa = acc[r.o.ids.pen], ia = acc[r.o.ids.isa];
++    const P0 = pa ? E.contribAtYear(pa, r.t) : 0, I0 = ia ? E.contribAtYear(ia, r.t) : 0, c = r.year >= from ? cap : Infinity;
++    const want = (P0 > 0 ? hand(P0, r.salary, P, c) : 0) + I0, got = r.R.owners[0].budget;
++    worst = Math.max(worst, Math.abs(got - want));
++    const o2 = off.find(x => x.t === r.t);
++    if (r.year < from) { if (JSON.stringify(r.R) === JSON.stringify(o2 && o2.R)) before++; }
++    else { after++; if (o2 && got > o2.R.owners[0].budget + 0.005) dearer++; }
++  }
++  const nBefore = on.filter(r => r.year < from).length;
++  // from 2029 the pension first's route under the cap is the flipped plan's (income tax relief alone, test K's lever) to the
++  // penny: the plan already sacrifices past the £2,000 the cap relieves (the reviewer at K's read, finding 1)
++  const fl = (() => { const p = planOf('S188'); p.demographics = { ...p.demographics, employmentSelf: 'self-employed' }; const ctx = E.buildContext(prep(p)); return t => ctx.saveSplitAt(t); })();
++  let route = 0, routeSame = 0;
++  for (const r of on.filter(x => x.year >= from)) { const b = fl(r.t), ids = r.o.ids; route++; if (b && [ids.pen, ids.isa, ids.other].every(id => Math.abs(r.R.variants[1][id] - b.variants[1][id]) < 0.01)) routeSame++; }
++  const selfSame = selfOn.length > 0 && selfOn.length === selfOff.length && selfOn.every((r, i) => JSON.stringify(r.R) === JSON.stringify(selfOff[i].R));
++  // the net cost and the gross-up without a cap: the same to the bit as the call without the argument
++  const P = on[0].ctx.P;
++  let grid = 0, gridSame = 0;
++  for (const s of [15000, 29500, 50000, 77500, 130000]) for (const g of [500, 2000, 3540, 9300, 20000]) {
++    grid++; if (Object.is(E.netCostOfPensionContrib(g, s, P, false), E.netCostOfPensionContrib(g, s, P, false, Infinity)) && Object.is(E.grossUpNet(g, s, P, 60000, false), E.grossUpNet(g, s, P, 60000, false, Infinity))) gridSame++;
++  }
++  ok('8. the 2029 cap', on.length > 0 && worst < 1e-6 && after > 0 && before === nBefore && dearer === after && route === after && routeSame === route && selfSame && gridSame === grid,
++    `S188, an employee: ${on.length} working years with a saving to place (${nBefore} before ${from}, ${after} from it); each year's budget against the hand calculation, the worst gap £${worst.toExponential(2)}; the years before ${from} ${before === nBefore ? 'the same with the cap on and off' : `DIFFERENT in ${nBefore - before}`}; from ${from} dearer with it on in ${dearer} of ${after}, and the pension first's route the flipped plan's to the penny in ${routeSame} of ${route}; S184, self-employed: ${selfSame ? `every year the same with it on and off (${selfOn.length})` : 'DIFFERENT'}; without a cap the net cost and the gross-up ${gridSame === grid ? `the same to the bit (${grid} cases)` : `DIFFERENT in ${grid - gridSame} of ${grid}`}`);
++});
++
++// 9. a year has a choice only where a route offered differs from the plan (D138; the reviewer on the change of default, 2)
++await (async () => {
++  try {
++    const edit = (f) => { const p = planOf('S188'); for (const a of p.accounts) f(a); return p; };
++    const penOnly = edit(a => { if (a.id === 'isa_self') a.contrib = 0; }), filled = edit(a => { if (a.id === 'pen_self') a.contrib = 60000; });
++    const off = { ...light, research: { ...light.research, saveSplit: undefined, saveIsaFirst: undefined } };
++    const kept = async plan => { const on = solveForApp(E, M, plan, light), before = solveForApp(E, M, structuredClone(plan), off); return { on, same: (await digestOf(tablesOf(on))) === (await digestOf(tablesOf(before))) && on.actions.length === before.actions.length }; };
++    const a = await kept(penOnly), b = await kept(filled);
++    const none = x => !x.on.actions.some(m => m.save) && x.on.meta.saveSplit === 'no year to choose' && x.same;
++    const reg = solveForApp(E, M, structuredClone(penOnly), { ...light, research: { ...light.research, saveIsaFirst: undefined } });
++    const regOn = reg.meta.saveSplit === 'on' && reg.actions.some(m => m.save === 2);
++    // S188 as entered under the hold: the copies live exactly in the working years where the pension first differs
++    const r = S188 ? S188.r : solveForApp(E, M, planOf('S188'), light), ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(planOf('S188'))));
++    let liveYears = 0, d1Years = 0, agree = true;
++    for (let t = 0; t < r.nAt.length; t++) { const live = r.nAt[t] === r.actions.length, R = ctx.saveSplitAt(t), d1 = !!(R && R.differs[1]); if (live) liveYears++; if (d1) d1Years++; if (live !== d1) agree = false; }
++    ok('9. a year to choose', none(a) && none(b) && regOn && agree && liveYears > 0,
++      `S188 saving into the pension alone, under the hold: ${a.on.actions.filter(m => m.save).length} save copies, its record '${a.on.meta.saveSplit}', its tables ${a.same ? 'the candidate before D138\'s to the bit' : 'DIFFERENT'}; with its pension saving filling its room: ${b.on.actions.filter(m => m.save).length} copies, '${b.on.meta.saveSplit}', ${b.same ? 'the same to the bit' : 'DIFFERENT'}; the first at the registered configuration: '${reg.meta.saveSplit}', ${reg.actions.filter(m => m.save === 2).length} ISA-first copies; S188 as entered: its copies live in ${liveYears} years, the pension first differing in ${d1Years}${agree ? ', the same years' : ', NOT THE SAME YEARS'} (${secs()})`);
++  } catch (e) { ok('9. a year to choose', false, `threw: ${e.message}`); }
++})();
++
++console.log(`\n${fail ? 'FAILED' : 'ALL PASS'}: ${pass} passed, ${fail} failed (${secs()})`);
++process.exit(fail ? 1 : 0);
+diff --git a/research/tests/save-split.test.mjs b/research/tests/save-split.test.mjs
+index adff9388..142aff26 100644
+--- a/research/tests/save-split.test.mjs
++++ b/research/tests/save-split.test.mjs
+@@ -27,6 +27,9 @@
+  * option solves; check 1b's pins are re-taken on the candidate as it is (the working: results-d73-fulltier.txt); check 3's
+  * replayed move carries `sweepIsa` as the table's own does (bridge.js tablePolicy); and check 5, an identity of the skip, is
+  * read with `coarse` taken out on both sides (a shortlist is drawn from the menu, so it differs with the copies in it).
++ * Since D138 (21 Nov; the savings split's v2 read, PASS) the candidate carries `saveSplit: true`: this code's solves take the
++ * candidate before it (candidate.mjs BEFORE_D138_OPTS) as their base, so "the option unset" is still the option unset and the
++ * option on is the candidate as it is; every figure the same.
+  *   node research/tests/save-split.test.mjs [--base <root of the code before the option>] [--only 2]   (--only 2: the gross-up alone, no solves; not a record)
+  */
+ import { resolve, join, dirname } from 'node:path';
+@@ -123,7 +126,7 @@ const runsOf = (Sx, r, paths) => paths.map(zs => JSON.stringify(Sx.runPolicy(r,
+ const runDiff = (ra, rb) => ra.findIndex((x, i) => x !== rb[i]);
+ const flat = (o, pre = '', out = {}) => { for (const [k, x] of Object.entries(o || {})) { if (k === 'ms') continue; if (x && typeof x === 'object' && !Array.isArray(x)) flat(x, `${pre}${k}.`, out); else out[`${pre}${k}`] = JSON.stringify(x); } return out; };
+ const metaDiff = (a, b) => { const fa = flat(a.meta), fb = flat(b.meta); return [...new Set([...Object.keys(fa), ...Object.keys(fb)])].filter(k => fa[k] !== fb[k]).sort(); };
+-const solve = (Cx, Ex, Mx, plan, o = {}, base) => Cx.solveCandidate(Ex, Mx, structuredClone(plan), { ...light, ...o }, base);
++const solve = (Cx, Ex, Mx, plan, o = {}, base = Cx.BEFORE_D138_OPTS || Cx.CANDIDATE_OPTS) => Cx.solveCandidate(Ex, Mx, structuredClone(plan), { ...light, ...o }, base);
+ // the whole menu named by the arm itself (check 5): the candidate's `coarse` left out of a solve that could take it
+ const WHOLE = { coarse: undefined };
+ const pathsFor = (r, n, seed = 99001) => E.pathsForSeed(seed, n, r.m.ctx.totalYears).map(z => Float64Array.from(z));
+diff --git a/research/tests/shortlist-shown.test.mjs b/research/tests/shortlist-shown.test.mjs
+index ffbc5896..f9f63153 100644
+--- a/research/tests/shortlist-shown.test.mjs
++++ b/research/tests/shortlist-shown.test.mjs
+@@ -24,6 +24,12 @@
+  *      moves differ from the whole menu's; read through shownPolicy they are the whole menu's.
+  * Beside the checks, not deciding: whether the first year's move the counted paths take is the move the page shows.
+  *   node research/tests/shortlist-shown.test.mjs
++ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit`, with `saveIsaFirst`). S328F works and saves, so
++ * under it its solve sets the moves a year (`r.nAt`), and the chooser takes no shortlist where `r.nAt` is set (solve.js,
++ * CHOOSER.mask): the guard would have nothing to guard on it, and its plants nothing to catch (the reviewer on D138's change
++ * of default, finding 1). This test's solves take the candidate without the split (NO_SPLIT), so it tests the guard as before;
++ * a pass says nothing of a working saver under the default, whose every year is on the whole menu until the speed work
++ * D137 (1) puts next keys the shortlist on the year's own count of moves.
+  */
+ import * as E from '../engine.mjs';
+ import * as M from '../../src/solver/model.js';
+@@ -36,7 +42,8 @@ import { readPanel } from '../solver/phase4-panel.mjs';
+ 
+ let passed = 0, failed = 0;
+ const ok = (n, label, c, detail = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'} ${n}. ${label}${detail ? '   ' + detail : ''}`); if (c) passed++; else failed++; };
+-const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, SEED = 99004, NRUN = 60, NFIT = 30, MARGIN = 1e-4;
++// D138: the candidate without the savings split (NO_SPLIT, as the header says)
++const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true }, saveSplit: undefined, saveIsaFirst: undefined }, SEED = 99004, NRUN = 60, NFIT = 30, MARGIN = 1e-4;
+ const STARTS = [1929, 1937, 1946, 1955, 1962, 1966, 1969, 1973, 1982, 1990];
+ const ID = 'S328F', plan = readPanel().find(x => x.id === ID).plan;
+ // the chooser's switches on a solved plan, as the solve's options would set them (chooser-shortlist.test.mjs's own)
+diff --git a/research/tests/windfall-relief.test.mjs b/research/tests/windfall-relief.test.mjs
+index 39c5451d..b8929ca6 100644
+--- a/research/tests/windfall-relief.test.mjs
++++ b/research/tests/windfall-relief.test.mjs
+@@ -29,6 +29,9 @@
+  * The plants, each in a patched copy of the engine: norelief (the money landing at face value, pensionRelief's net the gross
+  * and the routes sizing the gross at no relief) fails cases 1 to 6; no75 (the pension keeping its room from 75) fails case 7. --planted runs it and reads which checks fail.
+  *   node research/tests/windfall-relief.test.mjs [--planted]
++ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit`, with `saveIsaFirst`), which reaches a working
++ * saver's solve here: this test's solves take the candidate without it (NO_SPLIT), so it checks what it checked before and
++ * every figure it pins is the same; the split's own effect is save-default.test.mjs's.
+  */
+ import { readFileSync, writeFileSync, rmSync } from 'node:fs';
+ import { spawnSync } from 'node:child_process';
+@@ -152,7 +155,8 @@ console.log(`windfall-relief: relief on the plan's own pension routes (the revie
+   if (PLANT) ok(6, `S116 and S210 as before (the tables not solved under the plant); ${routeTxt}`, route);
+   else {
+     const M = await import('../../src/solver/model.js'), { solveForApp } = await import('../../src/solverApp.js'), { tablesOf, digestOf } = await import('../../src/solverDigest.js');
+-    const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };
++    // D138: the candidate without the savings split (NO_SPLIT, as the header says)
++    const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true }, saveSplit: undefined, saveIsaFirst: undefined } };
+     const got = {};
+     for (const k of Object.keys(ITEM3)) got[k] = await digestOf(tablesOf(solveForApp(E, M, E.normalizePlan(plans[k]), LIGHT)));
+     const same = Object.keys(ITEM3).every(k => got[k] === ITEM3[k]);
+diff --git a/research/tests/windfall-split.test.mjs b/research/tests/windfall-split.test.mjs
+index 6e556a8c..f6b77498 100644
+--- a/research/tests/windfall-split.test.mjs
++++ b/research/tests/windfall-split.test.mjs
+@@ -27,6 +27,9 @@
+  * option solves; check 1b's pins are re-taken on the candidate as it is (the working: results-d73-fulltier.txt); check 3's
+  * replayed move carries `sweepIsa` as the table's own does (bridge.js tablePolicy); and check 5, an identity of the skip, is
+  * read with `coarse` taken out on both sides (a shortlist is drawn from the menu, so it differs with the copies in it).
++ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit: true`), which solve.js refuses beside the windfall
++ * split (both rooms would be counted twice): this code's solves take the candidate before it (candidate.mjs BEFORE_D138_OPTS)
++ * as their base, the candidate the windfall split was built and read on; every figure the same.
+  *   node research/tests/windfall-split.test.mjs [--base <root of the code before the option>]
+  */
+ import { resolve, join, dirname } from 'node:path';
+@@ -128,7 +131,7 @@ const runsOf = (Sx, r, paths) => paths.map(zs => JSON.stringify(Sx.runPolicy(r,
+ const runDiff = (ra, rb) => ra.findIndex((x, i) => x !== rb[i]);
+ const flat = (o, pre = '', out = {}) => { for (const [k, x] of Object.entries(o || {})) { if (k === 'ms') continue; if (x && typeof x === 'object' && !Array.isArray(x)) flat(x, `${pre}${k}.`, out); else out[`${pre}${k}`] = JSON.stringify(x); } return out; };
+ const metaDiff = (a, b) => { const fa = flat(a.meta), fb = flat(b.meta); return [...new Set([...Object.keys(fa), ...Object.keys(fb)])].filter(k => fa[k] !== fb[k]).sort(); };
+-const solve = (Cx, Ex, Mx, plan, o = {}, base) => Cx.solveCandidate(Ex, Mx, structuredClone(plan), { ...light, ...o }, base);
++const solve = (Cx, Ex, Mx, plan, o = {}, base = Cx.BEFORE_D138_OPTS || Cx.CANDIDATE_OPTS) => Cx.solveCandidate(Ex, Mx, structuredClone(plan), { ...light, ...o }, base);
+ // the whole menu named by the arm itself (check 5): the candidate's `coarse` left out of a solve that could take it
+ const WHOLE = { coarse: undefined };
+ const pathsFor = (r, n, seed = 99001) => E.pathsForSeed(seed, n, r.m.ctx.totalYears).map(z => Float64Array.from(z));
+diff --git a/src/App.jsx b/src/App.jsx
+index 4f649bd7..13df872c 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -1404,7 +1404,24 @@ function taxBreakpoints(p) {
+  */
+ function passThroughFactor(p, selfEmployed = false) { return selfEmployed ? 1 : 1 + p.erNic * p.erPass; }
+ 
+-function calculateMarginalRelief(salaryInput, sacrificeInput, cfg, selfEmployed = false) {
++/*
++ * THE CAP ON SALARY SACRIFICE'S NIC RELIEF (D138; D137 (4) and test K, research/solver/results-save-k.txt): from April 2029
++ * an employee's salary sacrifice is relieved of employee NIC on its first £2,000 a year alone, the rest relieved of income tax
++ * only. The app holds the £2,000 constant in real terms, as it holds a threshold the law fixes in cash. Only the savings
++ * split's routes take it (saveSplitRoutes, an employee's moved saving from 2029): a plan's own contributions are not priced
++ * while working, and the app's contribution strategies keep the relief uncapped. `nicCap` below is the cap in pounds of
++ * sacrifice (Infinity, the default, is no cap, by the same code as before it). SAVE_NIC_CAP.on false (research only)
++ * prices the split's routes without it, as the split's v2 registered them. What it leaves (the reviewer on D138's change of
++ * default, MINOR 4): (a) the employer's NIC passed to the pension (Config's pass-through) is still credited on the whole
++ * sacrifice, where from April 2029 the employer saves NIC on its first £2,000 alone; pricing it here alone would part the
++ * routes' sacrifice from the engine's taxable pay (taxablePayOf takes a contribution over the whole pass-through factor in
++ * every year), and the cap for a plan's own contributions is queued as its own engine change (D134 (3)); (b) the cap counts
++ * the whole pension figure, the employer's part included, as the employee's own sacrifice, which the plan does not record,
++ * so where the employee's own sacrifice is under £2,000 it binds earlier than the law's; (c) a blank salary takes the
++ * assumed rate, uncapped.
++ */
++const SAVE_NIC_CAP = { from: 2029, amount: 2000, on: true };
++function calculateMarginalRelief(salaryInput, sacrificeInput, cfg, selfEmployed = false, nicCap = Infinity) {
+   const p = taxParams(cfg);
+   const sacrifice = Math.max(0, num(sacrificeInput, 0));
+   const passFactor = passThroughFactor(p, selfEmployed);
+@@ -1417,16 +1434,19 @@ function calculateMarginalRelief(salaryInput, sacrificeInput, cfg, selfEmployed
+     return { netCost: sacrifice - taxSaved, taxSaved, reliefRate: assumedRate * 100, pensionCredit: sacrifice * passFactor, sacrifice, assumed: true };
+   }
+   const g = Math.min(sacrifice, salary);
++  // an employee's NIC relief on the first nicCap of the sacrifice alone, where the cap binds (SAVE_NIC_CAP); below it, as before
+   const taxSaved = selfEmployed
+     ? incomeTax(salary, p) - incomeTax(salary - g, p)
+-    : calculateUKTaxAndNIC(salary, p) - calculateUKTaxAndNIC(salary - g, p);
++    : g > nicCap
++      ? (incomeTax(salary, p) - incomeTax(salary - g, p)) + (nicFor(salary, p) - nicFor(salary - Math.max(0, nicCap), p))
++      : calculateUKTaxAndNIC(salary, p) - calculateUKTaxAndNIC(salary - g, p);
+   return { netCost: g - taxSaved, taxSaved, reliefRate: g > 0 ? (taxSaved / g) * 100 : 0, pensionCredit: g * passFactor, sacrifice: g, capped: g < sacrifice };
+ }
+ // Net take-home cost of a pension contribution (the amount landing in the pension, incl. employer pass-through).
+-function netCostOfPensionContrib(contrib, salaryInput, cfg, selfEmployed = false) {
++function netCostOfPensionContrib(contrib, salaryInput, cfg, selfEmployed = false, nicCap = Infinity) {
+   const p = taxParams(cfg);
+   const passFactor = passThroughFactor(p, selfEmployed);
+-  return calculateMarginalRelief(salaryInput, Math.max(0, num(contrib, 0)) / passFactor, cfg, selfEmployed).netCost;
++  return calculateMarginalRelief(salaryInput, Math.max(0, num(contrib, 0)) / passFactor, cfg, selfEmployed, nicCap).netCost;
+ }
+ /*
+  * The pay income tax is charged on (the review of 9 Nov, item 3, D66): the salary less what is given up to the pension, as
+@@ -1439,7 +1459,7 @@ function taxablePayOf(pay, penContrib, cfg, selfEmployed = false) {
+   return Math.max(0, g - Math.min(Math.max(0, num(penContrib, 0)) / passThroughFactor(taxParams(cfg), selfEmployed), g));
+ }
+ // Pension credit obtainable for a given net take-home cost (inverse of the above), capped at maxCredit.
+-function grossUpNet(netAmount, salaryInput, cfg, maxCredit = Infinity, selfEmployed = false) {
++function grossUpNet(netAmount, salaryInput, cfg, maxCredit = Infinity, selfEmployed = false, nicCap = Infinity) {
+   const net = Math.max(0, num(netAmount, 0));
+   if (net <= 0) return 0;
+   const p = taxParams(cfg);
+@@ -1451,11 +1471,11 @@ function grossUpNet(netAmount, salaryInput, cfg, maxCredit = Infinity, selfEmplo
+   } else {
+     // netCost(sacrifice) is increasing; bisection on sacrifice in [0, salary]
+     let lo = 0, hi = salary;
+-    if (calculateMarginalRelief(salary, hi, p, selfEmployed).netCost <= net) credit = hi * passFactor;
++    if (calculateMarginalRelief(salary, hi, p, selfEmployed, nicCap).netCost <= net) credit = hi * passFactor;
+     else {
+       for (let i = 0; i < 48; i++) {
+         const mid = (lo + hi) / 2;
+-        if (calculateMarginalRelief(salary, mid, p, selfEmployed).netCost < net) lo = mid; else hi = mid;
++        if (calculateMarginalRelief(salary, mid, p, selfEmployed, nicCap).netCost < net) lo = mid; else hi = mid;
+       }
+       credit = ((lo + hi) / 2) * passFactor;
+     }
+@@ -3557,7 +3577,7 @@ function saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, tota
+   const at = t => {
+     if (!(t >= 0 && t <= totalYears)) return null;
+     const v1 = {}, v2 = {}, rooms = [];
+-    let any = false;
++    let any = false, d1 = false, d2 = false;
+     for (const o of owners) {
+       if ((o.age0 + t) >= o.retireAge) continue;
+       const ids = o.ids, pa = acc[ids.pen], ia = acc[ids.isa], ga = acc[ids.other], ca = acc[ids.cash];
+@@ -3565,7 +3585,9 @@ function saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, tota
+       const plan = { [ids.pen]: P0, [ids.isa]: I0, [ids.other]: G0, [ids.cash]: C0 };
+       const put = (v, amts) => { for (const id of Object.keys(amts)) if (acc[id]) v[id] = amts[id]; };
+       const salary = salaryAtYear(o, t), se = !!o.selfEmployed;
+-      const netOf = g => (g > 0 ? netCostOfPensionContrib(g, salary, P, se) : 0);
++      // D138: from April 2029 an employee's sacrifice is relieved of NIC on its first £2,000 a year alone (SAVE_NIC_CAP)
++      const nicCap = !se && SAVE_NIC_CAP.on && baseYear + t >= SAVE_NIC_CAP.from ? SAVE_NIC_CAP.amount : Infinity;
++      const netOf = g => (g > 0 ? netCostOfPensionContrib(g, salary, P, se, nicCap) : 0);
+       const budget = netOf(P0) + I0;
+       // nothing to move, or no taxable account to take what fits neither wrapper: the plan's own contributions
+       if (!(budget > 0) || !ga) { put(v1, plan); put(v2, plan); continue; }
+@@ -3576,7 +3598,7 @@ function saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, tota
+       const cashIsa = o.cashIsaContrib > 0 ? Math.min(o.cashIsaContrib, P.cashIsaCapAt(o.age0 + t, baseYear + t)) : 0;
+       const penRoom = pa ? Math.max(P0, cap - claim('pen')) : 0;
+       const isaRoom = ia ? Math.max(I0, P.isaAllowance - claim('isa') - cashIsa) : 0;
+-      const grossOf = n => (n > 0 && penRoom > 0 ? grossUpNet(n, salary, P, penRoom, se) : 0);
++      const grossOf = n => (n > 0 && penRoom > 0 ? grossUpNet(n, salary, P, penRoom, se, nicCap) : 0);
+       // what the gross-up leaves: under half a penny is the bisection's residue, not money
+       const rest = x => (x > 0.005 ? x : 0);
+       const pen1 = grossOf(budget), left1 = rest(budget - netOf(pen1)), isa1 = Math.min(left1, isaRoom);
+@@ -3587,9 +3609,14 @@ function saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, tota
+       const s2 = snap({ [ids.pen]: pen2, [ids.isa]: isa2, [ids.other]: G0 + left2, [ids.cash]: C0 });
+       put(v1, s1); put(v2, s2);
+       if (s1 !== plan || s2 !== plan) any = true;
++      // which routes differ from the plan this year (D138): the solver offers a year's copies only where a route it offers
++      // does (src/solver/solve.js saveOn, src/solver/fast.js the live years); a pension-only saver's pension first, or one
++      // whose pension saving fills its room, is the plan's own
++      if (s1 !== plan) d1 = true;
++      if (s2 !== plan) d2 = true;
+       rooms.push({ owner: o.key, budget, pen: penRoom, isa: isaRoom });
+     }
+-    return any ? { variants: [null, v1, v2], owners: rooms } : null;
++    return any ? { variants: [null, v1, v2], owners: rooms, differs: [false, d1, d2] } : null;
+   };
+   return t => { if (!memo.has(t)) memo.set(t, at(t)); return memo.get(t); };
+ }
+@@ -7164,7 +7191,7 @@ const E = { pensionCeiling, niceStep, gridWindow, spendRow, frontierSpend, num,
+  * at which point these lines move to src/engine.js and both pages import that instead. See
+  * PLAN-streamlined.md, "Build shape".
+  */
+-export { GUARDRAILS, planHasKnownCost, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan, N4_PEN, N4_HARVEST, N4_RAW, E };
++export { GUARDRAILS, planHasKnownCost, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan, N4_PEN, N4_HARVEST, N4_RAW, SAVE_NIC_CAP, E };
+ 
+ 
+ /*
+@@ -12647,7 +12674,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
+             </CollapsibleCard>
+ 
+             <CollapsibleCard title="UK Income Tax, National Insurance & Pension Allowances"
+-              subtitle="Defaults are 2026/27 (frozen to April 2031), and all thresholds are held constant in real terms. Not modelled: the higher tax rates on savings income from April 2027 (22%, 42% and 47%) and the £2,000 cap on National Insurance relief for salary sacrifice from April 2029; and because the thresholds are held in real terms where the law freezes them in cash, tax before April 2031 may be a little higher than shown.">
++              subtitle="Defaults are 2026/27 (frozen to April 2031), and all thresholds are held constant in real terms. Not modelled: the higher tax rates on savings income from April 2027 (22%, 42% and 47%), and the £2,000 cap on National Insurance relief for salary sacrifice from April 2029, except on an employee's own National Insurance where the solver chooses where a year's saving goes; and because the thresholds are held in real terms where the law freezes them in cash, tax before April 2031 may be a little higher than shown.">
+               {withRegion && ctlRegion()}
+               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
+                 {[
+diff --git a/src/PlannerCards.jsx b/src/PlannerCards.jsx
+index bcc09a46..cc9de38e 100644
+--- a/src/PlannerCards.jsx
++++ b/src/PlannerCards.jsx
+@@ -107,7 +107,7 @@ export function SolverSettings({ points, paths, solve = null, plan = null, isPho
+   return (
+   <section data-solver-settings className="p-4 bg-surface border border-slate-200/90 rounded-xl text-xs text-slate-600 space-y-1">
+     <h3 className="text-[15px] font-semibold text-slate-900">The solver&apos;s settings</h3>
+-    <p>{points} wealth points. The floor at 80% of your target where you set none. The dislike of cuts at 1, 3, 6 or 10 times its lowest setting. The headline on {paths.toLocaleString('en-GB')} simulated markets. The candidate 17ff82379838.</p>
++    <p>{points} wealth points. The floor at 80% of your target where you set none. The dislike of cuts at 1, 3, 6 or 10 times its lowest setting. The headline on {paths.toLocaleString('en-GB')} simulated markets. The candidate 06bc8f910b3f.</p>
+     {solve && <div className="pt-2"><DiagnosticCopy solve={solve} plan={plan} points={points} paths={paths} isPhone={isPhone} /></div>}
+   </section>
+   );
+diff --git a/src/solver/fast.js b/src/solver/fast.js
+index e30880dc..d1826354 100644
+--- a/src/solver/fast.js
++++ b/src/solver/fast.js
+@@ -226,6 +226,9 @@ export function compile(m, actions) {
+     pay: new Float64Array(T + 1), paySave: [null, 1, 2].map(v => v && new Float64Array(T + 1))
+   };
+   const saveOn = !!(actions && actions.some(a => a.save) && ctx.saveSplitAt);
++  // the saves the menu offers (an employee under the hold, the pension first alone): a working year's copies are live only
++  // where one of them differs from the plan (saveSplitRoutes' `differs`, D138); where none does they flow as their base
++  const offeredSaves = saveOn ? [...new Set(actions.filter(a => a.save).map(a => a.save))] : [];
+   for (let t = 0; t <= T; t++) {
+     const age = ctx.ageSelf0 + t, year = ctx.baseYear + t;
+     yr.frac[t] = t === 0 ? ctx.yf : 1;
+@@ -249,7 +252,7 @@ export function compile(m, actions) {
+     // move short of the plan lands and refunds in proportion (the engine's 1.5)
+     (ctx.stagedTransfers.get(year) || []).forEach(x => { const c = catOfId[x.toId]; if (c && x.fromId === idOf.other && x.uplift) { const i = CATS.indexOf(c); yr.dripLand[i][t] += x.amount * x.uplift; if (x.refundPer > 0 && x.refundId === idOf.cash) yr.dripRefund[i][t] += x.amount * x.refundPer; } });
+     if (yr.working[t]) CATS.forEach((c, i) => { const a = acc[idOf[c]]; if (a) yr.con[i][t] = E.contribAtYear(a, t); });
+-    const sv = saveOn && yr.working[t] ? ctx.saveSplitAt(t) : null;
++    const sv0 = saveOn && yr.working[t] ? ctx.saveSplitAt(t) : null, sv = sv0 && (!sv0.differs || offeredSaves.some(v => sv0.differs[v])) ? sv0 : null;
+     if (sv) { yr.saveYear[t] = 1; for (let v = 1; v <= 2; v++) CATS.forEach((c, i) => { const id = idOf[c]; yr.saveCon[v][i][t] = acc[id] ? (id in sv.variants[v] ? sv.variants[v][id] : yr.con[i][t]) : 0; }); }
+     if (yr.working[t] && o.salary > 0) {
+       const salary = E.salaryAtYear(o, t);
+diff --git a/src/solver/solve.js b/src/solver/solve.js
+index b3c20b3e..a86716b7 100644
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -163,7 +163,7 @@ export function buildActions(opts = {}) {
+       }
+     }
+   }
+-  return opts.windfallSplit ? withSplitCopies(out) : opts.saveSplit ? withSaveCopies(out) : out;
++  return opts.windfallSplit ? withSplitCopies(out) : opts.saveSplit ? withSaveCopies(out, opts.saveSplit) : out;
+ }
+ 
+ /*
+@@ -184,9 +184,11 @@ function withSplitCopies(out) {
+  * whole menu, as the windfall split's copies are; a copy flows as its base outside a working year with a choice.
+  */
+ const SAVE_LABEL = ['', ', saving into the pension first', ', saving into the ISA first'];
+-function withSaveCopies(out) {
++/* `routes` the saves offered (saveOn): [1, 2] both, [1] the pension first alone (the ISA first held back for an employee, D138);
++   `true` both, as before the hold */
++function withSaveCopies(out, routes) {
+   const n = out.length, all = out.slice();
+-  for (let v = 1; v <= 2; v++) for (const a of out) all.push({ ...a, save: v, tierBase: a.tierBase + v * n, label: a.label + SAVE_LABEL[v] });
++  for (const v of Array.isArray(routes) ? routes : [1, 2]) for (const a of out) all.push({ ...a, save: v, tierBase: a.tierBase + v * n, label: a.label + SAVE_LABEL[v] });
+   return all;
+ }
+ 
+@@ -2009,7 +2011,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV
+   const rd = r._rd || (r._rd = new Float64Array(4));
+   const spendYear = c.yr.spend[t] > 0;
+   // `variant` (M15): score one move only, run at the rates of `variant.act` (the taxable account held where it is)
+-  const a0 = variant ? variant.ai : 0, a1 = variant ? variant.ai + 1 : movesAt(r, t, SC, BQ);
++  const a0 = variant ? variant.ai : 0, a1 = variant ? variant.ai + 1 : movesAt(r, t, SC, BQ, TX);
+   for (let ai = a0; ai < a1; ai++) {
+     post.set(s);
+     const unmet = F.flow(c, t, ai, post);
+@@ -2164,7 +2166,7 @@ function scoreMovesShared(r, s, t, SC, TX, BQ, D) {
+   let M = r._cm;
+   if (!M || M.words !== 2 * L || M.NQ !== NQ) M = r._cm = makeMemo(n, 2 * L, NQ);
+   M.reset();
+-  const { val, hv, mode } = M, cU = D.cU, nT = movesAt(r, t, SC, BQ);
++  const { val, hv, mode } = M, cU = D.cU, nT = movesAt(r, t, SC, BQ, TX);
+   for (let ai = 0; ai < nT; ai++) {
+     TX[ai] = D.tx[ai];
+     if (D.fail[ai]) { SC[ai] = -Infinity; BQ[ai] = 0; SHARE_CHECKED.fails++; continue; }
+@@ -2312,7 +2314,7 @@ function scoreWorldOnce(r, s, t, SC, TX, BQ, D, O) {
+     val[vb] = sv; val[vb + 1] = bq; val[vb + 2] = rs;
+   }
+   // every move, from its repeat's values, its own spending cost and drift added in scoreMovesShared's order
+-  const nT = movesAt(r, t, SC, BQ);
++  const nT = movesAt(r, t, SC, BQ, TX);
+   for (let ai = 0; ai < nT; ai++) {
+     TX[ai] = D.tx[ai];
+     if (D.fail[ai]) { SC[ai] = -Infinity; BQ[ai] = 0; SHARE_CHECKED.fails++; continue; }
+@@ -2926,8 +2928,21 @@ function researchFinish(r, LK, opts) {
+   if (opts.coarse) r.meta.coarse = { w: opts.coarse.w || 1, a: opts.coarse.a || 1, b: opts.coarse.b || 1, g: opts.coarse.g || 1, c: opts.coarse.c || 1, src: opts.coarse.src || 'NT', expand: opts.coarse.expand || '', climb: opts.coarse.climb || 0, ...COARSE.stats };   // the review's prototype
+   if (opts.windfallSplit) r.meta.windfallSplit = r.actions.some(a => a.windfall) ? 'on' : 'no Auto deposit';   // D37, research
+   if (opts.saveSplit) r.meta.saveSplit = r.actions.some(a => a.save) ? 'on' : 'no year to choose';   // D38 (4), research
++  // D138: whether the ISA first is offered, where the hold is asked for (saveOn)
++  if (opts.saveSplit && opts.saveIsaFirst) r.meta.saveIsaFirst = !r.actions.some(a => a.save) ? 'no year to choose' : r.actions.some(a => a.save === 2) ? 'offered' : 'held back (an employee)';
+   if (opts.sweepCashIsaTo) r.meta.sweepCashIsaTo = opts.sweepCashIsaTo;   // the review of 9 Nov, item 5, research (menuMove)
+-  if (r.actions.some(a => a.windfall || a.save)) r.nAt = splitCounts(r.c, r.actions, r.m.ctx.totalYears);   // the chooser's moves a year (movesAt)
++  if (r.actions.some(a => a.windfall || a.save)) {
++    r.nAt = splitCounts(r.c, r.actions, r.m.ctx.totalYears);   // the chooser's moves a year (movesAt)
++    // and each world's table the same (D138; chooser-share.test.mjs on a saver under the split): the year's shared flows
++    // (decisionFlows) are taken for the solve's moves a year alone, so a world scoring the copies in a year they are left out
++    // read flows left from an earlier decision. No decision could change on them (the reviewer on D138's change of default,
++    // MINOR 3): the centre world is the solve itself, which carried nAt, its scorer makes each copy left out unchoosable
++    // (movesAt), and the mixture fails a move that fails in any table; what they reached is the other worlds' scores and tax
++    // for those copies, which the share check compares, and work wasted on them. The worlds are r.worlds here (the mixture,
++    // solveMixture's r.mix.tables, is set on them after the solve). Plant 'nattables' (save-default.test.mjs check 6): the
++    // worlds left without it, as before
++    if (r.worlds && CHOOSER.plant !== 'nattables') for (const w of r.worlds) w.nAt = r.nAt;
++  }
+   if (!LK) return;
+   if (r.meta.tsOnce || !r.meta.tierState || !opts.jointWorlds || r.switchMargin > 0 || r.c.tiers.gia) throw new Error('lockTiers runs on the tier state with joint worlds and the layer loop (tsOnce: false), with no switch margin and no taxable-account tiers');
+   r.meta.lockTiers = LK.meta; r.lockTiers = LK;
+@@ -2945,15 +2960,33 @@ function splitOn(m, opts) {
+   if (opts.windfallSplit !== true) throw new Error(`windfallSplit ${opts.windfallSplit}: only true`);
+   return !!(m.ctx.autoSplit && m.ctx.autoSplit.size);
+ }
+-/* The savings split (research, D38 (4)): the copies only where some working year has a choice; refused with the windfall split. */
++/* The savings split (research, D38 (4)): the copies only where some working year has a choice; refused with the windfall split.
++   Returns the saves offered, or false. THE ISA FIRST HELD BACK FOR AN EMPLOYEE (`saveIsaFirst: 'selfEmployed'`, D138; D137 (4),
++   the deep review of the split's v2, section 4 item 1): the app asks for the pension contribution gross, the employer's part
++   included, and the split's budget prices all of it as the employee's own sacrifice (App.jsx saveSplitRoutes), so the ISA first
++   would move the net cost of the employer's part into the ISA: in law, stopping a workplace pension and forfeiting the
++   employer's money. Until the plan records the employer's part, an employee's split offers the plan's own saving (the menu's
++   moves) and the pension first; the ISA first stays for the self-employed. Unset, both saves for every working saver, as the
++   split's v2 registered it. A year has a choice only where a route offered differs from the plan (saveSplitRoutes'
++   `differs`; the reviewer on the change of default, finding 2): under the hold, an employee who saves into the pension alone,
++   or whose pension saving fills its room in every year, has none, so gets no copies and solves as the candidate before D138.
++   SAVE_ROUTES.plant (save-default.test.mjs only): 'noisahold' offers both to everyone; 'anyroute' reads the year over both
++   routes whatever is offered. */
++export const SAVE_ROUTES = { plant: '' };
+ function saveOn(m, opts) {
+   if (!opts.saveSplit) return false;
+   if (opts.saveSplit !== true) throw new Error(`saveSplit ${opts.saveSplit}: only true`);
+   if (opts.windfallSplit) throw new Error('saveSplit and windfallSplit together: both rooms would be counted twice');
++  if (opts.saveIsaFirst !== undefined && opts.saveIsaFirst !== 'selfEmployed') throw new Error(`saveIsaFirst ${opts.saveIsaFirst}: only 'selfEmployed'`);
+   const f = m.ctx.saveSplitAt;
+   if (!f) return false;
+-  for (let t = 0; t <= m.ctx.totalYears; t++) if (f(t)) return true;
+-  return false;
++  const self = m.ctx.owners.find(o => o.key === 'self');
++  const held = opts.saveIsaFirst === 'selfEmployed' && !(self && self.selfEmployed) && SAVE_ROUTES.plant !== 'noisahold';
++  const routes = held ? [1] : [1, 2];
++  const offered = R => !!R && (SAVE_ROUTES.plant === 'anyroute' || !R.differs || routes.some(v => R.differs[v]));
++  let any = false;
++  for (let t = 0; t <= m.ctx.totalYears && !any; t++) if (offered(f(t))) any = true;
++  return any ? routes : false;
+ }
+ /* The moves the backward pass and the chooser score in year t: every move in a year where the copies differ from their base
+    (a year with Auto money for the windfall split, a working year with a choice for the savings split), else the menu before
+@@ -2966,12 +2999,13 @@ function splitCounts(c, actions, T) {
+   return out;
+ }
+ /* The moves the chooser scores at year t (splitCounts); with SC and BQ given, the windfall split's copies left out are made
+-   unchoosable there, so no caller reads a score left from another position. */
+-function movesAt(r, t, SC, BQ) {
++   unchoosable there, so no caller reads a score left from another position, and with TX given their tax is nought (D138:
++   the shared flows and scoreMoves then agree on every move, the share check's terms). */
++function movesAt(r, t, SC, BQ, TX) {
+   const n = r.actions.length;
+   if (!r.nAt) return n;
+   const nT = r.nAt[Math.min(Math.max(t, 0), r.nAt.length - 1)];
+-  if (SC) for (let ai = nT; ai < n; ai++) { SC[ai] = -Infinity; BQ[ai] = -Infinity; }
++  if (SC) for (let ai = nT; ai < n; ai++) { SC[ai] = -Infinity; BQ[ai] = -Infinity; if (TX) TX[ai] = 0; }
+   return nT;
+ }
+ 
+diff --git a/src/solverApp.js b/src/solverApp.js
+index 484d5c38..a822d56e 100644
+--- a/src/solverApp.js
++++ b/src/solverApp.js
+@@ -12,7 +12,7 @@
+ import { solvePlan, coarseWhereFits } from './solver/solve.js';
+ import { APP_CANDIDATE, APP_COARSE, APP_POINTS, APP_DIAL_VARIANT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase, speedOptions } from './solverSettings.js';
+ 
+-export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs: 'holdrecord' keeps a restored solve's record; solve-coarse.test.mjs: 'lockcoarse' hands `coarse` to a locked position, 'restoreany' restores a stored solve whatever menu it was made on
++export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs: 'holdrecord' keeps a restored solve's record; solve-coarse.test.mjs: 'lockcoarse' hands `coarse` to a locked position, 'restoreany' restores a stored solve whatever menu it was made on; save-default.test.mjs: 'couplesplit' keeps the savings split on a couple's solve
+ 
+ export { APP_CANDIDATE, APP_COARSE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, APP_FLOOR, APP_DIAL_VARIANT, APP_AGE_WEIGHT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase, dialOf, dialSettings } from './solverSettings.js';
+ 
+@@ -39,7 +39,9 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
+   let lock = {};
+   const bp = dialBase(norm);
+   if (bp) {
+-    const b = base || solveForApp(E, M, bp, { points, research, variant });
++    // a couple's base solved here carries the partner's age, as the app's own base solves do (src/solverClient.js), so it
++    // keeps the savings split off as its position does (D138) and weighs its cuts by the chance that either of the two lives
++    const b = base || solveForApp(E, M, bp, { points, research, variant, ...(ageWith !== undefined ? { ageWith } : {}) });
+     // step P1 (b): the position's adaptive reference taken from its base's (solve.js refFromOf), not built again
+     if (b.meta.tierState) lock = { lockTiers: b, riskAbove: aboveOf(b), refFrom: b };
+   }
+@@ -52,7 +54,11 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
+   // one tier pair) keep the whole menu, at the speed before D73, and meta.coarse says so (D73; D74)
+   const solved = appPlan(E, prepareForSolve(E, plan)), off = {};
+   // the speed mode (D97 (3); src/solverSettings.js speedOptions): the chooser's shortlist, from the plan, as its key names it
+-  const asked = { ...APP_CANDIDATE, ...aims, ...speedOptions(norm), ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again };
++  // D138: the savings split (APP_CANDIDATE.saveSplit) was tested on singles who work and save (registrations/save-v2.md); a
++  // couple's solves keep it off, each person's table on today's route and the household's one table alike, both solved with
++  // the partner's age (`ageWith`). Plant 'couplesplit' (save-default.test.mjs): a couple's solve keeps the split
++  const candidate = ageWith !== undefined && PLANT.rule !== 'couplesplit' ? (({ saveSplit, saveIsaFirst, ...rest }) => rest)(APP_CANDIDATE) : APP_CANDIDATE;
++  const asked = { ...candidate, ...aims, ...speedOptions(norm), ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again };
+   const fitted = PLANT.rule === 'lockcoarse' ? asked : coarseWhereFits(E, M, solved, asked, off);
+   // a stored solve made on the whole menu is never restored as one on anchors and shortlists, nor the reverse (the port's step
+   // 8, D74): what names a stored solve (src/solverKey.js: the candidate with `coarse`, the plan, the dial's position, the code)
+diff --git a/src/solverKey.js b/src/solverKey.js
+index 95071059..a448cf25 100644
+--- a/src/solverKey.js
++++ b/src/solverKey.js
+@@ -10,7 +10,7 @@
+ import { prepareForSolve, aimsOptions, dialSettings, withAims, APP_CANDIDATE, APP_POINTS, APP_DIAL_VARIANT } from './solverSettings.js';
+ import { PLANNER_PLANT } from './plannerPlant.js';
+ 
+-export const PLANT = { rule: '' };   // research/tests/solve-key.test.mjs only: 'raw' keys the plan's aims, locks and view as stored; couple-solve-client.test.mjs: 'agenull' writes a partner's age of null into every key without one; cache-key.test.mjs: 'nod73' leaves `coarse` and `sweepCashIsaTo` out of the candidate the key names; household-client.test.mjs: 'bandsunkeyed' leaves a household table's band scaling out of its key
++export const PLANT = { rule: '' };   // research/tests/solve-key.test.mjs only: 'raw' keys the plan's aims, locks and view as stored; couple-solve-client.test.mjs: 'agenull' writes a partner's age of null into every key without one; cache-key.test.mjs: 'nod73' leaves `coarse` and `sweepCashIsaTo` out of the candidate the key names; household-client.test.mjs: 'bandsunkeyed' leaves a household table's band scaling out of its key; research/solver/d138-fulltier.mjs: 'nod138' leaves `saveSplit` and `saveIsaFirst` out of the candidate the key names (the keys before D138)
+ 
+ const canonical = v => {
+   if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
+@@ -36,7 +36,7 @@ export async function solveKey(E, plan, { lambda = undefined, points = APP_POINT
+   if (PLANT.rule === 'speedunkeyed' && p.solver && 'speed' in p.solver) { p.solver = { ...p.solver }; delete p.solver.speed; }
+   // a dial position above 1 adds its variant and its lock to the base (step L2); position 1's key is as before
+   // step U's plant 'keyguard' (research/ui-harnesses/solver-planner-ui.cjs, check 7): the key made to read the guardrails
+-  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ageWith: ageWith === undefined && PLANT.rule === 'agenull' ? null : ageWith, ...dialSettings(p, variant), bands: PLANT.rule === 'bandsunkeyed' || !bands ? undefined : bands }, code });
++  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : PLANT.rule === 'nod138' ? { ...APP_CANDIDATE, saveSplit: undefined, saveIsaFirst: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ageWith: ageWith === undefined && PLANT.rule === 'agenull' ? null : ageWith, ...dialSettings(p, variant), bands: PLANT.rule === 'bandsunkeyed' || !bands ? undefined : bands }, code });
+   return hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)));
+ }
+ export { canonical };
+diff --git a/src/solverSettings.js b/src/solverSettings.js
+index 16344e2f..9b833da7 100644
+--- a/src/solverSettings.js
++++ b/src/solverSettings.js
+@@ -19,7 +19,15 @@ export const APP_CANDIDATE = Object.freeze({
+   menuPlus: Object.freeze(['hr']), tableDealing: false, failDelivered: true, sweepCashIsaTo: 'isa', coarse: APP_COARSE,
+   // D90 (1), 13 Nov: above the estate cap, among the moves at the best move's level and tier pair within a hundredth of a
+   // point of score, the one that pays the least tax this year (the review of 11 Nov, item 13; results-tie-a.txt)
+-  tieAboveCap: 1e-4
++  tieAboveCap: 1e-4,
++  // D138, 21 Nov: the savings split (the savings split's v2 read once, PASS, results-save-v2.txt): in a working year with a
++  // saving to place, the year's net saving into the pension first or the ISA first, besides the plan's own contributions,
++  // the solver choosing (src/solver/solve.js saveOn: it acts only where some working year has a choice). A couple's solves
++  // keep it off (src/solverApp.js solveForApp: a solve with a partner's age), untested on couples
++  saveSplit: true,
++  // D138 (D137 (4)): the ISA first held back for an employee, whose pension figure counts the employer's part, which the split
++  // would move as the employee's own (src/solver/solve.js saveOn); the self-employed keep it
++  saveIsaFirst: 'selfEmployed'
+ });
+ /* the tiers' real returns at the medians of their blends (O60, D13) */
+ export const APP_TIER_REALS = Object.freeze({ 'High Risk': 4.97, 'Medium/High Risk': 4.65, 'Medium Risk': 4.18, 'Medium/Low Risk': 3.55, 'Low Risk': 2.76 });
+diff --git a/src/solverStrategy.js b/src/solverStrategy.js
+index a2b342de..143c7611 100644
+--- a/src/solverStrategy.js
++++ b/src/solverStrategy.js
+@@ -243,7 +243,10 @@ export function partsOf(a, ca) {
+     draw: lead.length ? DRAW_PREFIX[lead[lead.length - 1]] || lead[lead.length - 1] : 'none',
+     isaFirst: a.steps.indexOf('isa') < a.steps.indexOf('other'),
+     harvest: a.harvest ? a.harvestCeil || 'pa' : null,
+-    tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0
++    tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0,
++    // D138: a working year's saving placed by the savings split (1 the pension first, 2 the ISA first), said only where the
++    // move takes one, so a move without it reads as before. Plant 'nosavepart' (save-default.test.mjs): the save left out
++    ...(a.save > 0 && PLANT.rule !== 'nosavepart' ? { save: a.save } : {})
+   };
+ }
+ /* the move as the engine takes it from the table (src/solver/bridge.js tablePolicy's choose), for move ai */
+@@ -274,7 +277,7 @@ export function firstMove(E, solved) {
+   E.runTrial(ctx, E.pathsForSeed(1, 1, T)[0]);
+   return { ...rec, sc, base };
+ }
+-export const SKIP_PARTS = ['level', 'draw', 'harvest', 'tierPen', 'tierIsa'];
++export const SKIP_PARTS = ['level', 'draw', 'harvest', 'tierPen', 'tierIsa', 'save'];
+ /* this year's skips: the move taken apart and, for each part it takes, the best-ranked move that differs in that part (null
+  * where none does) */
+ export function skipsOf(E, solved) {
+diff --git a/src/solverWords.js b/src/solverWords.js
+index dff35b17..a38dc0cb 100644
+--- a/src/solverWords.js
++++ b/src/solverWords.js
+@@ -71,7 +71,12 @@ export const PART_WORDS = {
+   draw: v => (v === 'any' ? 'Take what you need from your pension first' : `Take from your pension first, ${DRAW[v] || v}`),
+   harvest: v => `Move pension money into your ISA, up to ${WRAP[v] || v}`,
+   tierPen: k => `Move your pension ${steps(k)} lower in risk`,
+-  tierIsa: k => `Move your ISA ${steps(k)} lower in risk`
++  tierIsa: k => `Move your ISA ${steps(k)} lower in risk`,
++  // D138: the savings split's choice in a working year, at the net cost of the plan's own pension and ISA saving that year
++  // (src/App.jsx saveSplitRoutes; SAVINGS-SPLIT.md): 1 the pension first, grossed up within its allowance, then the ISA; 2 the
++  // ISA first, then the pension. Worded without "this year" so the next years' rows can end it ", each year"
++  save: v => (v === 1 ? 'Pay your saving into your pension first, then your ISA (the same cost to you as your planned saving, with the pension\'s tax relief added)'
++    : v === 2 ? 'Pay your saving into your ISA first, then your pension (the same cost to you as your planned saving)' : `save ${v}`)
+ };
+ /* the year's sweep (the engine's 7d; the review of 9 Nov, item 5, part 1), to the pound: null in a year it moves nothing */
+ export function sweepWords(sw, { fmt }) {
+@@ -108,6 +113,7 @@ const tierWords = (what, was, now) => (now === was && WORDS_PLANT.rule !== 'tier
+           : `Move your ${what} ${steps(Math.abs(now - was))} further down in risk (${now} below the risk you chose)`);
+ export function aheadWords(row, { fmt }, prev = null) {
+   const p = row.parts, lines = [];
++  if (p.save) lines.push(PART_WORDS.save(p.save));
+   if (p.draw !== 'none') lines.push(PART_WORDS.draw(p.draw));
+   if (p.harvest) lines.push(PART_WORDS.harvest(p.harvest));
+   const sw = sweepWords(row.swept, { fmt });
+@@ -140,6 +146,7 @@ export function ledgerWords(p, spending, row = null) {
+   if (!p) return null;
+   const w = [];
+   if (spending) w.push(`spend ${pct(100 * p.level)}`);
++  if (p.save) w.push(p.save === 1 ? 'saving: pension first' : p.save === 2 ? 'saving: ISA first' : `save ${p.save}`);
+   if (p.draw !== 'none') w.push(p.draw === 'any' ? 'pension first' : `pension first, to ${SHORT_DRAW[p.draw] || p.draw}`);
+   if (p.harvest) w.push(`pension to ISA, to ${SHORT_WRAP[p.harvest] || p.harvest}`);
+   if (p.tierPen) w.push(`pension ${steps(p.tierPen)} safer`);

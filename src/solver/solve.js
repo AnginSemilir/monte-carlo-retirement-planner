@@ -163,7 +163,7 @@ export function buildActions(opts = {}) {
       }
     }
   }
-  return opts.windfallSplit ? withSplitCopies(out) : opts.saveSplit ? withSaveCopies(out) : out;
+  return opts.windfallSplit ? withSplitCopies(out) : opts.saveSplit ? withSaveCopies(out, opts.saveSplit) : out;
 }
 
 /*
@@ -184,9 +184,11 @@ function withSplitCopies(out) {
  * whole menu, as the windfall split's copies are; a copy flows as its base outside a working year with a choice.
  */
 const SAVE_LABEL = ['', ', saving into the pension first', ', saving into the ISA first'];
-function withSaveCopies(out) {
+/* `routes` the saves offered (saveOn): [1, 2] both, [1] the pension first alone (the ISA first held back for an employee, D138);
+   `true` both, as before the hold */
+function withSaveCopies(out, routes) {
   const n = out.length, all = out.slice();
-  for (let v = 1; v <= 2; v++) for (const a of out) all.push({ ...a, save: v, tierBase: a.tierBase + v * n, label: a.label + SAVE_LABEL[v] });
+  for (const v of Array.isArray(routes) ? routes : [1, 2]) for (const a of out) all.push({ ...a, save: v, tierBase: a.tierBase + v * n, label: a.label + SAVE_LABEL[v] });
   return all;
 }
 
@@ -1852,7 +1854,11 @@ function chooseActionCore(r, s, t, held, after) {
     // (not inside wholeMenu: a decision the pages show keeps the whole menu, D90)
     const shown = SHORTLIST.whole > 0 && SHORTLIST.plant !== 'shown';
     if (shown && r.chooserShortlist) SHORTLIST.stats.shown++;
-    CHOOSER.mask = r.chooserShortlist && !shown && canShare && t < T && !r.nAt ? shortMask(r, s, t, after) : null;
+    // keyed on the year's own count of moves (D137 (1), SPEED-D138.md): a year whose split copies are live keeps the whole
+    // menu, and a year whose moves are the base menu's takes the shortlist as any household's does; plant 'shortlive'
+    // (save-default.test.mjs check 12): the shortlist in a live year too
+    const liveCopies = !!r.nAt && movesAt(r, t) === n && SHORTLIST.plant !== 'shortlive';
+    CHOOSER.mask = r.chooserShortlist && !shown && canShare && t < T && !liveCopies ? shortMask(r, s, t, after) : null;
     const D = canShare ? decisionFlows(r, s, t, held) : null;
     r._usedShort = !!CHOOSER.mask; CHOOSER.mask = null;
     // P1 (step P): the moves' repeats found once a decision, not once a world, where every world parts the moves alike
@@ -2009,7 +2015,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV 
   const rd = r._rd || (r._rd = new Float64Array(4));
   const spendYear = c.yr.spend[t] > 0;
   // `variant` (M15): score one move only, run at the rates of `variant.act` (the taxable account held where it is)
-  const a0 = variant ? variant.ai : 0, a1 = variant ? variant.ai + 1 : movesAt(r, t, SC, BQ);
+  const a0 = variant ? variant.ai : 0, a1 = variant ? variant.ai + 1 : movesAt(r, t, SC, BQ, TX);
   for (let ai = a0; ai < a1; ai++) {
     post.set(s);
     const unmet = F.flow(c, t, ai, post);
@@ -2164,7 +2170,7 @@ function scoreMovesShared(r, s, t, SC, TX, BQ, D) {
   let M = r._cm;
   if (!M || M.words !== 2 * L || M.NQ !== NQ) M = r._cm = makeMemo(n, 2 * L, NQ);
   M.reset();
-  const { val, hv, mode } = M, cU = D.cU, nT = movesAt(r, t, SC, BQ);
+  const { val, hv, mode } = M, cU = D.cU, nT = movesAt(r, t, SC, BQ, TX);
   for (let ai = 0; ai < nT; ai++) {
     TX[ai] = D.tx[ai];
     if (D.fail[ai]) { SC[ai] = -Infinity; BQ[ai] = 0; SHARE_CHECKED.fails++; continue; }
@@ -2240,8 +2246,10 @@ function sameClassesAt(r, t) {
   return (memo[t] = same);
 }
 function decisionRepeats(r, s, t, D) {
-  // a menu whose moves vary by year (the research splits' copies, movesAt) keeps each world's memo
-  if (r.nAt || !sameClassesAt(r, t)) { SHARE_CHECKED.onceOff++; return null; }
+  // a menu whose moves vary by year (the splits' copies, movesAt): the repeats are found over the year's own moves, and
+  // scoreWorldOnce writes the copies left out as unchoosable, as scoreMovesShared does (D137 (1), SPEED-D138.md); plant
+  // 'oncenat' (save-default.test.mjs check 11): each world's memo wherever the copies exist, as before
+  if ((r.nAt && CHOOSER.plant === 'oncenat') || !sameClassesAt(r, t)) { SHARE_CHECKED.onceOff++; return null; }
   SHARE_CHECKED.once++;
   const tab0 = r.mix.tables[0], n = r.actions.length, L = D.L;
   const cls = classesOf(tab0, t), plant = CHOOSER.plant, final = t >= r.m.ctx.totalYears;
@@ -2312,7 +2320,7 @@ function scoreWorldOnce(r, s, t, SC, TX, BQ, D, O) {
     val[vb] = sv; val[vb + 1] = bq; val[vb + 2] = rs;
   }
   // every move, from its repeat's values, its own spending cost and drift added in scoreMovesShared's order
-  const nT = movesAt(r, t, SC, BQ);
+  const nT = movesAt(r, t, SC, BQ, TX);
   for (let ai = 0; ai < nT; ai++) {
     TX[ai] = D.tx[ai];
     if (D.fail[ai]) { SC[ai] = -Infinity; BQ[ai] = 0; SHARE_CHECKED.fails++; continue; }
@@ -2926,8 +2934,21 @@ function researchFinish(r, LK, opts) {
   if (opts.coarse) r.meta.coarse = { w: opts.coarse.w || 1, a: opts.coarse.a || 1, b: opts.coarse.b || 1, g: opts.coarse.g || 1, c: opts.coarse.c || 1, src: opts.coarse.src || 'NT', expand: opts.coarse.expand || '', climb: opts.coarse.climb || 0, ...COARSE.stats };   // the review's prototype
   if (opts.windfallSplit) r.meta.windfallSplit = r.actions.some(a => a.windfall) ? 'on' : 'no Auto deposit';   // D37, research
   if (opts.saveSplit) r.meta.saveSplit = r.actions.some(a => a.save) ? 'on' : 'no year to choose';   // D38 (4), research
+  // D138: whether the ISA first is offered, where the hold is asked for (saveOn)
+  if (opts.saveSplit && opts.saveIsaFirst) r.meta.saveIsaFirst = !r.actions.some(a => a.save) ? 'no year to choose' : r.actions.some(a => a.save === 2) ? 'offered' : 'held back (an employee)';
   if (opts.sweepCashIsaTo) r.meta.sweepCashIsaTo = opts.sweepCashIsaTo;   // the review of 9 Nov, item 5, research (menuMove)
-  if (r.actions.some(a => a.windfall || a.save)) r.nAt = splitCounts(r.c, r.actions, r.m.ctx.totalYears);   // the chooser's moves a year (movesAt)
+  if (r.actions.some(a => a.windfall || a.save)) {
+    r.nAt = splitCounts(r.c, r.actions, r.m.ctx.totalYears);   // the chooser's moves a year (movesAt)
+    // and each world's table the same (D138; chooser-share.test.mjs on a saver under the split): the year's shared flows
+    // (decisionFlows) are taken for the solve's moves a year alone, so a world scoring the copies in a year they are left out
+    // read flows left from an earlier decision. No decision could change on them (the reviewer on D138's change of default,
+    // MINOR 3): the centre world is the solve itself, which carried nAt, its scorer makes each copy left out unchoosable
+    // (movesAt), and the mixture fails a move that fails in any table; what they reached is the other worlds' scores and tax
+    // for those copies, which the share check compares, and work wasted on them. The worlds are r.worlds here (the mixture,
+    // solveMixture's r.mix.tables, is set on them after the solve). Plant 'nattables' (save-default.test.mjs check 6): the
+    // worlds left without it, as before
+    if (r.worlds && CHOOSER.plant !== 'nattables') for (const w of r.worlds) w.nAt = r.nAt;
+  }
   if (!LK) return;
   if (r.meta.tsOnce || !r.meta.tierState || !opts.jointWorlds || r.switchMargin > 0 || r.c.tiers.gia) throw new Error('lockTiers runs on the tier state with joint worlds and the layer loop (tsOnce: false), with no switch margin and no taxable-account tiers');
   r.meta.lockTiers = LK.meta; r.lockTiers = LK;
@@ -2945,15 +2966,33 @@ function splitOn(m, opts) {
   if (opts.windfallSplit !== true) throw new Error(`windfallSplit ${opts.windfallSplit}: only true`);
   return !!(m.ctx.autoSplit && m.ctx.autoSplit.size);
 }
-/* The savings split (research, D38 (4)): the copies only where some working year has a choice; refused with the windfall split. */
+/* The savings split (research, D38 (4)): the copies only where some working year has a choice; refused with the windfall split.
+   Returns the saves offered, or false. THE ISA FIRST HELD BACK FOR AN EMPLOYEE (`saveIsaFirst: 'selfEmployed'`, D138; D137 (4),
+   the deep review of the split's v2, section 4 item 1): the app asks for the pension contribution gross, the employer's part
+   included, and the split's budget prices all of it as the employee's own sacrifice (App.jsx saveSplitRoutes), so the ISA first
+   would move the net cost of the employer's part into the ISA: in law, stopping a workplace pension and forfeiting the
+   employer's money. Until the plan records the employer's part, an employee's split offers the plan's own saving (the menu's
+   moves) and the pension first; the ISA first stays for the self-employed. Unset, both saves for every working saver, as the
+   split's v2 registered it. A year has a choice only where a route offered differs from the plan (saveSplitRoutes'
+   `differs`; the reviewer on the change of default, finding 2): under the hold, an employee who saves into the pension alone,
+   or whose pension saving fills its room in every year, has none, so gets no copies and solves as the candidate before D138.
+   SAVE_ROUTES.plant (save-default.test.mjs only): 'noisahold' offers both to everyone; 'anyroute' reads the year over both
+   routes whatever is offered. */
+export const SAVE_ROUTES = { plant: '' };
 function saveOn(m, opts) {
   if (!opts.saveSplit) return false;
   if (opts.saveSplit !== true) throw new Error(`saveSplit ${opts.saveSplit}: only true`);
   if (opts.windfallSplit) throw new Error('saveSplit and windfallSplit together: both rooms would be counted twice');
+  if (opts.saveIsaFirst !== undefined && opts.saveIsaFirst !== 'selfEmployed') throw new Error(`saveIsaFirst ${opts.saveIsaFirst}: only 'selfEmployed'`);
   const f = m.ctx.saveSplitAt;
   if (!f) return false;
-  for (let t = 0; t <= m.ctx.totalYears; t++) if (f(t)) return true;
-  return false;
+  const self = m.ctx.owners.find(o => o.key === 'self');
+  const held = opts.saveIsaFirst === 'selfEmployed' && !(self && self.selfEmployed) && SAVE_ROUTES.plant !== 'noisahold';
+  const routes = held ? [1] : [1, 2];
+  const offered = R => !!R && (SAVE_ROUTES.plant === 'anyroute' || !R.differs || routes.some(v => R.differs[v]));
+  let any = false;
+  for (let t = 0; t <= m.ctx.totalYears && !any; t++) if (offered(f(t))) any = true;
+  return any ? routes : false;
 }
 /* The moves the backward pass and the chooser score in year t: every move in a year where the copies differ from their base
    (a year with Auto money for the windfall split, a working year with a choice for the savings split), else the menu before
@@ -2966,12 +3005,13 @@ function splitCounts(c, actions, T) {
   return out;
 }
 /* The moves the chooser scores at year t (splitCounts); with SC and BQ given, the windfall split's copies left out are made
-   unchoosable there, so no caller reads a score left from another position. */
-function movesAt(r, t, SC, BQ) {
+   unchoosable there, so no caller reads a score left from another position, and with TX given their tax is nought (D138:
+   the shared flows and scoreMoves then agree on every move, the share check's terms). */
+function movesAt(r, t, SC, BQ, TX) {
   const n = r.actions.length;
   if (!r.nAt) return n;
   const nT = r.nAt[Math.min(Math.max(t, 0), r.nAt.length - 1)];
-  if (SC) for (let ai = nT; ai < n; ai++) { SC[ai] = -Infinity; BQ[ai] = -Infinity; }
+  if (SC) for (let ai = nT; ai < n; ai++) { SC[ai] = -Infinity; BQ[ai] = -Infinity; if (TX) TX[ai] = 0; }
   return nT;
 }
 

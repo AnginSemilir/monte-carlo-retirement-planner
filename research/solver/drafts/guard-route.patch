@@ -1,0 +1,255 @@
+From a36fb8cd1829a8ea1b8da89167a0af2b6c311b51 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 22 Nov 2026 19:03:35 +0000
+Subject: [PATCH] The guard reads the household plan's shape refusals
+ (householdShapeOf), for D141's change of default
+
+src/couplesSwitch.js householdShapeOf(plan): whether the household plan refuses a couple's plan for its shape
+(src/solver/household.js householdPlanFor, on the plan src/solverCouple.js householdPlan makes, the locks applied), read
+from the plan as entered with no imports, erring towards the app's rules: risks per wrapper as the engine normalises them
+and the locks hold them, contributions growing at different rates, a cash ISA subscription, salaries growing at different
+rates, the partner's own limits differing (partLimitsDiffer, src/solverSettings.js partCeilingsDiffer written again), one
+person retired with the other paid or saving in the first year, nobody retiring within the plan. Not used by the guard yet:
+D141's change of default reads it once the registered test has read.
+
+research/tests/couple-shape.test.mjs (the full tier): over the library's 210 couples and 23 shapes each (4,830 plans), the
+page's own refusal (householdCut at 'pensionsPA' on the plan it hands the solver, the mirror where the elder is entered
+second) against householdShapeOf: 3,030 refused, none missed, no over-reach; each check's plant ('skip<reason>') misses
+refusals of its kind (risks 210, growth 18, cashisa 60, salaries 42, limits 42, year0 144, noretire 42 on every fifth
+couple). results-couple-shape.txt.
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_0191uiQx6a62m9V2aiDbqaa6
+---
+ research/solver/results-couple-shape.txt |   5 ++
+ research/tests/couple-shape.test.mjs     | 102 +++++++++++++++++++++++
+ research/tests/fast-inputs.json          |   3 +
+ src/couplesSwitch.js                     |  63 ++++++++++++++
+ 4 files changed, 173 insertions(+)
+ create mode 100644 research/solver/results-couple-shape.txt
+ create mode 100644 research/tests/couple-shape.test.mjs
+
+diff --git a/research/solver/results-couple-shape.txt b/research/solver/results-couple-shape.txt
+new file mode 100644
+index 00000000..055b5838
+--- /dev/null
++++ b/research/solver/results-couple-shape.txt
+@@ -0,0 +1,5 @@
++210 couples, 4830 plans: the page refuses 3030 for their shape (the two people's Pensions hold different risks 420; the two people's S&S ISAs hold different risks 210; the two people's Other Investments 210; the two people's Cash Savings hold different risks 210; the two people's Cash ISA hold different risks 210; the two people's S&S ISAs contributions grow at different rates 210; a cash ISA subscription 420; the two salaries grow at different rates 210; a later retiree paid or saving in plan year 0 720; nobody retires within the plan 210)
++PASS  1. no refusal missed: wherever the page's household cut refuses a plan's shape, the guard reads it refused  -- 3030 refusals, none missed
++PASS  2. the over-reach counted by its reason, none on the library's couples as entered  -- the guard reads refused where the page takes the plan: none; of them as entered 0
++PASS  3. each check shown failing on its plant: skipped, a refusal of its kind goes missed  -- risks 210, growth 18, cashisa 60, salaries 42, limits 42, year0 144, noretire 42
++ALL PASS: 3 checks
+diff --git a/research/tests/couple-shape.test.mjs b/research/tests/couple-shape.test.mjs
+new file mode 100644
+index 00000000..2980920e
+--- /dev/null
++++ b/research/tests/couple-shape.test.mjs
+@@ -0,0 +1,102 @@
++/*
++ * THE GUARD'S READING OF THE HOUSEHOLD PLAN'S REFUSALS (D141, 22 Nov: the registered couples test reads the household route
++ * alone, so a couple whose plan's shape the household plan refuses keeps today's guard; src/couplesSwitch.js householdShapeOf
++ * reads that refusal from the plan as entered, the module having no imports, erring towards the app's rules).
++ *
++ * For each of the library's 210 couples, and each of the shapes below made on it, the page's own refusal (src/solverCouple.js
++ * householdCut at 'pensionsPA' on the plan the page hands it: the plan as entered, or its mirror where the elder is entered
++ * second, src/coupleOrder.js; a refusal the message src/solverClient.js reads as the plan's shape) against the guard's reading
++ * (householdShapeOf on the plan as entered):
++ *   1. no refusal missed: wherever householdCut refuses the plan's shape, householdShapeOf says refused;
++ *   2. the over-reach counted, by its reason (a refusal said where householdCut takes the plan: the guard errs towards the
++ *      app's rules there), and none on the library's couples as entered;
++ *   3. each check shown failing on its plant: with one reason's check skipped ('skip<reason>'), a refusal of that kind is
++ *      missed on some shape (CHECKLIST 5).
++ * The shapes: as entered; the two ages swapped (the partner the elder, handed to the solver on its mirror); each wrapper's
++ * partner's risk one tier from the first person's; two risks a limit holds alike (both above the first person's pension
++ * limit, the partner with none of their own) and a limit that does not; the partner's own limits differing, and the same as
++ * the first person's; both paying into a wrapper with their contributions growing at different rates, and one paying alone;
++ * a cash ISA subscription each way; both paid with salaries growing at different rates; the first person retired today with
++ * the partner still working and paid, or saving, or neither, or saving from the second year alone (dated contributions);
++ * retirement ages left blank; nobody retiring within the plan.
++ *   node research/tests/couple-shape.test.mjs
++ */
++import * as E from '../engine.mjs';
++import * as M from '../../src/solver/model.js';
++import { householdCut } from '../../src/solverCouple.js';
++import { householdShapeOf, swapOf, PLANT } from '../../src/couplesSwitch.js';
++import { otherOrder } from '../../src/coupleOrder.js';
++import { buildScenarios } from '../policy-study/scenarios.mjs';
++
++let pass = 0, fail = 0;
++const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
++const RISKS = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
++const couples = buildScenarios().filter(s => s.plan.demographics.planningMode === 'couple');
++const clone = p => structuredClone(p);
++const setAcct = (p, id, patch) => { const q = clone(p), a = q.accounts.find(x => x.id === id); if (a) Object.assign(a, patch); else q.accounts.push({ id, owner: id.endsWith('_part') ? 'Partner' : 'Myself', category: '', balance: 0, contrib: 0, growth: 0, risk: '', ...patch }); return q; };
++const riskOf = (p, id) => { const a = p.accounts.find(x => x.id === id); return a ? a.risk : null; };
++const next = r => RISKS[Math.min(RISKS.length - 1, Math.max(0, RISKS.indexOf(r) + 1))] === r ? RISKS[RISKS.indexOf(r) - 1] : RISKS[RISKS.indexOf(r) + 1];
++const demo = (p, patch) => ({ ...clone(p), demographics: { ...p.demographics, ...patch } });
++const locks = (p, l) => ({ ...clone(p), solver: { ...(p.solver || {}), locks: { ...((p.solver && p.solver.locks) || {}), ...l } } });
++/* the shapes made on one couple's plan: [name, plan] */
++function shapesOf(p) {
++  const d = p.demographics, a = E.num(d.currentAgeSelf, 40), b = E.num(d.currentAgePart, a), out = [['as entered', p]];
++  out.push(['ages swapped', demo(p, { currentAgeSelf: d.currentAgePart, currentAgePart: d.currentAgeSelf })]);
++  for (const w of ['pen', 'isa', 'other', 'cash', 'cashIsa']) { const r = riskOf(p, `${w}_self`) || 'High Risk'; out.push([`${w}: the partner's risk one tier off`, setAcct(p, `${w}_part`, { risk: next(RISKS.includes(r) ? r : 'High Risk') })]); }
++  { const q = setAcct(setAcct(p, 'pen_self', { risk: 'High Risk' }), 'pen_part', { risk: 'Medium/High Risk' });
++    out.push(['two pension risks both above the first person\'s limit, held alike', locks(q, { tierCeiling: { pen: 'Medium Risk' } })]);
++    out.push(['two pension risks, a limit below one of them alone', locks(q, { tierCeiling: { pen: 'Medium/High Risk' } })]); }
++  out.push(['the partner\'s own limits differing', locks(p, { tierCeiling: { pen: '', isa: '' }, tierCeilingPart: { pen: 'Low Risk', isa: '' } })]);
++  out.push(['the partner\'s own limits the same as the first person\'s', locks(p, { tierCeiling: { pen: 'Medium Risk', isa: '' }, tierCeilingPart: { pen: 'Medium Risk', isa: '' } })]);
++  out.push(['both paying into ISAs, growing at different rates', setAcct(setAcct(p, 'isa_self', { contrib: 3000, growth: 3 }), 'isa_part', { contrib: 2000, growth: 0 })]);
++  out.push(['one paying into an ISA, the other not', setAcct(setAcct(p, 'isa_self', { contrib: 3000, growth: 3 }), 'isa_part', { contrib: 0, growth: 0 })]);
++  out.push(['a cash ISA subscription, the first person\'s', setAcct(p, 'cashIsa_self', { contrib: 2000 })]);
++  out.push(['a cash ISA subscription, the partner\'s', setAcct(p, 'cashIsa_part', { contrib: 2000 })]);
++  out.push(['both paid, salaries growing at different rates', demo(p, { salarySelf: 40000, salaryPart: 30000, salaryGrowthSelf: 2, salaryGrowthPart: 0, retireAgeSelf: a + 3, retireAgePart: b + 3 })]);
++  const retiredSelf = q => demo(q, { retireAgeSelf: a, retireAgePart: b + 3 });
++  out.push(['the first person retired, the partner working and paid', demo(retiredSelf(p), { salaryPart: 30000 })]);
++  out.push(['the first person retired, the partner working and saving', retiredSelf(setAcct(demo(p, { salaryPart: 0 }), 'pen_part', { contrib: 2000 }))]);
++  out.push(['the first person retired, the partner working, paid nothing and saving nothing', retiredSelf(demo(setAcct(setAcct(setAcct(setAcct(setAcct(p, 'pen_part', { contrib: 0 }), 'isa_part', { contrib: 0 }), 'other_part', { contrib: 0 }), 'cash_part', { contrib: 0 }), 'cashIsa_part', { contrib: 0 }), { salaryPart: 0 }))]);
++  out.push(['the first person retired, the partner saving from the second year alone', retiredSelf(setAcct(demo(p, { salaryPart: 0 }), 'pen_part', { contrib: 0, contribByYear: [0, 2000, 2000] }))]);
++  out.push(['the first person retired, the partner saving in the first year by its dated contributions', retiredSelf(setAcct(demo(p, { salaryPart: 0 }), 'pen_part', { contrib: 0, contribByYear: [2000, 2000] }))]);
++  out.push(['retirement ages left blank', demo(p, { retireAgeSelf: '', retireAgePart: '' })]);
++  out.push(['nobody retiring within the plan', demo(p, { retireAgeSelf: 120, retireAgePart: 120, terminalAge: 100 })]);
++  return out;
++}
++/* the page's refusal: householdCut on the plan it hands the solver; its message, or null where it takes the plan */
++function pageRefusal(plan) {
++  const handed = swapOf(plan) ? otherOrder(E, plan) : plan;
++  try { householdCut(E, M, handed, 'pensionsPA'); return null; } catch (e) {
++    if (/^householdPlanFor: (?!opts\.|no group)/.test(e.message)) return e.message;
++    throw e;
++  }
++}
++/* the battery: each shape on each couple, the page's refusal against the guard's reading */
++function battery(cs) {
++  const misses = [], over = {}, refusedBy = {}; let n = 0, real = 0, asEntered = 0;
++  for (const c of cs) for (const [name, plan] of shapesOf(c.plan)) {
++    n++;
++    const why = pageRefusal(plan), g = householdShapeOf(plan);
++    if (why) { real++; refusedBy[why.replace(/ \(.*$/, '')] = (refusedBy[why.replace(/ \(.*$/, '')] || 0) + 1; }
++    if (why && !g.refused) misses.push(`${c.id} '${name}': ${why}`);
++    if (!why && g.refused) { over[g.why] = (over[g.why] || 0) + 1; if (name === 'as entered') asEntered++; }
++  }
++  return { n, real, misses, over, refusedBy, asEntered };
++}
++
++const B = battery(couples);
++console.log(`${couples.length} couples, ${B.n} plans: the page refuses ${B.real} for their shape (${Object.entries(B.refusedBy).map(([k, v]) => `${k.replace('householdPlanFor: ', '')} ${v}`).join('; ')})`);
++ok('1. no refusal missed: wherever the page\'s household cut refuses a plan\'s shape, the guard reads it refused', B.misses.length === 0 && B.real > 0, B.misses.length ? `${B.misses.length} missed: ${B.misses.slice(0, 5).join(' | ')}` : `${B.real} refusals, none missed`);
++ok('2. the over-reach counted by its reason, none on the library\'s couples as entered', B.asEntered === 0, `the guard reads refused where the page takes the plan: ${Object.entries(B.over).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}; of them as entered ${B.asEntered}`);
++// 3. each check's plant: with it skipped, a refusal of its kind is missed on some shape (40 couples, every fifth)
++{ const few = couples.filter((_, i) => i % 5 === 0), res = [];
++  for (const r of ['risks', 'growth', 'cashisa', 'salaries', 'limits', 'year0', 'noretire']) {
++    PLANT.rule = `skip${r}`;
++    const b = battery(few);
++    res.push(`${r} ${b.misses.length}`);
++    if (!b.misses.length) res.push(`(NONE MISSED under skip${r})`);
++  }
++  PLANT.rule = '';
++  ok('3. each check shown failing on its plant: skipped, a refusal of its kind goes missed', !res.some(x => /NONE/.test(x)), res.join(', ')); }
++console.log(fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`);
++process.exit(fail ? 1 : 0);
+diff --git a/research/tests/fast-inputs.json b/research/tests/fast-inputs.json
+index 7318afea..3e192baa 100644
+--- a/research/tests/fast-inputs.json
++++ b/research/tests/fast-inputs.json
+@@ -1501,6 +1501,7 @@
+    "research/tests/couple-order.test.mjs",
+    "research/tests/couple-quick.test.mjs",
+    "research/tests/couple-rank.test.mjs",
++   "research/tests/couple-shape.test.mjs",
+    "research/tests/couple-share-rules.test.mjs",
+    "research/tests/couple-share.test.mjs",
+    "research/tests/couple-shown.test.mjs",
+@@ -3326,6 +3327,7 @@
+    "research/tests/couple-order.test.mjs",
+    "research/tests/couple-quick.test.mjs",
+    "research/tests/couple-rank.test.mjs",
++   "research/tests/couple-shape.test.mjs",
+    "research/tests/couple-share-rules.test.mjs",
+    "research/tests/couple-share.test.mjs",
+    "research/tests/couple-shown.test.mjs",
+@@ -4011,6 +4013,7 @@
+    "research/solver/results-couple-path-profile.txt",
+    "research/solver/results-couple-quick.txt",
+    "research/solver/results-couple-rank.txt",
++   "research/solver/results-couple-shape.txt",
+    "research/solver/results-couple-share-rules.txt",
+    "research/solver/results-couple-share.txt",
+    "research/solver/results-couple-shown.txt",
+diff --git a/src/couplesSwitch.js b/src/couplesSwitch.js
+index b33f855d..424211be 100644
+--- a/src/couplesSwitch.js
++++ b/src/couplesSwitch.js
+@@ -108,6 +108,69 @@ export function otherTaxableOf(plan) {
+ }
+ /* D128: more than DB_GAP_UP_TO years apart and with other taxable income (plant 'nogapguard': never) */
+ export const gapIncomeOf = plan => !planted('nogapguard') && ageGapOf(plan) > DB_GAP_UP_TO + 1e-9 && otherTaxableOf(plan);
++/* D141 (22 Nov): whether the household plan refuses a couple's plan for its shape (src/solver/household.js householdPlanFor,
++   on the plan src/solverCouple.js householdPlan makes: the locks applied by src/solverSettings.js lockedPlan), read from the
++   plan as entered and erring towards the app's rules: wherever the household plan refuses a couple for its shape this says so,
++   and it may say so where the household plan would take the plan (a risk left blank beside one set, or an old name beside its
++   new, which the engine reads alike; an end of the plan read a year short). A couple whose shape it refuses keeps today's
++   guard (D141). { refused, why }, the why in householdPlanFor's order:
++     'risks'     the two people's accounts of one wrapper at different risks, each read as the engine reads it (App.jsx
++                 normalizePlan: the ten wrappers always there, a wrapper missing at its default risk, a risk not a tier
++                 'High Risk') and then held to the first person's limits as lockedPlan holds both people's where the partner
++                 has none of their own that differ ('limits' otherwise);
++     'growth'    the two people's contributions to one wrapper both above nought and growing at different rates;
++     'cashisa'   a cash ISA subscription;
++     'salaries'  both paid, the two salaries growing at different rates;
++     'limits'    the partner's own limits differing from the first person's (lockedPlan reads them wrapper by wrapper:
++                 src/solverSettings.js partCeilingsDiffer, written again here, this module having no imports);
++     'year0'     one person retired and the other paid or saving in the plan's first year;
++     'noretire'  nobody retiring within the plan.
++   Each read as the engine reads it (App.jsx buildContext's req, num and the ids' owners). Held by research/tests/couple-shape.
++   test.mjs over the library's couples and planted shapes: no refusal of the household plan's missed, the over-reach counted.
++   Plants (that test only): 'skip<why>' leaves that check out. */
++const LOCK_RISKS = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
++// App.jsx defaultAccounts: each wrapper's id, kind and default risk
++const WRAPPERS = [['pen', 'Pensions', 'High Risk'], ['isa', 'S&S ISAs', 'High Risk'], ['other', 'Other Investments (e.g. GIA)', 'Low Risk'], ['cash', 'Cash Savings', 'Low Risk'], ['cashIsa', 'Cash ISA', 'Low Risk']];
++const numOf = (v, fallback) => { if (v === '' || v === null || v === undefined || typeof v === 'boolean') return fallback; const n = Number(v); return Number.isFinite(n) ? n : fallback; };
++export function partLimitsDiffer(plan) {
++  const L = plan && plan.solver && plan.solver.locks;
++  if (!L || !L.tierCeilingPart) return false;
++  const real = c => (!!c && LOCK_RISKS.includes(c) ? c : null), tc = L.tierCeiling || {}, tp = L.tierCeilingPart;
++  return ['pen', 'isa'].some(w => real(tp[w]) !== real(tc[w]));
++}
++export function householdShapeOf(plan) {
++  const skip = w => planted(`skip${w}`), refused = why => ({ refused: true, why });
++  const raw = (plan && Array.isArray(plan.accounts) ? plan.accounts : []).filter(a => a && typeof a === 'object' && !Array.isArray(a));
++  const d = (plan && plan.demographics) || {}, L = (plan && plan.solver && plan.solver.locks) || {};
++  // the ten wrappers as the engine normalises them: each id's own account (its first), else the wrapper's default
++  const acct = (w, k) => raw.find(a => a.id === `${w}_${k}`) || null;
++  const riskOf = (w, def, k) => { const a = acct(w, k), r = a && typeof a.risk === 'string' ? a.risk : def; return LOCK_RISKS.includes(r) ? r : 'High Risk'; };
++  const ceil = w => (L.tierCeiling && LOCK_RISKS.includes(L.tierCeiling[w]) ? L.tierCeiling[w] : null);
++  const locked = (w, r) => { const c = (w === 'pen' || w === 'isa') ? ceil(w) : null; return c && LOCK_RISKS.indexOf(r) < LOCK_RISKS.indexOf(c) ? c : r; };
++  if (!skip('risks') && !partLimitsDiffer(plan) && WRAPPERS.some(([w, , def]) => locked(w, riskOf(w, def, 'self')) !== locked(w, riskOf(w, def, 'part')))) return refused('risks');
++  const contribOf = (w, k) => { const a = acct(w, k); return a ? Math.max(0, numOf(a.contrib, 0)) : 0; };
++  const growthOf = (w, k) => { const a = acct(w, k); return a ? numOf(a.growth, 0) : 0; };
++  if (!skip('growth') && WRAPPERS.some(([w]) => contribOf(w, 'self') > 0 && contribOf(w, 'part') > 0 && growthOf(w, 'self') !== growthOf(w, 'part'))) return refused('growth');
++  if (!skip('cashisa') && (contribOf('cashIsa', 'self') > 0 || contribOf('cashIsa', 'part') > 0)) return refused('cashisa');
++  const pay = k => Math.max(0, numOf(k === 'self' ? d.salarySelf : d.salaryPart, 0));
++  if (!skip('salaries') && pay('self') > 0 && pay('part') > 0 && numOf(d.salaryGrowthSelf, 0) !== numOf(d.salaryGrowthPart, 0)) return refused('salaries');
++  if (!skip('limits') && partLimitsDiffer(plan)) return refused('limits');
++  // the first plan year: the engine's ages today and retirement ages (req: a blank the default, then clamped to 0 to 120)
++  const reqAge = (v, fallback) => (v === '' || v === null || v === undefined ? fallback : Math.min(120, Math.max(0, numOf(v, fallback))));
++  const age = { self: reqAge(d.currentAgeSelf, 40) }; age.part = reqAge(d.currentAgePart, age.self);
++  const retire = { self: reqAge(d.retireAgeSelf, 60), part: reqAge(d.retireAgePart, 60) };
++  const working = (k, t) => age[k] + t < retire[k];
++  if (!skip('year0') && (!working('self', 0) || !working('part', 0))) {
++    const saving = k => WRAPPERS.some(([w]) => { const a = acct(w, k); return !!a && (Array.isArray(a.contribByYear) ? numOf(a.contribByYear[0], 0) > 0 : numOf(a.contrib, 0) > 0); });
++    if (['self', 'part'].some(k => working(k, 0) && (pay(k) > 0 || saving(k)))) return refused('year0');
++  }
++  // nobody retiring within the plan, its years read a year short of the engine's (erring towards the app's rules)
++  let terminal = Math.min(120, Math.max(1, numOf(d.terminalAge, 100)));
++  if (terminal <= age.self) terminal = age.self + 1;
++  const T = Math.max(1, Math.round(terminal - age.self)) - 1;
++  if (!skip('noretire') && working('self', T) && working('part', T)) return refused('noretire');
++  return { refused: false, why: null };
++}
+ export function coupleSolverOn(plan, on = COUPLES) {
+   const of = w => ((plan && plan.accounts) || []).filter(a => String(a.id).endsWith('_' + w)).reduce((t, a) => t + (Number(a.balance) || 0), 0);
+   const a = of('self'), b = of('part'), share = a + b > 0 ? a / (a + b) : 0.5;
+-- 
+2.43.0
+

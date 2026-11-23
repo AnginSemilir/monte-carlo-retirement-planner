@@ -356,9 +356,13 @@ for (const f of FIX) {
   // and nothing else in its commit does (with the ceiling's one function switched off this test passes on the figures before: results-harvest-ceiling.txt)
   // S224's runs and reads again on 13 Nov (before: runs 8ab0d7a33f73, reads 82e3915b1a17): the tie-break above the estate cap joined the
   // candidate (D95), which moves a single's forward runs above the cap and no table; S116's three and S224's tables unchanged
+  // S224's three again on 21 Nov (before: tables 401e8096847f, runs 3c707d8249ba, reads 1f82d4ce3e21): the savings split joined the candidate for singles
+  // who work and save (D138), and S224 is an employee with five working years, so it takes the split's pension-first copies
+  // (1,600 moves); with saveSplit and saveIsaFirst left out each solve gives the figures before, and S116's three, with no
+  // year to choose, are unchanged (results-d138-fulltier.txt, printed by research/solver/d138-fulltier.mjs)
   const BEFORE = {
     S116: { tables: 'e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3', runs: 'ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b', reads: '6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4' },
-    S224: { tables: '401e8096847fdb5dad24c210243bd0f5dbc7273fceb9bc67a75f1895c4097be6', runs: '3c707d8249ba094d485daa7a66c854c62f52e84af6d396b13446d99177abc1dc', reads: '1f82d4ce3e21994044775a93665f786c7e50d92f494ddaceff21aeb915ba10b2' }
+    S224: { tables: '6f9b367a1be20ce42822ac1a8c3dd0348c6545d0a1cc1d00cd663588ea1c88b1', runs: 'b302153a11ef1baa9e44574ee10676bc79f711c9efc98e0a23bd43a9fa960d7c', reads: '8fc9cb32870d68a97d6369a60b5b4a5871fb2d2f31d35af8019b6e5ce3c69524' }
   };
   const h = (x) => createHash('sha256').update(JSON.stringify(x)).digest('hex');
   const bad = [];

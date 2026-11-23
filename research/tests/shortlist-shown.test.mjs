@@ -24,6 +24,10 @@
  *      moves differ from the whole menu's; read through shownPolicy they are the whole menu's.
  * Beside the checks, not deciding: whether the first year's move the counted paths take is the move the page shows.
  *   node research/tests/shortlist-shown.test.mjs
+ * Since D138 (21 Nov) the candidate carries the savings split (`saveSplit`, with `saveIsaFirst`). S328F works and saves, so
+ * its solve sets the moves a year (`r.nAt`). Since the speed work after D138 (D137 (1), research/solver/SPEED-D138.md) the
+ * shortlist is keyed on the year's own count of moves: in a year whose copies are live the counted decisions keep the whole
+ * menu, and in the years after they take the shortlist, so this test's solves take the candidate as it is.
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';

@@ -83,7 +83,7 @@ const EI = await import(pathToFileURL(join(tmp, 'engine.mjs')).href);
 const E = await imp('research/engine.mjs'), M = await imp('src/solver/model.js');
 const { ratesAt } = await imp('src/solver/couple.js');
 const { withTable } = await imp('src/solver/bridge.js');
-const { solveCandidate } = await imp('research/solver/candidate.mjs');
+const { solveCandidate, BEFORE_D138_OPTS } = await imp('research/solver/candidate.mjs');
 const { readPanel, appPlan } = await imp('research/solver/phase4-panel.mjs');
 const { armA } = await imp('research/solver/select-phase4.mjs');
 const { solverPlanOf, LAMBDA } = await imp('research/solver/audit-phase4.mjs');
@@ -137,7 +137,8 @@ const scanHow = how => scan.filter(x => x.how === how).length;
 const h026 = byId.S026, a026 = armA(appPlan(h026.plan), { tournament: false });
 const plan026 = prep(solverPlanOf(h026.plan, { decumulationPolicy: a026.planState.spending.decumulationPolicy }));
 const LIGHT = { lambda: LAMBDA, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true } };
-const r026 = solveCandidate(E, M, plan026, { ...LIGHT, windfallSplit: true });
+// the windfall split on the candidate before D138: solve.js refuses it beside the savings split the candidate carries since
+const r026 = solveCandidate(E, M, plan026, { ...LIGHT, windfallSplit: true }, BEFORE_D138_OPTS);
 const r1c = allowanceOf(EI, withTable(r026.m.ctx.plan, r026), 200);
 ok(1, "the year's own flows into an ISA never take it past the allowance its fixed flows leave (engine)", r1a.worst <= 0.01 && r1b.worst <= 0.01 && r1c.worst <= 0.01,
   `a. S090 under its own pick (${s090.label}), ${r1a.n} paths: the worst overshoot ${gbp(r1a.worst)}${r1a.worst > 0.01 ? ` at ${r1a.at}` : ''}; b. the library's ${lib.length} plans: ${scanHow('as entered')} as entered and ${scanHow('Windfall to ISA')} under Windfall to ISA with a deposit or staged transfer into an ISA, 40 paths each: ${gbp(r1b.worst)}${r1b.worst > 0.01 ? ` at ${r1b.at}` : ''}; c. S026 under the windfall split's table at 4 points, ${r1c.n} paths: ${gbp(r1c.worst)}${r1c.worst > 0.01 ? ` at ${r1c.at}` : ''}`);

@@ -11,8 +11,9 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**OPEN (23 Nov, early), for your word: the guard's own units, the registered read (D139 to D141), and the change of
-default it would make.**
+**ANSWERED by D143 (23 Nov, morning): "Unlock enforcement", read as the go on (A), the recommendation (said so to the
+maintainer). Was OPEN (23 Nov, early), for your word: the guard's own units, the registered read (D139 to D141), and the
+change of default it would make.**
 - **The read** (once, 22 Nov 23:37 UK; `results-couples-open.txt`; `reports/2026-11-22-couples-open-read.md`): Y, E, S
   and G each OPEN on the household route. No unit is flagged by D34. Each class's pooled survival is `+11.538` to
   `+11.964` points by path. Spending on the paths both keep is `+2.7988%` to `+3.4491%` by class. The reviewer at the

@@ -11,7 +11,9 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**OPEN (23 Nov, evening), for your word: step 4's change of default, and the protected edits it needs, asked by name.**
+**ANSWERED by D145 (23 Nov, evening): "Go ahead, unlock enforcement. Work towards it handling any couple", read as the go
+on the recommendation (all three shapes; said so to the maintainer): the change of default under way. Was OPEN (23 Nov,
+evening), for your word: step 4's change of default, and the protected edits it needs, asked by name.**
 - **What is built.** `COUPLES-OPEN.md` step 4 (D139's plan; D141: "step 4, three shapes, comes next"): the household plan
   takes three shapes it refuses today, off in code (`STEP4-SHAPES.md`; `household-shapes.test.mjs`,
   `results-household-shapes.txt`).
@@ -36,11 +38,13 @@ below this section says "the beta", read it as history. The order from here:
   - `research/tests/couple-shape.test.mjs`: the guard's shapes held equal to the household plan's again;
   - `research/tests/couple-default.test.mjs`: the block's new key, with its plant;
   - `research/tests/run-all.mjs`: `household-shapes.test.mjs` joining the fast tier's joining list.
-- **The agent's recommendation:** all three shapes, with shape 2's limits said in the D-line. Today such a couple inside
+- **The agent's recommendation:** all three shapes, with the cash ISA's limits said in the D-line. Today such a couple inside
   the old guard runs today's two-table route, and outside it the app's rules. The household route is the one the
   registered test read.
 
-**OPEN (23 Nov, afternoon), for your word: the pricing fix's read (EXPLORATORY), FIX DOES NOT HOLD, and the way on.**
+**ANSWERED by D145 (23 Nov, evening): read as the go on (Keep), the recommendation (said so to the maintainer): the route
+as shipped, the form 'pensionsPAown' off. Was OPEN (23 Nov, afternoon), for your word: the pricing fix's read
+(EXPLORATORY), FIX DOES NOT HOLD, and the way on.**
 - **What ran.** D143 ordered the household plan's tax on a partner's state pension fixed as its own change, read
   EXPLORATORY on the couples trade's units and S191-90 before it becomes a default. Candidate A (`PRICING-FIX.md`, the form
   'pensionsPAown', off in code; 61eed66d) taxes the partner's state pension and other taxable income against their own

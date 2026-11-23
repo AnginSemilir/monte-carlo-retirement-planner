@@ -303,7 +303,7 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   // household line's later runs on the fixed code; step 8's port (D134 (1), D136; 20 Nov) adds src/solver/household.js, the
   // household plan the app solves a couple with, so the code moves again: re-pinned with that note (Full 506 on 89cd5995 failed
   // here alone, the pin left at 71fb4271c681)
-  check('(7d) the solver\'s code id 57c42a999f88 (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work, then the pricing form, then step 4's shapes)', !!cid && cid.hash === '57c42a999f88', cid ? cid.hash : 'none');
+  check('(7d) the solver\'s code id 57c42a999f88 (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work, then the pricing form, then step 4\'s shapes)', !!cid && cid.hash === '57c42a999f88', cid ? cid.hash : 'none');
 }
 
 // 8. the twin (PRESCRIPTIVE-PLAN.md step 3)

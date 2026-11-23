@@ -278,7 +278,12 @@ export default function Shell() {
       {/* One boundary round each planner, so a render error inside either leaves this bar - and the way
           across to the other planner - standing. Keyed on the planner so switching gives a clean start. */}
       {shown === 'full' ? <Boundary resetKey="full"><App theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} numFormat={numFormat} setNumFormat={setNumFormat}
-        isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} onChrome={setChrome} onCross={cross} onPlanner={() => onPlanner(x => x + 1)} /></Boundary> : (
+        isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} onChrome={setChrome} onCross={cross} onPlanner={p => {
+        onPlanner(x => x + 1);
+        // "Classic planner" opens the classic planner, not the Simple page a returning visitor last saw: with the new planner the
+        // default since 22 Nov 2026 such a visitor lands in it first (the reviewer on the default, MINOR 2)
+        if (p === 'classic') setWhich('full');
+      }} /></Boundary> : (
         <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
           <div className="max-w-7xl mx-auto space-y-5">
             <div className="flex items-center justify-between gap-3">

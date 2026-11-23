@@ -9,6 +9,7 @@
  * its own, and the geometry underneath is full-size. Run: node mc-reveal-ui.cjs [port] [shotDir]
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const fs = require('fs');
 const PORT = process.argv[2] || '5173';
 const SHOT = process.argv[3];

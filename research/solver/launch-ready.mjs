@@ -83,5 +83,7 @@ line(6, 'old exports import', !swWhy && /^ {2}ok {3}3\. /m.test(sw), swWhy || ((
 console.log(`THE READINESS CHECKLIST, the code ${STAMP}`);
 for (const l of lines) console.log(`${l.pass ? 'PASS' : 'FAIL'}  ${l.n}. ${l.label}${l.why ? `   (${l.why})` : ''}`);
 const all = lines.every(l => l.pass);
-console.log(all ? '\nALL PASS: the opt-in may go on main, off by default (R6)' : `\n${lines.filter(l => !l.pass).length} of ${lines.length} FAIL: the opt-in waits (R6)`);
+// the new planner the default since 22 Nov 2026 (the maintainer's word; before it R6's opt-in, off by default): the checklist is
+// taken on the release that carries it, and a FAIL holds that release
+console.log(all ? '\nALL PASS: the release may go on main, the new planner the default' : `\n${lines.filter(l => !l.pass).length} of ${lines.length} FAIL: the release waits`);
 process.exit(all ? 0 : 1);

@@ -41,14 +41,15 @@ const SOLVER_URL = /SolverConfig|solverClient|solverWorker/;
 const VITE = join(ROOT, 'node_modules/vite/bin/vite.js');
 
 // the switch off: the Config tab; the switch on: opted in to the new planner, Your plan (where the levers are)
-async function open(b, port, plan, planner = null) {
+// the classic planner chosen unless told otherwise (rp_planner 'classic': the new planner the default since 22 Nov 2026)
+async function open(b, port, plan, planner = 'classic') {
   const p = await b.newPage({ viewport: { width: 1400, height: 1100 } });
   const errs = [], urls = [];
   p.on('pageerror', e => errs.push(e.message));
   p.on('request', q => urls.push(q.url()));
   await p.addInitScript(([k, pl, pick]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); if (pick) localStorage.setItem('rp_planner', pick); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan, planner]);
   await p.goto(`http://localhost:${port}/`, { waitUntil: 'networkidle' });
-  if (!planner) await p.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.includes('Config & Assumptions')); if (x) x.click(); });
+  if (planner !== 'new') await p.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.includes('Config & Assumptions')); if (x) x.click(); });
   await p.waitForTimeout(1200);
   return { p, errs, urls };
 }

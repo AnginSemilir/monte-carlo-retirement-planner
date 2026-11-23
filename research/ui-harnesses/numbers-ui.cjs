@@ -19,6 +19,7 @@
  * Run: node numbers-ui.cjs [port]
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const PORT = process.argv[2] || '5173';
 const FULL_STATE_PENSION = 12548;
 const GIA = 'Other Investments (e.g. GIA)';

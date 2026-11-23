@@ -1,5 +1,6 @@
 // The Inheritance tab: does it compute what the engine says, and does the 75 cliff actually show?
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const PORT = process.argv[2] || '5187';
 const GIA = 'Other Investments (e.g. GIA)';
 const plan = {

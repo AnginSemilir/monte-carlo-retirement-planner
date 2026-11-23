@@ -46,13 +46,15 @@
  *      21 Nov gave how the money is invested and the run pot by pot a slide each); the levers sheet opened and shut with Escape;
  *      a change in it makes the plan stale (data-solve-key unchanged until asked), and the worker is asked nothing until
  *      "Solve again";
- *  13  the quick start: an empty plan shows it; "Work out my plan" waits for the four readiness fields; filled, it builds
+ *  13  the quick start: an empty plan shows it, and nothing is solved and no solver chunk fetched until it hands over a plan
+ *      (22 Nov 2026); "Work out my plan" waits for the four readiness fields; filled, it builds
  *      the plan and solves; it asks each pot's annual contribution and the contribution's yearly increase, and the plan it
  *      builds carries them (D62, 8 Nov; before it, a pointer to You, Your money);
  *  14  the classic planner, the switch on, fetches none of the solver's chunks;
- *  15  the opt-in both ways (Phase 12 item 3; the readiness checklist's "switched on and off without losing a plan"): from the
- *      classic planner "Try the new planner (beta)" opens the new planner and "Classic planner" comes back, each time with
- *      the saved plan as it was and rp_planner as chosen, and a reload keeping the choice;
+ *  15  the new planner by default and the way across both ways (Phase 12 item 3; the readiness checklist's "switched on and
+ *      off without losing a plan"; the new planner the default since 22 Nov 2026): a visitor who has chosen nothing gets the
+ *      new planner; "Classic planner" goes across and a reload keeps it; "Try the new planner" comes back; each time with the
+ *      saved plan as it was and rp_planner as chosen (its plant 'classicdefault': an unset choice read as classic, as before);
  *  16  the rollback (B6: "one deploy turns it off for everyone"): a build with PLANNER_BETA false (vite.config.js
  *      solver-harness, PLANNER_BETA_OFF=1) shows a visitor who opted in the classic planner, with no opt-in;
  *  17  the rename pass (Phase 12 item 1): no tournament word ("tournament", "recommended policy", "bridge safety margin") and
@@ -100,7 +102,7 @@
  * nocouple (10), lockspart (10: You's Limits giving a couple the solver does not run the card for two, as f1b2b457 did),
  * failboth (11: the failure view's money chart drawn as both arms, the solved plan's named), phonesolve (12),
  * staleask (12), navtarget40 (12), noquickcontrib (13: the plan the quick start builds without the contributions it was given),
- * classicfetch (14), optinloses (15: the switch between the planners resets the plan), betaignored (16: the page reads
+ * classicfetch (14), optinloses (15: the switch between the planners resets the plan), classicdefault (15: an unset choice read as the classic planner), blanksolve (13: the quick start's empty plan solved), betaignored (16: the page reads
  * rp_planner whatever PLANNER_BETA says), tournamentdocs (17: the documentation keeps the tournament's sections in the new
  * planner), diagwhole (18: the diagnostic appends the solve's record whole), couplecard (19: an in-band couple shown the couples
  * card), coupleage (19: each person's table solved without their partner's age, which the couple's assembly refuses; since
@@ -139,8 +141,8 @@ const SPEED_SINGLE = 'Speed mode works out your figures faster by looking at few
 const SPEED_COUPLE = 'For couples, speed mode is less tested. It was usually only a little faster, it spent a little less, and for some couples it lowered the chance your money lasts by about 5 in 1,000. Use the full calculation for decisions.';
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback', 'workernotie', 'workersplit', 'nogapguard', 'gapwords'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19, workernotie: 19, workersplit: 19, nogapguard: 19, gapwords: 19 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'classicdefault', 'blanksolve', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback', 'workernotie', 'workersplit', 'nogapguard', 'gapwords'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, classicdefault: 15, blanksolve: 13, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19, workernotie: 19, workersplit: 19, nogapguard: 19, gapwords: 19 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -290,7 +292,8 @@ const firstDiff = (a, b, at = '') => {
     console.log(`the harness's build (the switch and PLANNER_BETA on, as the source has them${PLANTED.length ? `; planted: ${PLANTED.join(', ')}` : ''}) served: ${up}`);
 
     // ---------------------------------------------------------------- 14. the classic planner fetches no solver chunk
-    { const { p, errs, urls } = await open(b, planOf(FIX.main), { planner: null });
+    // (chosen: since 22 Nov 2026 a visitor who has chosen nothing gets the new planner, check 15)
+    { const { p, errs, urls } = await open(b, planOf(FIX.main), { planner: 'classic' });
       for (const t of ['Projection', 'Strategy', 'Config & Assumptions']) { await goPlace(p, t); }
       await p.waitForTimeout(1500);
       const got = urls.filter(u => /solverClient|solverWorker|PlannerPlan|SolverConfig|SolverFigures/.test(u));
@@ -581,25 +584,27 @@ const firstDiff = (a, b, at = '') => {
 
       await p.context().close(); }
 
-    // ---------------------------------------------------------------- 15. the opt-in both ways keeps the plan
+    // ---------------------------------------------------------------- 15. the new planner by default, and the way across both ways
+    // (22 Nov 2026, the maintainer's word: the new planner the default; before it a visitor who had chosen nothing got the classic)
     { const { p, errs } = await open(b, planOf(FIX.main), { planner: null });
-      await p.waitForSelector('[data-tabbar]', { timeout: 60000 }).catch(() => {});
+      await p.waitForSelector('[data-place], [data-tabbar]', { timeout: 60000 }).catch(() => {});
       const before = JSON.stringify(await saved(p)), pick = () => p.evaluate(() => localStorage.getItem('rp_planner'));
+      const isClassic = async () => { const tabs = await p.$$eval('[data-tabbar] button', bs => bs.map(x => x.textContent.trim())); return tabs.includes('Plan Inputs') && !(await p.$('[data-place]')); };
+      const fresh = { place: !!(await p.$('[data-place]')), classic: await isClassic(), pick: await pick() };
+      await p.click('[data-crossover-planner]').catch(() => {});
+      await p.waitForTimeout(800);
+      const back = { classic: await isClassic(), plan: JSON.stringify(await saved(p)) === before, pick: await pick() };
+      await p.reload({ waitUntil: 'networkidle' });
+      await p.waitForSelector('[data-tabbar]', { timeout: 60000 }).catch(() => {});
+      const kept = { classic: await isClassic(), plan: JSON.stringify(await saved(p)) === before };
       const tried = await p.$('[data-try-planner]');
       if (tried) await tried.click();
       await p.waitForSelector('[data-place]', { timeout: 60000 }).catch(() => {});
       const inNew = { place: !!(await p.$('[data-place]')), plan: JSON.stringify(await saved(p)) === before, pick: await pick() };
-      await p.click('[data-crossover-planner]').catch(() => {});
-      await p.waitForTimeout(800);
-      const tabs = await p.$$eval('[data-tabbar] button', bs => bs.map(x => x.textContent.trim()));
-      const back = { classic: tabs.includes('Plan Inputs') && !(await p.$('[data-place]')), plan: JSON.stringify(await saved(p)) === before, pick: await pick() };
-      await p.reload({ waitUntil: 'networkidle' });
-      const tabs2 = await p.$$eval('[data-tabbar] button', bs => bs.map(x => x.textContent.trim()));
-      const again = { classic: tabs2.includes('Plan Inputs') && !(await p.$('[data-place]')), plan: JSON.stringify(await saved(p)) === before };
-      ok(15, 'the opt-in both ways: "Try the new planner (beta)" opens the new planner and "Classic planner" comes back, the saved plan as it was each time, rp_planner as chosen, a reload keeping it',
-        !!tried && inNew.place && inNew.plan && inNew.pick === 'new' && back.classic && back.plan && back.pick === 'classic' && again.classic && again.plan,
-        `the button ${tried ? 'there' : 'missing'}; new planner ${JSON.stringify(inNew)}; back ${JSON.stringify(back)}; after a reload ${JSON.stringify(again)}`);
-      ok(15, 'the opt-in both ways: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+      ok(15, 'a visitor who has chosen nothing gets the new planner; "Classic planner" goes across and a reload keeps it; "Try the new planner" comes back; the saved plan as it was each time, rp_planner as chosen',
+        fresh.place && !fresh.classic && fresh.pick === null && back.classic && back.plan && back.pick === 'classic' && kept.classic && kept.plan && !!tried && inNew.place && inNew.plan && inNew.pick === 'new',
+        `fresh ${JSON.stringify(fresh)}; classic ${JSON.stringify(back)}; after a reload ${JSON.stringify(kept)}; the way back ${tried ? 'there' : 'missing'}, ${JSON.stringify(inNew)}`);
+      ok(15, 'the default and the way across: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
 
     // ---------------------------------------------------------------- 16. the rollback: PLANNER_BETA false
@@ -683,7 +688,7 @@ const firstDiff = (a, b, at = '') => {
       await p.context().close(); }
 
     // ---------------------------------------------------------------- 13. the quick start
-    { const { p, errs } = await open(b, null);
+    { const { p, errs, urls } = await open(b, null);
       const shown = !!(await p.$('[data-place="plan"] [data-quick-start]'));
       const potFields = await p.$$eval('[data-quick-start] [data-quick-pot] [data-quick-field]', els => els.map(el => el.getAttribute('data-quick-field'))).catch(() => []);
       const dis0 = await p.$eval('[data-quick-go]', el => el.disabled).catch(() => null);
@@ -715,6 +720,20 @@ const firstDiff = (a, b, at = '') => {
         server3 = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT3, '--port', COUPLES_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
         let up3 = false;
         for (let i = 0; i < 40 && !up3; i++) { try { const r = await fetch(`http://localhost:${COUPLES_PORT}/`); up3 = r.ok; } catch (e) { await new Promise(res => setTimeout(res, 500)); } }
+        // 13, here and not in the build above: a fresh visitor (the new planner the default since 22 Nov 2026) at the quick
+        // start: nothing solved, no solver chunk fetched and the isolation not started, past the solve's debounce, until a plan is
+        // handed over (the reviewer on the default, BLOCKING 1; its plant 'blanksolve'). A fresh visitor's empty plan is a couple
+        // (the engine's normalizePlan(null)), so only a build with couples on, as the site ships, would solve it: in the build above
+        // (COUPLES_OFF) the empty plan is never solved, plant or not, and the check was blind there (its plant, run alone, failed
+        // nothing; 22 Nov 2026)
+        { const { p, errs, urls } = await open(b, null, { port: COUPLES_PORT });
+          const shown = !!(await p.$('[data-place="plan"] [data-quick-start]'));
+          await p.waitForTimeout(4000);
+          const blank = { chunks: urls.filter(u => /solverClient|solverWorker/.test(u)).length, asks: await p.evaluate(() => window.__asks.length), strip: await strip(p) };
+          ok(13, 'a fresh visitor at the quick start (couples on, as the site ships): nothing solved and no solver chunk fetched until a plan is handed over',
+            up3 && shown && blank.chunks === 0 && blank.asks === 0 && !(blank.strip && /solving|solved/.test(blank.strip.solve)), JSON.stringify({ served: up3, shown, chunks: blank.chunks, asks: blank.asks, solve: blank.strip && blank.strip.solve }));
+          ok(13, 'a fresh visitor at the quick start (couples on): no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+          await p.context().close(); }
         const share = pl => { const of = w => pl.accounts.filter(a => a.id.endsWith('_' + w)).reduce((t, a) => t + (Number(a.balance) || 0), 0); return of('self') / (of('self') + of('part')); };
         const even = couple && Math.abs(share(couple.plan) - 0.6) < 0.05 ? couple : all.find(s2 => s2.plan.demographics.planningMode === 'couple' && Math.abs(share(s2.plan) - 0.6) < 0.05);
         // (a) an in-band couple solves on the page, its figures the reference's

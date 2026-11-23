@@ -30,9 +30,10 @@
  * couples-open-registered-panel.json):
  *   REG=1 node research/solver/audit-couples-open.mjs pilot part k/n       the pilot: every unit, seed 7002, PILOT_N paths
  *                                                                          (EXPLORATORY; its sizing, size-couples-open.mjs)
- *   REG=1 node research/solver/audit-couples-open.mjs registered part k/n  the registered run: seed HELD, couples-open-paths.json's
- *                                                                          paths, only under the registration through the
- *                                                                          launcher, only on the code the panel was landed on
+ *   REG=1 node research/solver/audit-couples-open.mjs registered part k/n  the registered run: the household route's units alone
+ *                                                                          (D141), seed HELD, couples-open-paths.json's paths,
+ *                                                                          only under the registration through the launcher,
+ *                                                                          only on the code the panel was landed on
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -62,11 +63,15 @@ export const REGISTRATION = 'research/solver/registrations/couples-open.md';
 export const PATHS_FILE = join(HERE, 'couples-open-paths.json');
 export const ARMS = ['APP', 'ROUTE'];
 /* the units a mode runs, in the order the batch runs them: the addendum the rehearsal panel's ADDENDUM variants alone; the
-   registered run every unit, the household route's first and today's after (each in the panel's order), so its two parts are
-   read as each comes in (registrations/couples-open.md, The read); every other mode its panel's every unit in its order */
-export const PARTS = Object.freeze(['household', 'today']);
+   registered run the household route's units alone, in the panel's order (D141, 22 Nov: the registered test reads Y, E, S and
+   G on the household route; today's route's classes are not registered); every other mode its panel's every unit */
+export const REGISTERED_ROUTE = 'household';
 export const unitsOf = (panel, mode) => (mode === 'addendum' ? panel.filter(u => ADDENDUM.includes(u.variant))
-  : mode === 'registered' ? PARTS.flatMap(r => panel.filter(u => u.route === r)) : panel);
+  : mode === 'registered' || mode === 'pilot' ? panel.filter(u => u.route === REGISTERED_ROUTE) : panel);
+/* the settings a registered run refuses (the registration's design review, MINOR 7): a panel or landing other than the
+   registered one, which would change the units while the stamp stayed, and any of the smoke's limits */
+export const REGISTERED_REFUSES = ['COUPLES_OPEN_PANEL', 'COUPLES_OPEN_LAND_OUT', 'CO_PTS', 'CO_N', 'CO_ONLY', 'CO_OUT'];
+export const registeredEnvProblems = env => REGISTERED_REFUSES.filter(k => env[k] !== undefined && env[k] !== '');
 export const ROUTE_CTX = 'solvedContext';
 /* ROUTE's engine context: the page's own for the solved couple (src/solverStrategy.js solvedContext); the plant 'armages' puts
    arm A's MPAA ages (ages) on the solved plan first, the rehearsal's way */
@@ -153,9 +158,10 @@ function planted() {
     cases.push(['the guard on', unitProblems(U, 'ISA First', { on: true, why: null }, hh).join(';'), 'the app\'s guard is on: the unit is not one the guard keeps off']);
     cases.push(['the guard off for another reason', unitProblems({ ...U, variant: 'G8' }, 'ISA First', off, hh).join(';'), 'the app\'s guard keeps the unit off for \'uneven\', not its class\'s \'gapincome\'']);
     cases.push(['the route not the panel\'s', unitProblems(U, 'ISA First', off, { route: 'today' }).join(';'), 'the route \'today\', not the panel\'s \'household\'']); }
-  cases.push(['the panel: 64 units, 24 on today\'s route, each class on one route', `${panel.length} ${panel.filter(u => u.route === 'today').length} ${[...new Set(panel.map(u => u.cls))].join(',')}`, `64 24 ${CLASSES.join(',')}`]);
-  { const reg = unitsOf(panel, 'registered'), cut = reg.findIndex(u => u.route === 'today');
-    cases.push(['the registered order: every unit once, the household route\'s first, then today\'s', `${reg.length} ${new Set(reg.map(u => u.id)).size} ${cut} ${reg.slice(cut).every(u => u.route === 'today')}`, `64 64 40 true`]); }
+  cases.push(['the panel: 68 units, 24 on today\'s route, each class on one route', `${panel.length} ${panel.filter(u => u.route === 'today').length} ${[...new Set(panel.map(u => u.cls))].join(',')}`, `68 24 ${CLASSES.join(',')}`]);
+  cases.push(['the registered run refuses another panel, another landing and every limit, and takes a clean setting', `${registeredEnvProblems({ COUPLES_OPEN_PANEL: 'x', CO_N: '5' }).join(',')} | ${registeredEnvProblems({ COUPLES_OPEN_LAND_OUT: '/tmp' }).join(',')} | ${registeredEnvProblems({ REG: '1', PREDICTION_FILE: 'p' }).join(',') || 'clean'}`, 'COUPLES_OPEN_PANEL,CO_N | COUPLES_OPEN_LAND_OUT | clean']);
+  { const reg = unitsOf(panel, 'registered');
+    cases.push(['the registered run (D141) and its pilot: the household route\'s 44 units, each once, none of today\'s route, each class Y, E, S or G', `${reg.length} ${new Set(reg.map(u => u.id)).size} ${reg.every(u => u.route === 'household')} ${[...new Set(reg.map(u => u.cls))].join(',')} ${unitsOf(panel, 'pilot').map(u => u.id).join(',') === reg.map(u => u.id).join(',')}`, '44 44 true Y,E,S,G true']); }
   cases.push(['the addendum: the rehearsal panel\'s five new units a couple', `${unitsOf(panel, 'addendum').length} ${[...new Set(unitsOf(panel, 'addendum').map(u => u.variant))].sort().join(',')}`, `20 ${[...ADDENDUM].sort().join(',')}`]);
   // ROUTE's context is the page's own (the rehearsal read's reviewer, MINOR 2): on a unit where arm A's MPAA ages and the solved
   // plan's own differ (S357F-Y90 on the rehearsal panel, S279-RY75 on the registered), solved at light settings, ROUTE's context
@@ -184,7 +190,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (!['rehearsal', 'addendum', 'pilot', 'registered'].includes(MODE)) { console.error('audit-couples-open: rehearsal, addendum, pilot or registered part k/n'); process.exit(2); }
   // the pilot and the registered run read the registered panel; the dress rehearsal its own
   if ((REGISTERED || PILOT) !== (process.env.REG === '1')) { console.error(`audit-couples-open: ${MODE} runs ${REGISTERED || PILOT ? 'with' : 'without'} REG=1`); process.exit(2); }
-  if (REGISTERED && (process.env.CO_PTS || process.env.CO_N || process.env.CO_ONLY || process.env.CO_OUT)) { console.error('audit-couples-open: the registered run takes no limits'); process.exit(2); }
+  if (REGISTERED && registeredEnvProblems(process.env).length) { console.error(`audit-couples-open: the registered run takes no other panel, landing or limit (${registeredEnvProblems(process.env).join(', ')} set)`); process.exit(2); }
   if (REGISTERED && process.env.PREDICTION_FILE !== REGISTRATION) { console.error(`audit-couples-open: the registered run runs only under ${REGISTRATION}, through the launcher (PREDICTION_FILE ${process.env.PREDICTION_FILE || 'unset'})`); process.exit(2); }
   // the registered run only on the code the panel was landed on: a change of code means landing again, a new pilot and review
   if (REGISTERED) { const pc = JSON.parse(readFileSync(join(HERE, 'couples-open-registered-panel.json'), 'utf8')).code, cc = codeId(); if (!cc || cc.hash !== pc) { console.error(`audit-couples-open: the code ${cc ? cc.hash : 'unknown'} is not the code the panel was landed on (${pc})`); process.exit(2); } }

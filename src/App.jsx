@@ -7231,12 +7231,22 @@ const BETA_ON = PLANNER_BETA || PLANNER_PLANT.has('betaignored');
 // solver-harness, research/solver/PHASE-8.md), so the site's own build never reads anything else here
 const SOLVER_OPTS = null;
 /*
- * WHICH PLANNER A VISITOR SEES (step U; LAYOUT.md section 2.1). rp_planner, read only when SOLVER is true: 'new' opts in to the
- * new planner (the solver's, four places), anything else is the classic planner, the app with the switch off bit for bit.
- * Classic unless set, in every build (R6: off by default).
+ * WHICH PLANNER A VISITOR SEES (step U; LAYOUT.md section 2.1). rp_planner, read only when SOLVER is true: 'classic' chooses the
+ * classic planner, the app with the switch off bit for bit; anything else, a visitor who has chosen nothing among them, is the
+ * new planner (the solver's, four places). The new planner by default since 22 Nov 2026, the maintainer's word ("Switch the new
+ * solver from beta to the default"); before it, classic unless set (R6). A visitor who went back to the classic planner keeps
+ * it, and PLANNER_BETA false still gives everyone the classic planner (the rollback). research/ui-harnesses/solver-planner-ui.cjs
+ * check 15, its plant 'classicdefault' (an unset choice read as classic, as before)
  */
 export const PLANNER_KEY = 'rp_planner';
-const readPlanner = () => { try { return localStorage.getItem(PLANNER_KEY) === 'new' ? 'new' : 'classic'; } catch (e) { return 'classic'; } };
+// the choice made this visit, for a browser whose storage throws: the shell and the page then read the same planner (the
+// reviewer on the default, MINOR 3), though it is not kept past a reload there
+let plannerChosen = null;
+export const rememberPlanner = v => { plannerChosen = v; };
+const readPlanner = () => {
+  const unset = PLANNER_PLANT.has('classicdefault') ? 'classic' : 'new';
+  try { const v = localStorage.getItem(PLANNER_KEY); return v === 'classic' || v === 'new' ? v : plannerChosen || unset; } catch (e) { return plannerChosen || unset; }
+};
 const plannerOn = planner => SOLVER && BETA_ON && planner === 'new';
 // the switch and its settings, for the Simple page's answers from the solver (src/Simple.jsx; Part C Phase 10, item 5): on only
 // in the new planner, where the Simple page is folded into the quick start (LAYOUT.md section 2.1)
@@ -8738,6 +8748,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const setPlanner = useCallback(p => {
     if (PLANNER_PLANT.has('optinloses')) setPlan(E.normalizePlan(null));   // the plant (check 15 only): the switch loses the plan
     safeStorageSet(PLANNER_KEY, p);
+    rememberPlanner(p);
     setPlannerState(p);
     setActiveTabRaw(t => (plannerOn(p) ? (PLACE_OF[t] || t) : (CLASSIC_OF[t] || t)));
     if (onPlanner) onPlanner(p);
@@ -8775,7 +8786,18 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const [askedPlan, setAskedPlan] = useState(null);
   const asked = !isPhone || askedPlan === plan;
   const askSolve = useCallback(() => setAskedPlan(plan), [plan]);
-  const solve = useSolverState(plan, solverRules, E, SOLVER_OPTS, solverRules && !asked && !PLANNER_PLANT.has('phonesolve'));
+  // enough has been entered for the rest of the app to say something meaningful
+  const planStarted = E.num(plan?.spending?.targetSpend, 0) > 0
+    || (plan?.accounts || []).some(a => E.num(a.balance, 0) > 0 || E.num(a.contrib, 0) > 0);
+  /*
+   * NO SOLVE BEFORE THERE IS A PLAN (22 Nov 2026, the reviewer on the new planner as the default, BLOCKING 1). An empty plan
+   * shows the quick start; solving it meant every fresh visitor's first minute went on a solve of nothing, thrown away when the
+   * quick start handed over a plan, and on GitHub Pages the isolation's one reload, which loses what was typed into the quick
+   * start. So the solver, its chunk and the isolation wait for a plan. research/ui-harnesses/solver-planner-ui.cjs check 13, its
+   * plant 'blanksolve' (the empty plan solved, as before)
+   */
+  const solveOn = solverRules && (planStarted || PLANNER_PLANT.has('blanksolve'));
+  const solve = useSolverState(plan, solveOn, E, SOLVER_OPTS, solveOn && !asked && !PLANNER_PLANT.has('phonesolve'));
   // the cards' cost lines read this device's last solve (src/solveStatus.js timings)
   useEffect(() => {
     if (solve.solveState === 'solved' && solve.solveMeta && !solve.solveMeta.error) {
@@ -11238,9 +11260,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   };
 
   const displayedAccounts = isCouple ? (plan?.accounts || []) : (plan?.accounts || []).filter(a => a.owner === 'Myself');
-  // enough has been entered for the rest of the app to say something meaningful
-  const planStarted = E.num(plan?.spending?.targetSpend, 0) > 0
-    || (plan?.accounts || []).some(a => E.num(a.balance, 0) > 0 || E.num(a.contrib, 0) > 0);
   /*
    * A tab is text with a rule under the current one, not a pill in a tray.
    *
@@ -13389,7 +13408,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <div data-planner-header className="sticky top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 -mt-4 sm:-mt-6 lg:-mt-8 px-4 sm:px-6 lg:px-8 bg-slate-50/95 backdrop-blur border-b border-slate-200">
             <div className="h-14 flex items-center gap-3">
               <span className="text-base font-bold tracking-tight text-slate-900">Monte Carlo Retirement Planner</span>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">Beta</span>
               <span className="flex-1" />
               <button type="button" data-crossover-planner onClick={() => setPlanner('classic')} className="min-h-9 px-3 rounded-lg text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 cursor-pointer">Classic planner</button>
               <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />
@@ -13407,12 +13425,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <div data-planner-phonebar className="sticky top-0 z-30 -mx-4 -mt-4">
             <header data-phone-bar className="flex items-center gap-1 pl-3 pr-1 h-11 bg-surface border-b border-slate-200">
               <span className="text-[13px] font-bold tracking-tight text-slate-900">Retirement planner</span>
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">Beta</span>
               <span className="flex-1" />
               <ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
               <button type="button" data-crossover-planner aria-label="Open the classic planner" onClick={() => setPlanner('classic')} className="min-h-11 px-2 text-xs font-bold text-blue-700 cursor-pointer whitespace-nowrap">Classic</button>
             </header>
-            {solverRules && <Suspense fallback={null}><StatusStripCard solve={solve} isPhone asked={asked} simulating={planPhase.simulating} trials={planPhase.trials} place={activeTab} onAction={stripAction} /></Suspense>}
+            {/* on the solve's own condition: with no plan yet the strip's "Solve my plan" had nothing to solve (the reviewer on the
+                default, second round, MINOR 1) */}
+            {solveOn && <Suspense fallback={null}><StatusStripCard solve={solve} isPhone asked={asked} simulating={planPhase.simulating} trials={planPhase.trials} place={activeTab} onAction={stripAction} /></Suspense>}
           </div>
         )}
 
@@ -13472,7 +13491,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* Not hidden on the dashboard any more. It was, to buy 40px of height, and the dashboard is
                   where you stay - so the theme became unreachable for as long as you were reading it,
                   which is the whole session. */}
-              {SOLVER && BETA_ON && <button type="button" data-try-planner onClick={() => setPlanner('new')} className="min-h-9 px-3 rounded-lg border border-indigo-200 bg-indigo-50 text-xs font-semibold text-indigo-800 hover:bg-indigo-100 cursor-pointer">Try the new planner (beta)</button>}
+              {SOLVER && BETA_ON && <button type="button" data-try-planner onClick={() => setPlanner('new')} className="min-h-9 px-3 rounded-lg border border-indigo-200 bg-indigo-50 text-xs font-semibold text-indigo-800 hover:bg-indigo-100 cursor-pointer">Try the new planner</button>}
               <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />
             </div>
           </div>
@@ -16666,11 +16685,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <ArrowRight className="w-4 h-4 shrink-0" /> Open the simple planner
                   </button>
                 )}
-                {/* step U's crossover on a phone, where the beta is on (LAYOUT.md section 2.1) */}
+                {/* step U's crossover on a phone, back to the new planner for a visitor who chose the classic (LAYOUT.md section 2.1) */}
                 {SOLVER && BETA_ON && (
                   <button type="button" data-try-planner onClick={() => { setMoreOpen(false); setPlanner('new'); }}
                     className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-indigo-700 hover:bg-indigo-50 cursor-pointer">
-                    <ArrowRight className="w-4 h-4 shrink-0" /> Try the new planner (beta)
+                    <ArrowRight className="w-4 h-4 shrink-0" /> Try the new planner
                   </button>
                 )}
                 {activeTab === 'inputs' && (

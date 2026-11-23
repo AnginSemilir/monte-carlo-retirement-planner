@@ -87,6 +87,12 @@ Each class passes all three parts of the rule, ROUTE against APP. Every figure b
   - So `COUPLES-OPEN.md` amendment 1 opens each class on its own route alone (Y, E, S, G on the household route; RY, RE,
     RS, RG on today's), and adds five units to every couple so that today's route is read at each reason and G at a
     partner's DB pension. The five run first here, as this rehearsal's addendum.
+  - Corrected 22 Nov (evening) as the reviewer's second look gave it, unreviewed (D81 (F)): that is not enough for today's
+    route. It was measured below the app's rules on six couples of RY's, RE's and RG's reasons that no unit reads
+    (`results-household-arm.txt`, `results-guard.txt`; `reviews/2026-11-22-read-couples-open-rehearsal-2.md`), so the
+    addendum does not read today's route at each reason for couples like them. By the maintainer's ruling (D141) the
+    registered test reads the household route's classes alone, and a couple whose plan's shape the household plan refuses
+    keeps today's guard (`COUPLES-OPEN.md` amendment 2).
 - **Unit by unit.** The registered read should name a unit that keeps more paths but spends less on the paths both keep
   (S025's pattern here), as step 8's M1 by unit did. It is not a bar.
 - **The younger cohort** (S351F and S357F here) has no couple left untouched for the registered panel. It rests on this

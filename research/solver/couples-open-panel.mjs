@@ -27,6 +27,12 @@
  *   RG12P           G12P with the partner's pension one profile safer: 'gapincome', today's route.
  * The dress rehearsal read its 44 units before these were added; the five are its addendum (ADDENDUM: land --only, the audit's
  * addendum mode), read on their own by the same rule.
+ * One more unit, after the registration's design review (reviews/2026-11-22-couples-open-design.md, BLOCKING 1: G's units
+ * carried only a DB pension from the state pension age, and the one measurement of an income before it, rent from now, was
+ * today's route's, results-guard.txt):
+ *   G12R            12 years apart with £15,000 a year of the first person's rent from plan year 0 (their age now) to the
+ *                   plan's end, other taxable income, as the guard test typed it (guard-panel.mjs withIncome 'rent'), the
+ *                   library's own holding: 'gapincome', the household route; its rent set after the cohort's ages (unitPlan).
  * The first person is the elder in every library couple, so no unit is handed to the solver on its mirror.
  * Each unit's plan (unitPlan): the variant, then couple-panel.mjs planOf at the couple's cohort and target. Landed so arm A,
  * searched anew at each target, survives 85 +/- 1% on 1,000 paths of seed 7005 (phase4-panel.mjs landTarget, D4's procedure);
@@ -80,7 +86,7 @@ export const VARIANTS = Object.freeze({
   E95: { cls: 'E', hold: 0.95 }, E100: { cls: 'E', hold: 1 },
   S75: { cls: 'S', shape: 'even', hold: 0.75 },
   G8: { cls: 'G', shape: 'gap8', feature: 'db' }, G12: { cls: 'G', shape: 'gap12', feature: 'db' }, G8Y75: { cls: 'G', shape: 'gap8', feature: 'db', hold: 0.25 },
-  G12P: { cls: 'G', shape: 'gap12', feature: 'dbpart' },
+  G12P: { cls: 'G', shape: 'gap12', feature: 'dbpart' }, G12R: { cls: 'G', shape: 'gap12', rentNow: true },
   RY75: { cls: 'RY', hold: 0.25, risks: true }, RWY75: { cls: 'RY', hold: 0.25, working: true },
   RE100: { cls: 'RE', hold: 1, risks: true }, RS75: { cls: 'RS', shape: 'even', hold: 0.75, risks: true },
   RG8: { cls: 'RG', shape: 'gap8', feature: 'db', risks: true }, RG12P: { cls: 'RG', shape: 'gap12', feature: 'dbpart', risks: true }
@@ -92,7 +98,7 @@ export const ROUTE_OF_CLASS = Object.freeze({ Y: 'household', E: 'household', S:
 export const ADDENDUM = Object.freeze(['G12P', 'RE100', 'RS75', 'RG8', 'RG12P']);
 /* the guard's reason each variant is kept off for (an age gap with other taxable income where the holding is inside the
    band and the elder's ceiling, the holding first otherwise), and the route the app takes for it */
-const GAP_REASON = ['G8', 'G12', 'G12P', 'RG8', 'RG12P'];
+const GAP_REASON = ['G8', 'G12', 'G12P', 'G12R', 'RG8', 'RG12P'];
 export const WANT = Object.freeze(Object.fromEntries(Object.entries(VARIANTS).map(([v, V]) => [v, { why: GAP_REASON.includes(v) ? 'gapincome' : 'uneven', route: V.risks || V.working ? 'today' : 'household' }])));
 export const REG = process.env.REG === '1', N_REG = 4;
 export const ORDERS = join(HERE, 'couples-open-orders.json');
@@ -150,8 +156,16 @@ export function laterWorking(plan) {
   if (!(E.num(d.salaryPart, 0) > 0)) d.salaryPart = WORKING_SALARY;
   return E.normalizePlan({ ...plan, demographics: d });
 }
+/* G12R's rent: £15,000 a year of the first person's, other taxable income, from their age now to the plan's end (as the guard
+   test's guard-panel.mjs withIncome 'rent'), set after the cohort's ages so that it starts in plan year 0 */
+export const RENT = 15000;
+export function withRentNow(plan) {
+  const p = JSON.parse(JSON.stringify(plan)), age = E.num(p.demographics.currentAgeSelf, 40);
+  p.otherIncomes = [...(p.otherIncomes || []), { id: 'inc_rent_couples_open', name: 'Rent (the guard\'s own units)', owner: 'Myself', startAge: age, endAge: '', amount: RENT, incomeType: 'otherTaxable', notes: '' }];
+  return E.normalizePlan(p);
+}
 /* the unit's plan at a target, as every arm runs it */
-export const unitPlan = (h, cohort, v, target) => { const p = planOf({ ...h, plan: variantPlan(h, v) }, cohort, target); return VARIANTS[v] && VARIANTS[v].working ? laterWorking(p) : p; };
+export const unitPlan = (h, cohort, v, target) => { const p = planOf({ ...h, plan: variantPlan(h, v) }, cohort, target), V = VARIANTS[v] || {}; return V.working ? laterWorking(p) : V.rentNow ? withRentNow(p) : p; };
 /* the app's guard on the unit's plan */
 export function guardOf(plan) { const g = coupleSolverOn(plan); return { on: g.on, why: g.why, share: g.share }; }
 /* the app's route for a couple's plan as the solvers are handed it (src/solverClient.js): the household where its cut takes
@@ -196,6 +210,10 @@ function planted() {
     cases.push([`${v}: ${gap} years apart, the partner's (the younger's) DB pension of £15,000 a year`, `${E.num(d.currentAgeSelf, 0) - E.num(d.currentAgePart, 0)} ${db.length} ${db.map(i => i.amount).join(',')}`, `${gap} 1 15000`]);
   }
   cases.push(['RE100: the elder holds every pound', firstShare(variantPlan(h, 'RE100')).toFixed(4), '1.0000']);
+  for (const cohort of ['lib', 'young']) {
+    const g = cohort === 'lib' ? h : byId.S351, p = unitPlan(g, cohort, 'G12R', 30000), d = p.demographics, inc = (p.otherIncomes || []).filter(i => i.incomeType === 'otherTaxable');
+    cases.push([`G12R (${cohort}): 12 years apart, one income, the first person's £15,000 a year of rent, other taxable, from their age now to the end`, `${E.num(d.currentAgeSelf, 0) - E.num(d.currentAgePart, 0)} ${inc.length} ${inc.map(i => `${i.owner} ${i.amount} ${i.startAge === E.num(d.currentAgeSelf, 0)} ${i.endAge === '' ? 'end' : i.endAge}`).join(',')}`, '12 1 Myself 15000 true end']);
+  }
   { const d = variantPlan(h, 'RS75').demographics; cases.push(['RS75: the two the same age, the first person holding 75%', `${E.num(d.currentAgeSelf, 0) - E.num(d.currentAgePart, 0)} ${firstShare(variantPlan(h, 'RS75')).toFixed(4)}`, '0 0.7500']); }
   { const d = variantPlan(h, 'RG8'); cases.push(['RG8: 8 years apart with the elder\'s DB pension', `${E.num(d.demographics.currentAgeSelf, 0) - E.num(d.demographics.currentAgePart, 0)} ${(d.otherIncomes || []).filter(i => i.incomeType === 'otherTaxable' && i.owner === 'Myself').length}`, '8 1']); }
   cases.push(['each class on one route, the variants\' routes their class\'s', Object.entries(VARIANTS).filter(([v, V]) => WANT[v].route !== ROUTE_OF_CLASS[V.cls]).map(([v]) => v).join(',') || 'all', 'all']);

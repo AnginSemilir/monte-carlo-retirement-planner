@@ -11,6 +11,34 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (23 Nov, afternoon), for your word: the pricing fix's read (EXPLORATORY), FIX DOES NOT HOLD, and the way on.**
+- **What ran.** D143 ordered the household plan's tax on a partner's state pension fixed as its own change, read
+  EXPLORATORY on the couples trade's units and S191-90 before it becomes a default. Candidate A (`PRICING-FIX.md`, the form
+  'pensionsPAown', off in code; 61eed66d) taxes the partner's state pension and other taxable income against their own
+  allowance and hands it to the household net. Its read ran on 14 units, seed 7002, 4,000 paths, its rule committed first
+  (`results-pricing-fix.txt`; `reports/2026-11-23-pricing-fix-read.md`).
+- **The read.** The shortfall closes: on S037's Y90, Y100, E95 and E100, FIX's spending gap below Y75 is `£56` a year
+  against ROUTE's `£369`. But NO HARM fails on both parts. D34 flags S191-90 (FIX loses 25 paths and saves 3, its threshold
+  21), and the pooled survival change is `-0.173` points (`-0.231` to `-0.115` by path), past the bar of `-0.1`. So FIX
+  DOES NOT HOLD, and by its rule nothing changes.
+- **Beside** (`results-pricing-fix-beside.txt`, written after the read): FIX keeps fewer paths on 12 of the 14 units. 111 of
+  its 121 lost paths end with the pot below the minimum pot; the other 10, all S191-90's, run short in its last three plan
+  years. FIX spends more on the paths both keep (pooled `+0.5988%`). On S191-90 it pays `£40,707` a path more lifetime tax.
+- **What it points to, not shown.** Candidate A takes the partner's fixed income off the household's schedule but leaves
+  the schedule's allowance and bands at `k` times one person's, so the table may now under-price the year's draws, where it
+  over-priced the fixed incomes before (the error `PRICING-FIX.md` named before the read).
+- **The ways on:**
+  - **(C) Recommended:** two schedules in the household table's forward run, the year's draw split as the engine funds it.
+    It is exact for the even split, pricing the draws as well as the fixed incomes. It changes `src/solver/fast.js` and
+    `model.js` in lockstep, with V2's state check and the test of the class extended to the draws, read on these 14 units
+    by this rule. Its speed cost would be sized by gate 5's measure. Box: a day to build, the read as before.
+  - **(B)** One schedule whose allowance and bands move each year to the binding person's thresholds after their own fixed
+    income. It is cheaper, but approximate for the even split.
+  - **(Stop)** The shipped route stays as it is (D144 accepted S037's shortfall), and the form stays off.
+- **In every case,** the timing defect the test of the class found stands fixed: each moved income is counted from its
+  owner's retirement, as the engine counts it, moving no figure of any read (`results-household-timing.txt`). It goes to
+  `main` with the next batch on B1's gate.
+
 **ANSWERED by D143 (23 Nov, morning): "Unlock enforcement", read as the go on (A), the recommendation (said so to the
 maintainer); built as D144 (23 Nov): the reviewer on the change of default FAIL (one BLOCKING, the limits card), one
 fix, then PASS; to `main` on B1's gate with the fourteenth batch; the pricing fix next, as its own change (built, 61eed66d; its read launched 23 Nov 15:39 UK, `PRICING-FIX.md`; its test found a second defect, each moved income counted from the household's first retirement, fixed with it). Was OPEN (23 Nov, early), for your word: the guard's own units, the registered read (D139 to D141), and the

@@ -1,0 +1,70 @@
+THE PRICING FIX, BESIDE THE READ (written after the read, deciding nothing): 14 units, 4000 paths of seed 7002, code 7aee4099f6dc, audit d9a390cb3558
+
+A. FIX less ROUTE, survival in points (interval by path):
+  S037-Y75   -0.125 (-0.235 to -0.015)
+  S037-Y90   -0.125 (-0.235 to -0.015)
+  S037-Y100  -0.225 (-0.372 to -0.078)
+  S037-E95   -0.175 (-0.305 to -0.045)
+  S037-E100  -0.150 (-0.270 to -0.030)
+  S037-S75   -0.100 (-0.220 to +0.020)
+  S037-G8    -0.175 (-0.305 to -0.045)
+  S037-G12   -0.350 (-0.533 to -0.167)
+  S037-G8Y75 -0.175 (-0.305 to -0.045)
+  S037-G12P  +0.000 (+0.000 to +0.000)
+  S119-E100  -0.200 (-0.370 to -0.030)
+  S199-E100  -0.200 (-0.396 to -0.004)
+  S279-E100  +0.125 (-0.110 to +0.360)
+  S191-90    -0.550 (-0.809 to -0.291)
+  pooled over the fourteen: -0.173 (-0.231 to -0.115, se 0.030)
+  pooled over the thirteen without S191-90: -0.144 (-0.202 to -0.087, se 0.029)
+  pooled over S037's ten: -0.160 (-0.227 to -0.093, se 0.034)
+
+B. Where the lost paths fail (plan years; quartiles 25% / 50% / 75%): the paths FIX loses (ROUTE keeps), FIX's failure year; the paths FIX saves, ROUTE's; the paths both lose, FIX's; and the last plan year any arm fails in:
+  S037-Y75   lost  5: 27 / 27 / 27 (the earliest 27); saved 0: none; both lose 14: 27 / 27 / 27; the last failure year 27
+  S037-Y90   lost  5: 27 / 27 / 27 (the earliest 27); saved 0: none; both lose 12: 27 / 27 / 27; the last failure year 27
+  S037-Y100  lost  9: 27 / 27 / 27 (the earliest 27); saved 0: none; both lose 9: 27 / 27 / 27; the last failure year 27
+  S037-E95   lost  7: 27 / 27 / 27 (the earliest 27); saved 0: none; both lose 10: 27 / 27 / 27; the last failure year 27
+  S037-E100  lost  6: 27 / 27 / 27 (the earliest 27); saved 0: none; both lose 11: 27 / 27 / 27; the last failure year 27
+  S037-S75   lost  5: 27 / 27 / 27 (the earliest 27); saved 1: 27 / 27 / 27; both lose 18: 27 / 27 / 27; the last failure year 27
+  S037-G8    lost  7: 27 / 27 / 27 (the earliest 27); saved 0: none; both lose 1: 27 / 27 / 27; the last failure year 27
+  S037-G12   lost 14: 27 / 27 / 27 (the earliest 27); saved 0: none; both lose 8: 27 / 27 / 27; the last failure year 27
+  S037-G8Y75 lost  7: 27 / 27 / 27 (the earliest 27); saved 0: none; both lose 0: none; the last failure year 27
+  S037-G12P  lost  0: none (the earliest none); saved 0: none; both lose 19: 11 / 11 / 11; the last failure year 27
+  S119-E100  lost 10: 35 / 35 / 35 (the earliest 35); saved 2: 35 / 35 / 35; both lose 145: 35 / 35 / 35; the last failure year 35
+  S199-E100  lost 12: 40 / 40 / 40 (the earliest 40); saved 4: 40 / 40 / 40; both lose 136: 37 / 40 / 40; the last failure year 40
+  S279-E100  lost  9: 51 / 51 / 51 (the earliest 51); saved 14: 48 / 51 / 51; both lose 194: 37 / 44 / 51; the last failure year 51
+  S191-90    lost 25: 40 / 40 / 40 (the earliest 38); saved 3: 37 / 37 / 40; both lose 90: 30 / 37 / 39; the last failure year 40
+  every lost path, its failure year over its unit's last failure year: 1 / 1 / 1 (121 paths); failing before their unit's last failure year: 2
+  the kind of failure on the 121 paths FIX loses: 111 with no spending unmet (the end pot below the minimum pot), 10 with spending unmet (S037-Y75 5 at the minimum pot, 0 with spending unmet; S037-Y90 5 at the minimum pot, 0 with spending unmet; S037-Y100 9 at the minimum pot, 0 with spending unmet; S037-E95 7 at the minimum pot, 0 with spending unmet; S037-E100 6 at the minimum pot, 0 with spending unmet; S037-S75 5 at the minimum pot, 0 with spending unmet; S037-G8 7 at the minimum pot, 0 with spending unmet; S037-G12 14 at the minimum pot, 0 with spending unmet; S037-G8Y75 7 at the minimum pot, 0 with spending unmet; S119-E100 10 at the minimum pot, 0 with spending unmet; S199-E100 12 at the minimum pot, 0 with spending unmet; S279-E100 9 at the minimum pot, 0 with spending unmet; S191-90 15 at the minimum pot, 10 with spending unmet)
+
+C. On the paths FIX loses, FIX less ROUTE a path: lifetime spending delivered, lifetime tax, the end pot:
+  S037-Y75   5 paths: spending -£434, tax +£0, end pot -£5,807
+  S037-Y90   5 paths: spending +£860, tax +£314, end pot -£12,904
+  S037-Y100  9 paths: spending -£1,672, tax +£164, end pot -£12,140
+  S037-E95   7 paths: spending +£2,764, tax +£34, end pot -£11,308
+  S037-E100  6 paths: spending -£1,792, tax -£57, end pot -£9,734
+  S037-S75   5 paths: spending +£466, tax +£87, end pot -£6,723
+  S037-G8    7 paths: spending +£966, tax +£0, end pot -£5,634
+  S037-G12   14 paths: spending +£714, tax +£64, end pot -£4,830
+  S037-G8Y75 7 paths: spending -£3,400, tax +£0, end pot -£8,731
+  S037-G12P  none lost
+  S119-E100  10 paths: spending +£15,674, tax +£4,353, end pot -£132,815
+  S199-E100  12 paths: spending +£5,473, tax +£19, end pot -£61,740
+  S279-E100  9 paths: spending -£2,956, tax -£11,028, end pot -£23,118
+  S191-90    25 paths: spending -£23,160, tax +£12,703, end pot -£104,165
+
+D. Lifetime tax a path, FIX less ROUTE: over every path, and on the paths both keep:
+  S037-Y75   every path +£9; the paths both keep +£9
+  S037-Y90   every path +£173; the paths both keep +£173
+  S037-Y100  every path -£67; the paths both keep -£68
+  S037-E95   every path -£522; the paths both keep -£525
+  S037-E100  every path -£930; the paths both keep -£935
+  S037-S75   every path +£102; the paths both keep +£102
+  S037-G8    every path +£364; the paths both keep +£365
+  S037-G12   every path +£200; the paths both keep +£201
+  S037-G8Y75 every path +£344; the paths both keep +£344
+  S037-G12P  every path +£1; the paths both keep +£1
+  S119-E100  every path -£4,394; the paths both keep -£4,530
+  S199-E100  every path -£34; the paths both keep -£47
+  S279-E100  every path -£14,010; the paths both keep -£14,466
+  S191-90    every path +£40,707; the paths both keep +£41,853

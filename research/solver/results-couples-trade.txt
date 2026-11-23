@@ -1,0 +1,86 @@
+THE COUPLES TRADE, EXPLORATORY (COUPLES-TRADE.md; the deep review of the guard's own units, section 3): 13 units, seed 7002, 4000 paths, 45 points, code 36e4d2a860b2, audit 4f8d4cd86ede
+THE GATE: fair (every unit, one stamp, each arm's configuration, every check recorded, the logs' stamps)
+THE TRADE (pooled over 9 of S037's units, G12P beside): L keeps -0.230 of ROUTE's gain over APP (-1149 of 4986 paths net; by path -0.279 to -0.181), the bar at most 0.5
+  control S119-E100: L keeps 0.902 (331 of 367 paths net), the bar at least 0.75: holds
+  control S199-E100: L keeps 0.791 (371 of 469 paths net), the bar at least 0.75: holds
+  control S279-E100: L keeps 0.695 (298 of 429 paths net), the bar at least 0.75: FAILS
+  beside: S037-G12P, L keeps 0.567 (302 of 533 paths net)
+  => A CONTROL FAILS (S279-E100): THE TRADE is not read
+THE PRICING (S037-Y90, S037-Y100, S037-E95, S037-E100 against S037-Y75): spending on the paths both keep, less APP's, a year: ROUTE's shortfall +£369 (S037-Y75 +£101), PA2's +£55 (S037-Y75 +£70); the bar PA2's at most 0.5 of ROUTE's
+  S037-Y90   ROUTE +£201 below S037-Y75, PA2 +£42
+  S037-Y100  ROUTE +£381 below S037-Y75, PA2 +£40
+  S037-E95   ROUTE +£389 below S037-Y75, PA2 +£62
+  S037-E100  ROUTE +£503 below S037-Y75, PA2 +£76
+  => THE PRICING HOLDS
+OUTCOME: A CONTROL FAILS; THE PRICING HOLDS
+
+Beside, deciding nothing. Each unit (survival; the arm less APP in paths net of N):
+  S037-Y75   k 1.3333: APP 85.40% ROUTE 99.65% L 78.17% PA2 99.53%; net ROUTE +570, L -289, PA2 +565 of 4000; L keeps -0.507
+  S037-Y90   k 1.1111: APP 86.75% ROUTE 99.70% L 83.85% PA2 99.55%; net ROUTE +518, L -116, PA2 +512 of 4000; L keeps -0.224
+  S037-Y100  k 1.0000: APP 86.67% ROUTE 99.78% L 85.45% PA2 99.58%; net ROUTE +524, L -49, PA2 +516 of 4000; L keeps -0.094
+  S037-E95   k 1.0526: APP 86.40% ROUTE 99.75% L 83.55% PA2 99.58%; net ROUTE +534, L -114, PA2 +527 of 4000; L keeps -0.213
+  S037-E100  k 1.0000: APP 86.17% ROUTE 99.72% L 84.58% PA2 99.58%; net ROUTE +542, L -64, PA2 +536 of 4000; L keeps -0.118
+  S037-S75   k 1.3333: APP 85.28% ROUTE 99.53% L 88.85% PA2 99.45%; net ROUTE +570, L +143, PA2 +567 of 4000; L keeps 0.251
+  S037-G8    k 1.6667: APP 85.50% ROUTE 99.97% L 81.03% PA2 99.83%; net ROUTE +579, L -179, PA2 +573 of 4000; L keeps -0.309
+  S037-G12   k 1.6667: APP 85.40% ROUTE 99.80% L 81.47% PA2 99.50%; net ROUTE +576, L -157, PA2 +564 of 4000; L keeps -0.273
+  S037-G8Y75 k 1.3333: APP 85.67% ROUTE 100.00% L 77.58% PA2 99.78%; net ROUTE +573, L -324, PA2 +564 of 4000; L keeps -0.565
+  S037-G12P  k 1.6667: APP 86.20% ROUTE 99.53% L 93.75% PA2 99.53%; net ROUTE +533, L +302, PA2 +533 of 4000; L keeps 0.567
+  S119-E100  k 1.0000: APP 87.15% ROUTE 96.33% L 95.42% PA2 96.17%; net ROUTE +367, L +331, PA2 +361 of 4000; L keeps 0.902
+  S199-E100  k 1.0000: APP 84.78% ROUTE 96.50% L 94.05% PA2 96.25%; net ROUTE +469, L +371, PA2 +459 of 4000; L keeps 0.791
+  S279-E100  k 1.0000: APP 84.08% ROUTE 94.80% L 91.53% PA2 94.92%; net ROUTE +429, L +298, PA2 +434 of 4000; L keeps 0.695
+Spending against APP (on the paths both keep, %, and pounds a year; over all paths, %), each unit:
+  S037-Y75   ROUTE +0.4687% (+£101), all -0.322%; L -0.0000% (-£0), all +0.019%; PA2 +0.3241% (+£70), all -0.516%
+  S037-Y90   ROUTE -0.4619% (-£100), all -1.115%; L +0.0000% (+£0), all +0.021%; PA2 +0.1299% (+£28), all -0.646%
+  S037-Y100  ROUTE -1.2997% (-£280), all -1.855%; L -0.0000% (-£0), all +0.026%; PA2 +0.1386% (+£30), all -0.639%
+  S037-E95   ROUTE -1.3352% (-£288), all -1.946%; L +0.0000% (+£0), all +0.006%; PA2 +0.0389% (+£8), all -0.739%
+  S037-E100  ROUTE -1.8614% (-£402), all -2.414%; L +0.0000% (+£0), all +0.014%; PA2 -0.0259% (-£6), all -0.797%
+  S037-S75   ROUTE -0.2061% (-£47), all -0.648%; L +0.0000% (+£0), all +0.055%; PA2 -0.2967% (-£67), all -0.788%
+  S037-G8    ROUTE -1.4772% (-£487), all -2.241%; L -0.0000% (-£0), all -0.082%; PA2 -0.5571% (-£184), all -1.363%
+  S037-G12   ROUTE -0.9591% (-£307), all -1.749%; L -0.0000% (-£0), all -0.109%; PA2 +0.0312% (+£10), all -0.822%
+  S037-G8Y75 ROUTE -2.6011% (-£866), all -3.310%; L +0.0000% (+£0), all -0.065%; PA2 -1.2420% (-£414), all -2.011%
+  S037-G12P  ROUTE +2.3828% (+£579), all +2.290%; L -0.0000% (-£0), all +0.271%; PA2 +2.6113% (+£634), all +2.503%
+  S119-E100  ROUTE +2.6336% (+£2,412), all +2.515%; L +0.0000% (+£0), all +0.194%; PA2 +3.1842% (+£2,916), all +3.053%
+  S199-E100  ROUTE +4.6180% (+£2,736), all +4.279%; L -0.0000% (-£0), all +0.534%; PA2 +5.2733% (+£3,124), all +4.893%
+  S279-E100  ROUTE +6.1931% (+£3,272), all +6.599%; L +0.0000% (+£0), all +1.310%; PA2 +6.9736% (+£3,684), all +7.376%
+The mean pot capped at the route's estate cap, against APP (%), and lifetime tax a path (APP / ROUTE / L / PA2):
+  S037-Y75   capped ROUTE +35.30%, L +10.05%, PA2 +41.57%; tax £1,035 / £4 / £2 / £14
+  S037-Y90   capped ROUTE +26.54%, L +0.90%, PA2 +28.45%; tax £860 / £24 / £94 / £383
+  S037-Y100  capped ROUTE +28.31%, L -4.06%, PA2 +28.31%; tax £1,050 / £70 / £200 / £970
+  S037-E95   capped ROUTE +27.29%, L -4.71%, PA2 +24.74%; tax £22 / £685 / £1,327 / £2,192
+  S037-E100  capped ROUTE +25.99%, L -8.85%, PA2 +22.74%; tax £10 / £935 / £1,775 / £3,028
+  S037-S75   capped ROUTE +38.83%, L -0.64%, PA2 +44.12%; tax £6,222 / £15 / £22 / £135
+  S037-G8    capped ROUTE +93.63%, L +44.99%, PA2 +86.17%; tax £70,780 / £60,427 / £62,641 / £59,875
+  S037-G12   capped ROUTE +93.23%, L +46.67%, PA2 +85.63%; tax £69,225 / £60,441 / £62,369 / £60,013
+  S037-G8Y75 capped ROUTE +87.60%, L +31.86%, PA2 +77.43%; tax £59,621 / £60,381 / £60,614 / £59,980
+  S037-G12P  capped ROUTE +23.98%, L -2.32%, PA2 +22.54%; tax £29,624 / £29,582 / £30,028 / £29,605
+  S119-E100  capped ROUTE -4.30%, L -4.63%, PA2 -4.61%; tax £149,028 / £10,752 / £18,039 / £6,328
+  S199-E100  capped ROUTE -4.35%, L -2.99%, PA2 -5.53%; tax £44,995 / £5,359 / £5,364 / £5,302
+  S279-E100  capped ROUTE +0.36%, L +2.09%, PA2 +0.14%; tax £172,568 / £55,037 / £53,258 / £33,669
+The worst fifth by APP's end pot, the arm less APP a path (pot, spending, tax; paths saved / lost there):
+  S037-Y75   ROUTE +£27,889, -£23,882, -£160 (570/0); L +£1,419, +£794, -£158 (78/101); PA2 +£26,681, -£27,096, -£155 (565/0)
+  S037-Y90   ROUTE +£29,351, -£25,517, +£9 (518/0); L +£2,354, +£841, +£172 (145/96); PA2 +£24,356, -£26,956, +£145 (512/0)
+  S037-Y100  ROUTE +£32,026, -£27,156, +£48 (524/0); L +£5,309, +£987, +£164 (192/79); PA2 +£24,545, -£26,946, +£285 (516/0)
+  S037-E95   ROUTE +£32,172, -£29,053, +£667 (534/0); L +£5,449, +£550, +£387 (196/77); PA2 +£24,393, -£27,231, +£851 (527/0)
+  S037-E100  ROUTE +£33,641, -£29,915, +£858 (542/0); L +£7,669, +£720, +£472 (231/73); PA2 +£24,895, -£27,037, +£1,046 (536/0)
+  S037-S75   ROUTE +£25,742, -£15,314, -£3,315 (570/0); L +£15,502, +£1,822, -£3,307 (326/31); PA2 +£24,677, -£18,154, -£3,236 (567/0)
+  S037-G8    ROUTE +£62,265, -£55,477, -£8,141 (579/0); L -£7,831, -£3,414, -£3,311 (27/103); PA2 +£57,213, -£49,055, -£8,166 (573/0)
+  S037-G12   ROUTE +£54,031, -£50,381, -£7,830 (576/0); L -£6,407, -£4,331, -£3,405 (37/97); PA2 +£50,100, -£44,861, -£7,836 (564/0)
+  S037-G8Y75 ROUTE +£64,340, -£63,451, -£214 (573/0); L -£10,421, -£2,840, +£1,346 (17/148); PA2 +£57,007, -£54,182, -£122 (564/0)
+  S037-G12P  ROUTE +£23,094, +£7,738, +£118 (466/1); L +£9,864, +£7,888, +£600 (268/2); PA2 +£21,644, +£8,493, +£208 (466/1)
+  S119-E100  ROUTE +£546,062, +£79,742, -£40,299 (367/0); L +£536,243, +£31,339, -£29,778 (331/0); PA2 +£531,829, +£94,370, -£43,740 (362/1)
+  S199-E100  ROUTE +£331,432, +£48,549, -£17,566 (469/0); L +£277,868, +£55,424, -£16,058 (371/0); PA2 +£318,062, +£56,587, -£17,340 (459/0)
+  S279-E100  ROUTE +£223,699, +£127,357, -£11,263 (429/0); L +£164,517, +£122,738, -£5,919 (298/0); PA2 +£213,965, +£141,124, -£20,795 (434/0)
+D34 against ROUTE (whole paths; lost, saved, the threshold), L and PA2:
+  S037-Y75   L 859 lost, 0 saved, 60 FLAGGED; PA2 5 lost, 0 saved, 21
+  S037-Y90   L 634 lost, 0 saved, 53 FLAGGED; PA2 6 lost, 0 saved, 21
+  S037-Y100  L 573 lost, 0 saved, 51 FLAGGED; PA2 8 lost, 0 saved, 21
+  S037-E95   L 648 lost, 0 saved, 53 FLAGGED; PA2 7 lost, 0 saved, 21
+  S037-E100  L 606 lost, 0 saved, 52 FLAGGED; PA2 7 lost, 1 saved, 21
+  S037-S75   L 427 lost, 0 saved, 46 FLAGGED; PA2 4 lost, 1 saved, 21
+  S037-G8    L 758 lost, 0 saved, 57 FLAGGED; PA2 6 lost, 0 saved, 21
+  S037-G12   L 733 lost, 0 saved, 56 FLAGGED; PA2 12 lost, 0 saved, 21
+  S037-G8Y75 L 897 lost, 0 saved, 61 FLAGGED; PA2 9 lost, 0 saved, 21
+  S037-G12P  L 233 lost, 2 saved, 37 FLAGGED; PA2 1 lost, 1 saved, 21
+  S119-E100  L 40 lost, 4 saved, 23 FLAGGED; PA2 11 lost, 5 saved, 21
+  S199-E100  L 98 lost, 0 saved, 28 FLAGGED; PA2 14 lost, 4 saved, 21
+  S279-E100  L 132 lost, 1 saved, 31 FLAGGED; PA2 8 lost, 13 saved, 21

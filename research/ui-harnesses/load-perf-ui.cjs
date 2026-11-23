@@ -24,6 +24,11 @@
  * Run: node load-perf-ui.cjs [port]
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
+// Which planner each measurement loads, since that day (the reviewer on the default, MINOR 5): the three timed first loads,
+// the classic ceiling, the same-origin check and the typing check are the classic planner's, now the planner a visitor chooses;
+// what a fresh visitor downloads is the new planner's first load below, the empty plan's run ('new' and a choice not made read
+// the same), held to the new planner's ceiling.
 const PORT = process.argv[2] || '5173';
 /*
  * Measured by this harness on the build before the loading work, three runs, median.

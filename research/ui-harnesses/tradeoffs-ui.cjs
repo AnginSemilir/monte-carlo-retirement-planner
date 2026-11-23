@@ -1,6 +1,7 @@
 // The policy search's trade-off cards: a recommendation, priced alternatives, and an "Advanced" fold
 // that still holds the full ranking. Run: node tradeoffs-ui.cjs [port] [screenshotDir]
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const fs = require('fs');
 const PORT = process.argv[2] || '5173';
 const SHOT = process.argv[3] || '';

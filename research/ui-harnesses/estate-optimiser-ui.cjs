@@ -1,5 +1,6 @@
 // The estate optimiser on the Strategy tab, and the quick succession credit it reports.
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const PORT = process.argv[2] || '5187';
 /*
  * A real exported plan, from a household that cannot use the contributions tournament at all: 68, already

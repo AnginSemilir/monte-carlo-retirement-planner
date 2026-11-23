@@ -17,6 +17,7 @@
  *   node research/ui-harnesses/solver-fullscale-ui.cjs [port] [--parts N]      (the site is served on port + 13)
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // a quiet page for the timed solve, as before 22 Nov 2026: the classic planner, chosen (lib/classic-default.cjs)
 const { reference } = require('./lib/reference.cjs');
 const { execFileSync, spawn } = require('node:child_process');
 const { join } = require('node:path');

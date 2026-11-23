@@ -22,6 +22,7 @@
  *   node research/ui-harnesses/solver-progress-ui.cjs [port]
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const { reference } = require('./lib/reference.cjs');
 const { execFileSync } = require('node:child_process');
 const { join } = require('node:path');

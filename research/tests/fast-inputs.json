@@ -4508,6 +4508,7 @@
    "research/solver/results-planner-ui-gapwords.txt",
    "research/solver/results-planner-ui-noback.txt",
    "research/solver/results-planner-ui-nogapguard.txt",
+   "research/solver/results-planner-ui-noopen.txt",
    "research/solver/results-planner-ui-optinloses.txt",
    "research/solver/results-planner-ui-phase12.txt",
    "research/solver/results-planner-ui-swap.txt",

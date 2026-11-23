@@ -2,10 +2,11 @@ THE HOUSEHOLD PLAN'S YEARS OF A MOVED INCOME (household-pricing.test.mjs check 4
 Each couple as handed over and on its mirror; the household plan as the app builds it ('pensionsPA'); a plan the household plan refuses for its shape is not counted.
 
 the registered couples panel (D141; couples-open-registered-panel.json): 68 couples, 88 household plans built (both orders), 40 with other incomes; a year apart before the fix 0, on the fix 0
+the dress rehearsal's panel (D139; couples-open-panel.json; the reviewer at the pricing read, MINOR 3): 68 couples, 88 household plans built (both orders), 40 with other incomes; a year apart before the fix 0, on the fix 0
 step 8's panel (household-hsp-panel.json): 40 couples, 80 household plans built (both orders), 12 with other incomes; a year apart before the fix 0, on the fix 0
 step 5's shapes (shapes-panel.json): 28 couples, 56 household plans built (both orders), 28 with other incomes; a year apart before the fix 0, on the fix 0
 the share rules' panel, the lead test's units among them (share-rules-panel.json): 32 couples, 64 household plans built (both orders), 12 with other incomes; a year apart before the fix 0, on the fix 0
 the couples' re-run panel (couples-panel-d4b.json): 40 couples, 80 household plans built (both orders), 0 with other incomes; a year apart before the fix 0, on the fix 0
 the library's couples: 210 couples, 420 household plans built (both orders), 0 with other incomes; a year apart before the fix 0, on the fix 0
 
-IN ALL: 788 household plans; a year apart before the fix 0, on the fix 0: THE FIX MOVES NONE OF THEM
+IN ALL: 876 household plans; a year apart before the fix 0, on the fix 0: THE FIX MOVES NONE OF THEM

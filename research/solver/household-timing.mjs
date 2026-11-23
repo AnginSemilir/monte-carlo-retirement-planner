@@ -45,6 +45,7 @@ function yearsApart(plan) {
 }
 const SETS = [
   ['the registered couples panel (D141; couples-open-registered-panel.json)', () => readOpenPanel(new URL('./couples-open-registered-panel.json', import.meta.url).pathname).map(u => [u.id, u.plan])],
+  ['the dress rehearsal\'s panel (D139; couples-open-panel.json; the reviewer at the pricing read, MINOR 3)', () => readOpenPanel(new URL('./couples-open-panel.json', import.meta.url).pathname).map(u => [u.id, u.plan])],
   ['step 8\'s panel (household-hsp-panel.json)', () => readHspPanel().map(u => [u.id, u.plan])],
   ['step 5\'s shapes (shapes-panel.json)', () => readShapesPanel().map(u => [u.id, u.plan])],
   ['the share rules\' panel, the lead test\'s units among them (share-rules-panel.json)', () => readSharePanel().map(u => [u.id, u.plan])],

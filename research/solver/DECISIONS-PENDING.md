@@ -21,23 +21,36 @@ below this section says "the beta", read it as history. The order from here:
   against ROUTE's `£369`. But NO HARM fails on both parts. D34 flags S191-90 (FIX loses 25 paths and saves 3, its threshold
   21), and the pooled survival change is `-0.173` points (`-0.231` to `-0.115` by path), past the bar of `-0.1`. So FIX
   DOES NOT HOLD, and by its rule nothing changes.
-- **Beside** (`results-pricing-fix-beside.txt`, written after the read): FIX keeps fewer paths on 12 of the 14 units. 111 of
-  its 121 lost paths end with the pot below the minimum pot; the other 10, all S191-90's, run short in its last three plan
-  years. FIX spends more on the paths both keep (pooled `+0.5988%`). On S191-90 it pays `£40,707` a path more lifetime tax.
-- **What it points to, not shown.** Candidate A takes the partner's fixed income off the household's schedule but leaves
-  the schedule's allowance and bands at `k` times one person's, so the table may now under-price the year's draws, where it
-  over-priced the fixed incomes before (the error `PRICING-FIX.md` named before the read).
+- **Beside** (`results-pricing-fix-beside.txt`, written after the read):
+  - FIX keeps fewer paths on 12 of the 14 units. 111 of its 121 lost paths end below the minimum pot in the last plan year;
+    the other 10, all S191-90's, run short in its last three plan years.
+  - The couples trade's PA2 (the allowance two people's), on the same 13 units and paths, loses 98 paths and saves 25
+    against ROUTE, pooled `-0.140` (`-0.199` to `-0.082`). FIX loses 96 and saves 21, pooled `-0.144`.
+- **What drives the loss is not shown.**
+  - The error `PRICING-FIX.md` named for A, under-priced draws, cannot be the whole cause. On E100 and the three controls
+    (the elder holding every wrapper, `k` 1), A prices the year as the engine does. On Y100 it prices the draws above the
+    engine. FIX still loses paths on four of them (Y100 `-0.225`, E100 `-0.150`, S119-E100 `-0.200`, S199-E100 `-0.200`
+    points), 37 of the 121.
+  - Both ways of removing ROUTE's over-pricing come with these end-of-plan losses. One reading, not shown: the
+    over-pricing has been a margin at the plan's end that the household table does not otherwise hold (step 8's deep
+    review: a thinner late cushion).
+- **The reviewer at the read: FAIL**, one BLOCKING (the first write-up said the losses fit under-priced draws and
+  recommended C on it) and three MINOR, answered in one fix (`reviews/2026-11-23-read-pricing-fix.md`).
 - **The ways on:**
-  - **(C) Recommended:** two schedules in the household table's forward run, the year's draw split as the engine funds it.
-    It is exact for the even split, pricing the draws as well as the fixed incomes. It changes `src/solver/fast.js` and
-    `model.js` in lockstep, with V2's state check and the test of the class extended to the draws, read on these 14 units
-    by this rule. Its speed cost would be sized by gate 5's measure. Box: a day to build, the read as before.
-  - **(B)** One schedule whose allowance and bands move each year to the binding person's thresholds after their own fixed
-    income. It is cheaper, but approximate for the even split.
-  - **(Stop)** The shipped route stays as it is (D144 accepted S037's shortfall), and the form stays off.
+  - **(Keep) Recommended:** the route as shipped. The rule's outcome already keeps it: D143 accepted S037's shortfall, and
+    removing the over-pricing costs survival at the plan's end, which comes first. If the pricing is to be corrected
+    later, the plan's end comes first: a test (EXPLORATORY) of the household table's judgement of the minimum pot against
+    the engine's, on the units where A's price is right. It is named, not designed, and B or C would follow on what it
+    finds.
+  - **(C)** Two schedules in the household table's forward run, the year's draw split as the engine funds it. It is not
+    shown exact: the household table's state holds each wrapper summed over both people, so once one person's wrapper
+    runs down it cannot tell whose allowance a draw meets. On E100 and the controls it would price as A does. A day to
+    build, the read as before.
+  - **(B)** One schedule whose allowance and bands move each year to the binding person's thresholds. It is cheaper, and
+    approximate.
 - **In every case,** the timing defect the test of the class found stands fixed: each moved income is counted from its
-  owner's retirement, as the engine counts it, moving no figure of any read (`results-household-timing.txt`). It goes to
-  `main` with the next batch on B1's gate.
+  owner's retirement, as the engine counts it, moving none of `876` household plans (`results-household-timing.txt`). It
+  goes to `main` with the next batch on B1's gate.
 
 **ANSWERED by D143 (23 Nov, morning): "Unlock enforcement", read as the go on (A), the recommendation (said so to the
 maintainer); built as D144 (23 Nov): the reviewer on the change of default FAIL (one BLOCKING, the limits card), one

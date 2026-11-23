@@ -4,15 +4,29 @@
  *   A. each unit's survival change in points with its interval by path, and the pooled change over the fourteen, over the
  *      thirteen without S191-90, and over S037's ten (the controls and S191-90 out);
  *   B. where the paths FIX loses fail: the plan year of each lost path's failure under FIX (its quartiles), beside the plan
- *      year of ROUTE's own failures on the paths it loses to FIX and of the paths both lose; and the lost paths' failure
- *      years against each unit's horizon (the last plan year any arm fails in, or the unit's years with a demand);
+ *      year of ROUTE's own failures on the paths it loses to FIX and of the paths both lose, and the last plan year any arm
+ *      fails in; and the kind of each lost path's failure, read directly against the unit's own context (the household cut's,
+ *      as the reviewer at the read took it: its minimum pot, solvencyFloor, and its last plan year, totalYears): spending
+ *      unmet, or none unmet with the end pot below the minimum pot in the last plan year, or neither (REG=1: the units' plans
+ *      from audit-pricing-fix.mjs unitsOf; the reviewer at the read, MINOR 4);
  *   C. on the paths FIX loses, FIX less ROUTE in lifetime spending delivered, lifetime tax and the end pot, a path;
- *   D. lifetime tax a path, FIX less ROUTE, each unit, and on the paths both keep.
- *   node research/solver/pricing-fix-beside.mjs [dir] > research/solver/results-pricing-fix-beside.txt
+ *   D. lifetime tax a path, FIX less ROUTE, each unit, and on the paths both keep;
+ *   E. beside, the couples trade's PA2 (the household plan at the form 'pensions', the allowance two people's) against ROUTE on
+ *      the same thirteen units and paths, from the trade's own unit files (results/couples-trade-7002), beside FIX against
+ *      ROUTE: each unit's paths lost and saved, the totals and the pooled survival change by path (the reviewer at the read,
+ *      finding 1: the two ways of closing ROUTE's over-pricing).
+ *   REG=1 node research/solver/pricing-fix-beside.mjs [dir] > research/solver/results-pricing-fix-beside.txt
  */
+import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
+import { householdCut } from '../../src/solverCouple.js';
+import { solverPlanOf } from './shapes-panel.mjs';
+import { FORM } from './couples-open-panel.mjs';
+import { unitsOf } from './audit-pricing-fix.mjs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadDir } from './reduce-pricing-fix.mjs';
+import { loadDir as loadTrade } from './reduce-couples-trade.mjs';
 import { survivalItem } from './reduce-phase4.mjs';
 import { UNITS, S191 } from './audit-pricing-fix.mjs';
 import { S037_UNITS } from './audit-couples-trade.mjs';
@@ -50,15 +64,26 @@ for (const id of UNITS) {
 }
 { const rel = allLost.map(x => x.y / Math.max(1, x.last)), early = allLost.filter(x => x.y < x.last).length;
   out.push(`  every lost path, its failure year over its unit's last failure year: ${quart(rel.map(r => Math.round(100 * r) / 100))} (${allLost.length} paths); failing before their unit's last failure year: ${early}`); }
-/* the kind of failure on the paths FIX loses: spending unmet (the money ran out in some year) or none unmet and the end pot below
-   the minimum pot (runRec: failYear the plan's last year); the plan's last year from the paths that keep (the most years run) */
-{ let unmet = 0, floor = 0, total = 0; const by = [];
+/* the kind of failure on the paths FIX loses, read against each unit's own context (the household cut's: its minimum pot and its
+   last plan year): spending unmet (the money short in some year), or none unmet and the end pot below the minimum pot in the
+   last plan year, or neither */
+{ if (process.env.REG !== '1') { console.error('pricing-fix-beside: runs on the registered panel, REG=1'); process.exit(2); }
+  const plans = Object.fromEntries(unitsOf().map(u => [u.id, u]));
+  let unmet = 0, atFloor = 0, neither = 0, total = 0; const by = [];
   for (const id of UNITS) {
-    const R = byId[id].arms.ROUTE, X = byId[id].arms.FIX; let u = 0, f = 0;
-    for (let i = 0; i < n; i++) if (R.survived[i] && !X.survived[i]) { total++; if (X.unmet[i] > 1) { unmet++; u++; } else { floor++; f++; } }
-    if (u + f) by.push(`${id} ${f} at the minimum pot, ${u} with spending unmet`);
+    const { hp } = solverPlanOf(plans[id].plan, 'own'), ctx = E.buildContext(E.resolveMpaa(householdCut(E, M, hp, FORM).household));
+    const floor = ctx.solvencyFloor, T = ctx.totalYears, R = byId[id].arms.ROUTE, X = byId[id].arms.FIX, unmetYears = [];
+    let u = 0, f = 0, o = 0;
+    for (let i = 0; i < n; i++) if (R.survived[i] && !X.survived[i]) {
+      total++;
+      if (X.unmet[i] > 1) { unmet++; u++; unmetYears.push(X.failYear[i]); }
+      else if (X.pot[i] < floor && X.failYear[i] === T) { atFloor++; f++; }
+      else { neither++; o++; }
+    }
+    by.push(`${id} (the minimum pot £${Math.round(floor).toLocaleString('en-GB')}, the last plan year ${T}): ${f} at the minimum pot, ${u} with spending unmet${u ? ` (in plan years ${[...new Set(unmetYears)].sort((a, b) => a - b).join(', ')})` : ''}, ${o} neither`);
   }
-  out.push(`  the kind of failure on the ${total} paths FIX loses: ${floor} with no spending unmet (the end pot below the minimum pot), ${unmet} with spending unmet (${by.join('; ')})`); }
+  out.push(`  the kind of failure on the ${total} paths FIX loses: ${atFloor} with no spending unmet and the end pot below the minimum pot in the last plan year, ${unmet} with spending unmet, ${neither} neither`);
+  for (const b of by) out.push(`    ${b}`); }
 out.push('');
 out.push('C. On the paths FIX loses, FIX less ROUTE a path: lifetime spending delivered, lifetime tax, the end pot:');
 for (const id of UNITS) {
@@ -74,4 +99,17 @@ for (const id of UNITS) {
   for (let i = 0; i < n; i++) { all.push(X.tax[i] - R.tax[i]); if (R.survived[i] && X.survived[i]) kept.push(X.tax[i] - R.tax[i]); }
   out.push(`  ${id.padEnd(10)} every path ${gbp(mean(all))}; the paths both keep ${gbp(mean(kept))}`);
 }
+out.push('');
+out.push('E. Beside, the couples trade\'s PA2 against ROUTE on the same thirteen units and paths (results/couples-trade-7002), and FIX against ROUTE (paths lost / saved of N; survival in points):');
+{ const trade = Object.fromEntries(loadTrade(join(HERE, 'results', 'couples-trade-7002')).map(u => [u.id, u])), ids = UNITS.filter(id => id !== S191);
+  const ls = (P, B) => { let l = 0, sv = 0; for (let i = 0; i < n; i++) { if (B.survived[i] && !P.survived[i]) l++; else if (P.survived[i] && !B.survived[i]) sv++; } return [l, sv]; };
+  let tq = [0, 0], tf = [0, 0];
+  for (const id of ids) {
+    const t = trade[id]; if (!t || t.N !== n || t.seed !== units[0].seed) { out.push(`  ${id}: the couples trade's unit missing or on other paths`); continue; }
+    const q = ls(t.arms.PA2, t.arms.ROUTE), f = ls(byId[id].arms.FIX, byId[id].arms.ROUTE); tq = [tq[0] + q[0], tq[1] + q[1]]; tf = [tf[0] + f[0], tf[1] + f[1]];
+    out.push(`  ${id.padEnd(10)} PA2 ${q[0]} / ${q[1]}; FIX ${f[0]} / ${f[1]}`);
+  }
+  const pq = survivalItem(ids.filter(id => trade[id]).map(id => [trade[id].arms.PA2, trade[id].arms.ROUTE]), n), pf = pool(ids);
+  out.push(`  the thirteen: PA2 ${tq[0]} lost, ${tq[1]} saved, pooled ${sg(pq.d)} (${sg(pq.lo)} to ${sg(pq.hi)} by path); FIX ${tf[0]} lost, ${tf[1]} saved, pooled ${sg(pf.d)} (${sg(pf.lo)} to ${sg(pf.hi)} by path)`);
+  out.push(`  the couples trade's ROUTE arrays are this read's on all ${n} paths of the thirteen (check 2), so the two arms are compared on the same ROUTE`); }
 console.log(out.join('\n'));

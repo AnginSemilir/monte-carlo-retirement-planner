@@ -59,7 +59,7 @@ no default, gate or candidate. After it, the outcomes below say what happens.
   such an income from earlier than the engine.
 - **The fix.** Each moved income now starts at its owner's retirement at the earliest, as the engine counts it. The plant
   'incfloor' is the move before the fix.
-- **Its pattern search** is `household-timing.mjs` (`results-household-timing.txt`): 788 household plans, from every panel
+- **Its pattern search** is `household-timing.mjs` (`results-household-timing.txt`): 876 household plans, from every panel
   run on the household route and from the library's couples, each as handed over and on its mirror. None was counted in
   other years before the fix, and none is after it, so no figure of any read moves.
 - **It is shipped** with the next batch on B1's gate, whatever the read below gives.
@@ -144,3 +144,17 @@ no default, gate or candidate. After it, the outcomes below say what happens.
   - the build: half a day from 23 Nov 13:30 UK;
   - the run: about 40 minutes on four cores;
   - the read: half a day.
+
+## After the read (23 Nov)
+
+- **Read once: FIX DOES NOT HOLD** (`results-pricing-fix.txt`; `reports/2026-11-23-pricing-fix-read.md`). The shortfall
+  closes, but NO HARM fails: D34 flags S191-90, and the pooled survival change is `-0.173` (`-0.231` to `-0.115`). Nothing
+  changes.
+- **The reviewer at the read** (`reviews/2026-11-23-read-pricing-fix.md`; FAIL, answered in one fix) found two things in
+  this note.
+  - What A leaves above, under-priced draws, cannot be the whole cause of its losses: A prices E100 and the three controls
+    as the engine does, and FIX loses paths there too.
+  - C's "exact for the even split" is not shown: the household table's state holds each wrapper summed over both people,
+    so once one person's wrapper runs down it cannot tell whose allowance a draw meets.
+- **The timing fix's pattern search** now includes the dress rehearsal's panel (the reviewer's MINOR 3): 876 household
+  plans, none apart before the fix or after.

@@ -11,6 +11,35 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (23 Nov, evening), for your word: step 4's change of default, and the protected edits it needs, asked by name.**
+- **What is built.** `COUPLES-OPEN.md` step 4 (D139's plan; D141: "step 4, three shapes, comes next"): the household plan
+  takes three shapes it refuses today, off in code (`STEP4-SHAPES.md`; `household-shapes.test.mjs`,
+  `results-household-shapes.txt`).
+  - **'growth'** (the two people's contributions to one wrapper growing at different rates): exact, carried as the wrapper's
+    year-by-year schedule, which the engine, the forward run and the exact model all read. 180 plans refused today are
+    taken, none apart in 9,240 plan years.
+  - **'year0'** (a later retiree paid or saving in plan year 0): exact. The year-0 take-home equals the engine's own, and
+    the year-0 deposits are pro-rated as the engine pro-rates contributions. 120 plans are taken, none apart.
+  - **'cashisa'** (a cash ISA subscription): the two subscriptions added. It is exact before the first retirement while no
+    one person's own limit binds (1,495 such years, none apart). Where one person's own cash ISA cap binds, the
+    household's doubled cap shelters more (1,385 years in the uneven variant, by up to £7,428.38 a year). After the first
+    retirement the later retiree's subscriptions are not made (their sheltering left to the year-end step, unmeasured).
+  - **The identity:** with the option unset, none of 972 household plans differs from the code before
+    (`results-household-shapes-identity.txt`).
+- **The change of default** (COUPLES-OPEN.md step 4, "its own change of default, with the reviewer"):
+  - the option on in `APP_COUPLE`;
+  - the guard's `householdShapeOf` no longer refusing the shapes taken;
+  - the decided-defaults block's new key;
+  - the reviewer on the change of default, then B1's gate;
+  - its D-line naming what such couples take by inference.
+- **The protected edits it needs, asked by name:**
+  - `research/tests/couple-shape.test.mjs`: the guard's shapes held equal to the household plan's again;
+  - `research/tests/couple-default.test.mjs`: the block's new key, with its plant;
+  - `research/tests/run-all.mjs`: `household-shapes.test.mjs` joining the fast tier's joining list.
+- **The agent's recommendation:** all three shapes, with shape 2's limits said in the D-line. Today such a couple inside
+  the old guard runs today's two-table route, and outside it the app's rules. The household route is the one the
+  registered test read.
+
 **OPEN (23 Nov, afternoon), for your word: the pricing fix's read (EXPLORATORY), FIX DOES NOT HOLD, and the way on.**
 - **What ran.** D143 ordered the household plan's tax on a partner's state pension fixed as its own change, read
   EXPLORATORY on the couples trade's units and S191-90 before it becomes a default. Candidate A (`PRICING-FIX.md`, the form

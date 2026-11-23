@@ -1,0 +1,10 @@
+STEP 4'S IDENTITY: this tree (code 57c42a999f88) with the shapes unset, against the code before step 4 (/home/user/monte-carlo-retirement-planner at 681359db); the household plan at 'pensionsPA'. No path run.
+the registered couples panel (couples-open-registered-panel.json): 136 household plans asked for (both orders), 48 refused by both; differing 0
+the dress rehearsal's panel (couples-open-panel.json): 136 household plans asked for (both orders), 48 refused by both; differing 0
+step 8's panel (household-hsp-panel.json): 80 household plans asked for (both orders), 0 refused by both; differing 0
+step 5's shapes (shapes-panel.json): 56 household plans asked for (both orders), 0 refused by both; differing 0
+the share rules' panel (share-rules-panel.json): 64 household plans asked for (both orders), 0 refused by both; differing 0
+the couples' re-run panel (couples-panel-d4b.json): 80 household plans asked for (both orders), 0 refused by both; differing 0
+the library's couples: 420 household plans asked for (both orders), 0 refused by both; differing 0
+
+IN ALL: 972 household plans asked for, 96 refused; differing from the code before 0: THE SAME, BYTE FOR BYTE

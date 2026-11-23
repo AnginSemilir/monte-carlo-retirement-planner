@@ -89,6 +89,8 @@ export const inBands = (E, single, fn) => (bandsSingle(single) && !planted('sing
    allowance): 'pensionsPA' with the partner's fixed taxable income taxed alone at one person's rules and handed to the
    household person net, tax-free (householdPlanFor), off unless named */
 export const SCALES = Object.freeze(['pensions', 'bands', 'pensionsPA', 'pensionsPAown']);
+/* the shapes householdPlanFor takes where opts.takeShapes names them (research/solver/STEP4-SHAPES.md; COUPLES-OPEN.md step 4) */
+export const TAKE_SHAPES = Object.freeze(['growth', 'cashisa', 'year0']);
 const PA_K = Object.freeze(['pensionsPA', 'pensionsPAown']);
 export const SCALED = Object.freeze(['paTaperThreshold', 'basicBandLimit', 'higherBandLimit', 'scotStarterLimit', 'scotBasicLimit', 'scotIntermediateLimit',
   'scotHigherLimit', 'scotAdvancedLimit']);
@@ -134,21 +136,52 @@ export function householdPlanFor(E, plan, opts = {}) {
   let tR = 0;
   while (tR <= T && working('self', tR) && working('part', tR)) tR++;
   if (tR > T) throw new Error('householdPlanFor: nobody retires within the plan');
-  // the accounts, added by wrapper; each wrapper's risk and contribution growth must be the two people's same
-  const byKey = {};
+  // the shapes STEP4-SHAPES.md takes, each only where opts.takeShapes names it (true: all three), off unless named, so that a
+  // household plan without them is the code before's byte for byte
+  const takes = new Set(opts.takeShapes === true ? TAKE_SHAPES : Array.isArray(opts.takeShapes) ? opts.takeShapes : []);
+  // the accounts, added by wrapper; each wrapper's risk must be the two people's same, and its contribution growth too unless
+  // the shape 'growth' is taken (below)
+  const byKey = {}, scheduled = new Set();
   for (const a of plan.accounts) {
     const key = LABEL_KEYS[a.category];
     if (!key) throw new Error(`householdPlanFor: an account of category '${a.category}'`);
     if (a.owner === 'Partner' && planted('nopartpots')) continue;
     const g = byKey[key] || (byKey[key] = { ...a, id: `${key}_self`, owner: 'Myself', balance: 0, contrib: 0 });
     if ((g.risk || '') !== (a.risk || '')) throw new Error(`householdPlanFor: the two people's ${a.category} hold different risks (${g.risk}, ${a.risk})`);
-    if (E.num(g.growth, 0) !== E.num(a.growth, 0) && E.num(a.contrib, 0) > 0 && E.num(g.contrib, 0) > 0) throw new Error(`householdPlanFor: the two people's ${a.category} contributions grow at different rates`);
+    if (E.num(g.growth, 0) !== E.num(a.growth, 0) && E.num(a.contrib, 0) > 0 && E.num(g.contrib, 0) > 0) {
+      // a cash ISA's own growth the engine never reads (its subscription is flat, its money folded into the owner's cash at
+      // the cash account's growth), so under the shape 'cashisa' it does not refuse
+      if (key === 'cashIsa' ? !takes.has('cashisa') : !takes.has('growth')) throw new Error(`householdPlanFor: the two people's ${a.category} contributions grow at different rates`);
+      if (key !== 'cashIsa') scheduled.add(key);
+    }
     g.balance += E.num(a.balance, 0);
     // contributions while both work: both people's (each stops at their own retirement in the engine; after the first
     // retirement the later retiree's are the deposits below)
     if (E.num(a.contrib, 0) > 0) { g.contrib = E.num(g.contrib, 0) + E.num(a.contrib, 0); g.growth = a.growth; }
   }
-  if (own.self.cashIsaContrib > 0 || own.part.cashIsaContrib > 0) throw new Error('householdPlanFor: a cash ISA subscription');
+  // the shape 'growth' (STEP4-SHAPES.md shape 1): a wrapper whose two people's contributions grow at different rates carries
+  // the two added year by year as its own schedule (contribByYear, which the engine's contribAtYear, the forward run and the
+  // exact model all read), each plan year before the first retirement, while both work; from the first retirement the later
+  // retiree's go as the deposits below, as for every couple. Summed from the couple's own context, which holds a cash
+  // wrapper's contribution with its cash ISA's folded in, as the household's own fold would, which the schedule replaces.
+  // Plant 'shapesched' (research/tests/household-shapes.test.mjs): the schedule the first person's contributions alone.
+  // The shape 'cashisa' (STEP4-SHAPES.md shape 2): the two subscriptions added on the household's cash ISA (its contribution,
+  // the two merged above), against the household's cash ISA and ISA allowances, which DOUBLED doubles; the money each person
+  // pays in lands in their own cash in the engine (folded into their cash account at its growth), so the household's cash
+  // wrapper carries the couple's own folded contributions year by year, on this schedule. Plant 'cashisasum'
+  // (research/tests/household-shapes.test.mjs): the first person's subscription alone
+  const subscribes = own.self.cashIsaContrib > 0 || own.part.cashIsaContrib > 0;
+  if (subscribes && takes.has('cashisa')) {
+    scheduled.add('cash');
+    if (planted('cashisasum') && byKey.cashIsa) byKey.cashIsa.contrib = own.self.cashIsaContrib;
+  }
+  for (const key of scheduled) {
+    if (!byKey[key]) continue;
+    const sched = new Array(T + 1).fill(0);
+    for (let t = 0; t < Math.min(tR, T + 1); t++) for (const a of ctx.accounts) if (a.cat === key && !(planted('shapesched') && a.owner === 'part')) sched[t] += E.contribAtYear(a, t);
+    byKey[key].contribByYear = sched;
+  }
+  if (subscribes && !takes.has('cashisa')) throw new Error('householdPlanFor: a cash ISA subscription');
   if (E.num(d.salaryGrowthSelf, 0) !== E.num(d.salaryGrowthPart, 0) && E.num(d.salarySelf, 0) > 0 && E.num(d.salaryPart, 0) > 0) throw new Error('householdPlanFor: the two salaries grow at different rates');
   const L = plan.solver && plan.solver.locks;
   if (L && L.tierCeilingPart && Object.keys(L.tierCeilingPart).length) throw new Error('householdPlanFor: the partner\'s own limits (tierCeilingPart)');
@@ -159,15 +192,19 @@ export function householdPlanFor(E, plan, opts = {}) {
     const o = own[k], pay = E.salaryAtYear(o, t), accts = ctx.accounts.filter(a => a.owner === k);
     const pen = accts.find(a => a.cat === 'pen'), penContrib = pen ? E.contribAtYear(pen, t) : 0;
     const others = accts.filter(a => a !== pen).reduce((s, a) => s + E.contribAtYear(a, t), 0);
-    if (t === 0 && (pay > 0 || penContrib > 0 || others > 0)) throw new Error('householdPlanFor: a later retiree paid or saving in plan year 0');
+    if (t === 0 && (pay > 0 || penContrib > 0 || others > 0) && !takes.has('year0')) throw new Error('householdPlanFor: a later retiree paid or saving in plan year 0');
     if (pay > 0 && !planted('notakehome')) {
       const takeHome = pay - E.calculateUKTaxAndNIC(pay, P, o.selfEmployed) - E.netCostOfPensionContrib(penContrib, pay, P, o.selfEmployed);
       const net = Math.max(0, takeHome - others);
       if (net > 0) incomes.push({ id: `inc_house_takehome_${k}_${t}`, name: 'The later retiree\'s take-home (the household plan)', owner: 'Myself', startAge: ageA + t, endAge: ageA + t, amount: net, incomeType: 'taxFree', notes: '' });
     }
-    const year = ctx.baseYear + t;
+    // the shape 'year0' (STEP4-SHAPES.md shape 3): in plan year 0 the engine pro-rates a working person's contributions by the
+    // year's fraction (pots += amt x frac) but lands a dated deposit whole, so that year's deposits carry the fraction; its
+    // take-home is the whole year's, which the engine scales by the fraction as it scales a tax-free income. Plant
+    // 'year0whole' (research/tests/household-shapes.test.mjs): the year-0 deposits at the whole year's contribution
+    const year = ctx.baseYear + t, depFrac = t === 0 && !planted('year0whole') ? ctx.yf : 1;
     for (const a of accts) {
-      const amt = E.contribAtYear(a, t);
+      const amt = E.contribAtYear(a, t) * depFrac;
       if (amt > 0) deposits.push({ id: `dep_house_${a.id}_${t}`, date: `${year}-07-01`, year, owner: 'Myself', category: E.CATEGORY_LABEL[a.cat], amount: amt, transferredFrom: 'External', desc: 'The later retiree\'s contribution (the household plan)' });
     }
   }

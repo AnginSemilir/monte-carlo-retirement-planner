@@ -1,7 +1,8 @@
-# Step 4: the household plan takes three shapes it refuses (DRAFT, nothing built)
+# Step 4: the household plan takes three shapes it refuses (built off in code; its change of default to come)
 
 `COUPLES-OPEN.md` step 4 (D139's plan; D141: "until the household plan takes its shape: step 4, three shapes, comes
-next"). Written on 23 Nov before any build. The three shapes `REFUSALS.md` marks "Probably" are built into the household
+next"). Written on 23 Nov before any build (aea8eed8). Built the same evening, off in code; what was built and what its
+checks found is in "As built" at the end. The three shapes `REFUSALS.md` marks "Probably" are built into the household
 plan, off in code, each with a check of its class against the engine and its plant. Then, as its own change of default with
 the reviewer, the guard stops keeping such couples off. D144 lists it among what the opened classes reach by inference
 only: "a shape the household plan later takes (`COUPLES-OPEN.md` step 4)".
@@ -76,3 +77,37 @@ byte, which a check holds.
 - The build and its checks: a day, from 23 Nov evening.
 - The change of default: half a day.
 - Each overrun is reported to the maintainer.
+
+## As built (23 Nov, evening)
+
+- **The option.** `householdPlanFor` takes the shapes `TAKE_SHAPES` ('growth', 'cashisa', 'year0') only where
+  `opts.takeShapes` names them (`true` for all three); nothing in the app passes it.
+- **The identity.** With the option unset, every household plan is the code before's, byte for byte, refusals included:
+  972 asked for across every panel run on the household route and the library's couples, both orders, 96 refused by
+  both, none differing (`household-shapes-identity.mjs`, `results-household-shapes-identity.txt`).
+- **The checks** (`research/tests/household-shapes.test.mjs`, in the full tier for now; `results-household-shapes.txt`):
+  1. The option naming every shape changes none of the 420 library plans that have none of them.
+  2. **'growth':** 180 plans refused today are taken (90 each for S&S ISAs and pensions). Over 9,240 plan years, no year
+     is apart before the first retirement or after it, to a penny.
+  3. **'year0':** 120 plans refused today are taken, each with plan year 0 a fraction (0.5014) of a year. The year-0
+     take-home equals the engine's own working take-home (`E.stepYear`) to a penny, as do the year's deposits and those
+     of the years after.
+  4. **'cashisa':** 180 plans refused today are taken (even and uneven subscriptions).
+     - The subscription is the two added, and the cash contribution matches in each of 2,880 working years.
+     - The subscription is equal in every one of the 1,495 years where no one person's own limit binds.
+     - Where one binds (1,385 years, all in the uneven variant, the first person's own cash ISA cap), the household's
+       doubled cap lets the household subscribe more, by as much as £7,428.38 a year.
+     - From the first retirement the household plan makes no subscription for the later retiree (540 years, £1,890,000
+       in all). Their money lands in its cash, as the engine's does. Whether the engine's year-end step shelters it within
+       the household's own cap is not measured.
+- **The plants:** 'shapesched' fails checks 2 and 4 (shape 2 carries its cash on the same schedule), 'year0whole' check 3,
+  and 'cashisasum' check 4: each exactly its checks.
+- **What the change of default would carry,** said in its D-line: shapes 1 and 3 exact on what their checks measure; shape
+  2 exact before the first retirement while no one person's own cash ISA limit binds. Past that, the household's doubled
+  cap shelters more than the two people's own caps allow, and after the first retirement the later retiree's
+  subscriptions are not made, with their sheltering left to the year-end step, unmeasured.
+- **The change of default asks, by name, for these protected edits:**
+  - `couple-shape.test.mjs`, the guard's shapes held equal to the household plan's again;
+  - `couple-default.test.mjs`, the decided-defaults block's new key;
+  - `research/tests/run-all.mjs`, household-shapes joining the fast tier's joining list.
+

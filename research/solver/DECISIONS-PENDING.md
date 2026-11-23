@@ -11,6 +11,61 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (23 Nov, early), for your word: the guard's own units, the registered read (D139 to D141), and the change of
+default it would make.**
+- **The read** (once, 22 Nov 23:37 UK; `results-couples-open.txt`; `reports/2026-11-22-couples-open-read.md`): Y, E, S
+  and G each OPEN on the household route. No unit is flagged by D34. Each class's pooled survival is `+11.538` to
+  `+11.964` points by path. Spending on the paths both keep is `+2.7988%` to `+3.4491%` by class. The reviewer at the
+  read: FAIL (one BLOCKING, in the write-up's words), one fix, then PASS (`reviews/2026-11-22-read-couples-open.md`,
+  `-2.md`).
+- **M1 names nine of S037's eleven units.** S037 is the panel's eldest couple, 68 and 65, living mostly on two state
+  pensions. On those units the household route keeps 3,356 to 3,769 more paths of 25,000 than the app's rules, but
+  spends `-0.1031%` to `-2.5633%` less on the paths both keep, and leaves a larger pot. By the registration the read
+  comes to you before any change of default.
+- **The deep review** (`reviews/2026-11-22-deep-couples-open.md`; its scripts beside it, post hoc over records already
+  read):
+  - The OPENS stand.
+  - Its leading cause: on S037 the household plan finds no money except spending to keep paths with. Every path it saves
+    lies in the market's worst fifth, where the pot gained is the spending given up. So the shortfall is mostly survival
+    bought with spending, the same kind as S273-90's, which D134 accepted.
+  - Four of the nine names (Y90, Y100, E95, E100) look like a pricing gap instead. The household plan puts the partner's
+    state pension on the household person, whose allowance is `k` times one person's (HSPA). Where one person holds
+    nearly all the pensions (`k` near 1), it charges tax on two state pensions that the engine, taxing each person
+    against their own allowance, never charges. Checked in the code: `src/solver/household.js` `householdPlanFor` adds
+    the partner's state pension as the household person's taxable income, and `pensionsPA` sets the allowance at `k`
+    times one person's. The deep review puts it at about `£207` to `£486` a year from plan year 3.
+  - Its one test (EXPLORATORY, seed 7002, 4,000 paths a unit, about two core-hours): S037's ten distinct units and three
+    controls. Arm L is the household plan's moves with the app's rules' spending put back. Arm PA2 is the household plan
+    with the allowance doubled. It reads THE TRADE (does the spending buy the survival?) and THE PRICING (does the
+    allowance explain the four names?). It runs beside the change of default, as D134 (1) had step 8's.
+
+The ways on:
+- **(A) Go (recommended).** The change of default is built for all four classes:
+  - the guard reading the household plan's refusals, and the client failing closed;
+  - the couples card's and the coverage line's words;
+  - the decided-defaults block and `couple-default.test.mjs`;
+  - the app's route held to the tested arm path for path, and the planner harness's check 19 with its plants;
+  - the reviewer on the change of default, then B1's gate.
+
+  S037's trade is accepted as D134 accepted S273-90's. The deep review's test runs beside the build, and nothing goes to
+  `main` before it reads. If THE PRICING holds, the household plan's tax on a partner's state pension is fixed as its own
+  change, with its test of the class; Y and E do not wait for it.
+- **(B) Hold.** The test runs first, and its read comes back to you before the change is built.
+- **(C) Keep couples like S037 off** (a retired couple living mostly on state pensions). Not recommended: no unit is
+  harmed, and on each of the nine units M1 names the household route keeps 3,356 to 3,769 more paths of 25,000 than the
+  app's rules.
+
+Meanwhile the agent builds the deep review's test and runs it (EXPLORATORY, its rule committed first), since (A) and (B)
+both take it, so its read can be with you when you rule.
+
+**What your reply needs.** The change edits `research/tests/couple-default.test.mjs`, which is protected. D140 (2) gave
+the permission, but the pre-tool hook opens a protected file only when your latest typed message has the words "unlock
+enforcement". So a "Go" needs those words too.
+
+**A numbering note.** `main` recorded the new planner by default as D137 (pull request 25). This branch's `STATE.md`
+already used D137 for the savings split, so it is D142 here, and the next free number is D143. The UI pass's session
+should number its decisions from this branch's `STATE.md`.
+
 **ANSWERED by D141 (22 Nov, evening): "Household route only (Recommended)".** The reviewer's second look at the couples dress rehearsal's read (FAIL standing after one fix, D81 (F); `reviews/2026-11-22-read-couples-open-rehearsal-2.md`): today's two-table route measured below the app's rules on six couples of RY's, RE's and RG's reasons that no unit reads. The registered test reads Y, E, S and G on the household route alone; a couple whose plan's shape the household plan refuses keeps today's guard until the household plan takes its shape (`COUPLES-OPEN.md` amendment 2).
 
 **ANSWERED by D140 (22 Nov, afternoon): all three given; seed 7026 reserved (32db18ad). Was OPEN (22 Nov, midday), for D139 (every couple on the solver, `COUPLES-OPEN.md`), for your word: three things asked now so

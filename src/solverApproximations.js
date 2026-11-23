@@ -23,12 +23,13 @@
  *   - the tax-free lump sum: as the plan or the Limits lock sets it, never chosen by the solver (B12; src/SolverConfig.jsx);
  *   - the paths: the headline's and the comparison's simulated markets, so a sampling error.
  */
-import { COUPLES, SWAP_ELDER } from './couplesSwitch.js';
+import { COUPLES, SWAP_ELDER, HOUSEHOLD_OPEN } from './couplesSwitch.js';
 import { APP_COUPLE } from './solverSettings.js';
 
 // research/tests/couple-default.test.mjs only: 'oldcouples' says a couple's plan keeps the app's rules with couples on, as before
 // D99; 'nogapline' leaves out the couples more than three years apart with other taxable income, as before D128; 'nohouseline'
-// leaves out how a couple is planned, as before the household default (D135)
+// leaves out how a couple is planned, as before the household default (D135); 'beforeopen' the line before D143, the household
+// route's classes not open
 export const PLANT = { rule: '' };
 // `on` with couples on and the swap on (D104 (1)); `onFirst` with the swap off, the elder entered first alone (D99); `off` with
 // couples off; since D128 `on` and `onFirst` name the couples kept on the app's rules by the age gap with other taxable income
@@ -44,20 +45,49 @@ const withGap = line => line.replace(' of it. Any other', ` of it${GAP_CLAUSE}. 
 // and the maintainer's to change, as M3's and M6's were)
 export const HOUSEHOLD_SENTENCE = ' For a couple, it works out one plan for the money you hold between you, as if one person held it all, with its tax bands set by how your pensions are split between you; each year you both take its steps, each with your own money, and every figure you see comes from simulating each of you with your own tax. Where your plan has something one plan cannot hold, such as the two of you keeping one kind of account at different risk levels, it plans each of you separately and puts the two together.';
 const withHousehold = line => (APP_COUPLE.household ? `${line}${HOUSEHOLD_SENTENCE}` : line);
+// D143 (the household route's classes open: src/couplesSwitch.js HOUSEHOLD_OPEN): who it plans for, every couple but one whose
+// plan's shape the household plan cannot take yet (householdShapeOf's seven refusals, in its order) and that the guard before
+// D143 kept off; `open` with the swap on, `openFirst` with it off, a couple whose elder is entered second then kept to the guard
+// before D143 (the words the agent's draft and the maintainer's to change; couple-default.test.mjs check 4 holds them to the guard)
+const SHAPES = '(the two of you holding the same kind of account at different risk levels, both paying into one kind of account with your payments'
+  + ' growing at different rates, a cash ISA being paid into, both being paid with your pay growing at different rates, your partner\'s own risk limits'
+  + ' differing from yours, one of you retired while the other is still paid or saving this year, or neither of you retiring within the plan)';
+const OPEN_GAP = 'and you are not a couple more than three years apart in age who have other taxable income, such as a DB (final salary) pension or an annuity';
+const OPEN = Object.freeze({
+  on: `It plans for one person or for a couple. The one exception is a couple whose plan it cannot yet plan as one household ${SHAPES}: that plan keeps`
+    + ` the app's own rules, unless the two of you hold your money about evenly (40% to 60% each) or the older of you holds up to 90% of it, ${OPEN_GAP}.`,
+  first: `It plans for one person or for a couple whose older partner is entered first, or who are the same age. The one exception is a couple whose plan`
+    + ` it cannot yet plan as one household ${SHAPES}: that plan keeps the app's own rules, unless the two of you hold your money about evenly (40% to 60%`
+    + ` each) or the older of you holds up to 90% of it, ${OPEN_GAP}. A couple whose older partner is entered second is planned only if the two of you`
+    + ` hold your money about evenly (40% to 60% each), ${OPEN_GAP}; any other keeps the app's own rules.`
+});
+// all four classes open or none: the words say one or the other (couple-default.test.mjs check 4 refuses a mixture); the plant
+// 'beforeopen' the line before D143
+const allOpen = () => ['Y', 'E', 'S', 'G'].every(c => HOUSEHOLD_OPEN[c]) && PLANT.rule !== 'beforeopen';
 export const COUPLES_LINE = Object.freeze({
+  open: withHousehold(OPEN.on),
+  openFirst: withHousehold(OPEN.first),
   on: withHousehold(withGap(BEFORE.on)),
   onFirst: withHousehold(withGap(BEFORE.onFirst)),
   off: 'It solves for one person. A couple\'s plan keeps the app\'s own rules.',
   onBeforeGap: BEFORE.on,
   onFirstBeforeGap: BEFORE.onFirst
 });
+// the couples' line with couples on: D143's where its classes are open, else the line before it; the plants 'nogapline' and
+// 'nohouseline' each leave their clause out of the line shown (before D128, before D135)
+const coverageLine = swap => {
+  const line = allOpen() ? (swap ? COUPLES_LINE.open : COUPLES_LINE.openFirst) : PLANT.rule === 'nogapline' ? (swap ? COUPLES_LINE.onBeforeGap : COUPLES_LINE.onFirstBeforeGap) : (swap ? COUPLES_LINE.on : COUPLES_LINE.onFirst);
+  if (PLANT.rule === 'nohouseline') return line.replace(HOUSEHOLD_SENTENCE, '');
+  if (PLANT.rule === 'nogapline' && allOpen()) return line.split(`, ${OPEN_GAP}`).join('');
+  return line;
+};
 export const solverApproximations = ({ points = 45, paths = 5000, comparePaths = 2000, couples = COUPLES, swap = SWAP_ELDER } = {}) => [
   `Your wealth is read on a grid of ${points} levels, and the share in each pot on a grid of its own; between their points the solver interpolates.`,
   'When the solver weighs a choice, each risk level\'s expected return is set at the middle of its blend of investments, and the spread of markets is read at a few points rather than in full. The simulation then draws every market.',
   'The gain built up in your other investments (GIA) is read at one of three levels, 5%, 25% or 55% of their value, not exactly.',
   'The solver\'s own forecast of a choice can differ from what happens when the plan is simulated. Every figure you see comes from simulating the solved plan with the app\'s own engine, not from that forecast.',
   'Survival is counted to the age your plan ends at. The higher settings of "How much do you dislike cuts?" weigh a cut later in life by the chance of being alive then; the plan\'s end does not move.',
-  couples && PLANT.rule !== 'oldcouples' ? (PLANT.rule === 'nogapline' ? (swap ? COUPLES_LINE.onBeforeGap : COUPLES_LINE.onFirstBeforeGap) : (swap ? COUPLES_LINE.on : COUPLES_LINE.onFirst).replace(PLANT.rule === 'nohouseline' ? HOUSEHOLD_SENTENCE : '\u0000', '')) : COUPLES_LINE.off,
+  couples && PLANT.rule !== 'oldcouples' ? coverageLine(swap) : COUPLES_LINE.off,
   'It does not choose when to take the tax-free lump sum: that stays as your plan or your limits set it.',
   `The figures come from ${paths.toLocaleString('en-GB')} simulated markets (the comparison of the four settings from ${comparePaths.toLocaleString('en-GB')}), so each carries a small sampling error.`,
 ];

@@ -28,10 +28,10 @@ export { ensureIsolation } from './isolation.js';
 import { solveKey } from './solverKey.js';
 import { dialBase, APP_COUPLE, appJoint, jointKey } from './solverSettings.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
-import { swapOf } from './couplesSwitch.js';
+import { swapOf, coupleSolverOn } from './couplesSwitch.js';
 import { otherOrder, backMeta, backAnswer } from './coupleOrder.js';
 
-export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs); 'halfdefault' solves a couple on the half share unless asked otherwise, as before D99, and 'notie' assembles a couple without the couples' joint move, as before D108, and 'nojointcheck' leaves each assembly's joint move unread (couple-default.test.mjs); 'noformcheck' leaves each assembly of a household's setting (its form and split among it) unread and 'partnobands' hands its first part no bands (household-client.test.mjs); 'nohousehold' solves a couple on today's route though the couples' default names the household plan (couple-default.test.mjs); 'nofallback' fails the solve of a couple the household plan refuses (household-client.test.mjs)
+export const PLANT = { rule: '' };   // tests only: 'openfallback' lets a couple the household route alone opens (D143) fall back to today's route (couple-default.test.mjs); 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs); 'halfdefault' solves a couple on the half share unless asked otherwise, as before D99, and 'notie' assembles a couple without the couples' joint move, as before D108, and 'nojointcheck' leaves each assembly's joint move unread (couple-default.test.mjs); 'noformcheck' leaves each assembly of a household's setting (its form and split among it) unread and 'partnobands' hands its first part no bands (household-client.test.mjs); 'nohousehold' solves a couple on today's route though the couples' default names the household plan (couple-default.test.mjs); 'nofallback' fails the solve of a couple the household plan refuses (household-client.test.mjs)
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
 /* gate 5's four cores at most (D11), fewer where the machine has fewer */
@@ -253,9 +253,23 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
       // the household default, and its record says why (`householdRefused`); any other error stands. Plant 'nofallback'
       // (household-client.test.mjs check 7): a refusal fails the solve
       let refusedWhy = null;
+      // D143: a couple the guard hands over only because the household route's classes opened it (src/couplesSwitch.js
+      // coupleSolverOn's `lifted`: Y, E, S, G) is solved on the household route alone, the route the registered test read: with no
+      // household form, or where the household plan refuses its shape after all (the guard reads the refusals first:
+      // householdShapeOf), the solve fails, and today's route, which no test read for these classes, never takes it; and so is
+      // a plan the guard keeps off for its shape (a variant of an opened couple, an age the age card asks: the reviewer on D143's
+      // change of default, finding 2), which today's guard keeps off. Plant 'openfallback' (couple-default.test.mjs): it falls
+      // back as before
+      const g = couple ? coupleSolverOn(plan) : null;
+      const closedFor = g && g.lifted ? `a couple the household route alone opens (${g.lifted.join(', ')})` : g && g.why === 'shape' ? `a couple the guard keeps off for its shape (${g.shape})` : null;
+      const closed = !!closedFor && PLANT.rule !== 'openfallback';
+      if (closed && !form) throw new Error(`${closedFor} asked for no household form`);
       const hh = couple && form ? await ask('household-plan', { plan: mirror || plan, form }).catch(e => {
         // the plan's own shapes only: a refusal of the options it was called with (`opts.`, an unknown group) is a fault and stands
-        if (PLANT.rule !== 'nofallback' && /^householdPlanFor: (?!opts\.|no group)/.test(e.message)) { refusedWhy = e.message; return null; }
+        if (PLANT.rule !== 'nofallback' && /^householdPlanFor: (?!opts\.|no group)/.test(e.message)) {
+          if (closed) throw new Error(`the household plan refused ${closedFor}: ${e.message}`);
+          refusedWhy = e.message; return null;
+        }
         throw e;
       }) : null;
       if (finished) return;

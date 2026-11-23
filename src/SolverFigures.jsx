@@ -55,6 +55,10 @@ export function FiguresList({ plan, solve, own, options, order, sig, seed, upto,
         if (mine.at[id] && mine.at[id].h) continue;
         const o = options.find(x => x.id === id);
         if (!o) continue;
+        // a couple's option the guard keeps off (an age that moves the plan's shape: src/couplesSwitch.js, D143) is not solved: it
+        // keeps the app's rules, as the scenario list says of a scenario (the reviewer on D143's change of default, finding 2)
+        const cs = o.plan && o.plan.demographics && o.plan.demographics.planningMode === 'couple' ? coupleSolverOn(o.plan) : null;
+        if (cs && !cs.on) { put(id, { off: cs.why || 'off' }); continue; }
         put(id, { working: true });
         job = client.startFigures(engine, o.plan, { ...(opts || {}), seed, upto, keyed: id === keyedId });
         if (place) moreJob(place, 1);
@@ -71,7 +75,7 @@ export function FiguresList({ plan, solve, own, options, order, sig, seed, upto,
   if (!here) return <><p data-figures-own-wait className="text-xs text-slate-500">Working out your plan&apos;s own figures first&hellip;</p>{cost && <p data-figures-cost className="text-[11px] text-slate-500">{cost}</p>}</>;
   const line = lineOf || (h => dialLineWords(h, fmt));
   const rowOf = o => (o.id === own ? { h: here } : mine.at[o.id] || { queued: true });
-  const said = f => (f.h ? line(f.h) : f.error ? 'could not be worked out' : f.working ? 'working it out…' : 'waiting its turn');
+  const said = f => (f.h ? line(f.h) : f.off ? 'keeps the app\'s rules for now' : f.error ? 'could not be worked out' : f.working ? 'working it out…' : 'waiting its turn');
   return (
     <div data-figures={name} className="text-xs text-slate-600 space-y-1.5">
       {ownLine && <p data-figures-line data-figures-at={own} data-figures-survival={here.survival}><span className="font-semibold text-slate-800">{ownLabel}:</span> {line(here)}.</p>}
@@ -86,7 +90,7 @@ export function FiguresList({ plan, solve, own, options, order, sig, seed, upto,
             <tbody>{options.map(o => {
               const f = rowOf(o), h = f.h, about = h && h.preview ? 'about ' : '';
               return (
-                <tr key={o.id} data-figures-pos={o.id} data-figures-survival={h ? h.survival : ''} data-figures-wait={!h && !f.working && !f.error ? 'queued' : f.working ? 'working' : ''} className={`border-t border-slate-100 ${o.id === own ? 'font-semibold text-slate-800' : ''}`}>
+                <tr key={o.id} data-figures-pos={o.id} data-figures-survival={h ? h.survival : ''} data-figures-off={f.off || undefined} data-figures-wait={!h && !f.working && !f.error && !f.off ? 'queued' : f.working ? 'working' : ''} className={`border-t border-slate-100 ${o.id === own ? 'font-semibold text-slate-800' : ''}`}>
                   <td className="py-1">{o.label}{o.id === own ? ownTag : ''}</td>
                   {h ? (<>
                     <td className="text-right">{about}{h.case === 'atTarget' ? fmt(h.startSpend) : `${fmt(h.startSpend)} (${Math.round(h.startLevel)}%)`}</td>
@@ -102,7 +106,7 @@ export function FiguresList({ plan, solve, own, options, order, sig, seed, upto,
             {options.map(o => {
               const f = rowOf(o);
               return (
-                <li key={o.id} data-figures-pos={o.id} data-figures-survival={f.h ? f.h.survival : ''} data-figures-wait={!f.h && !f.working && !f.error ? 'queued' : f.working ? 'working' : ''} className={o.id === own ? 'font-semibold text-slate-800' : ''}>
+                <li key={o.id} data-figures-pos={o.id} data-figures-survival={f.h ? f.h.survival : ''} data-figures-off={f.off || undefined} data-figures-wait={!f.h && !f.working && !f.error && !f.off ? 'queued' : f.working ? 'working' : ''} className={o.id === own ? 'font-semibold text-slate-800' : ''}>
                   {o.label}{o.id === own ? ownTag : ''}: {said(f)}
                 </li>
               );
@@ -195,13 +199,15 @@ export function SolverScenarios({ rows, plan, solve, seed, upto, engine, opts, f
       <ul className="space-y-0.5">
         {rows.map(r => {
           // a couple's scenario is solved where couples are on and it holds its money about evenly (Part D, D5; M4 in D66), and since
-          // D128 not where its two people are more than three years apart with other taxable income
+          // D128 not where its two people are more than three years apart with other taxable income; since D143 any couple the
+          // household plan takes, whatever its holdings or its gap, the guard read on each scenario's own plan (a scenario that
+          // moves an age can move the plan's shape: 'shape')
           const cs = r.plan && r.plan.demographics && r.plan.demographics.planningMode === 'couple' ? coupleSolverOn(r.plan) : null, couple = !!(cs && !cs.on);
           const f = r.isBase ? (here.key === solve.key && here.h ? { h: here.h } : null) : scenarioFigs.get(JSON.stringify(r.plan)) || null;
           return (
             <li key={r.id} data-solver-scenario={r.id} data-solver-scenario-survival={f && f.h ? f.h.survival : ''} className="flex flex-wrap items-center gap-x-2">
               <span className="font-semibold text-slate-800">{r.name}:</span>
-              {couple ? <span>{cs.why === 'uneven' ? 'a couple holding its money this unevenly keeps the app\'s rules for now.' : cs.why === 'ages' ? 'a plan running past your partner\'s 120th year keeps the app\'s rules for now.' : cs.why === 'gapincome' ? 'a couple more than three years apart with other taxable income, such as a DB pension, keeps the app\'s rules for now.' : 'a couple\'s plan keeps the app\'s rules for now.'}</span>
+              {couple ? <span>{cs.why === 'uneven' ? 'a couple holding its money this unevenly keeps the app\'s rules for now.' : cs.why === 'ages' ? 'a plan running past your partner\'s 120th year keeps the app\'s rules for now.' : cs.why === 'gapincome' ? 'a couple more than three years apart with other taxable income, such as a DB pension, keeps the app\'s rules for now.' : cs.why === 'shape' ? 'a couple whose plan has a shape the new planner cannot take yet keeps the app\'s rules for now.' : 'a couple\'s plan keeps the app\'s rules for now.'}</span>
                 : f && f.h ? <span>{dialLineWords(f.h, fmt)}.</span>
                   : f && f.error ? <span>could not be worked out ({f.error}).</span>
                     : r.isBase ? <span>working it out…</span>

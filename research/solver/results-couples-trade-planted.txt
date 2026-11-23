@@ -1,0 +1,16 @@
+THE COUPLES TRADE: the planted runs (EXPLORATORY), kept for the record (the reviewer at the read, MINOR 7)
+
+1. The audit's planted fault on a smoke (S037-Y90, 6 points, 40 paths of seed 7002): REG=1 CT_PLANT=nextpath CT_PTS=6 CT_N=40 CT_ONLY=S037-Y90 node research/solver/audit-couples-trade.mjs run part 0/1
+THE COUPLES TRADE, EXPLORATORY (COUPLES-TRADE.md): unit 0/1: S037-Y90 (Y90), seed 7002, 40 paths, 6 points, PLANTED nextpath
+PLANTED nextpath: check 3 fails (0 recorder, 40 L-own of 40 paths); check 4 fails (40 of 40 paths)
+the audit's exit code: 0 (0 when checks 3 and 4 both catch the plant, 4 when either misses it); it writes no unit file (0 written)
+
+2. The reducer's planted cases: node research/solver/reduce-couples-trade.mjs --planted
+PASS  the trade at 0.45 with the controls at 0.9 holds; PA2 a quarter of the shortfall holds
+PASS  the trade at 0.55 is not the trade; PA2 at 0.525 of the shortfall does not hold
+PASS  a control at 0.7 fails, the trade not read; no shortfall, the pricing not read
+PASS  the controls at 0.8 hold; PA2 at 0.475 of the shortfall holds
+PASS  G12P is beside: its L at nought leaves the trade at 0.45
+PASS  the gate passes units with every check recorded and refuses them with check 2 not checked
+ALL PASS: 6 planted checks
+the reducer's exit code: 0

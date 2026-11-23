@@ -1,0 +1,38 @@
+THE COUPLES TRADE, BESIDE THE READ: post hoc, EXPLORATORY, deciding nothing (results-couples-trade.txt is the read)
+APP re-run by the engine on seed 7002's paths for its year-by-year demand; no solve.
+
+A. Where each unit's share is decided (the controls, then S037's units)
+  S119-E100  APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 40 paths; APP ran out before the final year on 13 of them: APP's level 0.802 in the three years before its fail year, 1.000 in the 36 years after; a path, APP delivered £2,647,612 and left £214,553 unmet, ROUTE delivered £2,665,998, L £2,862,166. With APP's early ruins set aside (116 paths), L keeps 0.934 (323 of 346 paths net)
+  S199-E100  APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 98 paths; APP ran out before the final year on 59 of them: APP's level 0.801 in the three years before its fail year, 1.000 in the 342 years after; a path, APP delivered £1,676,927 and left £232,998 unmet, ROUTE delivered £1,734,842, L £1,891,238. With APP's early ruins set aside (240 paths), L keeps 0.891 (318 of 357 paths net)
+  S279-E100  APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 132 paths; APP ran out before the final year on 121 of them: APP's level 0.801 in the three years before its fail year, 1.000 in the 1325 years after; a path, APP delivered £1,397,301 and left £372,645 unmet, ROUTE delivered £1,611,784, L £1,699,548. With APP's early ruins set aside (454 paths), L keeps 0.945 (172 of 182 paths net)
+  S037-Y75   APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 492 paths; APP ran out before the final year on 88 of them: APP's level 0.868 in the three years before its fail year, 1.000 in the 238 years after; a path, APP delivered £538,537 and left £19,999 unmet, ROUTE delivered £497,645, L £546,677. With APP's early ruins set aside (99 paths), L keeps -0.600 (-289 of 482 paths net)
+  S037-Y90   APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 373 paths; APP ran out before the final year on 86 of them: APP's level 0.869 in the three years before its fail year, 1.000 in the 252 years after; a path, APP delivered £533,144 and left £20,641 unmet, ROUTE delivered £493,075, L £541,807. With APP's early ruins set aside (96 paths), L keeps -0.269 (-116 of 432 paths net)
+  S037-Y100  APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 332 paths; APP ran out before the final year on 89 of them: APP's level 0.868 in the three years before its fail year, 1.000 in the 262 years after; a path, APP delivered £532,665 and left £20,707 unmet, ROUTE delivered £495,140, L £542,211. With APP's early ruins set aside (98 paths), L keeps -0.115 (-50 of 434 paths net)
+  S037-E95   APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 338 paths; APP ran out before the final year on 79 of them: APP's level 0.866 in the three years before its fail year, 1.000 in the 228 years after; a path, APP delivered £533,170 and left £20,401 unmet, ROUTE delivered £493,806, L £540,620. With APP's early ruins set aside (91 paths), L keeps -0.256 (-116 of 453 paths net)
+  S037-E100  APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 311 paths; APP ran out before the final year on 81 of them: APP's level 0.866 in the three years before its fail year, 1.000 in the 231 years after; a path, APP delivered £532,643 and left £20,305 unmet, ROUTE delivered £494,805, L £541,981. With APP's early ruins set aside (97 paths), L keeps -0.154 (-70 of 455 paths net)
+  S037-S75   APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 244 paths; APP ran out before the final year on 75 of them: APP's level 0.833 in the three years before its fail year, 1.000 in the 162 years after; a path, APP delivered £560,722 and left £19,728 unmet, ROUTE delivered £530,370, L £576,220. With APP's early ruins set aside (95 paths), L keeps 0.287 (142 of 494 paths net)
+  S037-G8    APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 552 paths; APP ran out before the final year on 71 of them: APP's level 0.895 in the three years before its fail year, 1.000 in the 204 years after; a path, APP delivered £850,520 and left £18,031 unmet, ROUTE delivered £771,592, L £840,037. With APP's early ruins set aside (72 paths), L keeps -0.352 (-179 of 508 paths net)
+  S037-G12   APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 539 paths; APP ran out before the final year on 97 of them: APP's level 0.903 in the three years before its fail year, 1.000 in the 427 years after; a path, APP delivered £820,952 and left £24,980 unmet, ROUTE delivered £755,189, L £808,891. With APP's early ruins set aside (105 paths), L keeps -0.328 (-157 of 479 paths net)
+  S037-G8Y75 APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 556 paths; APP ran out before the final year on 73 of them: APP's level 0.894 in the three years before its fail year, 1.000 in the 220 years after; a path, APP delivered £853,434 and left £19,621 unmet, ROUTE delivered £776,784, L £845,794. With APP's early ruins set aside (73 paths), L keeps -0.648 (-324 of 500 paths net)
+  S037-G12P  APP's re-run the stored on 4000 of 4000 paths. ROUTE keeps and APP and L both lose 222 paths; APP ran out before the final year on 220 of them: APP's level 0.800 in the three years before its fail year, 1.000 in the 3800 years after; a path, APP delivered £642,986 and left £27,021 unmet, ROUTE delivered £655,464, L £662,740. With APP's early ruins set aside (548 paths), L keeps -3.000 (-9 of 3 paths net)
+
+B. PA2 against ROUTE (whole paths; the arm's survival beside D34, which the read prints)
+  S037-Y75   PA2 loses 5 and saves 0 of 4000 against ROUTE (net -5)
+  S037-Y90   PA2 loses 6 and saves 0 of 4000 against ROUTE (net -6)
+  S037-Y100  PA2 loses 8 and saves 0 of 4000 against ROUTE (net -8)
+  S037-E95   PA2 loses 7 and saves 0 of 4000 against ROUTE (net -7)
+  S037-E100  PA2 loses 7 and saves 1 of 4000 against ROUTE (net -6)
+  S037-S75   PA2 loses 4 and saves 1 of 4000 against ROUTE (net -3)
+  S037-G8    PA2 loses 6 and saves 0 of 4000 against ROUTE (net -6)
+  S037-G12   PA2 loses 12 and saves 0 of 4000 against ROUTE (net -12)
+  S037-G8Y75 PA2 loses 9 and saves 0 of 4000 against ROUTE (net -9)
+  S037-G12P  PA2 loses 1 and saves 1 of 4000 against ROUTE (net 0)
+  S119-E100  PA2 loses 11 and saves 5 of 4000 against ROUTE (net -6)
+  S199-E100  PA2 loses 14 and saves 4 of 4000 against ROUTE (net -10)
+  S279-E100  PA2 loses 8 and saves 13 of 4000 against ROUTE (net 5)
+  PA2 below ROUTE on 11 of 13 units
+  on the four the pricing names together: PA2 loses 28 and saves 1 of 16000 unit-paths against ROUTE
+  S037-Y90   lifetime tax a path: ROUTE £24, PA2 £383
+  S037-Y100  lifetime tax a path: ROUTE £70, PA2 £970
+  S037-E95   lifetime tax a path: ROUTE £685, PA2 £2,192
+  S037-E100  lifetime tax a path: ROUTE £935, PA2 £3,028

@@ -15,21 +15,15 @@ import { SPEED_WORDS } from './solverWords.js';
 import { FiguresList } from './SolverFigures.jsx';
 import { costWords } from './solveStatus.js';
 import { coupleSolverOn } from './couplesSwitch.js';
+import { limitsMode, limitsRows, limitsPatch, ownTier, LOCKS_FREE } from './limitsCard.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 // the page's own pieces (phone.jsx's Fine and PhoneCollapse, numberFormat.jsx's MoneyInput, ui.js's fieldCls) come in as the
 // `ui` prop from App.jsx: imported here, they split phone.jsx out of the page's first chunk into one of its own, a request
 // more on every load (load-perf, with the switch on)
 
-const LOCKS_FREE = Object.freeze({ pensionBefore: null, tierCeiling: Object.freeze({ pen: null, isa: null }), lumpSum: 'free' });
 const DIAL_LABELS = { 1: 'Low', 3: 'Medium', 6: 'High', 10: 'Very high' };
 const RISK = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
 
-/* the plan's own riskiest tier in a wrapper (ids pen_ and isa_, as src/solverSettings.js lockedPlan reads them), or null; `who`
-   ('self' or 'part') one person's of a couple's (their ids end _self or _part) */
-const ownTier = (plan, prefix, who = null) => {
-  const tiers = (plan.accounts || []).filter(a => a.id && a.id.startsWith(prefix) && (!who || a.id.endsWith('_' + who)) && RISK.includes(a.risk)).map(a => RISK.indexOf(a.risk));
-  return tiers.length ? RISK[Math.min(...tiers)] : null;
-};
 /* plan.solver[part] merged with a patch, the part's defaults beneath what the plan already has */
 const patchSolver = (setPlan, part, patch) => setPlan(prev => {
   const s = prev.solver || {}, base = part === 'aims' ? AIMS_DEFAULT : LOCKS_FREE;
@@ -179,18 +173,21 @@ export function SolverLocks({ plan, setPlan, isPhone, ui }) {
   const L = { ...LOCKS_FREE, ...((plan.solver && plan.solver.locks) || {}) }, tc = { ...LOCKS_FREE.tierCeiling, ...(L.tierCeiling || {}) };
   const set = patch => patchSolver(setPlan, 'locks', patch);
   const d = plan.demographics || {}, strategy = (plan.spending && plan.spending.drawdownStrategy) || 'Phased Drawdown';
-  // a couple the solver runs (Part D, D5: the limits per person): each person's ceilings on their own pension and ISA; the
-  // partner's are their own once either is set here (`tierCeilingPart`), and until then the household's, as the solver reads
-  // them (src/solverSettings.js lockedPlan), so both are written together the first time either moves. A couple the solver
-  // does not run (couples off, or outside the guard: src/couplesSwitch.js) keeps the card as before D5, one row a wrapper for
-  // the household (the reviewer of 14 Nov, finding 1; solver-planner-ui.cjs check 10, its plant 'lockspart' the card read
-  // from the planning mode alone)
-  const isCouple = d.planningMode === 'couple' && (coupleSolverOn(plan).on || PLANNER_PLANT.has('lockspart'));
+  // a couple the solver runs per person (Part D, D5: the limits per person): each person's ceilings on their own pension and
+  // ISA; the partner's are their own once either is set here (`tierCeilingPart`), and until then the household's, as the solver
+  // reads them (src/solverSettings.js lockedPlan), so both are written together the first time either moves. A couple the
+  // household route alone opens (D143), whose two people's limits the household plan needs alike, and a couple the solver does
+  // not run, keep one row a wrapper for the two of them, its edit written for both (the reviewer on D143's change of default,
+  // finding 1); a couple whose two people's limits differ is shown them per person, so the difference can be undone. The rows
+  // and the writes: src/limitsCard.js, held by research/tests/couple-limits-card.test.mjs (the reviewer of 14 Nov, finding 1;
+  // solver-planner-ui.cjs check 10, its plant 'lockspart' the card read from the planning mode alone)
+  const mode = d.planningMode === 'couple' && PLANNER_PLANT.has('lockspart') ? 'perPerson' : limitsMode(plan);
+  const isCouple = mode === 'perPerson', g = d.planningMode === 'couple' ? coupleSolverOn(plan) : null;
   const hasPart = isCouple && L.tierCeilingPart && typeof L.tierCeilingPart === 'object';
   const tp = { ...LOCKS_FREE.tierCeiling, ...(hasPart ? L.tierCeilingPart : tc) };
-  const setTier = (who, w, v) => set(who === 'part' ? { tierCeilingPart: { ...tp, [w]: v } } : { tierCeiling: { ...tc, [w]: v }, ...(isCouple ? { tierCeilingPart: { ...tp } } : {}) });
-  const people = isCouple ? [['self', 'your'], ['part', 'your partner\'s']] : [[null, 'your']];
-  const wrappers = people.flatMap(([who, whose]) => [['pen', 'pen_', 'pension'], ['isa', 'isa_', 'ISA']].filter(([, prefix]) => ownTier(plan, prefix, who)).map(([w, prefix, name]) => [who, whose, w, prefix, name]));
+  const setTier = (who, w, v) => set(limitsPatch(plan, mode, who, w, v));
+  const whoseOf = who => (who === 'part' ? 'your partner\'s' : 'your'), NAME = { pen: ['pen_', 'pension'], isa: ['isa_', 'ISA'] };
+  const wrappers = limitsRows(plan, mode).map(([who, w]) => [who, whoseOf(who), w, NAME[w][0], NAME[w][1]]);
   return (
     <section data-solver-locks className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
       <PhoneCollapse isPhone={isPhone}>
@@ -198,6 +195,8 @@ export function SolverLocks({ plan, setPlan, isPhone, ui }) {
         <h2 className="text-base font-semibold text-slate-900">What the solver may change</h2>
         <p className="text-xs text-slate-500 mt-1">Left free, the solver decides. A limit here holds in every year of the solved plan.</p>
         {isCouple && <p data-locks-couple className="text-xs text-slate-500 mt-1">For the two of you: the pension age and the lump sum hold for both of you; the riskiest tier is set for each of you.</p>}
+        {isCouple && g && g.why === 'shape' && g.shape === 'limits' && <p data-locks-differ className="text-xs text-amber-800 mt-1">Your limits differ between the two of you, which the new planner cannot yet plan as one household: set them alike and it can work out your plan.</p>}
+        {mode === 'household' && g && g.on && <p data-locks-household className="text-xs text-slate-500 mt-1">For the two of you: the pension age, the lump sum and each riskiest tier hold for both of you.</p>}
       </div>
       <Row Fine={ui.Fine} title="Do not draw the pension before age" isPhone={isPhone}
         help={`Blank leaves it to the solver, from your pension access age${d.privatePensionAge ? ` (${d.privatePensionAge})` : ''}. An age before that changes nothing.`}>

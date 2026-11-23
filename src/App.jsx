@@ -8730,11 +8730,12 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
 export default function App({ theme = 'system', setTheme = () => {}, resolvedTheme = 'light',
   numFormat = DEFAULT_NUMBER_FORMAT, setNumFormat = () => {},
   isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 }, onChrome = () => {}, onCross = null, onPlanner = null }) {
-  // plant 'nogapguard' (research/ui-harnesses/solver-planner-ui.cjs check 19, a harness build's PLANNER_PLANT): the couples' guard
-  // running a couple more than three years apart with other taxable income, as before D128. Set here, in the page's own render
-  // before any reader of the guard renders: src/couplesSwitch.js has no imports, and a statement at this file's top level would
-  // be a side effect every worker importing the engine from it would carry
-  if (PLANNER_PLANT.has('nogapguard')) COUPLES_SWITCH_PLANT.rule = 'nogapguard';
+  // plants 'nogapguard' and 'noopen' (research/ui-harnesses/solver-planner-ui.cjs check 19, a harness build's PLANNER_PLANT): the
+  // couples' guard running a couple more than three years apart with other taxable income, as before D128; the guard before
+  // D143, no class of the household route's open. Set here, in the page's own render before any reader of the guard renders:
+  // src/couplesSwitch.js has no imports, and a statement at this file's top level would be a side effect every worker importing
+  // the engine from it would carry (the guard's plants combine)
+  { const rule = ['nogapguard', 'noopen'].filter(x => PLANNER_PLANT.has(x)).join(','); if (rule) COUPLES_SWITCH_PLANT.rule = rule; }
   // which planner (step U): the new planner lands on Your plan (the quick start there for an empty plan); the classic as before
   const [planner, setPlannerState] = useState(readPlanner);
   // SOLVER spelled out, not left to plannerOn: with the line false the bundler folds solverOn to false and drops the solver's
@@ -8761,8 +8762,9 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it). A single household's plan, and
   // a couple's where couples are on (Part D, D5 and D6: src/couplesSwitch.js COUPLES, on since D99) and the couple is inside
   // the guard (its first person holding 40% to 60% of the pots, or its elder by age more than 60% and at most 90%: item 6's
-  // stage C, D99; and since D128 not more than three years apart with other taxable income); any other couple's plan keeps the
-  // app's rules and is not solved (D42), the couples card saying why
+  // stage C, D99; and since D128 not more than three years apart with other taxable income), and since D143 any couple outside
+  // it whose plan's shape the household plan takes (on the household route alone: src/couplesSwitch.js HOUSEHOLD_OPEN); any
+  // other couple's plan keeps the app's rules and is not solved (D42), the couples card saying why
   const coupleState = plan?.demographics?.planningMode === 'couple' ? coupleSolverOn(plan) : null;
   const solverRules = solverOn && (plan?.demographics?.planningMode === 'single' || !!(coupleState && coupleState.on));
   // the navigation: the new planner's four places, or the classic tabs
@@ -12450,7 +12452,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   );
   // the new planner's cards come in a chunk of their own (src/PlannerCards.jsx; LAYOUT.md section 11.2)
   const couplesCard = () => (
-    <Suspense fallback={null}><PlannerCouples isPhone={isPhone} why={coupleState ? coupleState.why : 'off'} share={coupleState ? coupleState.share : null} onClassic={() => setPlanner('classic')} onOnePerson={() => { setActiveTab('you'); selectSection('you'); }} /></Suspense>
+    <Suspense fallback={null}><PlannerCouples isPhone={isPhone} why={coupleState ? coupleState.why : 'off'} share={coupleState ? coupleState.share : null} shape={coupleState ? coupleState.shape || null : null} onClassic={() => setPlanner('classic')} onOnePerson={() => { setActiveTab('you'); selectSection('you'); }} /></Suspense>
   );
   const youNav = () => <Suspense fallback={null}><PlannerYouNav sections={PLANNER_SECTIONS} names={YOU_NAMES} /></Suspense>;
   const youHeader = () => <Suspense fallback={null}><PlannerYouHeader isPhone={isPhone} onSave={handleSaveAsNewScenario} /></Suspense>;

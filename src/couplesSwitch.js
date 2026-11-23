@@ -16,11 +16,19 @@
  *               hold their money outside the band keeps the app's rules until a test of those reads. Since D128 a couple
  *               whose two people are more than DB_GAP_UP_TO (three) years apart in age and who have other taxable income, the
  *               kind a DB pension or an annuity is entered as, keeps the app's rules too, whatever its holdings, until a test
- *               of such couples reads (gapIncomeOf). `share` the first person's share of the pots; `why` 'off' (the
+ *               of such couples reads (gapIncomeOf). Since D143 (the registered test of those couples on the household
+ *               route, registrations/couples-open.md: Y, E, S and G each OPEN), a couple kept off for any of those reasons is
+ *               handed to the solver on the household route alone (`route: 'household'`, `lifted` its reasons, each opened by
+ *               HOUSEHOLD_OPEN) where the household plan takes its plan's shape (householdShapeOf), solved elder first as the
+ *               test ran it (entered so, the same age, or on its mirror with the swap on); where the household plan refuses its
+ *               shape it keeps the app's rules ('shape'). `share` the first person's share of the pots; `why` 'off' (the
  *               switch), 'uneven' (outside the guard), 'ages' (a partner who would pass 120 before the plan ends, which a
- *               person's table cannot run to: horizonFits) or 'gapincome' (inside the guard by its holdings, but more than
+ *               person's table cannot run to: horizonFits), 'gapincome' (inside the guard by its holdings, but more than
  *               DB_GAP_UP_TO years apart with other taxable income, whether or not the partner would also pass 120, so the
- *               'ages' card's advice to end the plan earlier holds wherever it shows), null when on.
+ *               'ages' card's advice to end the plan earlier holds wherever it shows) or 'shape' (D143: a couple only the
+ *               household route's classes would open, whose plan's shape the household plan refuses, `shape` which, before
+ *               the age cap's 'ages', ending the plan earlier not bringing it in); with all of HOUSEHOLD_OPEN on and the swap
+ *               on, 'uneven' and 'gapincome' are given to no couple; null when on.
  *   elderOf(plan)  'self', 'part' or null (the same age): each person's age today read as the engine reads it (App.jsx
  *               buildContext: a blank age the default, 40 for the first person and the first person's for the partner;
  *               clamped to 0 to 120), held to the engine's own context by research/tests/couple-default.test.mjs.
@@ -51,13 +59,26 @@ export const SWAP_ELDER = true;
 // that the guard handed to it, each 8 or 12 years apart with a £15,000 a year DB pension (one person's, entered as other taxable
 // income), and above them on the four couples as far apart without one. Infinity lifts it (the rollback)
 export const DB_GAP_UP_TO = 3;
+// D143 (the registered couples test, registrations/couples-open.md, read once on the household route, Y, E, S and G each
+// OPEN; D141): the classes the read opened, each lifting its reason for a couple the household plan takes (householdShapeOf
+// not refused): Y the younger partner holding more than 60%, E the elder holding more than ELDER_UP_TO, S the two the same age
+// outside COUPLE_BAND, G more than DB_GAP_UP_TO years apart with other taxable income. A couple opens only where every reason it
+// has is lifted, on the household route alone (`route: 'household'`, `lifted`: src/solverClient.js fails such a solve where
+// the household plan refuses after all, never falling back to today's route, which no test read for these classes); a couple
+// whose shape the household plan refuses keeps today's guard (inside it, today's route; outside it, the app's rules, its
+// reason 'shape' and `shape` the refusal, so the card says what it is about the plan). All false is the guard before D143 (the
+// rollback), as is the plant 'noopen'.
+export const HOUSEHOLD_OPEN = Object.freeze({ Y: true, E: true, S: true, G: true });
 // research/tests/couple-default.test.mjs only: 'firstnotelder' takes the first person for the elder, whatever the ages;
 // 'eldereither' lifts the guard for an elder entered second without the swap, solving the couple in the order entered, as the
 // first draft of D99 did; 'noagecap' runs a couple whose partner would pass 120 before the plan ends, as before the age cap;
 // 'nogapguard' runs a couple more than DB_GAP_UP_TO years apart with other taxable income, as before D128 (also the page's,
-// set by App.jsx from a harness build's PLANNER_PLANT: research/ui-harnesses/solver-planner-ui.cjs check 19).
+// set by App.jsx from a harness build's PLANNER_PLANT: research/ui-harnesses/solver-planner-ui.cjs check 19); D143's 'noopen'
+// lifts no class, the guard before D143 (the rollback's identity; also the page's, as 'nogapguard' is), and 'noshape' opens a
+// couple whatever its shape, the household plan's refusals not read.
 // research/tests/couple-swap.test.mjs only: 'swapon' takes the swap on and 'swapoff' takes it off, whatever SWAP_ELDER says
-// (the rollback's identity); 'capafter' reads the age cap on the mirror, after the swap
+// (the rollback's identity); 'capafter' reads the age cap on the mirror, after the swap. research/tests/couple-shape.test.mjs
+// only: 'skip<why>' leaves out that refusal's check. Plants combine, comma-separated
 export const PLANT = { rule: '' };
 const planted = k => PLANT.rule.split(',').includes(k);
 const swapOn = () => (SWAP_ELDER || planted('swapon')) && !planted('swapoff');
@@ -83,7 +104,7 @@ export function horizonFits(plan) {
   return part + (terminal - self) <= 120 + 1e-9;
 }
 /* whether a couple is handed to the solver on its mirror (D104 (1)): its elder entered second, SWAP_ELDER on */
-export const swapOf = plan => swapOn() && elderOf(plan) === 'part' && PLANT.rule !== 'eldereither';
+export const swapOf = plan => swapOn() && elderOf(plan) === 'part' && !planted('eldereither');
 /* D128: how many years apart the two people's ages today are, each read as elderOf reads it (the engine's ageSelf0 and agePart0) */
 export function ageGapOf(plan) {
   const d = (plan && plan.demographics) || {}, self = ageOf(d.currentAgeSelf, 40), part = ageOf(d.currentAgePart, self);
@@ -108,22 +129,100 @@ export function otherTaxableOf(plan) {
 }
 /* D128: more than DB_GAP_UP_TO years apart and with other taxable income (plant 'nogapguard': never) */
 export const gapIncomeOf = plan => !planted('nogapguard') && ageGapOf(plan) > DB_GAP_UP_TO + 1e-9 && otherTaxableOf(plan);
+/* D141 (22 Nov): whether the household plan refuses a couple's plan for its shape (src/solver/household.js householdPlanFor,
+   on the plan src/solverCouple.js householdPlan makes: the locks applied by src/solverSettings.js lockedPlan), read from the
+   plan as entered and erring towards the app's rules: wherever the household plan refuses a couple for its shape this says so,
+   and it may say so where the household plan would take the plan (a risk left blank beside one set, or an old name beside its
+   new, which the engine reads alike; an end of the plan read a year short). A couple whose shape it refuses keeps today's
+   guard (D141). { refused, why }, the why in householdPlanFor's order:
+     'risks'     the two people's accounts of one wrapper at different risks, each read as the engine reads it (App.jsx
+                 normalizePlan: the ten wrappers always there, a wrapper missing at its default risk, a risk not a tier
+                 'High Risk') and then held to the first person's limits as lockedPlan holds both people's where the partner
+                 has none of their own that differ ('limits' otherwise);
+     'growth'    the two people's contributions to one wrapper both above nought and growing at different rates;
+     'cashisa'   a cash ISA subscription;
+     'salaries'  both paid, the two salaries growing at different rates;
+     'limits'    the partner's own limits differing from the first person's (lockedPlan reads them wrapper by wrapper:
+                 src/solverSettings.js partCeilingsDiffer, written again here, this module having no imports);
+     'year0'     one person retired and the other paid or saving in the plan's first year;
+     'noretire'  nobody retiring within the plan.
+   Each read as the engine reads it (App.jsx buildContext's req, num and the ids' owners). Held by research/tests/couple-shape.
+   test.mjs over the library's couples and planted shapes: no refusal of the household plan's missed, the over-reach counted.
+   Plants (that test only): 'skip<why>' leaves that check out. */
+const LOCK_RISKS = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
+// App.jsx defaultAccounts: each wrapper's id, kind and default risk
+const WRAPPERS = [['pen', 'Pensions', 'High Risk'], ['isa', 'S&S ISAs', 'High Risk'], ['other', 'Other Investments (e.g. GIA)', 'Low Risk'], ['cash', 'Cash Savings', 'Low Risk'], ['cashIsa', 'Cash ISA', 'Low Risk']];
+const numOf = (v, fallback) => { if (v === '' || v === null || v === undefined || typeof v === 'boolean') return fallback; const n = Number(v); return Number.isFinite(n) ? n : fallback; };
+export function partLimitsDiffer(plan) {
+  const L = plan && plan.solver && plan.solver.locks;
+  if (!L || !L.tierCeilingPart) return false;
+  const real = c => (!!c && LOCK_RISKS.includes(c) ? c : null), tc = L.tierCeiling || {}, tp = L.tierCeilingPart;
+  return ['pen', 'isa'].some(w => real(tp[w]) !== real(tc[w]));
+}
+export function householdShapeOf(plan) {
+  const skip = w => planted(`skip${w}`), refused = why => ({ refused: true, why });
+  const raw = (plan && Array.isArray(plan.accounts) ? plan.accounts : []).filter(a => a && typeof a === 'object' && !Array.isArray(a));
+  const d = (plan && plan.demographics) || {}, L = (plan && plan.solver && plan.solver.locks) || {};
+  // the ten wrappers as the engine normalises them: each id's own account (its first), else the wrapper's default
+  const acct = (w, k) => raw.find(a => a.id === `${w}_${k}`) || null;
+  const riskOf = (w, def, k) => { const a = acct(w, k), r = a && typeof a.risk === 'string' ? a.risk : def; return LOCK_RISKS.includes(r) ? r : 'High Risk'; };
+  const ceil = w => (L.tierCeiling && LOCK_RISKS.includes(L.tierCeiling[w]) ? L.tierCeiling[w] : null);
+  const locked = (w, r) => { const c = (w === 'pen' || w === 'isa') ? ceil(w) : null; return c && LOCK_RISKS.indexOf(r) < LOCK_RISKS.indexOf(c) ? c : r; };
+  if (!skip('risks') && !partLimitsDiffer(plan) && WRAPPERS.some(([w, , def]) => locked(w, riskOf(w, def, 'self')) !== locked(w, riskOf(w, def, 'part')))) return refused('risks');
+  const contribOf = (w, k) => { const a = acct(w, k); return a ? Math.max(0, numOf(a.contrib, 0)) : 0; };
+  const growthOf = (w, k) => { const a = acct(w, k); return a ? numOf(a.growth, 0) : 0; };
+  if (!skip('growth') && WRAPPERS.some(([w]) => contribOf(w, 'self') > 0 && contribOf(w, 'part') > 0 && growthOf(w, 'self') !== growthOf(w, 'part'))) return refused('growth');
+  if (!skip('cashisa') && (contribOf('cashIsa', 'self') > 0 || contribOf('cashIsa', 'part') > 0)) return refused('cashisa');
+  const pay = k => Math.max(0, numOf(k === 'self' ? d.salarySelf : d.salaryPart, 0));
+  if (!skip('salaries') && pay('self') > 0 && pay('part') > 0 && numOf(d.salaryGrowthSelf, 0) !== numOf(d.salaryGrowthPart, 0)) return refused('salaries');
+  if (!skip('limits') && partLimitsDiffer(plan)) return refused('limits');
+  // the first plan year: the engine's ages today and retirement ages (req: a blank the default, then clamped to 0 to 120)
+  const reqAge = (v, fallback) => (v === '' || v === null || v === undefined ? fallback : Math.min(120, Math.max(0, numOf(v, fallback))));
+  const age = { self: reqAge(d.currentAgeSelf, 40) }; age.part = reqAge(d.currentAgePart, age.self);
+  const retire = { self: reqAge(d.retireAgeSelf, 60), part: reqAge(d.retireAgePart, 60) };
+  const working = (k, t) => age[k] + t < retire[k];
+  if (!skip('year0') && (!working('self', 0) || !working('part', 0))) {
+    const saving = k => WRAPPERS.some(([w]) => { const a = acct(w, k); return !!a && (Array.isArray(a.contribByYear) ? numOf(a.contribByYear[0], 0) > 0 : numOf(a.contrib, 0) > 0); });
+    if (['self', 'part'].some(k => working(k, 0) && (pay(k) > 0 || saving(k)))) return refused('year0');
+  }
+  // nobody retiring within the plan, its years read a year short of the engine's (erring towards the app's rules)
+  let terminal = Math.min(120, Math.max(1, numOf(d.terminalAge, 100)));
+  if (terminal <= age.self) terminal = age.self + 1;
+  const T = Math.max(1, Math.round(terminal - age.self)) - 1;
+  if (!skip('noretire') && working('self', T) && working('part', T)) return refused('noretire');
+  return { refused: false, why: null };
+}
 export function coupleSolverOn(plan, on = COUPLES) {
   const of = w => ((plan && plan.accounts) || []).filter(a => String(a.id).endsWith('_' + w)).reduce((t, a) => t + (Number(a.balance) || 0), 0);
   const a = of('self'), b = of('part'), share = a + b > 0 ? a / (a + b) : 0.5;
   if (!on) return { on: false, share, why: 'off' };
-  const swap = swapOf(plan), capPlan = swap && PLANT.rule.split(',').includes('capafter') ? mirrorAges(plan) : plan;
+  const swap = swapOf(plan), capPlan = swap && planted('capafter') ? mirrorAges(plan) : plan;
   const inside = share >= COUPLE_BAND[0] - 1e-9 && share <= COUPLE_BAND[1] + 1e-9;
-  const elder = PLANT.rule === 'firstnotelder' ? 'self' : elderOf(plan);
-  const held = elder === 'self' ? share : elder === 'part' && (swap || !ELDER_FIRST || PLANT.rule === 'eldereither') ? 1 - share : null;
+  const elder = planted('firstnotelder') ? 'self' : elderOf(plan);
+  const held = elder === 'self' ? share : elder === 'part' && (swap || !ELDER_FIRST || planted('eldereither')) ? 1 - share : null;
   const elderMore = held !== null && held > COUPLE_BAND[1] + 1e-9 && held <= ELDER_UP_TO + 1e-9;
   // D128: inside the guard by its holdings, but more than DB_GAP_UP_TO years apart with other taxable income
   const holds = inside || elderMore, gapIncome = holds && gapIncomeOf(plan);
+  // D143: the reasons the guard before it kept a couple off for, each a class the household route's registered test read (plant
+  // 'noopen': none lifted, the guard before D143; 'noshape': the household plan's refusal not read, a refused couple opened as
+  // if taken)
+  const reasons = [];
+  if (!holds) reasons.push(elder === null ? 'S' : held !== null && held > ELDER_UP_TO + 1e-9 ? 'E' : 'Y');
+  if (gapIncomeOf(plan)) reasons.push('G');
+  // opened only where the household is solved elder first, as the registered test ran it: entered so, the same age, or
+  // mirrored with the swap on (with the swap off, an elder entered second outside the band keeps the app's rules)
+  const open = reasons.length > 0 && (elder !== 'part' || swap) && !planted('noopen') && reasons.every(c => HOUSEHOLD_OPEN[c]);
+  const sh = open ? (planted('noshape') ? { refused: false, why: null } : householdShapeOf(plan)) : null;
   // a couple whose partner would pass 120 before the plan ends keeps the app's rules, whatever its holdings: read on the plan
   // as entered, before any swap (plant 'capafter': on the mirror, whose end age the swap moves past 120). Its reason is 'ages',
-  // whose card says that ending the plan earlier brings it within reach; where the gap with other taxable income would keep it
-  // on the app's rules all the same, the reason is that (the reviewer on D128, MINOR 2), and outside the holdings 'ages' as before
-  if (PLANT.rule !== 'noagecap' && !horizonFits(capPlan)) return { on: false, share, why: gapIncome ? 'gapincome' : 'ages' };
+  // whose card says that ending the plan earlier brings it within reach, wherever that holds: an opened couple whose shape the
+  // household plan refuses is told 'shape' (ending earlier would not bring it in), and under the guard before D143 the gap with
+  // other taxable income keeps its own reason (the reviewer on D128, MINOR 2)
+  if (!planted('noagecap') && !horizonFits(capPlan)) {
+    if (open) return sh.refused ? { on: false, share, why: 'shape', shape: sh.why } : { on: false, share, why: 'ages' };
+    return { on: false, share, why: gapIncome ? 'gapincome' : 'ages' };
+  }
+  if (open) return sh.refused ? { on: false, share, why: 'shape', shape: sh.why, swap: false } : { on: true, share, why: null, swap, route: 'household', lifted: reasons };
   if (!holds) return { on: false, share, why: 'uneven', swap: false };
   // read after the holdings, so a couple the guard kept off before keeps its reason
   if (gapIncome) return { on: false, share, why: 'gapincome', swap: false };

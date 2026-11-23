@@ -12,7 +12,8 @@ repository are public, knowingly. So no beta with users is under way and nothing
 below this section says "the beta", read it as history. The order from here:
 
 **ANSWERED by D143 (23 Nov, morning): "Unlock enforcement", read as the go on (A), the recommendation (said so to the
-maintainer). Was OPEN (23 Nov, early), for your word: the guard's own units, the registered read (D139 to D141), and the
+maintainer); built as D144 (23 Nov): the reviewer on the change of default FAIL (one BLOCKING, the limits card), one
+fix, then PASS; to `main` on B1's gate with the fourteenth batch; the pricing fix next, as its own change. Was OPEN (23 Nov, early), for your word: the guard's own units, the registered read (D139 to D141), and the
 change of default it would make.**
 - **The read** (once, 22 Nov 23:37 UK; `results-couples-open.txt`; `reports/2026-11-22-couples-open-read.md`): Y, E, S
   and G each OPEN on the household route. No unit is flagged by D34. Each class's pooled survival is `+11.538` to

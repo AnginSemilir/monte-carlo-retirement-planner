@@ -23,18 +23,33 @@ import { DiagnosticCopy } from './DiagnosticCopy.jsx';
    which a person's table cannot run to (src/couplesSwitch.js horizonFits); 'gapincome': couples are on, and this one holds
    its money as the guard allows but its two people are more than three years apart and it has other taxable income, the
    kind a DB pension is entered as (D128, src/couplesSwitch.js DB_GAP_UP_TO and gapIncomeOf); `share` the first person's
-   share of the pots */
-export function Couples({ isPhone, onClassic, onOnePerson, why = 'off', share = null }) {
+   share of the pots; 'shape' (D143): couples are on, this one is outside the guard before D143, and its plan has a shape the
+   household plan cannot take yet (src/couplesSwitch.js householdShapeOf), `shape` which: the words the agent's draft and the
+   maintainer's to change */
+export const SHAPE_WORDS = Object.freeze({
+  risks: 'The two of you hold the same kind of account at different risk levels.',
+  growth: 'You both pay into the same kind of account, and your payments grow at different rates.',
+  cashisa: 'Your plan pays into a cash ISA.',
+  salaries: 'You are both paid, and your pay grows at different rates.',
+  limits: 'Your partner has risk limits of their own that differ from yours; set them alike in You, Limits on the solver, and the new planner can plan for the two of you.',
+  year0: 'One of you has retired while the other is still paid or saving this year.',
+  noretire: 'Neither of you retires within the plan.'
+});
+export function Couples({ isPhone, onClassic, onOnePerson, why = 'off', share = null, shape = null }) {
   if (PLANNER_PLANT.has('nocouple')) return null;
   // a share shown at an edge of the guard (10%, 40%, 60%, 90%) is not rounded onto it, so a couple just outside is not told it holds
   // what was tested (the reviewer on D99, finding 5): "just over 90%", "just under 40%"
   const uneven = why === 'uneven', ages = why === 'ages', gapIncome = why === 'gapincome', pc = x => { const p = 100 * x, r = Math.round(p); return [10, 40, 60, 90].includes(r) && Math.abs(p - r) > 1e-9 ? `just ${p > r ? 'over' : 'under'} ${r}%` : `${r}%`; };
   return (
-  <section data-planner-couple={why} className="p-5 bg-surface border border-slate-200/90 rounded-xl space-y-3 max-w-3xl">
+  <section data-planner-couple={why} data-couple-shape={why === 'shape' ? shape || '' : undefined} className="p-5 bg-surface border border-slate-200/90 rounded-xl space-y-3 max-w-3xl">
     {gapIncome ? <>
       <h2 className="text-[15px] font-semibold text-slate-900">The new planner does not work out a plan like yours yet</h2>
-      {/* D129 (5), D130 (5): what the tests found (plant 'gapwords': the words before it, research/ui-harnesses/solver-planner-ui.cjs check 19) */}
-      <p className="text-sm text-slate-600">You two are more than three years apart in age, and your plan has other taxable income, such as a DB (final salary) pension or an annuity. {PLANNER_PLANT.has('gapwords') ? <>For couples like that, the solver&apos;s plans have not yet been shown to do better than the app&apos;s own rules</> : <>In our tests the solver did worse than the app&apos;s own rules for some couples like this</>}, so for now your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+      {/* D129 (5), D130 (5): what the tests found, of today's route (since D143 the card shows on the rollback alone, no class of
+          the household route's open, src/couplesSwitch.js HOUSEHOLD_OPEN: its plant 'gapwords' retired with it) */}
+      <p className="text-sm text-slate-600">You two are more than three years apart in age, and your plan has other taxable income, such as a DB (final salary) pension or an annuity. In our tests the solver did worse than the app&apos;s own rules for some couples like this, so for now your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+    </> : why === 'shape' ? <>
+      <h2 className="text-[15px] font-semibold text-slate-900">The new planner cannot work out a plan shaped like yours yet</h2>
+      <p className="text-sm text-slate-600">{SHAPE_WORDS[shape] || 'Your plan has a shape the new planner cannot take yet.'} For a couple, the new planner works out one plan for the money you hold between you, and it cannot take a plan like that yet; until then your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
     </> : ages ? <>
       <h2 className="text-[15px] font-semibold text-slate-900">The new planner cannot work out a plan this long for the two of you yet</h2>
       <p className="text-sm text-slate-600">Your plan runs until your partner would be past 120, which the new planner cannot plan for yet. Ending the plan at an earlier age brings it within reach; until then your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>

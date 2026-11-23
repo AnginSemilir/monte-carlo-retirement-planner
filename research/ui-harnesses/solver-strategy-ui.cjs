@@ -29,9 +29,11 @@
  *   node research/ui-harnesses/solver-strategy-ui.cjs [port]      (the preview build is served on port + 8)
  */
 const { chromium } = require('/tmp/node_modules/playwright');
-// a couple the solver does not run (src/couplesSwitch.js, D99: its younger partner holding 75% of every wrapper, outside the
-// guard), so it keeps the app's rules and the couples card under the switch, as every couple did before couples were on
-const unevenOf = plan => { const re = JSON.parse(JSON.stringify(plan)), tot = {}; for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); tot[k] = (tot[k] || 0) + (Number(a.balance) || 0); } for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); if (/_self$/.test(a.id)) a.balance = tot[k] * 0.25; else if (/_part$/.test(a.id)) a.balance = tot[k] * 0.75; } return re; };
+// a couple the solver does not run (src/couplesSwitch.js: its younger partner holding 75% of every wrapper, outside the guard
+// before D143, and since D143 its partner's pension held at another risk than the first person's, a shape the household plan
+// refuses, so the household route's classes do not open it), so it keeps the app's rules and the couples card under the
+// switch, as every couple did before couples were on
+const unevenOf = plan => { const re = JSON.parse(JSON.stringify(plan)), tot = {}; for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); tot[k] = (tot[k] || 0) + (Number(a.balance) || 0); } for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); if (/_self$/.test(a.id)) a.balance = tot[k] * 0.25; else if (/_part$/.test(a.id)) a.balance = tot[k] * 0.75; } const mine = re.accounts.find(a => a.id === 'pen_self'), theirs = re.accounts.find(a => a.id === 'pen_part'); if (!mine || !theirs) throw new Error('the couple has no pension for each person'); theirs.risk = mine.risk === 'Low Risk' ? 'High Risk' : 'Low Risk'; return re; };
 const { reference } = require('./lib/reference.cjs');
 const { execFileSync, spawn } = require('node:child_process');
 const { join } = require('node:path');
@@ -223,7 +225,7 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     if (!couple) ok('a couple in the library to test with', false);
     else { const { p, errs, urls } = await open(b, PREVIEW_PORT, unevenOf(couple.plan)), s = await tab(p);
       await p.waitForTimeout(2000);
-      ok(`switch on, opted in, a couple the solver does not run (${couple.id}, its younger partner holding 75%): the couples card, and nothing solved`, s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
+      ok(`switch on, opted in, a couple the solver does not run (${couple.id}, its younger partner holding 75% and their pensions at different risks, a shape the household plan refuses: D143): the couples card, and nothing solved`, s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
       ok('a couple: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
   } finally {

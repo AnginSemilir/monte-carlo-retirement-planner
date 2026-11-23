@@ -1,0 +1,14 @@
+research/tests/couple-limits-card.test.mjs on the D143 build after the reviewer's second look (the working tree of b2f807b7, its change of default uncommitted; 23 Nov 09:41 UK): the test, then each plant (--planted)
+
+PASS  1. on the registered panel's 44 household-route units, as landed and with the partner's own limits carried alike: the card one row a wrapper for the two of them, and after any edit of any row, and a second on another, the couple still on the household route, its two people's limits alike  -- 2464 edits, 0 leaving the couple off or its limits parted, the card per person on 0
+PASS  2. a couple the solver runs per person (held 60/40, inside the guard before D143): a row for each person's wrappers, an edit of the partner's row giving the partner their own limit and the couple still on  -- 20 couples edited, 0 wrong
+PASS  3. a couple off for its limits (a household-route unit given a partner's own pension limit): the guard 'shape' 'limits', the card per person, and back on the household route by setting the partner's row to the first person's or the first person's to the partner's  -- 44 couples, 0 wrong
+PASS  4. a single's plan, and one carrying a partner's limits: one row, its edit writing its own limit alone  -- as entered: the card 'single', the patch {"tierCeiling":{"pen":"Low Risk","isa":null}}; carrying a partner's limits: the card 'single', the patch {"tierCeiling":{"pen":"Low Risk","isa":null}}
+
+ALL PASS: 4 checks
+
+node research/tests/couple-limits-card.test.mjs --planted
+plant 'perperson': the checks that fail: 1, 3; wanted 1, 3: yes
+plant 'partleft': the checks that fail: 1; wanted 1: yes
+plant 'inguardhh': the checks that fail: 2; wanted 2: yes
+plant 'singlepart': the checks that fail: 4; wanted 4: yes

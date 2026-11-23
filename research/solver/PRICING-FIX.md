@@ -99,8 +99,12 @@ no default, gate or candidate. After it, the outcomes below say what happens.
     state pension.
 - **Arms:** each is run by the engine on the same paths, every arm of a unit in one process (`audit-pricing-fix.mjs`).
 - **Checks.** A failure ends the unit. Check 1 or 2 failing on the thirteen is a STOP for the whole read.
-  1. On the thirteen, ROUTE's household table, solved again, carries the registered read's digest and the pilot's. On
-     S191-90, the unit is in the class.
+  - Before them, on the thirteen, the registered panel's own premise: arm A's pick is the landing's, and the unit is one
+    the guard before D143 kept off, for its class's reason. It is read as the registered test read it, on the guard's
+    plant 'noopen', since D144 has opened these classes. The smoke found the premise read on today's guard at first; this
+    was fixed before any unit of the read ran.
+  1. On the thirteen, ROUTE's household table, solved again, carries the registered read's digest and the pilot's, and the
+     app's guard today (D144) opens the unit on the household route. On S191-90, the unit is in the class.
   2. On the thirteen, APP and ROUTE equal the couples trade's arrays on all 4,000 paths, every key, so ROUTE's shortfall is
      the trade's. On S191-90, they are set beside the household arm read's, deciding nothing.
   3. FIX's `k` and allowance are ROUTE's, and FIX's household plan is ROUTE's but for its incomes.

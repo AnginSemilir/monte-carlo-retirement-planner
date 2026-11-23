@@ -12,7 +12,12 @@
  *          ROUTE's (audit-couples-trade.mjs solveHouseholdAt)
  * Checked, a failure ending the unit (exit 3); at the app's points all four, at a smoke's points 3 and 4:
  *   1. on the thirteen, ROUTE's household table solved again carries the registered read's digest and the pilot's, and its k
- *      the read's; on S191-90, its route the household's, its k below 1.2 and a partner's state pension (the class);
+ *      the read's, and the app's guard today (D144) opens the unit on the household route; on S191-90, its route the
+ *      household's, its k below 1.2 and a partner's state pension (the class);
+ * Before the checks, on the thirteen, the registered panel's own premise (audit-couples-open.mjs unitProblems): arm A's pick
+ * the landing's, and the unit one the guard before D143 kept off for its class's reason, read as the registered test read it
+ * (the guard's plant 'noopen', src/couplesSwitch.js; D144 has opened these classes since). The smoke found it read on the
+ * guard after D144 at first (23 Nov, before any unit of the read ran).
  *   2. on the thirteen, APP and ROUTE equal the couples trade's arrays (results/couples-trade-7002) on every path, every key,
  *      so that ROUTE's shortfall is the trade's; on S191-90, APP and ROUTE against the household arm read's APP and HSPA
  *      (results/household-arm-7002), printed beside, deciding nothing;
@@ -25,6 +30,7 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { householdCut } from '../../src/solverCouple.js';
+import { coupleSolverOn, PLANT as GUARD_PLANT } from '../../src/couplesSwitch.js';
 import { pensionsSplit } from '../../src/solver/household.js';
 import { APP_POINTS } from '../../src/solverSettings.js';
 import { tablesOf, digestOf } from '../../src/solverDigest.js';
@@ -119,8 +125,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);   // fair-gate.mjs LOG_STAMP
   console.log(`THE PRICING FIX, EXPLORATORY (PRICING-FIX.md): unit ${pk}/${pn}: ${U.id} (${U.variant}), seed ${SEED}, ${n} paths, ${pts} points`);
   const t0 = Date.now(), fail = msg => { console.error(`audit-pricing-fix: ${U.id}: ${msg}`); process.exit(3); };
-  const { a, hp } = solverPlanOf(U.plan, 'own'), guard = guardOf(U.plan), route = routeOf(hp);
-  if (U.registered) { const before = unitProblems(U, a.label, guard, route); if (before.length) fail(before.join('; ')); }
+  const { a, hp } = solverPlanOf(U.plan, 'own'), route = routeOf(hp);
+  // the guard before D143, as the registered test read it (its plant 'noopen'), and the guard today (D144)
+  const guardBefore = () => { const was = GUARD_PLANT.rule; GUARD_PLANT.rule = 'noopen'; try { return guardOf(U.plan); } finally { GUARD_PLANT.rule = was; } };
+  const today = coupleSolverOn(U.plan);
+  if (U.registered) { const before = unitProblems(U, a.label, guardBefore(), route); if (before.length) fail(before.join('; ')); }
   if (route.route !== 'household') fail(`the route '${route.route}', not the household's`);
   const s0 = Date.now(), R = solveRoute(hp, 'household', { pts, light }), s1 = Date.now(), Q = solveHouseholdAt(hp, FIX_FORM, { pts, light }), s2 = Date.now();
   const solveSecs = { APP: 0, ROUTE: (s1 - s0) / 1000, FIX: (s2 - s1) / 1000 };
@@ -128,13 +137,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const checks = [];
   // check 1: on the thirteen, ROUTE's table the registered read's and the pilot's; on S191-90, the class
   if (U.registered) {
+    if (!today.on || today.route !== 'household') fail(`the app's guard today ${today.on ? `on, the route '${today.route}'` : `off, '${today.why}'`}, not the household route (D144): a STOP`);
     if (full) {
       const read = readUnit(READ_DIR, U.id), pilot = readUnit(PILOT_DIR, U.id);
       if (!read || !pilot) fail('the registered read\'s or the pilot\'s unit file is missing');
       if (read.digests.household !== digests.ROUTE || pilot.digests.household !== digests.ROUTE) fail(`ROUTE's table ${digests.ROUTE}, the registered read's ${read.digests.household}, the pilot's ${pilot.digests.household}: a STOP`);
       if (read.split.k !== R.k) fail(`ROUTE's k ${R.k}, the registered read's ${read.split.k}: a STOP`);
-      checks.push(`1 ROUTE's table the registered read's and the pilot's (${digests.ROUTE}), its k the read's`);
-    } else checks.push('1 not checked at a smoke\'s points');
+      checks.push(`1 ROUTE's table the registered read's and the pilot's (${digests.ROUTE}), its k the read's; the guard today opens it on the household route`);
+    } else checks.push('1 not checked at a smoke\'s points (the guard today opens it on the household route)');
   } else {
     const k = pensionsSplit(E, hp).k, sp = E.num(hp.demographics.statePensionPart, 0);
     if (!(k < 1.2) || !(sp > 0)) fail(`S191-90 out of the class: k ${k}, the partner's state pension ${sp}`);

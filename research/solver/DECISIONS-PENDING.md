@@ -34,10 +34,25 @@ default it would make.**
     against their own allowance, never charges. Checked in the code: `src/solver/household.js` `householdPlanFor` adds
     the partner's state pension as the household person's taxable income, and `pensionsPA` sets the allowance at `k`
     times one person's. The deep review puts it at about `£207` to `£486` a year from plan year 3.
-  - Its one test (EXPLORATORY, seed 7002, 4,000 paths a unit, about two core-hours): S037's ten distinct units and three
-    controls. Arm L is the household plan's moves with the app's rules' spending put back. Arm PA2 is the household plan
-    with the allowance doubled. It reads THE TRADE (does the spending buy the survival?) and THE PRICING (does the
-    allowance explain the four names?). It runs beside the change of default, as D134 (1) had step 8's.
+  - Its one test: S037's ten distinct units and three controls. Arm L is the household plan's moves with each year's
+    spending demand set to the app's rules' demand, as their own run of the path had it. Arm PA2 is the household plan
+    with the allowance doubled.
+- **The deep review's test, read once** (EXPLORATORY, seed 7002, 4,000 paths a unit; `COUPLES-TRADE.md`, its rule
+  committed first; `results-couples-trade.txt`; `reports/2026-11-23-couples-trade-read.md`). The outcome: A CONTROL
+  FAILS; THE PRICING HOLDS. The reviewer at the read: FAIL (one BLOCKING, in the write-up), one fix, then PASS
+  (`reviews/2026-11-23-read-couples-trade.md`, `-2.md`).
+  - **THE PRICING HOLDS.** With the allowance doubled, the four units' shortfall below Y75 falls from £369 to £55 a year,
+    and D34 flags no unit against the household plan. So the household plan's tax on a partner's state pension is a
+    defect, to be fixed as its own change. Opening Y and E need not wait for it. The doubled allowance is not itself the
+    fix: it is HSP, which step 8's arm read set aside (S191-90), and it raises every threshold for all the household's
+    income.
+  - **THE TRADE is not read.** On one of the three controls (S279-E100), L kept `0.695` of the household plan's gain, under
+    the bar of `0.75`.
+    - Post hoc, deciding nothing (`results-couples-trade-beside.txt`): L replays the app's rules' demand past the app's
+      rules' own ruin, when that demand returns to the full target. With those paths set aside, each control keeps more
+      than the bar.
+    - So the failure points at the test's design more than at the controls. Either way, whether S037's lower spending is
+      the price of its survival stays as open as the registered read left it.
 
 The ways on:
 - **(A) Go (recommended).** The change of default is built for all four classes:
@@ -47,16 +62,14 @@ The ways on:
   - the app's route held to the tested arm path for path, and the planner harness's check 19 with its plants;
   - the reviewer on the change of default, then B1's gate.
 
-  S037's trade is accepted as D134 accepted S273-90's. The deep review's test runs beside the build, and nothing goes to
-  `main` before it reads. If THE PRICING holds, the household plan's tax on a partner's state pension is fixed as its own
-  change, with its test of the class; Y and E do not wait for it.
-- **(B) Hold.** The test runs first, and its read comes back to you before the change is built.
+  S037's shortfall is accepted as D134 accepted S273-90's trade. Then the pricing fix comes as its own change: each
+  person's state pension and other income priced against their own allowance, with its test of the class and its plant.
+  It is read EXPLORATORY on the test's 13 units and S191-90 before it becomes a default. Y and E do not wait for it.
+- **(B) Open S and G now; Y and E after the pricing fix has read.** Not recommended: the fix moves spending (a few hundred
+  pounds a year on the four units), while Y and E's survival gain, about 11.5 to 11.7 points pooled, is there now.
 - **(C) Keep couples like S037 off** (a retired couple living mostly on state pensions). Not recommended: no unit is
   harmed, and on each of the nine units M1 names the household route keeps 3,356 to 3,769 more paths of 25,000 than the
   app's rules.
-
-Meanwhile the agent builds the deep review's test and runs it (EXPLORATORY, its rule committed first), since (A) and (B)
-both take it, so its read can be with you when you rule.
 
 **What your reply needs.** The change edits `research/tests/couple-default.test.mjs`, which is protected. D140 (2) gave
 the permission, but the pre-tool hook opens a protected file only when your latest typed message has the words "unlock

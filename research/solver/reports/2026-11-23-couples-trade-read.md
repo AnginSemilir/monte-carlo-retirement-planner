@@ -5,6 +5,10 @@ after the registered couples read (`reviews/2026-11-22-deep-couples-open.md`, se
 - **The run.** Launched 23 Nov 03:18 UK through the launcher from 2f827ee0 (code 36e4d2a860b2, audit 4f8d4cd86ede). Its
   runs were done 03:54 UK: 13 units, none exiting with an error.
 - **The read.** Read once by `reduce-couples-trade.mjs`. Its output is whole in `results-couples-trade.txt`.
+- **The reviewer at the read** (`reviews/2026-11-23-read-couples-trade.md`, `-2.md`):
+  - first look: FAIL, one BLOCKING (the write-up settled what the failed control means) and six MINOR, answered in one fix
+    round;
+  - second look: PASS, two MINOR, answered.
 - **The figures.** Every figure below is the read's own, unless it is marked post hoc. The post hoc figures come from
   `results-couples-trade-beside.txt` (`couples-trade-beside.mjs`, written after the read, deciding nothing). Simple
   arithmetic on printed figures is marked as such.
@@ -47,7 +51,8 @@ read. The rule does not say which of the two it is.
 Post hoc, deciding nothing (`results-couples-trade-beside.txt` A):
 - **How L takes APP's demand.** L takes APP's demand as APP's own run had it. The engine's guardrails cut only while a
   pot is left, so after APP has run out its demand is its full target.
-- **On S279-E100.** ROUTE keeps and L loses 132 paths. On 121 of them, APP ran out before the plan's final year.
+- **On S279-E100.** ROUTE keeps 132 paths that APP and L both lose. On 121 of them, APP ran out before the plan's final
+  year.
   - There, APP's level is `0.801` in the three years before its fail year and `1.000` in the 1,325 years after.
   - A path there:
     - APP delivered `£1,397,301` and left `£372,645` unmet;
@@ -90,9 +95,9 @@ net; by path `-0.279` to `-0.181`).
 - Survival:
   - D34 flags PA2 against ROUTE on none of the 13 units. PA2 loses 1 to 14 paths of 4,000 and saves 0 to 13, against
     thresholds of 21.
-  - The sign is one way (post hoc, `results-couples-trade-beside.txt` B): PA2 is below ROUTE on 11 of the 13 units. On the
-    four the pricing names, together, it loses 28 and saves 1 of 16,000 unit-paths. D34 at 4,000 paths cannot read a
-    change that small.
+  - Its sign (post hoc, `results-couples-trade-beside.txt` B): PA2 is below ROUTE on 11 of the 13 units, level on G12P and
+    above on S279-E100. On the four the pricing names, together, it loses 28 and saves 1 of 16,000 unit-paths. D34 at
+    4,000 paths cannot read a change that small.
 - Spending on the paths both keep, each against APP:
   - PA2 is above ROUTE on 11 of the 13 units. It is below on Y75 (`+£70` a year against `+£101`) and S75 (`-£67` against
     `-£47`).

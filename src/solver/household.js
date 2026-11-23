@@ -84,8 +84,12 @@ export const inBands = (E, single, fn) => (bandsSingle(single) && !planted('sing
    proportion; k = 2, doubling, is its even case. Plants: 'scaleall' (the allowance scaled too, k x PA), 'scalecgt' (the
    bands scaled, the solve inside twoBands). */
 /* the remedy's forms: 'pensions' (HSP), 'bands' (HSPB, its amendment 1) and 'pensionsPA' (HSPA, D130 (2): the personal
-   allowance k times one person's as well, each SCALED limit then k x PA + k x (L - PA) = k x L) */
-export const SCALES = Object.freeze(['pensions', 'bands', 'pensionsPA']);
+   allowance k times one person's as well, each SCALED limit then k x PA + k x (L - PA) = k x L); 'pensionsPAown'
+   (research/solver/PRICING-FIX.md, candidate A; D143: each person's state pension and other income against their own
+   allowance): 'pensionsPA' with the partner's fixed taxable income taxed alone at one person's rules and handed to the
+   household person net, tax-free (householdPlanFor), off unless named */
+export const SCALES = Object.freeze(['pensions', 'bands', 'pensionsPA', 'pensionsPAown']);
+const PA_K = Object.freeze(['pensionsPA', 'pensionsPAown']);
 export const SCALED = Object.freeze(['paTaperThreshold', 'basicBandLimit', 'higherBandLimit', 'scotStarterLimit', 'scotBasicLimit', 'scotIntermediateLimit',
   'scotHigherLimit', 'scotAdvancedLimit']);
 export function pensionsSplit(E, plan) {
@@ -169,11 +173,40 @@ export function householdPlanFor(E, plan, opts = {}) {
   }
   // the partner's state pension and other incomes, in the first person's ages
   const sp = E.num(d.statePensionPart, 0);
-  if (sp > 0 && !planted('nopartsp')) incomes.push({ id: 'inc_house_sp_part', name: 'The partner\'s state pension (the household plan)', owner: 'Myself', startAge: ctx.spa + gap, endAge: '', amount: sp, incomeType: 'otherTaxable', notes: '' });
+  // the form 'pensionsPAown' (PRICING-FIX.md, candidate A; D143: each person's state pension and other income against their
+  // own allowance): the partner's fixed taxable income each plan year as the engine reads it (their state pension from the
+  // state pension age, each other taxable income of theirs between its ages), taxed alone at one person's rules on top of
+  // the partner's taxable pay that year (the engine's, after a sacrifice into their pension) and their earnings, and handed
+  // to the household person tax-free, one dated income a year, as the later retiree's take-home is; in plan year 0 on the
+  // year's fraction, as the engine scales the year's flows (its allowance whole). The partner's pay itself stays where it
+  // was (the household's salary while both work, the later retiree's take-home after) and an income of theirs typed as
+  // earnings stays on the household person as before (its relevant earnings and its move with the retirement age kept).
+  // Plant 'partsp' (research/tests/household-pricing.test.mjs): the form read as 'pensionsPA' here, the partner's income on
+  // the household person as before
+  const ownIncome = opts.scale === 'pensionsPAown' && !planted('partsp');
+  const isOwnFixed = i => { const ty = E.incomeTypeOf(i.incomeType); return ty.taxable && !ty.relevantEarnings; };
+  if (ownIncome) {
+    const penPart = ctx.accounts.find(a => a.owner === 'part' && a.cat === 'pen');
+    for (let t = 0; t <= T; t++) {
+      const age = ageOf('part', t);
+      let F = age >= ctx.spa ? own.part.statePension : 0, earn = 0;
+      for (const inc of ctx.otherIncomes) if (inc.owner === 'part' && !inc.taxFree && age >= inc.startAge && age <= inc.endAge) { if (inc.isEarnings) earn += inc.amount; else F += inc.amount; }
+      if (!(F > 0)) continue;
+      const frac = t === 0 ? ctx.yf : 1;
+      const pay = ((working('part', t) ? E.taxablePayOf(E.salaryAtYear(own.part, t), penPart ? E.contribAtYear(penPart, t) : 0, P, own.part.selfEmployed) : 0) + earn) * frac;
+      const tax = E.incomeTax(pay + F * frac, P) - E.incomeTax(pay, P), net = frac > 0 ? (F * frac - tax) / frac : 0;
+      incomes.push({ id: `inc_house_partown_${t}`, name: 'The partner\'s own income net of their own tax (the household plan)', owner: 'Myself', startAge: ageA + t, endAge: ageA + t, amount: net, incomeType: 'taxFree', notes: '' });
+    }
+  } else if (sp > 0 && !planted('nopartsp')) incomes.push({ id: 'inc_house_sp_part', name: 'The partner\'s state pension (the household plan)', owner: 'Myself', startAge: ctx.spa + gap, endAge: '', amount: sp, incomeType: 'otherTaxable', notes: '' });
   const blank = v => v === '' || v === null || v === undefined;
-  const moved = (plan.otherIncomes || []).map(i => (i.owner === 'Partner'
-    ? { ...i, owner: 'Myself', startAge: blank(i.startAge) ? i.startAge : Number(i.startAge) + gap, endAge: blank(i.endAge) ? i.endAge : Number(i.endAge) + gap }
-    : { ...i, owner: 'Myself' }));
+  // each income moved from the plan year the engine counts it in: from its owner's retirement at the earliest (the engine's
+  // incomeFloor), which the household person's own floor, its first retirement, would bring forward where the other person
+  // retires first (research/tests/household-pricing.test.mjs check 4, found by its class, 23 Nov; reaching none of the
+  // registered panel's units and no library couple). Plant 'incfloor': the move without it, as before
+  const startOf = i => (planted('incfloor') ? (blank(i.startAge) ? i.startAge : Number(i.startAge)) : Math.max(own[i.owner === 'Partner' ? 'part' : 'self'].retireAge, E.num(i.startAge, 0)));
+  const moved = (plan.otherIncomes || []).filter(i => !(ownIncome && i.owner === 'Partner' && isOwnFixed(i))).map(i => (i.owner === 'Partner'
+    ? { ...i, owner: 'Myself', startAge: blank(startOf(i)) ? startOf(i) : startOf(i) + gap, endAge: blank(i.endAge) ? i.endAge : Number(i.endAge) + gap }
+    : { ...i, owner: 'Myself', startAge: startOf(i) }));
   // every per-person allowance doubled; a contribution deposit of the later retiree's, or the plan's own deposit, finds room
   // in a pension as the household's two no-earnings limits; where a later retiree pays more into their pension than that,
   // the limit is raised to the most they pay in a year (the household's own routing then sees that much room too)
@@ -188,7 +221,7 @@ export function householdPlanFor(E, plan, opts = {}) {
   if (opts.scale && single.size) throw new Error('householdPlanFor: opts.scale and opts.single together');
   const sc = opts.scale ? pensionsSplit(E, plan) : null, paOne = E.num(cfg.personalAllowance, E.DEFAULT_CONFIG.personalAllowance);
   // the plant 'pakdouble' (D130 (2)'s test): 'pensionsPA' read with the allowance left doubled, as 'pensions' has it
-  const paK = opts.scale === 'pensionsPA' && !planted('pakdouble'), paH = paK ? sc && sc.k * paOne : 2 * paOne;
+  const paK = PA_K.includes(opts.scale) && !planted('pakdouble'), paH = paK ? sc && sc.k * paOne : 2 * paOne;
   const scaled = (k, one) => (k === 'personalAllowance' ? (paK || planted('scaleall') ? sc.k * one : 2 * one) : SCALED.includes(k) ? paH + sc.k * (one - paOne) : k === 'pclsMaxCap' && (opts.scale === 'pensions' || paK) ? sc.k * one : 2 * one);
   if (!planted('singleband')) for (const k of DOUBLED) config[k] = single.has(k) ? E.num(cfg[k], E.DEFAULT_CONFIG[k]) : sc ? scaled(k, E.num(cfg[k], E.DEFAULT_CONFIG[k])) : 2 * E.num(cfg[k], E.DEFAULT_CONFIG[k]);
   const maxPen = deposits.filter(x => x.category === E.CATEGORY_LABEL.pen).reduce((s, x) => Math.max(s, x.amount), 0);
@@ -267,7 +300,7 @@ export const householdContext = (E, hp, single = []) => inBands(E, single, () =>
 export function householdForm(E, plan, opts = {}) {
   const single = opts.single || [], sc = opts.scale ? pensionsSplit(E, plan) : null;
   const paOne = E.num({ ...E.DEFAULT_CONFIG, ...(plan.config || {}) }.personalAllowance, E.DEFAULT_CONFIG.personalAllowance);
-  const people = sc ? sc.k : bandsSingle(single) ? 1 : 2, hopts = { single, ...(sc ? { scale: { k: sc.k, paOne, paK: opts.scale === 'pensionsPA' } } : {}) };
+  const people = sc ? sc.k : bandsSingle(single) ? 1 : 2, hopts = { single, ...(sc ? { scale: { k: sc.k, paOne, paK: PA_K.includes(opts.scale) } } : {}) };
   const hp = E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan, { single, ...(opts.scale ? { scale: opts.scale } : {}) })));
   return { single, sc, people, hopts, hp };
 }

@@ -4498,6 +4498,7 @@
    "research/solver/results-household-hsp-preflight.txt",
    "research/solver/results-household-hsp-sizing.txt",
    "research/solver/results-household-hsp.txt",
+   "research/solver/results-household-landing-effect-hsp.txt",
    "research/solver/results-household-landing-effect.txt",
    "research/solver/results-household-landing-scan.txt",
    "research/solver/results-household-landing.txt",

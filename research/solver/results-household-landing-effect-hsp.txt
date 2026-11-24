@@ -1,0 +1,7 @@
+THE LANDING FIX'S EFFECT ON STEP 8'S ARM (EXPLORATORY, seed 7002, step 8's pilot): code 6b2732dd0cb5; 2 of the pilot's 15 units reached by the fix: S273-gap8, S351F-gap8
+S273-gap8   survival: APP 86.30%, K2 95.80%, HSPA (the household route before the fix) 95.70%, after it 95.70% (0 saved, 0 lost of 1000); spending delivered 0.0114%, the mean pot 0.026% against HSPA; the table another; solved in 143 s
+S351F-gap8  survival: APP 85.70%, K2 96.70%, HSPA (the household route before the fix) 96.90%, after it 96.90% (0 saved, 0 lost of 1000); spending delivered -0.0225%, the mean pot -0.042% against HSPA; the table another; solved in 204 s
+THE LANDING FIX'S EFFECT ON STEP 8'S ARM (EXPLORATORY, seed 7002, step 8's pilot): code 6b2732dd0cb5; 2 of the pilot's 15 units reached by the fix: S273-gap8, S351F-gap8; THE CONTROL, under the plant 'roomclaim'
+S273-gap8   under 'roomclaim', against the pilot's HSPA: the table 8a403c686a21 against 8a403c686a21 (the same); paths apart {"survived":0,"failYear":0,"pot":0,"estate":0,"tax":0,"delivered":0,"unmet":0} of 1000: THE SAME; solved in 146 s
+S351F-gap8  under 'roomclaim', against the pilot's HSPA: the table 31261274c192 against 31261274c192 (the same); paths apart {"survived":0,"failYear":0,"pot":0,"estate":0,"tax":0,"delivered":0,"unmet":0} of 1000: THE SAME; solved in 187 s
+THE CONTROL IN ALL: 2 of 2 units HSPA's table and paths: the before arm is this code without the fix

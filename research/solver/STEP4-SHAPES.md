@@ -135,9 +135,11 @@ subscription (b3) as well as the year-0 couple (b4).
 
 The reviewer's second look (`reviews/2026-11-23-default-step4-shapes-2.md`): PASS, three MINOR, each answered. The fix moves
 the app's route off step 8's registered arm on the units it reaches, D136's identity units S273-gap8 and S351F-gap8 among them;
-`household-landing-effect-hsp.mjs` measures it on step 8's pilot (EXPLORATORY, `results-household-landing-effect-hsp.txt`, with
-its control: the code under the plant 'roomclaim' held to the pilot's HSPA table and paths), and S355F-gap8, in step 8's
-registered panel alone (the held-out seed 7024, read once by its rule), is not measured. `results-household-shapes.txt` is
+`household-landing-effect-hsp.mjs` measures it on step 8's pilot (EXPLORATORY, seed 7002, 1,000 paths a unit,
+`results-household-landing-effect-hsp.txt`): on S273-gap8 and S351F-gap8 survival is the same, no path saved or lost; spending
+delivered moves +0.0114% and -0.0225%, and the mean pot +0.026% and -0.042%, against HSPA. Its control, the code under the
+plant 'roomclaim', gives the pilot's HSPA table and every path on both. S355F-gap8, in step 8's registered panel alone (the
+held-out seed 7024, read once by its rule), is not measured. `results-household-shapes.txt` is
 written again as the plain run and then `--planted`, its three plant lines back. `parse-all.test.mjs` says what it compiles (the
 files directly in its four folders, not their subfolders), and check 1's own scan is what its plant runs through.
 

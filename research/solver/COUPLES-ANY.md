@@ -261,8 +261,12 @@ without them L would run with no limits at all. On a plan with no locks the solv
 
 **Before the read**, W's identity (the test above, class W): on every W unit, the app's own route (the cut, the table and the
 assembly as the page's worker makes them, at the app's own shapes) held to the rehearsal's ROUTE path for path, with the
-guard on the household route (`couples-any-port-identity.mjs`, `results-couples-any-port-identity.txt`, naming the run's
-stamp). Without it W is not read.
+guard on (`couples-any-port-identity.mjs`, `results-couples-any-port-identity.txt`, naming the run's stamp). Where the
+younger holds `75%` the guard puts the couple on the household route alone, lifting Y (D144). At the library's holdings,
+inside the guard before D143, it names no route of its own and lifts nothing. The client then solves the couple at the
+couples' default form (`src/solverClient.js`, `APP_COUPLE.household`), on the household route wherever the household plan
+takes its shape, which the cut at the app's own shapes shows. Without it W is not read. (Corrected 24 Nov, before any unit
+ran: the smoke showed the library's holdings naming no route, which the first wording missed.)
 
 **Its reading**, for each class W, R, L and P, by D141's rule as the test above states it:
 1. no unit flagged by D34's harm rule, in whole paths;

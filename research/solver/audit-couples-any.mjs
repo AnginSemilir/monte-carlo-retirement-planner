@@ -68,8 +68,14 @@ export const CONFIG = Object.freeze({
   ROUTE: { ...APP_CANDIDATE, couple: APP_COUPLE, joint: appJoint(), form: FORM, route: 'household', takeShapes: TAKES, ctx: ROUTE_CTX }
 });
 export const configOf = arm => hashOf(CONFIG[arm]);
+/* an arm's done line. Under the registration a log carries no outcome: its stamp, its settings, its timings and its done line,
+   as audit-couples-open.mjs's (the design review's finding 1); the pilot's and the rehearsal's carry the engine's survival */
+export const doneLine = (arm, config, survived, n, cpuUs, registered) =>
+  `${''.padEnd(8)} done ${arm}: config ${config}; ${registered ? '' : `engine ${(100 * survived.reduce((t, v) => t + v, 0) / n).toFixed(2)}% on ${n}; `}CPU ${(cpuUs / 1e6).toFixed(0)} s (${(cpuUs / 1e3 / n).toFixed(1)} ms a path)`;
 export const KEYS = { survived: Uint8Array, failYear: Int16Array, pot: Float64Array, estate: Float64Array, tax: Float64Array, delivered: Float64Array, unmet: Float64Array };
-export const STAMP_ROOTS = ['research/solver/audit-couples-any.mjs', 'research/solver/reduce-couples-any.mjs', 'research/solver/couples-any-panel.mjs', 'research/solver/batch-couples-any.sh'];
+/* the stamp's roots: the audit, the reducer, the panel, the batch, and W's identity, which the read takes W on (the design
+   review's finding 4) */
+export const STAMP_ROOTS = ['research/solver/audit-couples-any.mjs', 'research/solver/reduce-couples-any.mjs', 'research/solver/couples-any-panel.mjs', 'research/solver/batch-couples-any.sh', 'research/solver/couples-any-port-identity.mjs'];
 export const STAMP_DATA = REG
   ? ['research/solver/couples-any-registered-panel.json', 'research/solver/couples-any-orders.json', 'research/solver/couples-any-paths.json']
   : ['research/solver/couples-any-panel.json'];
@@ -120,8 +126,10 @@ function planted() {
   cases.push(['the two configurations differ', configOf('APP') !== configOf('ROUTE') ? 'two' : 'ONE', 'two']);
   cases.push(['the arms\' order alternates with the unit', [0, 1, 2, 3].map(k => orderOf(k)[0]).join(','), 'APP,ROUTE,APP,ROUTE']);
   cases.push(['ROUTE takes every shape the household plan takes', `${CONFIG.ROUTE.takeShapes.join(',')}`, 'growth,cashisa,year0,risks,limits,salaries,noretire']);
-  { const f = stampFiles(), need = ['research/solver/couples-any-panel.mjs', ...STAMP_DATA, 'research/solver/shapes-panel.mjs', 'research/solver/couples-open-panel.mjs', 'src/solverApp.js', 'src/solverCouple.js', 'src/solverSettings.js', 'src/couplesSwitch.js', 'src/solverStrategy.js'];
+  { const f = stampFiles(), need = ['research/solver/couples-any-panel.mjs', 'research/solver/couples-any-port-identity.mjs', 'src/solverDigest.js', ...STAMP_DATA, 'research/solver/shapes-panel.mjs', 'research/solver/couples-open-panel.mjs', 'src/solverApp.js', 'src/solverCouple.js', 'src/solverSettings.js', 'src/couplesSwitch.js', 'src/solverStrategy.js'];
     cases.push(['the stamp holds the panel, its scripts, the app\'s route and the guard, and none of the code\'s own', `${need.every(x => f.includes(x))} ${f.some(x => x === 'research/engine.mjs' || x.startsWith('src/solver/'))}`, 'true false']); }
+  { const sv = Uint8Array.from([1, 0, 1, 1]), reg = doneLine('ROUTE', 'cfg', sv, 4, 2e6, true), open = doneLine('ROUTE', 'cfg', sv, 4, 2e6, false);
+    cases.push(['a registered done line carries no outcome; the pilot\'s and the rehearsal\'s carry the engine\'s survival', `${/engine|%|survi/.test(reg)} ${/done ROUTE: config cfg; CPU 2 s/.test(reg)} ${/; engine 75\.00% on 4; CPU/.test(open)}`, 'false true true']); }
   // the panel: 144 units, each class's count, each unit once, N's not landed and every other landed
   { const by = k => panel.filter(u => u.cls === k).length;
     cases.push([REG ? 'the registered panel: 136 units, W 24, R 96, L 8, P 8, no N, each once' : 'the panel: 144 units, W 24, R 96, L 8, P 8, N 8, each once', `${panel.length} ${['W', 'R', 'L', 'P', 'N'].map(by).join(' ')} ${new Set(panel.map(u => u.id)).size}`, REG ? '136 24 96 8 8 0 136' : '144 24 96 8 8 8 144']); }
@@ -227,7 +235,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     if (bad) { console.error(`audit-couples-any: ${U.id} ${arm}: runPath differs from E.runTrial on ${bad} of the first ${Math.min(CHECK, n)} paths`); process.exit(3); }
     const cpuUs = chunks.reduce((t, x) => t + x.cpuUs, 0);
     arms[arm] = { ...o, cpuUs, wallMs: chunks.reduce((t, x) => t + x.wallMs, 0), chunks, place: order.indexOf(arm), solveSecs: solveSecs[arm], inputs: inputs[arm], ...Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) };
-    console.log(`${''.padEnd(8)} done ${arm}: config ${o.config}; engine ${(100 * A.survived.reduce((t, v) => t + v, 0) / n).toFixed(2)}% on ${n}; CPU ${(cpuUs / 1e6).toFixed(0)} s (${(cpuUs / 1e3 / n).toFixed(1)} ms a path)`);
+    console.log(doneLine(arm, o.config, A.survived, n, cpuUs, REGISTERED));
   }
   if (js(await digest()) !== js(tablesBefore)) { console.error(`audit-couples-any: ${U.id}: the tables changed while the paths ran`); process.exit(3); }
   writeFileSync(join(OUT, fileOf(U.id)), gzipSync(js({ k: pk, id: U.id, couple: U.couple, cohort: U.cohort, variant: U.variant, cls: U.cls, kind: U.kind, hold: U.hold, target: U.target, label: a.label, seed, N: n, warm: WARM, pts, W, stamp: STAMP,

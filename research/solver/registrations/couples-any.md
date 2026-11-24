@@ -18,7 +18,10 @@ reviewer.
   - **L:** the partner's own limits differing from the first person's (A's 'limits'). After `lockedPlan` each person's
     wrapper is held at their own limit, so the two pensions are held at different risks and L's units take A's 'risks'
     with it, as A designs ("The partner's own limits reduce to this", `COUPLES-ANY.md` A; `couples-any-panel.mjs`
-    `SHAPE_WORDS`, L's refusal without A's shapes being "different risks").
+    `SHAPE_WORDS`, L's refusal without A's shapes being "different risks"). APP is arm A on the plan as entered, which reads
+    no solver limits, so its pensions run at their own risks: L compares the household route under the two people's limits
+    with the app's rules without them, as the user would see it, and a pass does not show the limits cost nothing (the design
+    review, its item 9).
   - **P:** two salaries growing at different rates (B's 'salaries').
   - Today the household plan refuses R's, L's and P's shapes, so such a couple keeps today's two-table route inside the guard
     before D143 and the app's rules outside it (D141, D144).
@@ -40,8 +43,10 @@ reviewer.
       units alone set any).
   - **W's identity:** before the read, the app's own route at the app's own shapes (the guard, the page's worker's cut, table
     and assembly, the page's context) held to ROUTE on every W unit of the run, its table digest and every key of every path
-    (`couples-any-port-identity.mjs` with `REG=1`, its file naming the run's stamp), as on the rehearsal (`24 of 24 units
-    IDENTICAL`, `results-couples-any-port-identity.txt`).
+    (`couples-any-port-identity.mjs` with `REG=1`, its file naming the run's stamp and the tree it ran on), as on the
+    rehearsal (`24 of 24 units IDENTICAL`, `results-couples-any-port-identity.txt`). The script is under the run's stamp
+    (`audit-couples-any.mjs` `STAMP_ROOTS`), and the read holds the tree it ran on, its code and audit stamp, to the run's,
+    so it runs on the launch tree (the design review's finding 4).
 - **Households:** the 136 units of `couples-any-registered-panel.json` (`results-couples-any-registered-panel.txt`; `couples-any-panel.mjs` with `REG=1`): W, R, L and P on four couples no run has used, at two holdings each
   - **Couples:** the library's order (D4's) with every couple a run has touched left out (`held-out.mjs` `touchedAll` from the
     main tree on 24 Nov, with the couples the tests take by place, the household line's bases and step 8's couples: 343 ids,
@@ -76,8 +81,8 @@ reviewer.
   3. **spending:** the class's pooled spending delivered on the paths both keep, each unit's change in percent of APP's mean on
      those paths and the units weighted equally (`reduce-household-hsp.mjs keptSpend`), its point estimate not lower than
      -0.05%.
-  - **W is read only with its identity** on the run, its file naming the run's stamp, every W unit IDENTICAL and the count
-    whole (`reduce-couples-any.mjs identityOf`); without it W is NOT READ and goes to the maintainer.
+  - **W is read only with its identity** on the run, its file naming the run's stamp and the run's own tree, every W unit
+    IDENTICAL and the count whole (`reduce-couples-any.mjs identityOf`); without it W is NOT READ and goes to the maintainer.
   - **The pot (D116, M1):** where ROUTE keeps more paths and delivers no less spending, a smaller pot left is not a harm. It is
     recorded, capped and in pounds a path, and is not a bar. A unit where ROUTE keeps more paths but spends less on the paths
     both keep, beyond noise, is named (`m1ByUnit`). It is not a bar, but under a pass each unit named goes to the maintainer
@@ -107,6 +112,14 @@ reviewer.
     - P: salary growths other than `2%` and `-1%`;
     - two of the shapes at once (each unit holds one as entered; L's limits hold its pensions apart after `lockedPlan`,
       R's way, by construction);
+    - the guard's classes D144 opened, with these shapes: every registered couple is three years apart with no other
+      taxable income (S041 68/65, S123 56/53, S185, S197 and S207 55/52, S281 45/42), each unit held at the elder's 60% or
+      the younger's 75%, so Y at gaps over three years, E with the elder holding more than 90%, S at the same age and G with
+      other taxable income are reached by inference;
+    - R on the taxable account, cash or the cash ISA held at different risks: the guard reads R's shape on every wrapper
+      (`src/couplesSwitch.js` `householdShapeOf`) and the household plan takes it on all of them, holding these three, which
+      carry no moves, at the larger holding's risk and not the more cautious one, each person's growing at their own risk in
+      the engine (`src/solver/household.js`, the shape 'risks'); R's units vary the pension and the S&S ISA alone;
     - a couple entered younger first (its mirror; every unit has the elder first), a couple with no minimum pot set;
     - the younger cohort (the dress rehearsal alone, EXPLORATORY);
     - the 'lower' estate aim, consent to change risk withdrawn, the dial's other positions and the speed mode;
@@ -125,7 +138,9 @@ reviewer.
   - each arm at its configuration, ROUTE on the page's own context.
   - A part of a unit's run saved before a restart is taken up again only under the same stamp and the same tables.
 - **What the pilot shows** (`results-couples-any-sizing.txt`; the 136 registered units, 1,000 paths of seed 7002, run 24 Nov 16:14 to 17:19 UK on the final code, panel and order, its gate fair by `reduce-couples-any.mjs --pilot`,
-  EXPLORATORY; its audit stamp `371b8bcacf45` is the run's `dce06b2581ae` with the paths file its sizing then wrote left out):
+  EXPLORATORY; its audit stamp `371b8bcacf45`. Since then the stamped files have changed by the paths file its sizing wrote
+  and by the design review's fixes, which change what a log prints and what the read says and nothing a unit computes: the
+  audit's done line, the reducer's outcome line and W's identity, now under the stamp. So the pilot and its sizing stand):
   - ROUTE against APP from `+5.30` to `+14.50` points on every unit; by class the mean W `+11.97`, R `+10.31`, L `+11.97`, P
     `+11.90`. Every unit's pilot change is a gain, so D34's chance of flagging a unit at 26,000 paths is read at no true
     change: from `0.001` to `0.004`.
@@ -136,5 +151,8 @@ reviewer.
     spends more.
   - Beside it, the dress rehearsal (W, R, L and P passing, N reported and not read, `results-couples-any.txt`).
 - **Budget:** `39.7` core-hours over the 136 units and the longest once more for a relaunch; about `10.2` hours on four cores in the batch's order, the panel's; then W's identity on the run's 24 W units, every path, in four parts: `8.1` core-hours, about `2.2` hours (`results-couples-any-sizing.txt`, measured from the pilot on this machine, D21).
-- **The launch:** the agent launches once the design review passes (`COUPLES-ANY.md`, the test: "its design review, pilot and budget, then the launch through the launcher"; D145 (3)), seed 7027 reserved (D145), on the stamp the design review passed: `code d91a642206b9 audit dce06b2581ae`, the 136 units at 26,000 paths (`MODE=registered TODO_ONLY=1 PREDICTION_FILE=research/solver/registrations/couples-any.md bash research/solver/batch-couples-any.sh` prints it). A launch on any other stamp comes back to the reviewer.
-- **Design review:** TO BE SET (`research/solver/reviews/2026-11-24-couples-any-design.md`).
+- **The launch:** the agent launches once the design review passes (`COUPLES-ANY.md`, the test: "its design review, pilot and budget, then the launch through the launcher"; D145 (3)), seed 7027 reserved (D145), on the stamp the design review passed: `code d91a642206b9 audit 3a5474defb4f`, the 136 units at 26,000 paths (`MODE=registered TODO_ONLY=1 PREDICTION_FILE=research/solver/registrations/couples-any.md bash research/solver/batch-couples-any.sh` prints it). A launch on any other stamp comes back to the reviewer.
+- **Design review:** its second look (`research/solver/reviews/2026-11-24-couples-any-design-2.md`), after the first's FAIL,
+  two BLOCKING and two MINOR, answered in one fix round (`reviews/2026-11-24-couples-any-design.md`; D81 (F)): a registered
+  log carries no outcome; the read's outcome line as the Outcomes say; W's identity under the stamp, held to the run's tree;
+  the inference list's two reaches.

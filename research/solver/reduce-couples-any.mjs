@@ -101,8 +101,11 @@ export function identityOf(text, units) {
   const ws = units.filter(u => u.cls === 'W');
   if (!ws.length) return { ok: true, why: null };
   if (text === null) return { ok: false, why: 'no identity file' };
-  const u0 = ws[0], head = text.split('\n')[0] || '';
-  if (!head.includes(`code ${u0.stamp.code} audit ${u0.stamp.audit}`)) return { ok: false, why: `the identity file names another run (${head.slice(0, 140)})` };
+  const u0 = ws[0], head = text.split('\n')[0] || '', run = `code ${u0.stamp.code} audit ${u0.stamp.audit}`;
+  if (!head.includes(`stamp ${run},`)) return { ok: false, why: `the identity file names another run (${head.slice(0, 140)})` };
+  // the identity script is under the run's stamp (audit-couples-any.mjs STAMP_ROOTS), and its header names the tree it ran on:
+  // that tree's code and audit stamp the run's, so it ran on the launch tree (the design review's finding 4)
+  if (!head.includes(`; this tree: ${run};`)) return { ok: false, why: `the identity ran on another tree than the run's (${(head.match(/this tree: [^;]*/) || ['no tree named'])[0]})` };
   const missing = ws.filter(u => !new RegExp(`^${u.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} +IDENTICAL;`, 'm').test(text)).map(u => u.id);
   if (missing.length) return { ok: false, why: `not IDENTICAL on ${missing.join(', ')}` };
   if (!new RegExp(`^${ws.length} of ${ws.length} units IDENTICAL$`, 'm').test(text)) return { ok: false, why: `its count is not ${ws.length} of ${ws.length}` };
@@ -173,13 +176,24 @@ export function report(units, { identity = { ok: true, why: null }, registered =
   out.push(`M1 by unit (D116; named, not a bar): ${m1.length ? m1.map(x => `${x.id} (${x.net} paths kept net; spending on the paths both keep ${iv(x.kept, f4)}%, over all paths ${f3(x.all)}%; the pot capped ${x.cap ? `${f3(x.cap.pct)}% (${gbp(x.cap.gbp)} a path)` : 'no cap'})`).join('; ') : 'none: no unit keeps more paths and spends less on the paths both keep beyond noise'}`);
   const pass = Object.entries(R).filter(([, r]) => r.outcome === 'PASSES').map(([k]) => k), fail = Object.entries(R).filter(([, r]) => r.outcome === 'FAILS').map(([k]) => k), unread = Object.entries(R).filter(([, r]) => r.outcome === 'NOT READ').map(([k]) => k);
   const and = a => (a.length > 1 ? `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}` : a[0]);
-  // the registered read's outcomes (registrations/couples-any.md): a class passing opens by its own change of default, W passing
-  // stays on (D146); a class failing keeps today's handling and goes to the maintainer with its units, W at once
-  const opens = pass.filter(k => k !== 'W');
+  // the registered read's outcomes (registrations/couples-any.md): a class passing opens by its own change of default, but L only
+  // with R (its units take R's way for the pension their limits hold apart); W passing stays on (D146); a class failing keeps
+  // today's handling and goes to the maintainer with its units; W failing, its handling today the household route (D146), goes
+  // to the maintainer at once; W not read goes to the maintainer. The rehearsal's wording (registered false) as it was
+  const lHeld = registered && pass.includes('L') && !pass.includes('R');
+  const opens = pass.filter(k => k !== 'W' && !(k === 'L' && lHeld));
   const passTxt = !pass.length ? 'no class passes' : !registered ? `${and(pass)} ${pass.length > 1 ? 'pass and go' : 'passes and goes'} to the registered test`
-    : [opens.length ? `${and(opens)} ${opens.length > 1 ? 'pass, each opening by its own' : 'passes, opening by its own'} change of default (the reviewer and B1's gate)` : null, pass.includes('W') ? 'W passes and stays on by default (D146)' : null].filter(Boolean).join('; ');
-  const failTxt = fail.length ? `; ${and(fail)} ${fail.length > 1 ? 'do' : 'does'} not, ${registered ? `${fail.length > 1 ? 'keep' : 'keeps'} today's handling (today's route inside the guard before D143, the app's rules outside it) and ` : 'and '}${fail.length > 1 ? 'go' : 'goes'} to the maintainer with ${fail.length > 1 ? 'their' : 'its'} units${fail.includes('W') ? ', W at once (on by default since D146)' : ''}` : '';
-  out.push(`OUTCOME: ${passTxt}${failTxt}${unread.length ? `; ${and(unread)} not read (its identity not shown)` : ''}${ns.length ? '; N reported, not read' : ''}${registered ? ` (the registered read: ${REGISTRATION})` : ' (EXPLORATORY: nothing opens on this read; the registered test reads by this rule)'}`);
+    : [opens.length ? `${and(opens)} ${opens.length > 1 ? 'pass, each opening by its own' : 'passes, opening by its own'} change of default (the reviewer and B1's gate)` : null,
+      lHeld ? 'L passes but opens only with R, which does not pass, so L goes to the maintainer with its units and R\'s' : null,
+      pass.includes('W') ? 'W passes and stays on by default (D146)' : null].filter(Boolean).join('; ');
+  const failOthers = fail.filter(k => k !== 'W');
+  const failTxt = !fail.length ? '' : !registered ? `; ${and(fail)} ${fail.length > 1 ? 'do' : 'does'} not, and ${fail.length > 1 ? 'go' : 'goes'} to the maintainer with ${fail.length > 1 ? 'their' : 'its'} units${fail.includes('W') ? ', W at once (on by default since D146)' : ''}`
+    : `${failOthers.length ? `; ${and(failOthers)} ${failOthers.length > 1 ? 'do not, keep' : 'does not, keeps'} today's handling (today's route inside the guard before D143, the app's rules outside it) and ${failOthers.length > 1 ? 'go' : 'goes'} to the maintainer with ${failOthers.length > 1 ? 'their' : 'its'} units` : ''}${fail.includes('W') ? '; W does not, and goes to the maintainer at once with its units (on by default since D146, its handling today the household route)' : ''}`;
+  const unreadTxt = !unread.length ? '' : `; ${and(unread)} not read (its identity not shown)${registered ? ` and ${unread.length > 1 ? 'go' : 'goes'} to the maintainer` : ''}`;
+  // under a pass, each unit M1 names goes to the maintainer with the read before any default changes (the registration's M1)
+  const clsOf = Object.fromEntries(units.map(u => [u.id, u.cls])), m1Pass = registered ? m1.filter(x => pass.includes(clsOf[x.id])).map(x => x.id) : [];
+  const m1Txt = m1Pass.length ? `; the read going to the maintainer first with the units M1 names (${m1Pass.join(', ')}), before any default changes` : '';
+  out.push(`OUTCOME: ${passTxt}${m1Txt}${failTxt}${unreadTxt}${ns.length ? '; N reported, not read' : ''}${registered ? ` (the registered read: ${REGISTRATION})` : ' (EXPLORATORY: nothing opens on this read; the registered test reads by this rule)'}`);
   const t = u => (u.arms.ROUTE.cpuUs / u.N / 1e3), ta = u => (u.arms.APP.cpuUs / u.N / 1e3);
   out.push(`beside: a path's CPU, APP the median ${median(units.map(ta)).toFixed(1)} ms, ROUTE ${median(units.map(t)).toFixed(1)} ms; ROUTE's solve the median ${median(units.map(u => u.arms.ROUTE.solveSecs)).toFixed(0)} s`);
   return { R, out };
@@ -220,17 +234,29 @@ function planted() {
   { const r = report([unit('w', 0, 'W', base, harm), unit('r', 1, 'R', base, gain)]).out.find(l => l.startsWith('OUTCOME'));
     cases.push(['W failing goes to the maintainer at once', /W does not, and goes to the maintainer with its units, W at once/.test(r) ? 'at once' : r, 'at once']); }
   // the registered read's outcomes (registrations/couples-any.md): opening by a change of default, W staying on, a failing class
-  // keeping today's handling, W failing at once
+  // keeping today's handling, W failing to the maintainer at once, L opening only with R
   { const r1 = report([unit('w', 0, 'W', base, gain), unit('r', 1, 'R', base, gain), unit('l', 2, 'L', base, gain)], { registered: true }).out.find(l => l.startsWith('OUTCOME'));
-    const r2 = report([unit('w', 0, 'W', base, harm), unit('p', 1, 'P', base, gain)], { registered: true }).out.find(l => l.startsWith('OUTCOME'));
+    const r2 = report([unit('w', 0, 'W', base, harm), unit('p', 1, 'P', base, gain), unit('r', 2, 'R', base, harm)], { registered: true }).out.find(l => l.startsWith('OUTCOME'));
     const ok1 = r1 === 'OUTCOME: R and L pass, each opening by its own change of default (the reviewer and B1\'s gate); W passes and stays on by default (D146) (the registered read: research/solver/registrations/couples-any.md)';
-    const ok2 = /^OUTCOME: P passes, opening by its own change of default \(the reviewer and B1's gate\); W does not, keeps today's handling \(today's route inside the guard before D143, the app's rules outside it\) and goes to the maintainer with its units, W at once \(on by default since D146\) \(the registered read: /.test(r2);
-    cases.push(['the registered read\'s outcomes: R and L open, W stays on; W failing keeps today\'s handling and goes at once', `${ok1} ${ok2}`, 'true true']); }
+    const ok2 = r2 === 'OUTCOME: P passes, opening by its own change of default (the reviewer and B1\'s gate); R does not, keeps today\'s handling (today\'s route inside the guard before D143, the app\'s rules outside it) and goes to the maintainer with its units; W does not, and goes to the maintainer at once with its units (on by default since D146, its handling today the household route) (the registered read: research/solver/registrations/couples-any.md)';
+    cases.push(['the registered read\'s outcomes: R and L open, W stays on; R failing keeps today\'s handling; W failing goes at once, not to today\'s two routes', `${ok1} ${ok2}`, 'true true']); }
+  { const r3 = report([unit('r', 0, 'R', base, harm), unit('l', 1, 'L', base, gain), unit('p', 2, 'P', base, gain)], { registered: true }).out.find(l => l.startsWith('OUTCOME'));
+    const r4 = report([unit('r', 0, 'R', base, gain), unit('l', 1, 'L', base, harm)], { registered: true }).out.find(l => l.startsWith('OUTCOME'));
+    const ok3 = r3 === 'OUTCOME: P passes, opening by its own change of default (the reviewer and B1\'s gate); L passes but opens only with R, which does not pass, so L goes to the maintainer with its units and R\'s; R does not, keeps today\'s handling (today\'s route inside the guard before D143, the app\'s rules outside it) and goes to the maintainer with its units (the registered read: research/solver/registrations/couples-any.md)';
+    const ok4 = /^OUTCOME: R passes, opening by its own change of default \(the reviewer and B1's gate\); L does not, keeps today's handling /.test(r4);
+    cases.push(['L opens only with R: L passing with R failing goes to the maintainer; R passing with L failing opens R alone', `${ok3} ${ok4}`, 'true true']); }
+  { const us = [unit('a', 0, 'R', base, gain, { deliveredDrop: 0.04 }), unit('b', 1, 'R', base, gain)], R = rule(us);
+    const reg = report(us, { registered: true }).out.find(l => l.startsWith('OUTCOME')), exp = report(us).out.find(l => l.startsWith('OUTCOME'));
+    cases.push(['a pass with a unit M1 names: the registered read goes to the maintainer first with it, the rehearsal\'s wording as it was', `${R.R.outcome} ${reg === 'OUTCOME: R passes, opening by its own change of default (the reviewer and B1\'s gate); the read going to the maintainer first with the units M1 names (a), before any default changes (the registered read: research/solver/registrations/couples-any.md)'} ${exp === 'OUTCOME: R passes and goes to the registered test (EXPLORATORY: nothing opens on this read; the registered test reads by this rule)'}`, 'PASSES true true']); }
+  { const us = [unit('w', 0, 'W', base, gain), unit('r', 1, 'R', base, gain)], reg = report(us, { registered: true, identity: { ok: false, why: 'no identity file' } }).out.find(l => l.startsWith('OUTCOME'));
+    cases.push(['W not read under the registration goes to the maintainer', reg === 'OUTCOME: R passes, opening by its own change of default (the reviewer and B1\'s gate); W not read (its identity not shown) and goes to the maintainer (the registered read: research/solver/registrations/couples-any.md)' ? 'to the maintainer' : reg, 'to the maintainer']); }
   // W's identity: read with it, not read without it, nor on another run's, nor with a unit not identical
-  { const us = [unit('w1', 0, 'W', base, gain), unit('w2', 1, 'W', base, gain)], head = 'EVERY COUPLE ON THE SOLVER, W\'S IDENTITY (EXPLORATORY): the rehearsal\'s units, stamp code c audit a';
+  { const us = [unit('w1', 0, 'W', base, gain), unit('w2', 1, 'W', base, gain)], head = 'EVERY COUPLE ON THE SOLVER, W\'S IDENTITY (EXPLORATORY): the rehearsal\'s units, stamp code c audit a, against its ROUTE arrays; this tree: code c audit a; the couples\' form';
     const good = `${head}\nw1         IDENTICAL; ...\nw2         IDENTICAL; ...\n2 of 2 units IDENTICAL\n`;
-    const reads = [good, null, good.replace('audit a', 'audit q'), good.replace('w2         IDENTICAL', 'w2         DIFFERS'), good.replace('2 of 2 units', '1 of 2 units')].map(t => rule(us, identityOf(t, us)).W.outcome).join(' ');
+    const reads = [good, null, good.replace('stamp code c audit a', 'stamp code c audit q'), good.replace('w2         IDENTICAL', 'w2         DIFFERS'), good.replace('2 of 2 units', '1 of 2 units')].map(t => rule(us, identityOf(t, us)).W.outcome).join(' ');
     cases.push(['W read with its identity, not without it, nor on another run\'s, nor with a unit differing, nor with a short count', reads, 'PASSES NOT READ NOT READ NOT READ NOT READ']);
+    const trees = [good.replace('this tree: code c audit a', 'this tree: code c audit q'), good.replace('this tree: code c audit a', 'this tree: code d audit a'), good.replace('; this tree: code c audit a', '')].map(t => `${rule(us, identityOf(t, us)).W.outcome} (${identityOf(t, us).why})`).join(' | ');
+    cases.push(['W not read where its identity ran on another tree than the run\'s (its audit stamp or its code), or names no tree', trees, 'NOT READ (the identity ran on another tree than the run\'s (this tree: code c audit q)) | NOT READ (the identity ran on another tree than the run\'s (this tree: code d audit a)) | NOT READ (the identity ran on another tree than the run\'s (no tree named))']);
     cases.push(['no W unit, no identity needed', `${identityOf(null, [unit('r', 0, 'R', base, gain)]).ok}`, 'true']); }
   // N reported: its lines printed, never a class outcome; spending beside; M1 by unit
   { const r = report([unit('r', 0, 'R', base, gain), unit('nn', 1, 'N', base, base)]).out;

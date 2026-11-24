@@ -11,7 +11,26 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**OPEN (23 Nov, evening), for your word: step 4's change of default, and the protected edits it needs, asked by name.**
+**OPEN (23 Nov, night), for your word only where you want it otherwise: every couple on the solver, the rest of the way
+(D145 (3), `COUPLES-ANY.md`).**
+- **The plan,** written before any of it is built: the household plan takes the shapes it still refuses.
+  - Different risks in one wrapper, and the partner's own limits: the wrapper held at the more cautious of the two, each
+    person's tier mapped by name into their own ladder, so no one is moved riskier than they chose.
+  - Two salaries growing at different rates: a year-by-year salary schedule in the engine, as contributions have one.
+  - Nobody retiring within the plan: if the single solver solves a person who works to the plan's end.
+  - Then today's two-table route leaves the app's solve.
+- **Each way that is not exact is tested** against the app's rules by D141's rule. First a dress rehearsal on the tuning
+  seed, then a registered test on held-out couples and seed 7027 (reserved under D145's unlock), whose classes include step
+  4's shapes, so they are measured rather than taken by inference. Each class that passes opens by its own change of
+  default, with the reviewer and B1's gate.
+- **Two things go ahead as the agent proposes unless you say otherwise:**
+  - a plan running past the elder's 120th year keeps its card (end the plan at the elder's 120th year), not being a shape
+    of the couple but years past the model's range;
+  - the registered test is launched once its design review passes, as D140 (3) allowed for the last one.
+
+**ANSWERED by D145 (23 Nov, evening): "Go ahead, unlock enforcement. Work towards it handling any couple", read as the go
+on the recommendation (all three shapes; said so to the maintainer): the change of default under way. Was OPEN (23 Nov,
+evening), for your word: step 4's change of default, and the protected edits it needs, asked by name.**
 - **What is built.** `COUPLES-OPEN.md` step 4 (D139's plan; D141: "step 4, three shapes, comes next"): the household plan
   takes three shapes it refuses today, off in code (`STEP4-SHAPES.md`; `household-shapes.test.mjs`,
   `results-household-shapes.txt`).
@@ -20,10 +39,20 @@ below this section says "the beta", read it as history. The order from here:
     taken, none apart in 9,240 plan years.
   - **'year0'** (a later retiree paid or saving in plan year 0): exact. The year-0 take-home equals the engine's own, and
     the year-0 deposits are pro-rated as the engine pro-rates contributions. 120 plans are taken, none apart.
+  - **Corrected after the reviewer on the change of default (finding 1):** 'year0', and 'growth' after the first
+    retirement, were not exact as said above. Their checks read the deposits the household plan lists, not what its engine
+    lands, and the engine claimed the later retiree's saving against the household person's pension room (its no-earnings
+    limit, its MPAA once it draws, none from the first person's 75), the rest going to the taxable account: a defect on
+    `main` since D136 (120 of 892 household plans short in 372 deposit years, `results-household-landing-scan.txt`). Fixed in
+    the change, with its test (`household-landing.test.mjs`): such a deposit now lands whole, as the couple's regular
+    contribution does, so the two are exact on what their checks now measure. Its effect on the registered pilot's units it
+    reaches: `results-household-landing-effect.txt` (EXPLORATORY).
   - **'cashisa'** (a cash ISA subscription): the two subscriptions added. It is exact before the first retirement while no
-    one person's own limit binds (1,495 such years, none apart). Where one person's own cash ISA cap binds, the
-    household's doubled cap shelters more (1,385 years in the uneven variant, by up to £7,428.38 a year). After the first
-    retirement the later retiree's subscriptions are not made (their sheltering left to the year-end step, unmeasured).
+    one person's own limit binds (1,495 such years, none apart). Where one person's own cash ISA cap or ISA allowance binds,
+    the household's pooled allowances subscribe more (1,385 years in the uneven variant: 900 on the first person's own cash
+    ISA cap, up to £3,000; 485 on their ISA allowance left after their S&S ISA contributions, up to £7,428.38; corrected on
+    the reviewer's finding 2). After the first retirement the later retiree's subscriptions are not made (their sheltering
+    left to the year-end step, unmeasured).
   - **The identity:** with the option unset, none of 972 household plans differs from the code before
     (`results-household-shapes-identity.txt`).
 - **The change of default** (COUPLES-OPEN.md step 4, "its own change of default, with the reviewer"):
@@ -36,11 +65,13 @@ below this section says "the beta", read it as history. The order from here:
   - `research/tests/couple-shape.test.mjs`: the guard's shapes held equal to the household plan's again;
   - `research/tests/couple-default.test.mjs`: the block's new key, with its plant;
   - `research/tests/run-all.mjs`: `household-shapes.test.mjs` joining the fast tier's joining list.
-- **The agent's recommendation:** all three shapes, with shape 2's limits said in the D-line. Today such a couple inside
+- **The agent's recommendation:** all three shapes, with the cash ISA's limits said in the D-line. Today such a couple inside
   the old guard runs today's two-table route, and outside it the app's rules. The household route is the one the
   registered test read.
 
-**OPEN (23 Nov, afternoon), for your word: the pricing fix's read (EXPLORATORY), FIX DOES NOT HOLD, and the way on.**
+**ANSWERED by D145 (23 Nov, evening): read as the go on (Keep), the recommendation (said so to the maintainer): the route
+as shipped, the form 'pensionsPAown' off. Was OPEN (23 Nov, afternoon), for your word: the pricing fix's read
+(EXPLORATORY), FIX DOES NOT HOLD, and the way on.**
 - **What ran.** D143 ordered the household plan's tax on a partner's state pension fixed as its own change, read
   EXPLORATORY on the couples trade's units and S191-90 before it becomes a default. Candidate A (`PRICING-FIX.md`, the form
   'pensionsPAown', off in code; 61eed66d) taxes the partner's state pension and other taxable income against their own

@@ -120,8 +120,15 @@ export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.sol
  * step 8's arm passed them and do not reach that move), not as two tables through the joint move (src/solverClient.js
  * startSolve's household route; research/solver/HSP-PORT.md). The share rule, the joint move and `tieLook` stay for today's
  * route, which a caller still names with `household: null`, and which a couple the household plan refuses takes.
+ * And since step 4's change of default (D145, 23 Nov; research/solver/STEP4-SHAPES.md, COUPLES-OPEN.md step 4): the household
+ * plan takes three shapes it refused (`takeShapes`, householdPlanFor's TAKE_SHAPES, passed to the cut and the assembly alike by
+ * src/solverCouple.js): the two people's contributions to one wrapper growing at different rates ('growth', exact), a cash ISA
+ * subscription ('cashisa': the two added, exact before the first retirement while no one person's own cash ISA limit binds; past
+ * that the household's doubled cap shelters more, and the later retiree's subscriptions after the first retirement are not
+ * made), and a later retiree paid or saving in plan year 0 ('year0', exact). The guard reads the same three as taken
+ * (src/couplesSwitch.js HOUSEHOLD_TAKES; research/tests/couple-shape.test.mjs holds the two alike).
  */
-export const APP_COUPLE = Object.freeze({ shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2, household: 'pensionsPA' });
+export const APP_COUPLE = Object.freeze({ shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2, household: 'pensionsPA', takeShapes: Object.freeze(['growth', 'cashisa', 'year0']) });
 /* the joint move's options of the couples' default, as assembleCouple takes them */
 export const appJoint = () => ({ tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast });
 /* the joint move's options as a couple's record names them (src/solverCouple.js coupleMeta), and one key for comparing what a

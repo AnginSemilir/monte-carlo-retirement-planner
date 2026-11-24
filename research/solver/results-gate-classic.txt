@@ -1,4 +1,4 @@
-the code: code-stamp:33385967b708eb98; the classic planner's mode
+the code: code-stamp:5d82cc04139d0d45; the classic planner's mode
 == build, the site as it ships ==
    ok
 == serve on :4173 ==

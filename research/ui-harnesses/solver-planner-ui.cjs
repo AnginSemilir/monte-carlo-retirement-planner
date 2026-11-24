@@ -126,7 +126,10 @@
  * only that couple's card: PLANNER_PLANT=nogapguard), noopen (19: the couples' guard before D143, no class of the household
  * route's open, set from the build's plant by src/App.jsx: the couple re-held 25/75 and the couple 12 years apart with other
  * taxable income each shown the couples card, and the refused shapes' cards their reasons before D143; alone:
- * PLANNER_PLANT=noopen). The plant gapwords (19: the gap's card in its words before D129 (5)) was retired on 23 Nov with D143:
+ * PLANNER_PLANT=noopen), notake (19: the couples' guard before step 4's change of default, D145, reading the three shapes the
+ * household plan takes as refused, set from the build's plant by src/App.jsx: the couple re-held 25/75 with those shapes, both
+ * working (b3) and one retired and the other paid this year (b4), each shown the couples card, 'shape'; alone:
+ * PLANNER_PLANT=notake). The plant gapwords (19: the gap's card in its words before D129 (5)) was retired on 23 Nov with D143:
  * that card shows on the rollback alone (no class open), which no check of a shipped build can reach.
  *   node research/ui-harnesses/solver-planner-ui.cjs [port] [--plants]      (the build is served on port + 11, the rollback on + 12, couples on + 13)
  */
@@ -147,8 +150,8 @@ const SPEED_SINGLE = 'Speed mode works out your figures faster by looking at few
 const SPEED_COUPLE = 'For couples, speed mode is less tested. It was usually only a little faster, it spent a little less, and for some couples it lowered the chance your money lasts by about 5 in 1,000. Use the full calculation for decisions.';
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'classicdefault', 'blanksolve', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback', 'workernotie', 'workersplit', 'nogapguard', 'noopen'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, classicdefault: 15, blanksolve: 13, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19, workernotie: 19, workersplit: 19, nogapguard: 19, noopen: 19 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'classicdefault', 'blanksolve', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage', 'speedoff', 'speedcouple', 'couplehalf', 'noback', 'workernotie', 'workersplit', 'nogapguard', 'noopen', 'notake'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, classicdefault: 15, blanksolve: 13, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19, speedoff: 20, speedcouple: 10, couplehalf: 19, noback: 19, workernotie: 19, workersplit: 19, nogapguard: 19, noopen: 19, notake: 19 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -838,6 +841,24 @@ const firstDiff = (a, b, at = '') => {
           await p.context().close(); };
         await solvedHere(reheld(0.25), 'the same couple re-held 25/75, its younger partner holding 75%');
         await shapeCard(odder(reheld(0.25)), 'the same couple re-held 25/75 with the partner\'s ISA at another risk');
+        // (b3) and (b4), since step 4's change of default (D145; src/solverSettings.js APP_COUPLE.takeShapes, src/couplesSwitch.js
+        // HOUSEHOLD_TAKES): the same couple re-held 25/75 with the shapes the household plan now takes, each solved on the household
+        // route, no couples card, every figure the reference's bit for bit (plant 'notake': the guard before the change, the
+        // couples card, 'shape'). (b3) both working, the first person retiring in two years and the partner in five, both paying
+        // into their ISAs at rates growing apart ('growth') and both into a cash ISA ('cashisa'), so the page solves a household
+        // with a contribution schedule and a merged subscription (the reviewer on the change, finding 5); (b4) its first person
+        // retired and its partner still paid this year ('year0'), paying into their pension, ISA and cash ISA, so the later
+        // retiree's saving goes as dated deposits from plan year 0, each landing whole (the same review, finding 1)
+        { const acct = (pl, id, patch) => { const a = pl.accounts.find(x => x.id === id); if (!a) throw new Error(`check 19 (b3, b4): the fixture has no ${id}`); Object.assign(a, patch); };
+          const age = pl => Number(pl.demographics.currentAgeSelf), agePart = pl => Number(pl.demographics.currentAgePart);
+          const b3 = reheld(0.25);
+          Object.assign(b3.demographics, { retireAgeSelf: age(b3) + 2, retireAgePart: agePart(b3) + 5, salarySelf: 40000, salaryPart: 30000, salaryGrowthSelf: 0, salaryGrowthPart: 0 });
+          acct(b3, 'isa_self', { contrib: 3000, growth: 3 }); acct(b3, 'isa_part', { contrib: 2000, growth: 0 }); acct(b3, 'cashIsa_self', { contrib: 2000 }); acct(b3, 'cashIsa_part', { contrib: 1000 });
+          await solvedHere(b3, 'the same couple re-held 25/75, both working, their ISA payments growing at different rates and both paying into a cash ISA (shapes the household plan takes since step 4)');
+          const b4 = reheld(0.25);
+          Object.assign(b4.demographics, { retireAgeSelf: age(b4), retireAgePart: agePart(b4) + 3, salaryPart: 30000 });
+          acct(b4, 'pen_part', { contrib: 5000, growth: 0 }); acct(b4, 'isa_part', { contrib: 2000, growth: 0 }); acct(b4, 'cashIsa_part', { contrib: 2000 });
+          await solvedHere(b4, 'the same couple re-held 25/75, its first person retired and its partner still paid and saving this year (a shape the household plan takes since step 4)'); }
         // (f) the age gap with other taxable income (D128, src/couplesSwitch.js DB_GAP_UP_TO): the same couple as entered (60/40,
         // inside the guard by its holdings), its partner made 12 years younger than its first person, with £15,000 a year of
         // other taxable income from 67, the first person's (the kind a DB pension is entered as, as step 5's S147-db): since D143

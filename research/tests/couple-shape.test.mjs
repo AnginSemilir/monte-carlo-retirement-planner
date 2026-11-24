@@ -13,7 +13,14 @@
  *   2. the over-reach counted, by its reason (a refusal said where householdCut takes the plan: the guard errs towards the
  *      app's rules there), and none on the library's couples as entered;
  *   3. each check shown failing on its plant: with one reason's check skipped ('skip<reason>'), a refusal of that kind is
- *      missed on some shape (CHECKLIST 5).
+ *      missed on some shape (CHECKLIST 5), for each refusal the household plan still makes (since step 4's change of default,
+ *      D145, not the three it takes: src/couplesSwitch.js HOUSEHOLD_TAKES);
+ *   4. the shapes step 4's change of default takes (D145: contributions growing at different rates, a cash ISA subscription,
+ *      a later retiree paid or saving in plan year 0) are taken alike by the page and the guard: on each such shape made on
+ *      the library's couples, either way round, the page's cut takes it wherever nothing else is refused and the guard reads
+ *      it taken there, none missed, and the guard's taken shapes are the app's (APP_COUPLE.takeShapes); shown failing on
+ *      both its plants: the guard before the change ('notake', src/couplesSwitch.js: it refuses them where the page takes
+ *      them) and the cut before it ('cutnotake', src/solverCouple.js: the page refuses them where the guard reads them taken).
  * The shapes: as entered; the two ages swapped (the partner the elder, handed to the solver on its mirror); each wrapper's
  * partner's risk one tier from the first person's; two risks a limit holds alike (both above the first person's pension
  * limit, the partner with none of their own) and a limit that does not; the partner's own limits differing, and the same as
@@ -25,8 +32,9 @@
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { householdCut } from '../../src/solverCouple.js';
-import { householdShapeOf, swapOf, PLANT } from '../../src/couplesSwitch.js';
+import { householdCut, PLANT as CUT_PLANT } from '../../src/solverCouple.js';
+import { householdShapeOf, swapOf, PLANT, HOUSEHOLD_TAKES } from '../../src/couplesSwitch.js';
+import { APP_COUPLE } from '../../src/solverSettings.js';
 import { otherOrder } from '../../src/coupleOrder.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
@@ -98,13 +106,42 @@ ok('1. no refusal missed: wherever the page\'s household cut refuses a plan\'s s
 ok('2. the over-reach counted by its reason, none on the library\'s couples as entered, either way round', B.asEntered === 0 && BM.asEntered === 0, `the guard reads refused where the page takes the plan: ${Object.entries(B.over).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}; entered the other way ${Object.entries(BM.over).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}; of them as entered ${B.asEntered} and ${BM.asEntered}`);
 // 3. each check's plant: with it skipped, a refusal of its kind is missed on some shape (40 couples, every fifth)
 { const few = couples.filter((_, i) => i % 5 === 0), res = [];
-  for (const r of ['risks', 'growth', 'cashisa', 'salaries', 'limits', 'year0', 'noretire']) {
+  // the refusals the household plan still makes: since step 4's change of default (D145) not the shapes it takes
+  for (const r of ['risks', 'growth', 'cashisa', 'salaries', 'limits', 'year0', 'noretire'].filter(w => !HOUSEHOLD_TAKES[w])) {
     PLANT.rule = `skip${r}`;
     const b = battery(few);
     res.push(`${r} ${b.misses.length}`);
     if (!b.misses.length) res.push(`(NONE MISSED under skip${r})`);
   }
   PLANT.rule = '';
-  ok('3. each check shown failing on its plant: skipped, a refusal of its kind goes missed', !res.some(x => /NONE/.test(x)), res.join(', ')); }
+  ok('3. each check shown failing on its plant: skipped, a refusal of its kind goes missed (the refusals the household plan still makes)', res.length > 0 && !res.some(x => /NONE/.test(x)), res.join(', ')); }
+// 4. the shapes step 4's change of default takes (D145), taken alike by the page and the guard: on each shape of the three
+// kinds, the page's cut takes it wherever nothing else is refused, and the guard reads it taken there (none over-reached), and
+// none the page refuses goes missed; shown failing on the guard before the change ('notake') and the cut before it ('cutnotake')
+{ const KINDS = {
+    growth: ['both paying into ISAs, growing at different rates'],
+    cashisa: ['a cash ISA subscription, the first person\'s', 'a cash ISA subscription, the partner\'s'],
+    year0: ['the first person retired, the partner working and paid', 'the first person retired, the partner working and saving', 'the first person retired, the partner saving in the first year by its dated contributions']
+  };
+  const kindOf = name => Object.keys(KINDS).find(k => KINDS[k].includes(name)) || null;
+  const takenBattery = cs => {
+    const per = Object.fromEntries(Object.keys(KINDS).map(k => [k, { n: 0, taken: 0, over: 0, missed: 0 }]));
+    for (const c of cs) for (const [name, plan] of shapesOf(c.plan)) {
+      const k = kindOf(name); if (!k) continue;
+      const why = pageRefusal(plan), g = householdShapeOf(plan); per[k].n++;
+      if (!why) { per[k].taken++; if (g.refused) per[k].over++; } else if (!g.refused) per[k].missed++;
+    }
+    return per;
+  };
+  const holds = per => Object.values(per).every(x => x.n > 0 && x.taken > 0 && x.over === 0 && x.missed === 0);
+  const said = per => Object.entries(per).map(([k, x]) => `${k} ${x.taken} of ${x.n} taken, ${x.over} over-reached, ${x.missed} missed`).join('; ');
+  const all = takenBattery([...couples, ...swapped]);
+  const few = [...couples, ...swapped].filter((_, i) => i % 5 === 0);
+  PLANT.rule = 'notake'; const notake = takenBattery(few); PLANT.rule = '';
+  CUT_PLANT.rule = 'cutnotake'; const cutnotake = takenBattery(few); CUT_PLANT.rule = '';
+  const sameSet = JSON.stringify(Object.keys(HOUSEHOLD_TAKES).filter(k => HOUSEHOLD_TAKES[k]).sort()) === JSON.stringify([...(APP_COUPLE.takeShapes || [])].sort());
+  ok('4. the shapes step 4 takes (D145) taken alike by the page\'s cut and the guard, either way round, the guard\'s taken shapes the app\'s; shown failing with the guard before the change (\'notake\') and with the cut before it (\'cutnotake\')',
+    holds(all) && sameSet && !holds(notake) && !holds(cutnotake),
+    `${said(all)}; the guard's ${JSON.stringify(Object.keys(HOUSEHOLD_TAKES).filter(k => HOUSEHOLD_TAKES[k]))}, the app's ${JSON.stringify(APP_COUPLE.takeShapes)}; under 'notake' ${said(notake)}; under 'cutnotake' ${said(cutnotake)}`); }
 console.log(fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`);
 process.exit(fail ? 1 : 0);

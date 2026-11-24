@@ -154,6 +154,9 @@ const laterInYear0 = plan => {
 const CASHISA = 'Cash ISA', SUBS = [['even', 2000, 2000], ['uneven', 15000, 5000]];
 const withSubs = (plan, mine, theirs) => { const p = structuredClone(plan); for (const a of p.accounts) if (a.category === CASHISA) a.contrib = a.owner === 'Myself' ? mine : theirs; return p; };
 { let refusedBefore = 0, taken = 0, inputBad = 0, flowYears = 0, flowBad = 0, years = 0, apartFree = 0, binds = 0, apartBinds = 0, worstBind = 0, later = 0, laterAmt = 0; const first = [];
+  // the binding years by which limit binds (the reviewer on step 4's change of default, finding 2): a person's own cash ISA
+  // cap, their ISA allowance left after their S&S ISA contributions, and the household's own limit, each with its largest gap
+  const byLimit = {};
   for (const c of couples) for (const [, mine, theirs] of SUBS) {
     const hp = householdPlan(E, withSubs(c.plan, mine, theirs)), cctx = ctxOf(hp);
     const age0 = k => (k === 'self' ? cctx.ageSelf0 : cctx.agePart0), owner = k => cctx.owners.find(o => o.key === k);
@@ -179,23 +182,24 @@ const withSubs = (plan, mine, theirs) => { const p = structuredClone(plan); for 
       // less that year's ISA contributions), the path's cash left out (it binds only where cash runs short)
       years++;
       const roomOf = (P, age, isaUsed) => Math.min(P.cashIsaCapAt(age, year), Math.max(0, P.isaAllowance - isaUsed));
-      let sumK = 0, bound = false;
+      let sumK = 0, bound = false; const why = [];
       for (const k of ['self', 'part']) {
         const isaUsed = cctx.accounts.filter(a => a.cat === 'isa' && a.owner === k).reduce((x, a) => x + E.contribAtYear(a, t) * f, 0);
         const want = owner(k).cashIsaContrib * f, room = roomOf(cctx.P, age0(k) + t, isaUsed);
-        if (want > room + 1e-9) bound = true;
+        const cap = cctx.P.cashIsaCapAt(age0(k) + t, year), left = Math.max(0, cctx.P.isaAllowance - isaUsed);
+        if (want > room + 1e-9) { bound = true; why.push(`${k === 'self' ? 'the first person\'s' : 'the partner\'s'} ${cap <= left ? 'own cash ISA cap' : 'ISA allowance left after their S&S ISA contributions'}`); }
         sumK += Math.min(want, room);
       }
       const hIsaUsed = hIsa.reduce((x, a) => x + E.contribAtYear(a, t) * f, 0), hWant = ho.cashIsaContrib * f, hRoom = roomOf(hctx.P, hctx.ageSelf0 + t, hIsaUsed);
-      if (hWant > hRoom + 1e-9) bound = true;
+      if (hWant > hRoom + 1e-9) { bound = true; why.push('the household\'s own limit'); }
       const gap = Math.min(hWant, hRoom) - sumK;
-      if (bound) { binds++; if (Math.abs(gap) > 0.005) { apartBinds++; worstBind = Math.max(worstBind, Math.abs(gap)); } }
+      if (bound) { binds++; const key = why.join(' and '), b = byLimit[key] || (byLimit[key] = { n: 0, worst: 0 }); b.n++; b.worst = Math.max(b.worst, gap); if (Math.abs(gap) > 0.005) { apartBinds++; worstBind = Math.max(worstBind, Math.abs(gap)); } }
       else if (Math.abs(gap) > 0.005) { apartFree++; if (first.length < 3) first.push(`${c.id} year ${t}: no limit binds, the household subscribes ${gbp(Math.min(hWant, hRoom))}, the two ${gbp(sumK)}`); }
     }
   }
   ok('4. the shape \'cashisa\': refused without the option; with it, the household\'s subscription the two added, its cash contribution the couple\'s two each year before the first retirement, and its subscription the two people\'s own wherever no one person\'s limit binds; the years a limit binds and the later retiree\'s subscriptions after the first retirement counted',
     taken > 0 && refusedBefore > 0 && inputBad === 0 && flowBad === 0 && apartFree === 0 && years > binds && binds > 0,
-    `${taken} plans taken (${refusedBefore} refused without the option): subscriptions summed apart on ${inputBad}; ${flowYears} working years, the cash contribution apart on ${flowBad}; the subscription apart on ${apartFree} of the ${years - binds} years where no limit binds; a limit binds in ${binds} years, the subscription apart in ${apartBinds} of them (the most ${gbp(worstBind)}); beside: the later retiree's subscriptions after the first retirement, ${later} years, ${gbp(laterAmt)} in all, not made by the household plan${first.length ? ` (${first.join('; ')})` : ''}`); }
+    `${taken} plans taken (${refusedBefore} refused without the option): subscriptions summed apart on ${inputBad}; ${flowYears} working years, the cash contribution apart on ${flowBad}; the subscription apart on ${apartFree} of the ${years - binds} years where no limit binds; a limit binds in ${binds} years, the subscription apart in ${apartBinds} of them (the most ${gbp(worstBind)}; by the limit that binds: ${Object.entries(byLimit).map(([k, b]) => `${k} ${b.n} years, the household subscribing up to ${gbp(b.worst)} more`).join('; ')}); beside: the later retiree's subscriptions after the first retirement, ${later} years, ${gbp(laterAmt)} in all, not made by the household plan${first.length ? ` (${first.join('; ')})` : ''}`); }
 
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
 process.exit(fail ? 1 : 0);

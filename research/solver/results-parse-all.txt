@@ -1,0 +1,3 @@
+PASS  1. every .mjs directly in research/tests and research/solver and every .cjs directly in research/ui-harnesses and its lib parses  -- 920 files; not parsing: none
+PASS  2. check 1 shown failing on its plant: its scan reads a label with an unescaped apostrophe in a single-quoted string as not parsing, and nothing beside it  -- over 4 files, not parsing: the planted file
+ALL PASS: 2 checks

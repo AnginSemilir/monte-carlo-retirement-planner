@@ -40,7 +40,13 @@
  *      it, which reaches no unit of the registered panel and no library couple, so no figure moves;
  *      research/tests/household-pricing.test.mjs), 57c42a999f88 since step 4's shapes (STEP4-SHAPES.md, 23 Nov:
  *      src/solver/household.js, the shapes 'growth', 'cashisa' and 'year0' taken only under opts.takeShapes, off; with it unset
- *      every household plan the code before's, byte for byte, results-household-shapes-identity.txt);
+ *      every household plan the code before's, byte for byte, results-household-shapes-identity.txt), 54421a496690 since
+ *      step 4's change of default (D145, 23 Nov: src/solver/household.js householdForm passing opts.takeShapes on to
+ *      householdPlanFor, which refuses a shape it does not know; the app passes src/solverSettings.js APP_COUPLE.takeShapes,
+ *      so a couple with those shapes is taken, and a household plan without them is as before, couple-shape.test.mjs),
+ *      6b2732dd0cb5 since that change's fix round (the reviewer, findings 1 and 6: the later retiree's contributions marked to
+ *      land whole as the couple's do, and two people's dated schedules added year by year; a plan with neither the code
+ *      before's but for that mark, research/tests/household-landing.test.mjs);
  *   8. THE TWIN (PRESCRIPTIVE-PLAN.md step 3): on check 3's six units, the couple made of the first person twice (built as the
  *      review's scripts/twin-trace.mjs builds it), under arm A's policy, 100 paths of seed 99001, the household plan
  *      (through householdContext) against the couple, year by year: (1) on S205, S061-dbpart, S327F, S227-90 and S023-db
@@ -303,7 +309,7 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   // household line's later runs on the fixed code; step 8's port (D134 (1), D136; 20 Nov) adds src/solver/household.js, the
   // household plan the app solves a couple with, so the code moves again: re-pinned with that note (Full 506 on 89cd5995 failed
   // here alone, the pin left at 71fb4271c681)
-  check('(7d) the solver\'s code id 57c42a999f88 (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work, then the pricing form, then step 4\'s shapes)', !!cid && cid.hash === '57c42a999f88', cid ? cid.hash : 'none');
+  check('(7d) the solver\'s code id 6b2732dd0cb5 (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work, then the pricing form, then step 4\'s shapes, then their change of default and its fix round)', !!cid && cid.hash === '6b2732dd0cb5', cid ? cid.hash : 'none');
 }
 
 // 8. the twin (PRESCRIPTIVE-PLAN.md step 3)

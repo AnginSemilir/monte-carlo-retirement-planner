@@ -6,7 +6,12 @@
  * the band scaling (bandsAt), and the owner assembles the household from the table (householdFromTable). This holds that to
  * the research module's solveHousehold run whole, as step 8's audit ran HSPA (research/solver/household.mjs):
  *   1. the cut: householdForm's plan and bands are those solveHousehold solves on (the plan by JSON; k, the allowance and the
- *      allowance scaled);
+ *      allowance scaled). Since 23 Nov (the reviewer on step 4's change of default, finding 1) the app's household plan marks
+ *      the later retiree's deposits `asContribution`, so the engine lands each whole as the couple's run does, and the research
+ *      module keeps step 8's arm as read, unmarked (research/solver/household.mjs): the plan is compared with that mark taken
+ *      off the later retiree's deposits (dep_house_) alone, and the table and the engine's run (check 2) must still be the
+ *      whole solve's, which they are only where the mark lands nothing otherwise (household-landing-scan.mjs: neither unit is
+ *      reached);
  *   2. the household assembled from a table solved apart (solveForApp on the cut plan inside bandsAt, as each worker solves
  *      it) is solveHousehold's whole: the table's digest, and the engine's run of the household (src/solverStrategy.js
  *      solvedContext, at the even split) on 200 paths of seed 99001, survival, the pot and the tax on every path, bit for bit;
@@ -44,6 +49,8 @@ const PLANT = process.env.HR_PLANT || '', PTS = 6, LIGHT = { adaptiveLattice: { 
 let fails = 0;
 const ok = (cond, msg) => { console.log(`${cond ? 'ok  ' : 'FAIL'} ${msg}`); if (!cond) fails++; };
 const js = x => JSON.stringify(x);
+/* the app's household plan with the later retiree's deposits' mark taken off (check 1), and how many it carried */
+const unmark = hp => { let n = 0; const oo = (hp.oneOffContributions || []).map(x => { if (!/^dep_house_/.test(x.id) || x.asContribution !== true) return x; n++; const { asContribution, ...rest } = x; return rest; }); return { plan: { ...hp, oneOffContributions: oo }, n }; };
 const run = (cp, n) => {
   const ctx = solvedContext(E, cp), out = { survived: [], pot: [], tax: [] };
   for (const zs of E.pathsForSeed(SEED, n, ctx.totalYears)) { const q = E.runTrial(ctx, Float64Array.from(zs)); out.survived.push(q.survived ? 1 : 0); out.pot.push(q.terminalPotNet); out.tax.push(q.lifetimeTax); }
@@ -57,7 +64,8 @@ for (const U of units) {
   const whole = HR.solveHousehold(E, M, hp, { solveOne, ...opts }), wholeCp = { ...whole, split: 'even', counts: null };
   // the app's: the cut, the table solved apart inside the bands, the household assembled from it
   const f = householdForm(E, hp, { scale: FORM }), sc = f.hopts.scale, m0 = M.prepare(E, hp);
-  ok(js(f.hp) === js(whole.hplan) && sc && sc.k === whole.hopts.scale.k && sc.paOne === whole.hopts.scale.paOne && sc.paK === true, `${U.id} check 1: the cut is solveHousehold's (k ${sc ? sc.k.toFixed(4) : '-'})`);
+  const um = unmark(f.hp);
+  ok(js(um.plan) === js(whole.hplan) && sc && sc.k === whole.hopts.scale.k && sc.paOne === whole.hopts.scale.paOne && sc.paK === true, `${U.id} check 1: the cut is solveHousehold's but for the later retiree's deposits' mark (k ${sc ? sc.k.toFixed(4) : '-'}; ${um.n} deposits marked)`);
   const solveApart = () => solveForApp(E, M, f.hp, { points: PTS, ageWith: m0.ctx.agePart0, research: { ...LIGHT } });
   const H = PLANT === 'nobands' ? solveApart() : bandsAt(E, sc.k, sc.paOne, solveApart, sc.paK);
   let cp = null, why = '';

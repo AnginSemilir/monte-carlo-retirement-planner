@@ -31,6 +31,14 @@
  * the partner's state pension; 'notakehome' drops the later retiree's take-home; 'nopartpots' leaves the partner's pots out
  * of the merged position; the single chooser's (below): 'partnersecond', 'tiezero', 'notiebreak'; the decomposition's
  * (SINGLE_GROUPS, below): 'singlenone', 'singlecgt'; the remedy's (SCALED, below): 'scaleall', 'scalecgt', 'splitstart'.
+ * 23 Nov (the reviewer on step 4's change of default, findings 1 and 6): this module stays the arm step 8 registered and
+ * read (HSPA), so its household plans keep two defects the app's route (src/solver/household.js) no longer has. The later
+ * retiree's deposits are not marked `asContribution`, so the engine claims each against the household person's pension room
+ * (its no-earnings limit, its MPAA once it draws, none from the first person's 75) and sends the rest to the taxable account,
+ * where the couple's own run lands it whole. And where both people's accounts of one wrapper carry a dated schedule
+ * (`contribByYear`) the merged account keeps the first account's alone. research/tests/household-landing.test.mjs holds the
+ * app's route; research/solver/household-landing-scan.mjs sizes the first on every panel; research/tests/household-route.test.mjs
+ * holds the app's route to this arm on units neither reaches.
  */
 import { rankFor, tiePick, layerOf, ratesAt, SPLITS } from '../../src/solver/couple.js';
 import { NODES, WEIGHTS, chooseAction } from '../../src/solver/solve.js';

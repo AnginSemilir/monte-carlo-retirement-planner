@@ -61,7 +61,7 @@ reviewer.
     - L, 8 units: the first person's pension ceiling Medium/High Risk, the partner's own Medium Risk;
     - P, 8 units: both paid and working at least five more years, their salaries growing at `2%` and `-1%` a year.
 - **Seed:** 7027, reserved in `check-prediction.mjs` for `couples-any*.md` under the maintainer's unlock (D145); the batch names it on a line the launcher's seed check reads; the pilot runs on 7002.
-- **Paths:** TO BE SET FROM THE PILOT (`couples-any-paths.json`, `results-couples-any-sizing.txt`): D34's size at each unit's pilot discordance, its upper 95% bound, the largest taken, uncapped (`size-couples-any.mjs`), as `registrations/couples-open.md` took its paths.
+- **Paths:** 26,000 for every unit (`couples-any-paths.json`, `results-couples-any-sizing.txt`): D34's size at each unit's pilot discordance, its upper 95% bound, from 16,000 to 26,000, the largest taken, uncapped (`size-couples-any.mjs`), as `registrations/couples-open.md` took its paths. At 26,000 a true 1-point loss reads as harm at least 90% of the time up to a discordance of `17.04%`, and no unit's upper bound is past it (the largest, S123-Rp2t-Y75's, `16.84%`). Beside it, deciding nothing, the dress rehearsal's largest discordance `14.97%`.
 - **Primary metric:** survival scored by the engine (`audit-phase4.mjs runPath`, held to `E.runTrial` on the first 200 paths of every arm), paired on the same paths of the held-out seed across the arms.
   - Beside it: spending delivered, the pot left (and capped at the route's estate cap) and lifetime tax.
 - **Decision rule:** ROUTE against APP, for each class (W, R, L and P) on its own units; a class PASSES if all three hold, the dress rehearsal's rule (D141's)
@@ -116,7 +116,16 @@ reviewer.
     app's guard keeping R, L and P off the household route and putting W on it);
   - each arm at its configuration, ROUTE on the page's own context.
   - A part of a unit's run saved before a restart is taken up again only under the same stamp and the same tables.
-- **What the pilot shows:** TO BE SET FROM THE PILOT (`results-couples-any-sizing.txt`; the 136 registered units, 1,000 paths of seed 7002, EXPLORATORY).
-- **Budget:** TO BE SET FROM THE PILOT (`results-couples-any-sizing.txt`, measured on this machine, D21), with W's identity after the run.
-- **The launch:** the agent launches once the design review passes (`COUPLES-ANY.md`, the test: "its design review, pilot and budget, then the launch through the launcher"; D145 (3)), seed 7027 reserved (D145), on the stamp the design review passed, printed by `MODE=registered TODO_ONLY=1 PREDICTION_FILE=research/solver/registrations/couples-any.md bash research/solver/batch-couples-any.sh`. A launch on any other stamp comes back to the reviewer.
+- **What the pilot shows** (`results-couples-any-sizing.txt`; the 136 registered units, 1,000 paths of seed 7002, run 24 Nov 16:14 to 17:19 UK on the final files, its gate fair by `reduce-couples-any.mjs --pilot`, EXPLORATORY):
+  - ROUTE against APP from `+5.30` to `+14.50` points on every unit; by class the mean W `+11.97`, R `+10.31`, L `+11.97`, P
+    `+11.90`. Every unit's pilot change is a gain, so D34's chance of flagging a unit at 26,000 paths is read at no true
+    change: from `0.001` to `0.004`.
+  - M1, by the read's own rule, names 2 of S041's 28 units (S041 retired, 68/65): S041-Rp1t-Y75 and S041-Ri1s-Y75, spending
+    on the paths both keep `-1.2002%` and `-0.5487%`, with far more paths kept (`+12.10` and `+10.60` points). So the
+    registered read most likely goes to the maintainer first, with the units it names, before any change of default. One
+    other unit spends less on the paths both keep, S041-Rp1s-Y75 (`-0.0414%`), which M1 does not name; every other unit
+    spends more.
+  - Beside it, the dress rehearsal (W, R, L and P passing, N reported and not read, `results-couples-any.txt`).
+- **Budget:** `39.7` core-hours over the 136 units and the longest once more for a relaunch; about `10.2` hours on four cores in the batch's order, the panel's; then W's identity on the run's 24 W units, every path, in four parts: `8.1` core-hours, about `2.2` hours (`results-couples-any-sizing.txt`, measured from the pilot on this machine, D21).
+- **The launch:** the agent launches once the design review passes (`COUPLES-ANY.md`, the test: "its design review, pilot and budget, then the launch through the launcher"; D145 (3)), seed 7027 reserved (D145), on the stamp the design review passed: `code d91a642206b9 audit dce06b2581ae`, the 136 units at 26,000 paths (`MODE=registered TODO_ONLY=1 PREDICTION_FILE=research/solver/registrations/couples-any.md bash research/solver/batch-couples-any.sh` prints it). A launch on any other stamp comes back to the reviewer.
 - **Design review:** TO BE SET (`research/solver/reviews/2026-11-24-couples-any-design.md`).

@@ -10,7 +10,7 @@
  * rehearsal's units are other couples, so each registered unit is sized on its own pilot, and the rehearsal's largest
  * discordance is printed beside it (results-couples-any-beside.txt: `14.97%`), deciding nothing.
  * Beside the sizes, what the pilot shows (EXPLORATORY, deciding nothing): each unit's change, D34's chance of flagging it at the
- * run's N at no true change (flagChance reads a gain as no change), its spending on the paths both keep, and the units M1 names
+ * run's N were its pilot change the true one (flagChance reads a gain as no change), its spending on the paths both keep, and the units M1 names
  * by the read's own rule (reduce-couples-open.mjs m1ByUnit).
  * The budget (D21: measured from the pilot on this machine): each unit's ROUTE solve, each arm's CPU a path times N and on its
  * 200 paths held to E.runTrial; four cores in the batch's own order, the panel's; and the longest unit once more, for a
@@ -76,12 +76,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   for (const u of panel) { const r = U[u.id], s = sizeOf(r.arms.ROUTE.survived, r.arms.APP.survived); sizes[u.id] = s; }
   const N = runNOf(Object.values(sizes)), lim = tpLimit(N), past = Object.entries(sizes).filter(([, s]) => s.N > N);
   const f4 = x => (x >= 0 ? '+' : '') + x.toFixed(4), m1 = m1ByUnit(panel.map(u => U[u.id])).filter(x => x.named);
-  console.log(`each unit's discordance and D34's size; what the pilot shows: its change, D34's chance of flagging it at the registered ${N} paths at no true change (a gain read as none), its spending on the paths both keep:`);
+  console.log(`each unit's discordance and D34's size; what the pilot shows: its change, D34's chance of flagging it at the registered ${N} paths were its pilot change the true one (a gain read as none), its spending on the paths both keep:`);
   const byClass = {};
   for (const u of panel) {
     const r = U[u.id], s = sizes[u.id], ch = sv(r.arms.ROUTE) - sv(r.arms.APP), fc = flagChance(s, ch, N), kp = keptSpend([r], 'APP', 'ROUTE', r.N);
     (byClass[u.cls] = byClass[u.cls] || []).push(ch);
-    console.log(`  ${u.id.padEnd(16)} class ${u.cls} ROUTE against APP ${f2(ch)} points (APP ${sv(r.arms.APP).toFixed(1)}%); discordant ${s.k} of ${s.n} (upper bound ${(100 * s.dUp).toFixed(2)}%), D34's size ${Number.isFinite(s.N) ? s.N : 'past any'}; flagged at ${N} at no true change with chance ${fc.toFixed(3)}; spending on the paths both keep ${f4(kp.d)}%`);
+    console.log(`  ${u.id.padEnd(16)} class ${u.cls} ROUTE against APP ${f2(ch)} points (APP ${sv(r.arms.APP).toFixed(1)}%); discordant ${s.k} of ${s.n} (upper bound ${(100 * s.dUp).toFixed(2)}%), D34's size ${Number.isFinite(s.N) ? s.N : 'past any'}; flagged at ${N} with chance ${fc.chance.toFixed(3)}; spending on the paths both keep ${f4(kp.d)}%`);
   }
   console.log(`  by class, the mean change over its units: ${Object.entries(byClass).map(([k, xs]) => `${k} ${f2(xs.reduce((t, x) => t + x, 0) / xs.length)}`).join(', ')}`);
   console.log(`M1 by the read's own rule on the pilot (EXPLORATORY): ${m1.length ? `${m1.length} units named (${m1.map(x => `${x.id} ${f4(x.kept.d)}%`).join(', ')}), so the registered read most likely goes to the maintainer first with the units it names` : 'none named'}`);

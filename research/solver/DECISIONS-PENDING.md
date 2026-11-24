@@ -39,10 +39,20 @@ evening), for your word: step 4's change of default, and the protected edits it 
     taken, none apart in 9,240 plan years.
   - **'year0'** (a later retiree paid or saving in plan year 0): exact. The year-0 take-home equals the engine's own, and
     the year-0 deposits are pro-rated as the engine pro-rates contributions. 120 plans are taken, none apart.
+  - **Corrected after the reviewer on the change of default (finding 1):** 'year0', and 'growth' after the first
+    retirement, were not exact as said above. Their checks read the deposits the household plan lists, not what its engine
+    lands, and the engine claimed the later retiree's saving against the household person's pension room (its no-earnings
+    limit, its MPAA once it draws, none from the first person's 75), the rest going to the taxable account: a defect on
+    `main` since D136 (120 of 892 household plans short in 372 deposit years, `results-household-landing-scan.txt`). Fixed in
+    the change, with its test (`household-landing.test.mjs`): such a deposit now lands whole, as the couple's regular
+    contribution does, so the two are exact on what their checks now measure. Its effect on the registered pilot's units it
+    reaches: `results-household-landing-effect.txt` (EXPLORATORY).
   - **'cashisa'** (a cash ISA subscription): the two subscriptions added. It is exact before the first retirement while no
-    one person's own limit binds (1,495 such years, none apart). Where one person's own cash ISA cap binds, the
-    household's doubled cap shelters more (1,385 years in the uneven variant, by up to £7,428.38 a year). After the first
-    retirement the later retiree's subscriptions are not made (their sheltering left to the year-end step, unmeasured).
+    one person's own limit binds (1,495 such years, none apart). Where one person's own cash ISA cap or ISA allowance binds,
+    the household's pooled allowances subscribe more (1,385 years in the uneven variant: 900 on the first person's own cash
+    ISA cap, up to £3,000; 485 on their ISA allowance left after their S&S ISA contributions, up to £7,428.38; corrected on
+    the reviewer's finding 2). After the first retirement the later retiree's subscriptions are not made (their sheltering
+    left to the year-end step, unmeasured).
   - **The identity:** with the option unset, none of 972 household plans differs from the code before
     (`results-household-shapes-identity.txt`).
 - **The change of default** (COUPLES-OPEN.md step 4, "its own change of default, with the reviewer"):

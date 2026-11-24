@@ -1135,7 +1135,10 @@ function normalizePlan(raw) {
         amount: x.amount ?? '',
         desc: x.desc ?? '',
         transferredFrom: ['External', ...Object.values(CATEGORY_LABEL)].includes(x.transferredFrom) ? x.transferredFrom : 'External',
-        stagedTargetWrapper: Object.values(CATEGORY_LABEL).includes(x.stagedTargetWrapper) ? x.stagedTargetWrapper : (category === AUTO_DEPOSIT ? CATEGORY_LABEL.other : category)
+        stagedTargetWrapper: Object.values(CATEGORY_LABEL).includes(x.stagedTargetWrapper) ? x.stagedTargetWrapper : (category === AUTO_DEPOSIT ? CATEGORY_LABEL.other : category),
+        // a working person's regular contribution written as a dated deposit (the household plan's later retiree,
+        // src/solver/household.js), which lands whole and claims no room (buildContext's ledger); kept only where it is true
+        ...(x.asContribution === true ? { asContribution: true } : {})
       };
     }) : [],
     oneOffCosts: Array.isArray(src.oneOffCosts) ? src.oneOffCosts.filter(isPlainObject).map(x => ({ id: String(x.id || 'cost_' + Math.random().toString(36).slice(2)), date: x.date || (x.year ? `${x.year}-01-01` : ''), year: num(x.year, x.date ? parseInt(String(x.date).slice(0, 4)) : ''), owner: x.owner === 'Partner' ? 'Partner' : 'Myself', amount: x.amount ?? '', desc: x.desc ?? '' })) : [],
@@ -1923,7 +1926,13 @@ function buildContext(rawPlan) {
       // an Auto deposit the policy puts in a pension is the plan's own route, relieved: its room taken gross for the net it
       // costs, any refund to cash. A deposit typed into a pension lands as typed (M3)
       const relieved = isAuto && targetCat === 'pen';
-      const H0 = relieved ? claim(ownerKey, targetCat, t, amt / (1 - relief.rate), true) : claim(ownerKey, targetCat, t, amt, isAuto);
+      // a deposit marked `asContribution` is a working person's regular contribution written as a dated deposit (the household
+      // plan's later retiree, src/solver/household.js householdPlanFor): it lands whole in its wrapper and claims no room, as
+      // step 2 lands a regular contribution, which no allowance caps (the reviewer on step 4's change of default, finding 1:
+      // claimed against the household person's room, the no-earnings limit, the MPAA and nothing from 75, part landed in the
+      // GIA); an Auto deposit is never one
+      const asContribution = !!x.asContribution && !isAuto;
+      const H0 = asContribution ? amt : relieved ? claim(ownerKey, targetCat, t, amt / (1 - relief.rate), true) : claim(ownerKey, targetCat, t, amt, isAuto);
       const rel0 = relieved ? relief.of(ownerKey, t, H0) : null, net0 = relieved ? Math.min(amt, rel0.net) : H0;
       if (!oneOffContribs.has(y)) oneOffContribs.set(y, []);
       // an Auto deposit's own entries are marked, so a table's move can put that money elsewhere (the windfall split)
@@ -8730,12 +8739,13 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
 export default function App({ theme = 'system', setTheme = () => {}, resolvedTheme = 'light',
   numFormat = DEFAULT_NUMBER_FORMAT, setNumFormat = () => {},
   isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 }, onChrome = () => {}, onCross = null, onPlanner = null }) {
-  // plants 'nogapguard' and 'noopen' (research/ui-harnesses/solver-planner-ui.cjs check 19, a harness build's PLANNER_PLANT): the
-  // couples' guard running a couple more than three years apart with other taxable income, as before D128; the guard before
-  // D143, no class of the household route's open. Set here, in the page's own render before any reader of the guard renders:
+  // plants 'nogapguard', 'noopen' and 'notake' (research/ui-harnesses/solver-planner-ui.cjs check 19, a harness build's
+  // PLANNER_PLANT): the couples' guard running a couple more than three years apart with other taxable income, as before D128;
+  // the guard before D143, no class of the household route's open; the guard before step 4's change of default (D145), reading
+  // the shapes the household plan takes as refused. Set here, in the page's own render before any reader of the guard renders:
   // src/couplesSwitch.js has no imports, and a statement at this file's top level would be a side effect every worker importing
   // the engine from it would carry (the guard's plants combine)
-  { const rule = ['nogapguard', 'noopen'].filter(x => PLANNER_PLANT.has(x)).join(','); if (rule) COUPLES_SWITCH_PLANT.rule = rule; }
+  { const rule = ['nogapguard', 'noopen', 'notake'].filter(x => PLANNER_PLANT.has(x)).join(','); if (rule) COUPLES_SWITCH_PLANT.rule = rule; }
   // which planner (step U): the new planner lands on Your plan (the quick start there for an empty plan); the classic as before
   const [planner, setPlannerState] = useState(readPlanner);
   // SOLVER spelled out, not left to plannerOn: with the line false the bundler folds solverOn to false and drops the solver's

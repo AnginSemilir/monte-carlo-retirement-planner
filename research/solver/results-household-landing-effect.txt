@@ -1,0 +1,24 @@
+THE LANDING FIX'S EFFECT (EXPLORATORY, seed 7002, the registered test's pilot): code 6b2732dd0cb5; 10 of the pilot's 44 household-route units reached by the fix
+S199-Y75   survival: APP 86.10%, the household route before the fix 97.00%, after it 97.00% (0 saved, 0 lost of 1000); spending delivered -0.0030%, the mean pot 0.008% against before; solved in 175 s
+S199-Y90   survival: APP 85.00%, the household route before the fix 96.80%, after it 96.80% (0 saved, 0 lost of 1000); spending delivered -0.0029%, the mean pot 0.005% against before; solved in 186 s
+S199-Y100  survival: APP 87.90%, the household route before the fix 97.20%, after it 97.20% (0 saved, 0 lost of 1000); spending delivered -0.0011%, the mean pot 0.004% against before; solved in 177 s
+S199-E95   survival: APP 85.30%, the household route before the fix 96.80%, after it 96.80% (0 saved, 0 lost of 1000); spending delivered -0.0008%, the mean pot 0.004% against before; solved in 197 s
+S199-E100  survival: APP 85.50%, the household route before the fix 96.90%, after it 96.90% (0 saved, 0 lost of 1000); spending delivered -0.0017%, the mean pot 0.005% against before; solved in 220 s
+S199-G8    survival: APP 86.70%, the household route before the fix 97.60%, after it 97.60% (0 saved, 0 lost of 1000); spending delivered 0.0056%, the mean pot 0.009% against before; solved in 214 s
+S199-G12   survival: APP 86.00%, the household route before the fix 97.60%, after it 97.60% (0 saved, 0 lost of 1000); spending delivered 0.0145%, the mean pot -0.438% against before; solved in 221 s
+S199-G8Y75 survival: APP 87.50%, the household route before the fix 97.60%, after it 97.60% (0 saved, 0 lost of 1000); spending delivered 0.0083%, the mean pot -0.051% against before; solved in 212 s
+S199-G12P  survival: APP 85.00%, the household route before the fix 97.20%, after it 97.30% (1 saved, 0 lost of 1000); spending delivered 0.0420%, the mean pot -0.931% against before; solved in 229 s
+S199-G12R  survival: APP 85.60%, the household route before the fix 96.80%, after it 96.80% (0 saved, 0 lost of 1000); spending delivered 0.0024%, the mean pot 0.016% against before; solved in 99 s
+IN ALL: 10 units, 10000 paths: 1 saved, 0 lost against the household route before the fix; spending delivered from -0.0030% to 0.0420%, the mean pot from -0.931% to 0.016%
+THE CONTROL: each unit solved and run under the plant 'roomclaim' (the household plan as before the fix), held to the pilot's ROUTE path for path
+S199-Y75   under 'roomclaim', against the pilot's ROUTE: paths apart in survival 0, spending delivered 0, the pot 0 of 1000: THE SAME; solved in 244 s
+S199-Y90   under 'roomclaim', against the pilot's ROUTE: paths apart in survival 0, spending delivered 0, the pot 0 of 1000: THE SAME; solved in 249 s
+S199-Y100  under 'roomclaim', against the pilot's ROUTE: paths apart in survival 0, spending delivered 0, the pot 0 of 1000: THE SAME; solved in 234 s
+S199-E95   under 'roomclaim', against the pilot's ROUTE: paths apart in survival 0, spending delivered 0, the pot 0 of 1000: THE SAME; solved in 120 s
+S199-E100  under 'roomclaim', against the pilot's ROUTE: paths apart in survival 0, spending delivered 0, the pot 0 of 1000: THE SAME; solved in 117 s
+S199-G8    under 'roomclaim', against the pilot's ROUTE: paths apart in survival 0, spending delivered 0, the pot 0 of 1000: THE SAME; solved in 129 s
+S199-G12   under 'roomclaim', against the pilot's ROUTE: paths apart in survival 0, spending delivered 0, the pot 0 of 1000: THE SAME; solved in 119 s
+S199-G8Y75 under 'roomclaim', against the pilot's ROUTE: paths apart in survival 0, spending delivered 0, the pot 0 of 1000: THE SAME; solved in 118 s
+S199-G12P  under 'roomclaim', against the pilot's ROUTE: paths apart in survival 0, spending delivered 0, the pot 0 of 1000: THE SAME; solved in 130 s
+S199-G12R  under 'roomclaim', against the pilot's ROUTE: paths apart in survival 0, spending delivered 0, the pot 0 of 1000: THE SAME; solved in 99 s
+THE CONTROL IN ALL: 10 of 10 units the pilot's ROUTE on every path: the before arm is this code without the fix

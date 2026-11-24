@@ -106,7 +106,9 @@ only an approximation of a couple, its decisions may be less good, but no figure
 
 - **Its classes**, each on the household route (ROUTE) against the app's rules (APP), on the same paths:
   - W, step 4's shapes (contributions growing at different rates, a cash ISA paid into, a later retiree paid in plan year 0),
-    taken today by inference and measured here;
+    taken today by inference and measured here; before its read, the page's route held to the audit's on W's units path
+    for path (as `couples-open-port-identity.mjs` held D144's), which no arm could do for these shapes before this test (the
+    reviewer on step 4's change of default, finding 4);
   - R, risks (the pension and the ISA one, two and three steps apart, each way);
   - L, limits (the partner's own differing);
   - P, pay (two salaries growing at different rates);

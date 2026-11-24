@@ -95,8 +95,11 @@ byte, which a check holds.
   4. **'cashisa':** 180 plans refused today are taken (even and uneven subscriptions).
      - The subscription is the two added, and the cash contribution matches in each of 2,880 working years.
      - The subscription is equal in every one of the 1,495 years where no one person's own limit binds.
-     - Where one binds (1,385 years, all in the uneven variant, the first person's own cash ISA cap), the household's
-       doubled cap lets the household subscribe more, by as much as £7,428.38 a year.
+     - Where one binds (1,385 years, all in the uneven variant), the household's pooled allowances let it subscribe more.
+       Corrected after the reviewer on the change of default (finding 2): 900 of those years bind on the first person's own
+       cash ISA cap, up to £3,000 more; 335 on their ISA allowance left after their S&S ISA contributions, up to £7,297.19
+       more; 150 on that and on the household's own limit, up to £7,428.38 more (`results-household-shapes.txt` check 4).
+       What is measured is the year's subscription, not what the year-end step shelters.
      - From the first retirement the household plan makes no subscription for the later retiree (540 years, £1,890,000
        in all). Their money lands in its cash, as the engine's does. Whether the engine's year-end step shelters it within
        the household's own cap is not measured.
@@ -110,4 +113,37 @@ byte, which a check holds.
   - `couple-shape.test.mjs`, the guard's shapes held equal to the household plan's again;
   - `couple-default.test.mjs`, the decided-defaults block's new key;
   - `research/tests/run-all.mjs`, household-shapes joining the fast tier's joining list.
+
+## The change of default's fix round (23 Nov, night)
+
+The reviewer on the change of default (`reviews/2026-11-23-default-step4-shapes.md`: FAIL, one BLOCKING and five MINOR) found
+that the later retiree's saving did not land in the household plan as in the couple, so 'year0' (and 'growth' after the first
+retirement) was not exact as its checks claimed: those checks compared the deposits the household plan lists, not what its
+engine lands. A defect on main since D136, fixed in this change with a test of its class:
+- the later retiree's contributions from the first retirement are marked `asContribution`, and the engine lands such a deposit
+  whole, claiming no room, as it lands that person's regular contribution in the couple's run (`src/App.jsx`: the one-off
+  ledger, and `normalizePlan` keeping the mark); before, each was claimed against the household person's pension room (its
+  no-earnings limit, its MPAA once it draws, nothing from the first person's 75) and the rest went to the GIA;
+- two people's accounts of one wrapper with dated schedules (`contribByYear`, the app's phased strategy) are added year by year,
+  as 'growth''s are; before, the merged account kept the first account's schedule alone (finding 6).
+`research/tests/household-landing.test.mjs` (4 checks, its plants 'roomclaim' and 'firstsched'; `results-household-landing.txt`)
+holds both; `household-landing-scan.mjs` sizes the first over every panel and the library
+(`results-household-landing-scan.txt`), and `household-landing-effect.mjs` its effect on the registered pilot's reached units
+(EXPLORATORY, `results-household-landing-effect.txt`, with its control: the code under the plant 'roomclaim' held to the
+pilot's arrays path for path). Check 19 of the planner harness now solves a both-working couple with a schedule and a merged
+subscription (b3) as well as the year-0 couple (b4).
+
+The reviewer's second look (`reviews/2026-11-23-default-step4-shapes-2.md`): PASS, three MINOR, each answered. The fix moves
+the app's route off step 8's registered arm on the units it reaches, D136's identity units S273-gap8 and S351F-gap8 among them;
+`household-landing-effect-hsp.mjs` measures it on step 8's pilot (EXPLORATORY, `results-household-landing-effect-hsp.txt`, with
+its control: the code under the plant 'roomclaim' held to the pilot's HSPA table and paths), and S355F-gap8, in step 8's
+registered panel alone (the held-out seed 7024, read once by its rule), is not measured. `results-household-shapes.txt` is
+written again as the plain run and then `--planted`, its three plant lines back. `parse-all.test.mjs` says what it compiles (the
+files directly in its four folders, not their subfolders), and check 1's own scan is what its plant runs through.
+
+The research arm step 8 registered and read (`research/solver/household.mjs`, HSPA) is left as it was read, so past reads
+still reproduce; a dated note in its header names both defects. `research/tests/household-route.test.mjs`, which holds the
+app's route to that arm, compares the app's cut with the later retiree's deposits' mark taken off (check 1), the table's digest
+and the engine's run on its 200 paths still the whole solve's (check 2). Before that amendment it failed check 1 on S351F-90
+alone, whose deposits carry the mark, with check 2 equal.
 

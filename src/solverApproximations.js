@@ -23,13 +23,13 @@
  *   - the tax-free lump sum: as the plan or the Limits lock sets it, never chosen by the solver (B12; src/SolverConfig.jsx);
  *   - the paths: the headline's and the comparison's simulated markets, so a sampling error.
  */
-import { COUPLES, SWAP_ELDER, HOUSEHOLD_OPEN } from './couplesSwitch.js';
+import { COUPLES, SWAP_ELDER, HOUSEHOLD_OPEN, HOUSEHOLD_TAKES } from './couplesSwitch.js';
 import { APP_COUPLE } from './solverSettings.js';
 
 // research/tests/couple-default.test.mjs only: 'oldcouples' says a couple's plan keeps the app's rules with couples on, as before
 // D99; 'nogapline' leaves out the couples more than three years apart with other taxable income, as before D128; 'nohouseline'
 // leaves out how a couple is planned, as before the household default (D135); 'beforeopen' the line before D143, the household
-// route's classes not open
+// route's classes not open; 'beforetake' the line before step 4's change of default (D145), naming the three shapes it takes
 export const PLANT = { rule: '' };
 // `on` with couples on and the swap on (D104 (1)); `onFirst` with the swap off, the elder entered first alone (D99); `off` with
 // couples off; since D128 `on` and `onFirst` name the couples kept on the app's rules by the age gap with other taxable income
@@ -49,24 +49,37 @@ const withHousehold = line => (APP_COUPLE.household ? `${line}${HOUSEHOLD_SENTEN
 // plan's shape the household plan cannot take yet (householdShapeOf's seven refusals, in its order) and that the guard before
 // D143 kept off; `open` with the swap on, `openFirst` with it off, a couple whose elder is entered second then kept to the guard
 // before D143 (the words the agent's draft and the maintainer's to change; couple-default.test.mjs check 4 holds them to the guard)
-const SHAPES = '(the two of you holding the same kind of account at different risk levels, both paying into one kind of account with your payments'
-  + ' growing at different rates, a cash ISA being paid into, both being paid with your pay growing at different rates, your partner\'s own risk limits'
-  + ' differing from yours, one of you retired while the other is still paid or saving this year, or neither of you retiring within the plan)';
+// Since step 4's change of default (D145; src/couplesSwitch.js HOUSEHOLD_TAKES) the household plan takes three of the seven
+// shapes, so the line names the four it still refuses; the plant 'beforetake' the line before it, naming all seven
+const SHAPE_PHRASES = Object.freeze([
+  ['risks', 'the two of you holding the same kind of account at different risk levels'],
+  ['growth', 'both paying into one kind of account with your payments growing at different rates'],
+  ['cashisa', 'a cash ISA being paid into'],
+  ['salaries', 'both being paid with your pay growing at different rates'],
+  ['limits', 'your partner\'s own risk limits differing from yours'],
+  ['year0', 'one of you retired while the other is still paid or saving this year'],
+  ['noretire', 'neither of you retiring within the plan']
+]);
+const shapesOf = taken => { const xs = SHAPE_PHRASES.filter(([w]) => !taken[w]).map(([, t]) => t); return `(${xs.length > 1 ? `${xs.slice(0, -1).join(', ')}, or ${xs[xs.length - 1]}` : xs.join('')})`; };
+const SHAPES = shapesOf(HOUSEHOLD_TAKES), SHAPES_BEFORE_TAKE = shapesOf({});
 const OPEN_GAP = 'and you are not a couple more than three years apart in age who have other taxable income, such as a DB (final salary) pension or an annuity';
-const OPEN = Object.freeze({
-  on: `It plans for one person or for a couple. The one exception is a couple whose plan it cannot yet plan as one household ${SHAPES}: that plan keeps`
+const openOf = shapes => Object.freeze({
+  on: `It plans for one person or for a couple. The one exception is a couple whose plan it cannot yet plan as one household ${shapes}: that plan keeps`
     + ` the app's own rules, unless the two of you hold your money about evenly (40% to 60% each) or the older of you holds up to 90% of it, ${OPEN_GAP}.`,
   first: `It plans for one person or for a couple whose older partner is entered first, or who are the same age. The one exception is a couple whose plan`
-    + ` it cannot yet plan as one household ${SHAPES}: that plan keeps the app's own rules, unless the two of you hold your money about evenly (40% to 60%`
+    + ` it cannot yet plan as one household ${shapes}: that plan keeps the app's own rules, unless the two of you hold your money about evenly (40% to 60%`
     + ` each) or the older of you holds up to 90% of it, ${OPEN_GAP}. A couple whose older partner is entered second is planned only if the two of you`
     + ` hold your money about evenly (40% to 60% each), ${OPEN_GAP}; any other keeps the app's own rules.`
 });
+const OPEN = openOf(SHAPES), OPEN_BEFORE_TAKE = openOf(SHAPES_BEFORE_TAKE);
 // all four classes open or none: the words say one or the other (couple-default.test.mjs check 4 refuses a mixture); the plant
 // 'beforeopen' the line before D143
 const allOpen = () => ['Y', 'E', 'S', 'G'].every(c => HOUSEHOLD_OPEN[c]) && PLANT.rule !== 'beforeopen';
 export const COUPLES_LINE = Object.freeze({
   open: withHousehold(OPEN.on),
   openFirst: withHousehold(OPEN.first),
+  openBeforeTake: withHousehold(OPEN_BEFORE_TAKE.on),
+  openFirstBeforeTake: withHousehold(OPEN_BEFORE_TAKE.first),
   on: withHousehold(withGap(BEFORE.on)),
   onFirst: withHousehold(withGap(BEFORE.onFirst)),
   off: 'It solves for one person. A couple\'s plan keeps the app\'s own rules.',
@@ -76,7 +89,7 @@ export const COUPLES_LINE = Object.freeze({
 // the couples' line with couples on: D143's where its classes are open, else the line before it; the plants 'nogapline' and
 // 'nohouseline' each leave their clause out of the line shown (before D128, before D135)
 const coverageLine = swap => {
-  const line = allOpen() ? (swap ? COUPLES_LINE.open : COUPLES_LINE.openFirst) : PLANT.rule === 'nogapline' ? (swap ? COUPLES_LINE.onBeforeGap : COUPLES_LINE.onFirstBeforeGap) : (swap ? COUPLES_LINE.on : COUPLES_LINE.onFirst);
+  const line = allOpen() ? (PLANT.rule === 'beforetake' ? (swap ? COUPLES_LINE.openBeforeTake : COUPLES_LINE.openFirstBeforeTake) : (swap ? COUPLES_LINE.open : COUPLES_LINE.openFirst)) : PLANT.rule === 'nogapline' ? (swap ? COUPLES_LINE.onBeforeGap : COUPLES_LINE.onFirstBeforeGap) : (swap ? COUPLES_LINE.on : COUPLES_LINE.onFirst);
   if (PLANT.rule === 'nohouseline') return line.replace(HOUSEHOLD_SENTENCE, '');
   if (PLANT.rule === 'nogapline' && allOpen()) return line.split(`, ${OPEN_GAP}`).join('');
   return line;

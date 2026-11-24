@@ -30,7 +30,10 @@
  * HOUSE.plant (research/tests/household.test.mjs), comma-joined: 'singleband' leaves every allowance single; 'nopartsp' drops
  * the partner's state pension; 'notakehome' drops the later retiree's take-home; 'nopartpots' leaves the partner's pots out
  * of the merged position; the single chooser's (below): 'partnersecond', 'tiezero', 'notiebreak'; the decomposition's
- * (SINGLE_GROUPS, below): 'singlenone', 'singlecgt'; the remedy's (SCALED, below): 'scaleall', 'scalecgt', 'splitstart'.
+ * (SINGLE_GROUPS, below): 'singlenone', 'singlecgt'; the remedy's (SCALED, below): 'scaleall', 'scalecgt', 'splitstart';
+ * research/tests/household-landing.test.mjs's (the reviewer on step 4's change of default, findings 1 and 6): 'roomclaim'
+ * leaves the later retiree's deposits unmarked, so the engine claims them against the household person's room as before;
+ * 'firstsched' keeps the first account's dated schedule where two people's accounts of one wrapper merge, as before.
  */
 import { rankFor, tiePick, layerOf, ratesAt, SPLITS } from './couple.js';
 import { NODES, WEIGHTS, chooseAction } from './solve.js';
@@ -139,13 +142,15 @@ export function householdPlanFor(E, plan, opts = {}) {
   // the shapes STEP4-SHAPES.md takes, each only where opts.takeShapes names it (true: all three), off unless named, so that a
   // household plan without them is the code before's byte for byte
   const takes = new Set(opts.takeShapes === true ? TAKE_SHAPES : Array.isArray(opts.takeShapes) ? opts.takeShapes : []);
+  for (const w of takes) if (!TAKE_SHAPES.includes(w)) throw new Error(`householdPlanFor: opts.takeShapes '${w}' (want ${TAKE_SHAPES.map(x => `'${x}'`).join(', ')})`);
   // the accounts, added by wrapper; each wrapper's risk must be the two people's same, and its contribution growth too unless
   // the shape 'growth' is taken (below)
-  const byKey = {}, scheduled = new Set();
+  const byKey = {}, scheduled = new Set(), firstOf = {}, restOf = {};
   for (const a of plan.accounts) {
     const key = LABEL_KEYS[a.category];
     if (!key) throw new Error(`householdPlanFor: an account of category '${a.category}'`);
     if (a.owner === 'Partner' && planted('nopartpots')) continue;
+    if (byKey[key]) (restOf[key] = restOf[key] || []).push(a); else firstOf[key] = a;
     const g = byKey[key] || (byKey[key] = { ...a, id: `${key}_self`, owner: 'Myself', balance: 0, contrib: 0 });
     if ((g.risk || '') !== (a.risk || '')) throw new Error(`householdPlanFor: the two people's ${a.category} hold different risks (${g.risk}, ${a.risk})`);
     if (E.num(g.growth, 0) !== E.num(a.growth, 0) && E.num(a.contrib, 0) > 0 && E.num(g.contrib, 0) > 0) {
@@ -170,6 +175,19 @@ export function householdPlanFor(E, plan, opts = {}) {
   // pays in lands in their own cash in the engine (folded into their cash account at its growth), so the household's cash
   // wrapper carries the couple's own folded contributions year by year, on this schedule. Plant 'cashisasum'
   // (research/tests/household-shapes.test.mjs): the first person's subscription alone
+  // two people's accounts of one wrapper with a dated schedule (contribByYear, which the app's phased strategy writes for each
+  // person's pension and ISA) merge as their two contributions added year by year, on the same schedule as 'growth': the
+  // merged account was the first account's copy, so a schedule on it hid the partner's contributions, and a schedule on the
+  // partner's was dropped for their flat contribution (the reviewer on step 4's change of default, finding 6: on S241 the
+  // household paid £5,000 in plan year 0 against the couple's £8,000). A defect on main since D136, fixed for every plan, the
+  // shapes taken or not; a wrapper only one person pays into keeps its own account as before. Plant 'firstsched' (research/
+  // tests/household-landing.test.mjs): the first account's schedule kept
+  { const dated = x => Array.isArray(x.contribByYear), gives = x => E.num(x.contrib, 0) > 0 || (dated(x) && x.contribByYear.some(v => E.num(v, 0) > 0));
+    for (const key of Object.keys(byKey)) {
+      if (key === 'cashIsa' || planted('firstsched')) continue;
+      const f = firstOf[key], rest = restOf[key] || [];
+      if (rest.some(dated) || (dated(f) && rest.some(gives))) scheduled.add(key);
+    } }
   const subscribes = own.self.cashIsaContrib > 0 || own.part.cashIsaContrib > 0;
   if (subscribes && takes.has('cashisa')) {
     scheduled.add('cash');
@@ -205,7 +223,11 @@ export function householdPlanFor(E, plan, opts = {}) {
     const year = ctx.baseYear + t, depFrac = t === 0 && !planted('year0whole') ? ctx.yf : 1;
     for (const a of accts) {
       const amt = E.contribAtYear(a, t) * depFrac;
-      if (amt > 0) deposits.push({ id: `dep_house_${a.id}_${t}`, date: `${year}-07-01`, year, owner: 'Myself', category: E.CATEGORY_LABEL[a.cat], amount: amt, transferredFrom: 'External', desc: 'The later retiree\'s contribution (the household plan)' });
+      // marked `asContribution`: the engine lands it whole and claims no room, as it lands this person's regular contribution
+      // in the couple's own run (the reviewer on step 4's change of default, finding 1: claimed against the household person's
+      // room, its no-earnings limit, its MPAA once it draws and nothing from the first person's 75, part landed in the GIA).
+      // Plant 'roomclaim' (research/tests/household-landing.test.mjs): unmarked, claimed as before
+      if (amt > 0) deposits.push({ id: `dep_house_${a.id}_${t}`, date: `${year}-07-01`, year, owner: 'Myself', category: E.CATEGORY_LABEL[a.cat], amount: amt, transferredFrom: 'External', desc: 'The later retiree\'s contribution (the household plan)', ...(planted('roomclaim') ? {} : { asContribution: true }) });
     }
   }
   // the partner's state pension and other incomes, in the first person's ages
@@ -261,6 +283,9 @@ export function householdPlanFor(E, plan, opts = {}) {
   const paK = PA_K.includes(opts.scale) && !planted('pakdouble'), paH = paK ? sc && sc.k * paOne : 2 * paOne;
   const scaled = (k, one) => (k === 'personalAllowance' ? (paK || planted('scaleall') ? sc.k * one : 2 * one) : SCALED.includes(k) ? paH + sc.k * (one - paOne) : k === 'pclsMaxCap' && (opts.scale === 'pensions' || paK) ? sc.k * one : 2 * one);
   if (!planted('singleband')) for (const k of DOUBLED) config[k] = single.has(k) ? E.num(cfg[k], E.DEFAULT_CONFIG[k]) : sc ? scaled(k, E.num(cfg[k], E.DEFAULT_CONFIG[k])) : 2 * E.num(cfg[k], E.DEFAULT_CONFIG[k]);
+  // the household person's no-earnings limit raised to the later retiree's largest pension deposit (design A); since those
+  // deposits land as contributions (asContribution, above) they claim none of it, and it is the room the plan's own pension
+  // deposits claim, as before
   const maxPen = deposits.filter(x => x.category === E.CATEGORY_LABEL.pen).reduce((s, x) => Math.max(s, x.amount), 0);
   config.pensionNoEarningsLimit = Math.max(E.num(config.pensionNoEarningsLimit, E.DEFAULT_CONFIG.pensionNoEarningsLimit), maxPen);
   const demographics = {
@@ -338,7 +363,9 @@ export function householdForm(E, plan, opts = {}) {
   const single = opts.single || [], sc = opts.scale ? pensionsSplit(E, plan) : null;
   const paOne = E.num({ ...E.DEFAULT_CONFIG, ...(plan.config || {}) }.personalAllowance, E.DEFAULT_CONFIG.personalAllowance);
   const people = sc ? sc.k : bandsSingle(single) ? 1 : 2, hopts = { single, ...(sc ? { scale: { k: sc.k, paOne, paK: PA_K.includes(opts.scale) } } : {}) };
-  const hp = E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan, { single, ...(opts.scale ? { scale: opts.scale } : {}) })));
+  // the shapes it takes (opts.takeShapes, householdPlanFor's; since step 4's change of default the app's src/solverSettings.js
+  // APP_COUPLE.takeShapes, src/solverCouple.js passing it to the cut and the assembly alike), none unless named
+  const hp = E.resolveMpaa(E.normalizePlan(householdPlanFor(E, plan, { single, ...(opts.scale ? { scale: opts.scale } : {}), ...(opts.takeShapes ? { takeShapes: opts.takeShapes } : {}) })));
   return { single, sc, people, hopts, hp };
 }
 export function solveHousehold(E, M, plan, opts = {}) {

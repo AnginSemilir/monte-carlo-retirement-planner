@@ -15,10 +15,12 @@
  *      with other taxable income keeps the app's rules (DB_GAP_UP_TO, D128) and the household plan's form (APP_COUPLE's
  *      household, D134 (1) and D135: step 8's HSPA, 'pensionsPA'), a couple's solves keeping the savings split off (D138:
  *      src/solverApp.js solveForApp drops it from a solve with a partner's age; the unlock of 22 Nov, D140), read from two
- *      light solves of S188, a single who works and saves: without a partner's age the split on, with one off, and the
- *      household route's classes opened (src/couplesSwitch.js HOUSEHOLD_OPEN, D143: Y, E, S and G, each on); a block without
- *      the entry, with another rule, without the joint move, without the gap, without the household, without the split's
- *      line, without the opened classes or with one of them shut, fails it;
+ *      light solves of S188, a single who works and saves: without a partner's age the split on, with one off, the
+ *      household route's classes opened (src/couplesSwitch.js HOUSEHOLD_OPEN, D143: Y, E, S and G, each on), and the shapes
+ *      the household plan takes since step 4's change of default (APP_COUPLE.takeShapes, D145: 'growth', 'cashisa' and
+ *      'year0'), the guard's HOUSEHOLD_TAKES the same three; a block without the entry, with another rule, without the joint
+ *      move, without the gap, without the household, without the split's line, without the opened classes or with one of them
+ *      shut, or without the taken shapes or with one of them left out, fails it;
  *   2. the guard (coupleSolverOn): over the library's 210 couples, each re-held at twelve shares of its first person's from 5%
  *      to 95% (every wrapper alike), with their ages as entered, swapped (the first person the younger), the same, and the
  *      partner's age left blank, and as entered with the partner's pension at another risk from the first person's (a shape
@@ -50,7 +52,9 @@
  *   4. what the page tells a user about couples follows the switches (the reviewer on D99, finding 1): the solver's coverage
  *      list (src/solverApproximations.js, the coverage card and the documentation) says which couples it plans for and which
  *      keep the app's rules, with couples on and the household route's classes open (D143): every couple but one whose plan
- *      the household plan cannot take, each of householdShapeOf's seven refusals named, kept off where the guard before D143
+ *      the household plan cannot take, each of householdShapeOf's refusals it still makes named in its order and none of the
+ *      shapes it takes since step 4's change of default (D145; the plant 'beforetake', the line before it naming all seven),
+ *      kept off where the guard before D143
  *      kept it off (outside 40% to 60% and the older partner's 90%, or more than three years apart with other taxable income:
  *      the words held to ELDER_UP_TO and DB_GAP_UP_TO), and with the swap off a couple whose older partner is entered second
  *      held to that guard; with the classes shut (the plant 'beforeopen'), the line before D143: the older partner holding up
@@ -99,9 +103,12 @@
  *      four gap couples with a DB pension solved on the household route, the four without one as before;
  *   9. the registered test's own units (registrations/couples-open.md: its panel, couples-open-registered-panel.json, the
  *      plans alone, no outcome read): each household-route unit (Y75, Y90, Y100, E95, E100, S75, G8, G12, G8Y75, G12P and
- *      G12R, on four couples) on, on the household route, its lifted reasons its class's (G8Y75's Y and G), not swapped; each
- *      today's-route unit (RY75, RWY75, RE100, RS75, RG8 and RG12P) kept off for its shape ('shape': 'risks', RWY75's 'year0',
- *      its later retiree paid in plan year 0); under the plant 'noopen' every unit off for the reason the panel recorded
+ *      G12R, on four couples) on, on the household route, its lifted reasons its class's (G8Y75's Y and G), not swapped, the
+ *      page's household cut taking it; each today's-route unit (RY75, RE100, RS75, RG8 and RG12P) kept off for its shape
+ *      ('shape': 'risks'), but RWY75, its later retiree paid in plan year 0, a shape the household plan takes since step 4's
+ *      change of default (D145), on the household route lifting Y, the page's cut taking it (the plants 'notake', the guard
+ *      before the change, keeping it off for 'year0', and 'cutnotake', the cut before it, refusing it, each fail this check);
+ *      under the plant 'noopen' every unit off for the reason the panel recorded
  *      ('uneven' or 'gapincome', the guard before D143), and under 'noshape' every today's-route unit on as if taken; and the
  *      client (check 3's stand-ins) failing closed: a household-route unit (Y90) solved on the household route, today's
  *      route never asked; the same unit asked for no household form, refused; a today's-route unit (RY75) as the panel holds it,
@@ -128,7 +135,10 @@
  * 9, check 6's household cut refused), 'openfallback' (src/solverClient.js: a couple only the household route opens, or one the
  * guard keeps off for its shape, solved on today's route where the household plan refuses it or no household form is asked:
  * check 9), 'beforeopen'
- * (src/solverApproximations.js: the coverage line before D143: check 4). Since D143 checks 6 and 8 compare the guard's whole
+ * (src/solverApproximations.js: the coverage line before D143: check 4), and since step 4's change of default (D145) 'notake'
+ * (src/couplesSwitch.js: the guard reading the shapes it takes as refused, before the change: check 9), 'cutnotake'
+ * (src/solverCouple.js: the page's cut and assembly without them: check 9) and 'beforetake' (src/solverApproximations.js:
+ * the coverage line before it: check 4). Since D143 checks 6 and 8 compare the guard's whole
  * answer (its route, its lifted reasons, its swap) and check 9 reads the registered units, so 'firstnotelder' fails checks 2,
  * 6, 8 and 9, 'eldereither' checks 2, 6 and 8 (an elder entered second solved without the swap), 'nogapguard' checks 8 and 9
  * (G not lifted, the gap's couples on the guard before D143), 'nohousehold' checks 3 and 9 (a couple the household route
@@ -142,7 +152,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { COUPLES, COUPLE_BAND, ELDER_UP_TO, ELDER_FIRST, SWAP_ELDER, DB_GAP_UP_TO, HOUSEHOLD_OPEN, coupleSolverOn, elderOf, horizonFits, householdShapeOf, swapOf, PLANT as SWITCH_PLANT } from '../../src/couplesSwitch.js';
+import { COUPLES, COUPLE_BAND, ELDER_UP_TO, ELDER_FIRST, SWAP_ELDER, DB_GAP_UP_TO, HOUSEHOLD_OPEN, HOUSEHOLD_TAKES, coupleSolverOn, elderOf, horizonFits, householdShapeOf, swapOf, PLANT as SWITCH_PLANT } from '../../src/couplesSwitch.js';
 import { otherOrder } from '../../src/coupleOrder.js';
 import { APP_COUPLE, appJoint, jointKey } from '../../src/solverSettings.js';
 import { couplePlans, householdCut, PLANT as COUPLE_PLANT } from '../../src/solverCouple.js';
@@ -153,7 +163,7 @@ import { solveForApp, PLANT as APP_PLANT } from '../../src/solverApp.js';
 const HERE = dirname(fileURLToPath(import.meta.url));
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['firstnotelder', ['2', '6', '8', '9']], ['eldereither', ['2', '6', '8']], ['halfdefault', ['3']], ['notie', ['3', '7']], ['oldcouples', ['4']], ['rawages', ['5']], ['noagecap', ['6', '8']], ['nojointcheck', ['7']], ['nogapguard', ['8', '9']], ['nogapline', ['4']], ['nohousehold', ['3', '9']], ['nohouseline', ['4']], ['couplesplit', ['1']], ['noopen', ['2', '6', '8', '9']], ['noshape', ['2', '6', '9']], ['openfallback', ['9']], ['beforeopen', ['4']]]) {
+  for (const [plant, want] of [['firstnotelder', ['2', '6', '8', '9']], ['eldereither', ['2', '6', '8']], ['halfdefault', ['3']], ['notie', ['3', '7']], ['oldcouples', ['4']], ['rawages', ['5']], ['noagecap', ['6', '8']], ['nojointcheck', ['7']], ['nogapguard', ['8', '9']], ['nogapline', ['4']], ['nohousehold', ['3', '9']], ['nohouseline', ['4']], ['couplesplit', ['1']], ['noopen', ['2', '6', '8', '9']], ['noshape', ['2', '6', '9']], ['openfallback', ['9']], ['beforeopen', ['4']], ['notake', ['9']], ['cutnotake', ['9']], ['beforetake', ['4']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, COUPLE_DEFAULT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
@@ -163,9 +173,9 @@ if (process.argv.includes('--planted')) {
   process.exit(bad ? 1 : 0);
 }
 const PLANTED = process.env.COUPLE_DEFAULT_PLANT || '';
-if (PLANTED === 'firstnotelder' || PLANTED === 'eldereither' || PLANTED === 'noagecap' || PLANTED === 'nogapguard' || PLANTED === 'noopen' || PLANTED === 'noshape') SWITCH_PLANT.rule = PLANTED;
-if (PLANTED === 'oldcouples' || PLANTED === 'nogapline' || PLANTED === 'nohouseline' || PLANTED === 'beforeopen') WORDS_PLANT.rule = PLANTED;
-if (PLANTED === 'rawages') COUPLE_PLANT.rule = PLANTED;
+if (PLANTED === 'firstnotelder' || PLANTED === 'eldereither' || PLANTED === 'noagecap' || PLANTED === 'nogapguard' || PLANTED === 'noopen' || PLANTED === 'noshape' || PLANTED === 'notake') SWITCH_PLANT.rule = PLANTED;
+if (PLANTED === 'oldcouples' || PLANTED === 'nogapline' || PLANTED === 'nohouseline' || PLANTED === 'beforeopen' || PLANTED === 'beforetake') WORDS_PLANT.rule = PLANTED;
+if (PLANTED === 'rawages' || PLANTED === 'cutnotake') COUPLE_PLANT.rule = PLANTED;
 if (PLANTED === 'couplesplit') APP_PLANT.rule = PLANTED;
 
 let pass = 0, fail = 0;
@@ -178,7 +188,7 @@ const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS
   const s188 = buildScenarios().find(s => s.id === 'S188').plan, light = { points: 6, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };
   const splitOn = r => !!r.meta.saveSplit || r.actions.some(a => a.save);
   const single = splitOn(solveForApp(E, M, s188, light)), couple = splitOn(solveForApp(E, M, s188, { ...light, ageWith: 60 }));
-  const code = { on: COUPLES, shareRule: APP_COUPLE.shareRule, band: [...COUPLE_BAND], elderUpTo: ELDER_UP_TO, elderFirst: ELDER_FIRST, swapElder: SWAP_ELDER, tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast, dbGapUpTo: DB_GAP_UP_TO, household: APP_COUPLE.household, saveSplit: couple, householdOpen: { ...HOUSEHOLD_OPEN } };
+  const code = { on: COUPLES, shareRule: APP_COUPLE.shareRule, band: [...COUPLE_BAND], elderUpTo: ELDER_UP_TO, elderFirst: ELDER_FIRST, swapElder: SWAP_ELDER, tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast, dbGapUpTo: DB_GAP_UP_TO, household: APP_COUPLE.household, saveSplit: couple, householdOpen: { ...HOUSEHOLD_OPEN }, takeShapes: [...(APP_COUPLE.takeShapes || [])] };
   const agrees = D => !!(D && D.couples) && JSON.stringify(D.couples) === JSON.stringify(code);
   const D = blockOf(readFileSync(join(HERE, '../solver/STATE.md'), 'utf8'));
   const without = D ? { ...D } : null; if (without) delete without.couples;
@@ -190,8 +200,13 @@ const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS
   // D143: the household route's classes opened, each named; a block without them, or with one shut, fails
   const noOpen = D && D.couples ? { ...D, couples: Object.fromEntries(Object.entries(D.couples).filter(([k]) => k !== 'householdOpen')) } : null;
   const oneShut = D && D.couples ? { ...D, couples: { ...D.couples, householdOpen: { ...(D.couples.householdOpen || {}), G: false } } } : null;
-  ok('1. the decided-defaults block\'s couples entry is the code\'s (the switch, the share rule, the band, the elder\'s limit, the elder entered first, the swap, the joint move, the age gap with other taxable income, the household plan\'s form, the savings split off for a couple, the household route\'s classes opened); planted, a block without it, with the half share, without the joint move, without the gap, without the household, without the split\'s line, without the opened classes or with one of them shut fails',
-    agrees(D) && !agrees(without) && !agrees(half) && !agrees(noTie) && !agrees(noGap) && !agrees(noHouse) && !agrees(noSplit) && !agrees(noOpen) && !agrees(oneShut) && single && couple === false
+  // D145: the shapes the household plan takes since step 4's change of default, each named; a block without them, or with one
+  // left out, fails; and the guard reads the same three as taken (HOUSEHOLD_TAKES)
+  const noTake = D && D.couples ? { ...D, couples: Object.fromEntries(Object.entries(D.couples).filter(([k]) => k !== 'takeShapes')) } : null;
+  const oneLess = D && D.couples ? { ...D, couples: { ...D.couples, takeShapes: (D.couples.takeShapes || []).filter(w => w !== 'cashisa') } } : null;
+  const guardTakes = JSON.stringify(Object.keys(HOUSEHOLD_TAKES).filter(k => HOUSEHOLD_TAKES[k])) === JSON.stringify(APP_COUPLE.takeShapes || []);
+  ok('1. the decided-defaults block\'s couples entry is the code\'s (the switch, the share rule, the band, the elder\'s limit, the elder entered first, the swap, the joint move, the age gap with other taxable income, the household plan\'s form, the savings split off for a couple, the household route\'s classes opened, the shapes the household plan takes, the guard\'s the same); planted, a block without it, with the half share, without the joint move, without the gap, without the household, without the split\'s line, without the opened classes or with one of them shut, without the taken shapes or with one left out fails',
+    agrees(D) && !agrees(without) && !agrees(half) && !agrees(noTie) && !agrees(noGap) && !agrees(noHouse) && !agrees(noSplit) && !agrees(noOpen) && !agrees(oneShut) && !agrees(noTake) && !agrees(oneLess) && guardTakes && JSON.stringify(APP_COUPLE.takeShapes) === JSON.stringify(['growth', 'cashisa', 'year0']) && single && couple === false
       && JSON.stringify(Object.keys(HOUSEHOLD_OPEN)) === JSON.stringify(['Y', 'E', 'S', 'G']) && Object.values(HOUSEHOLD_OPEN).every(v => v === true) && APP_COUPLE.tieJoint === 1e-4 && APP_COUPLE.tieLook === true && APP_COUPLE.holdPast === 2 && DB_GAP_UP_TO === 3 && APP_COUPLE.household === 'pensionsPA',
     `the block ${JSON.stringify(D && D.couples)}; the code ${JSON.stringify(code)}; S188's split without a partner's age ${single ? 'on' : 'OFF'}`); }
 
@@ -361,15 +376,21 @@ let closedRuns = null;   // check 9, below: the client on a couple the household
   // off where the guard before D143 kept it off (its holdings, the gap with other taxable income), and with the swap off an
   // elder entered second held to that guard
   const SHAPE_SAID = { risks: /holding the same kind of account at different risk levels/, growth: /both paying into one kind of account with your payments growing at different rates/, cashisa: /a cash ISA being paid into/, salaries: /both being paid with your pay growing at different rates/, limits: /your partner's own risk limits differing from yours/, year0: /one of you retired while the other is still paid or saving this year/, noretire: /neither of you retiring within the plan/ };
-  const shapesSaid = l => Object.values(SHAPE_SAID).every(r => r.test(l)) && Object.values(SHAPE_SAID).map(r => l.search(r)).every((at, i, all) => i === 0 || at > all[i - 1]);
+  // D145: since step 4's change of default the line names the refusals the household plan still makes, in order, and none of the
+  // shapes it takes (HOUSEHOLD_TAKES); the line before it (the plant 'beforetake', the rollback's words) all seven
+  const named = (l, ws) => ws.every(w => SHAPE_SAID[w].test(l)) && ws.map(w => l.search(SHAPE_SAID[w])).every((at, i, all) => i === 0 || at > all[i - 1]);
+  const STILL = Object.keys(SHAPE_SAID).filter(w => !HOUSEHOLD_TAKES[w]), TAKEN = Object.keys(SHAPE_SAID).filter(w => HOUSEHOLD_TAKES[w]);
+  const shapesSaid = l => STILL.length > 0 && TAKEN.length > 0 && named(l, STILL) && TAKEN.every(w => !SHAPE_SAID[w].test(l));
+  const beforeTakeSaid = l => !!l && named(l, Object.keys(SHAPE_SAID));
   const openGapSaid = l => !!gapWords && l.includes(`and you are not a couple more than ${gapWords} years apart in age who have other taxable income, such as a DB (final salary) pension or an annuity`);
   const saysOpen = (l, entered) => !!l && (entered ? /^It plans for one person or for a couple whose older partner is entered first, or who are the same age\. /.test(l) && /A couple whose older partner is entered second is planned only if the two of you hold your money about evenly \(40% to 60% each\)/.test(l) : /^It plans for one person or for a couple\. /.test(l) && !/entered/.test(l))
     && /The one exception is a couple whose plan it cannot yet plan as one household/.test(l) && shapesSaid(l) && /unless the two of you hold your money about evenly \(40% to 60% each\)/.test(l)
     && new RegExp(`or the older of you holds up to ${Math.round(100 * ELDER_UP_TO)}% of it`).test(l) && openGapSaid(l) && houseSaid(l);
   const opened = ['Y', 'E', 'S', 'G'].map(r => !!HOUSEHOLD_OPEN[r]), allOn = opened.every(Boolean), noneOn = !opened.some(Boolean);
   const wantOn = allOn ? (SWAP_ELDER ? COUPLES_LINE.open : COUPLES_LINE.openFirst) : (SWAP_ELDER ? COUPLES_LINE.on : COUPLES_LINE.onFirst), wantFirst = allOn ? COUPLES_LINE.openFirst : COUPLES_LINE.onFirst;
-  ok(`4. the coverage list says which couples the solver plans for and which keep the app's rules (couples on and the household route's classes ${allOn ? 'open (D143): every couple but a shape the household plan refuses, kept off where the guard before D143 kept it off' : 'shut'}${SWAP_ELDER ? '' : ', an elder entered second held to the guard before D143'}; the lines before D143 as they stood: the older partner either way with the swap on, entered first with it off, not a couple more than ${gapWords} years apart with other taxable income${APP_COUPLE.household ? '; and how it plans a couple, one plan for the money they hold' : ''}), and with couples off that a couple's plan keeps the app's rules`,
+  ok(`4. the coverage list says which couples the solver plans for and which keep the app's rules (couples on and the household route's classes ${allOn ? `open (D143): every couple but a shape the household plan refuses (since D145 the ${STILL.length} it still refuses, not the ${TAKEN.length} it takes), kept off where the guard before D143 kept it off` : 'shut'}${SWAP_ELDER ? '' : ', an elder entered second held to the guard before D143'}; the lines before D143 as they stood: the older partner either way with the swap on, entered first with it off, not a couple more than ${gapWords} years apart with other taxable income${APP_COUPLE.household ? '; and how it plans a couple, one plan for the money they hold' : ''}), and with couples off that a couple's plan keeps the app's rules`,
     COUPLES && (allOn || noneOn) && on.length === 8 && off.length === 8 && first.length === 8 && saysOpen(COUPLES_LINE.open, false) && saysOpen(COUPLES_LINE.openFirst, true)
+      && beforeTakeSaid(COUPLES_LINE.openBeforeTake) && beforeTakeSaid(COUPLES_LINE.openFirstBeforeTake)
       && says(COUPLES_LINE.on, false) && says(COUPLES_LINE.onFirst, true) && lineOn === wantOn && lineFirst === wantFirst && lineOff === COUPLES_LINE.off && !on.includes(COUPLES_LINE.off)
       && !!lineOff && !lineOff.includes(HOUSEHOLD_SENTENCE.trim()) && sentenceOk && APP_COUPLE.household === 'pensionsPA',
     `on: "${lineOn}"; the swap off: "${lineFirst}"; off: "${lineOff}"`); }
@@ -498,13 +519,18 @@ ok('7. on today\'s route (`household: null`), a couple whose worker assembled it
   const units = readOpenPanel(join(HERE, '../solver/couples-open-registered-panel.json'));
   // each household-route variant's lifted reasons, and each today's-route variant's refusal
   const LIFTED = { Y75: 'Y', Y90: 'Y', Y100: 'Y', E95: 'E', E100: 'E', S75: 'S', G8: 'G', G12: 'G', G8Y75: 'Y,G', G12P: 'G', G12R: 'G' };
-  const SHAPE = { RY75: 'risks', RWY75: 'year0', RE100: 'risks', RS75: 'risks', RG8: 'risks', RG12P: 'risks' };
+  const SHAPE = { RY75: 'risks', RE100: 'risks', RS75: 'risks', RG8: 'risks', RG12P: 'risks' };
+  // D145: the today's-route units whose shape the household plan takes since step 4's change of default, on the household route
+  // lifting their class's reasons (RWY75: its later retiree paid in plan year 0, the younger holding 75%)
+  const TAKEN = { RWY75: 'Y' };
   const house = units.filter(u => u.route === 'household'), today = units.filter(u => u.route === 'today');
-  let wrong = 0, wrongOld = 0, wrongAny = 0; const first = [];
+  let wrong = 0, wrongOld = 0, wrongAny = 0, takenOn = 0; const first = [];
   for (const u of units) {
     const g = coupleSolverOn(u.plan, true), gOld = withSwitch('noopen', () => coupleSolverOn(u.plan, true)), gAny = withSwitch('noshape', () => coupleSolverOn(u.plan, true));
-    const okNow = u.route === 'household' ? g.on && g.why === null && g.route === 'household' && (g.lifted || []).join(',') === LIFTED[u.variant] && !g.swap
+    const lifts = LIFTED[u.variant] || TAKEN[u.variant];
+    const okNow = u.route === 'household' || TAKEN[u.variant] ? g.on && g.why === null && g.route === 'household' && (g.lifted || []).join(',') === lifts && !g.swap && cutTakes(u.plan)
       : u.route === 'today' && !g.on && g.why === 'shape' && g.shape === SHAPE[u.variant] && !g.route;
+    if (okNow && TAKEN[u.variant]) takenOn++;
     if (!okNow) { wrong++; if (first.length < 3) first.push(`${u.id}: ${shown(g)}`); }
     // the guard before D143: the reason the panel recorded when it was landed
     if (gOld.on || gOld.why !== u.why || gOld.route) { wrongOld++; if (first.length < 3) first.push(`${u.id}, the guard before D143: ${shown(gOld)} against '${u.why}'`); }
@@ -517,9 +543,10 @@ ok('7. on today\'s route (`household: null`), a couple whose worker assembled it
   // (the stand-in records a household cut it made: one the household plan refuses is not recorded, its refusal the reply)
   const anyShapeOk = !!R.anyShape && /^the household plan refused a couple the household route alone opens \(Y\): householdPlanFor: /.test(R.anyShape.why || '') && !kinds(R.anyShape).length;
   const heldOffOk = !!R.heldOff && /^the household plan refused a couple the guard keeps off for its shape \(risks\): householdPlanFor: /.test(R.heldOff.why || '') && !kinds(R.heldOff).length;
-  ok(`9. the registered test's own units: the ${house.length} household-route units on, on the household route, each lifting its class's reasons; the ${today.length} today's-route units kept off for their shape; before D143 (the rollback) each off for the reason the panel recorded; with the shape not read the today's-route units opened; and the client failing closed, never today's route for a couple the household route alone opens or the guard keeps off for its shape`,
-    house.length === 44 && today.length === 24 && units.length === 68 && wrong === 0 && wrongOld === 0 && wrongAny === 0 && openedOk && noFormOk && heldOffOk && anyShapeOk,
-    `${units.length} units, ${wrong} wrong since D143, ${wrongOld} wrong before it, ${wrongAny} of the today's-route units not opened with the shape not read${first.length ? ` (${first.join('; ')})` : ''}; the client: Y90 by default ${R.opened ? (R.opened.why ? `failed (${R.opened.why})` : `asked ${kinds(R.opened).join(', ')}, its record's form ${R.opened.d && R.opened.d.couple ? R.opened.d.couple.household : '-'}`) : 'not run'}; Y90 with no household form ${R.noForm ? (R.noForm.why ? `refused (${R.noForm.why})` : `solved, asked ${kinds(R.noForm).join(', ')}`) : 'not run'}; RY75 as held (the guard 'shape') ${R.heldOff ? (R.heldOff.why ? `refused (${R.heldOff.why.slice(0, 120)}), asked ${kinds(R.heldOff).join(', ') || 'nothing recorded'}` : `solved, asked ${kinds(R.heldOff).join(', ')}`) : 'not run'}; RY75 opened as if taken ${R.anyShape ? (R.anyShape.why ? `refused (${R.anyShape.why.slice(0, 160)}), asked ${kinds(R.anyShape).join(', ') || 'nothing recorded'}` : `solved, asked ${kinds(R.anyShape).join(', ')}`) : 'not run'}`); }
+  const takenN = units.filter(u => TAKEN[u.variant]).length;
+  ok(`9. the registered test's own units: the ${house.length} household-route units on, on the household route, each lifting its class's reasons, the page's cut taking each; of the ${today.length} today's-route units the ${takenN} whose shape the household plan takes since step 4 (D145, RWY75) on the household route the same way, and the other ${today.length - takenN} kept off for their shape; before D143 (the rollback) each off for the reason the panel recorded; with the shape not read the today's-route units opened; and the client failing closed, never today's route for a couple the household route alone opens or the guard keeps off for its shape`,
+    house.length === 44 && today.length === 24 && units.length === 68 && takenN === 4 && takenOn === 4 && wrong === 0 && wrongOld === 0 && wrongAny === 0 && openedOk && noFormOk && heldOffOk && anyShapeOk,
+    `${units.length} units, ${takenOn} of the ${takenN} taken since D145 on the household route, ${wrong} wrong since D143, ${wrongOld} wrong before it, ${wrongAny} of the today's-route units not opened with the shape not read${first.length ? ` (${first.join('; ')})` : ''}; the client: Y90 by default ${R.opened ? (R.opened.why ? `failed (${R.opened.why})` : `asked ${kinds(R.opened).join(', ')}, its record's form ${R.opened.d && R.opened.d.couple ? R.opened.d.couple.household : '-'}`) : 'not run'}; Y90 with no household form ${R.noForm ? (R.noForm.why ? `refused (${R.noForm.why})` : `solved, asked ${kinds(R.noForm).join(', ')}`) : 'not run'}; RY75 as held (the guard 'shape') ${R.heldOff ? (R.heldOff.why ? `refused (${R.heldOff.why.slice(0, 120)}), asked ${kinds(R.heldOff).join(', ') || 'nothing recorded'}` : `solved, asked ${kinds(R.heldOff).join(', ')}`) : 'not run'}; RY75 opened as if taken ${R.anyShape ? (R.anyShape.why ? `refused (${R.anyShape.why.slice(0, 160)}), asked ${kinds(R.anyShape).join(', ') || 'nothing recorded'}` : `solved, asked ${kinds(R.anyShape).join(', ')}`) : 'not run'}`); }
 
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
 process.exit(fail ? 1 : 0);

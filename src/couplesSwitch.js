@@ -69,6 +69,13 @@ export const DB_GAP_UP_TO = 3;
 // reason 'shape' and `shape` the refusal, so the card says what it is about the plan). All false is the guard before D143 (the
 // rollback), as is the plant 'noopen'.
 export const HOUSEHOLD_OPEN = Object.freeze({ Y: true, E: true, S: true, G: true });
+// step 4's change of default (D145, 23 Nov; research/solver/STEP4-SHAPES.md): the shapes the household plan takes since then,
+// so the guard no longer reads them as refused: 'growth' (the two people's contributions to one wrapper growing at different
+// rates), 'cashisa' (a cash ISA subscription), 'year0' (one person retired and the other paid or saving in the plan's first
+// year). The same three as src/solverSettings.js APP_COUPLE.takeShapes, which the page's cut and assembly pass the household
+// plan (this module having no imports; research/tests/couple-shape.test.mjs holds the two alike). All false is the guard before
+// step 4 (the rollback), as is the plant 'notake'.
+export const HOUSEHOLD_TAKES = Object.freeze({ growth: true, cashisa: true, year0: true });
 // research/tests/couple-default.test.mjs only: 'firstnotelder' takes the first person for the elder, whatever the ages;
 // 'eldereither' lifts the guard for an elder entered second without the swap, solving the couple in the order entered, as the
 // first draft of D99 did; 'noagecap' runs a couple whose partner would pass 120 before the plan ends, as before the age cap;
@@ -78,7 +85,9 @@ export const HOUSEHOLD_OPEN = Object.freeze({ Y: true, E: true, S: true, G: true
 // couple whatever its shape, the household plan's refusals not read.
 // research/tests/couple-swap.test.mjs only: 'swapon' takes the swap on and 'swapoff' takes it off, whatever SWAP_ELDER says
 // (the rollback's identity); 'capafter' reads the age cap on the mirror, after the swap. research/tests/couple-shape.test.mjs
-// only: 'skip<why>' leaves out that refusal's check. Plants combine, comma-separated
+// only: 'skip<why>' leaves out that refusal's check; couple-shape.test.mjs and couple-default.test.mjs: 'notake' reads the
+// shapes step 4 takes as refused, the guard before its change of default (HOUSEHOLD_TAKES all false). Plants combine,
+// comma-separated
 export const PLANT = { rule: '' };
 const planted = k => PLANT.rule.split(',').includes(k);
 const swapOn = () => (SWAP_ELDER || planted('swapon')) && !planted('swapoff');
@@ -139,12 +148,13 @@ export const gapIncomeOf = plan => !planted('nogapguard') && ageGapOf(plan) > DB
                  normalizePlan: the ten wrappers always there, a wrapper missing at its default risk, a risk not a tier
                  'High Risk') and then held to the first person's limits as lockedPlan holds both people's where the partner
                  has none of their own that differ ('limits' otherwise);
-     'growth'    the two people's contributions to one wrapper both above nought and growing at different rates;
-     'cashisa'   a cash ISA subscription;
+     'growth'    the two people's contributions to one wrapper both above nought and growing at different rates (taken
+                 since step 4's change of default, HOUSEHOLD_TAKES: so refused only under the plant 'notake');
+     'cashisa'   a cash ISA subscription (taken since step 4, as 'growth');
      'salaries'  both paid, the two salaries growing at different rates;
      'limits'    the partner's own limits differing from the first person's (lockedPlan reads them wrapper by wrapper:
                  src/solverSettings.js partCeilingsDiffer, written again here, this module having no imports);
-     'year0'     one person retired and the other paid or saving in the plan's first year;
+     'year0'     one person retired and the other paid or saving in the plan's first year (taken since step 4, as 'growth');
      'noretire'  nobody retiring within the plan.
    Each read as the engine reads it (App.jsx buildContext's req, num and the ids' owners). Held by research/tests/couple-shape.
    test.mjs over the library's couples and planted shapes: no refusal of the household plan's missed, the over-reach counted.
@@ -160,7 +170,7 @@ export function partLimitsDiffer(plan) {
   return ['pen', 'isa'].some(w => real(tp[w]) !== real(tc[w]));
 }
 export function householdShapeOf(plan) {
-  const skip = w => planted(`skip${w}`), refused = why => ({ refused: true, why });
+  const skip = w => planted(`skip${w}`), refused = why => ({ refused: true, why }), taken = w => !!HOUSEHOLD_TAKES[w] && !planted('notake');
   const raw = (plan && Array.isArray(plan.accounts) ? plan.accounts : []).filter(a => a && typeof a === 'object' && !Array.isArray(a));
   const d = (plan && plan.demographics) || {}, L = (plan && plan.solver && plan.solver.locks) || {};
   // the ten wrappers as the engine normalises them: each id's own account (its first), else the wrapper's default
@@ -171,8 +181,11 @@ export function householdShapeOf(plan) {
   if (!skip('risks') && !partLimitsDiffer(plan) && WRAPPERS.some(([w, , def]) => locked(w, riskOf(w, def, 'self')) !== locked(w, riskOf(w, def, 'part')))) return refused('risks');
   const contribOf = (w, k) => { const a = acct(w, k); return a ? Math.max(0, numOf(a.contrib, 0)) : 0; };
   const growthOf = (w, k) => { const a = acct(w, k); return a ? numOf(a.growth, 0) : 0; };
-  if (!skip('growth') && WRAPPERS.some(([w]) => contribOf(w, 'self') > 0 && contribOf(w, 'part') > 0 && growthOf(w, 'self') !== growthOf(w, 'part'))) return refused('growth');
-  if (!skip('cashisa') && (contribOf('cashIsa', 'self') > 0 || contribOf('cashIsa', 'part') > 0)) return refused('cashisa');
+  // a shape the household plan takes since step 4 (HOUSEHOLD_TAKES) is not refused: a wrapper's contributions growing at
+  // different rates are taken with 'growth', the cash ISA's with 'cashisa', as householdPlanFor takes them
+  const growthTaken = w => (w === 'cashIsa' ? taken('cashisa') : taken('growth'));
+  if (!skip('growth') && WRAPPERS.some(([w]) => !growthTaken(w) && contribOf(w, 'self') > 0 && contribOf(w, 'part') > 0 && growthOf(w, 'self') !== growthOf(w, 'part'))) return refused('growth');
+  if (!skip('cashisa') && !taken('cashisa') && (contribOf('cashIsa', 'self') > 0 || contribOf('cashIsa', 'part') > 0)) return refused('cashisa');
   const pay = k => Math.max(0, numOf(k === 'self' ? d.salarySelf : d.salaryPart, 0));
   if (!skip('salaries') && pay('self') > 0 && pay('part') > 0 && numOf(d.salaryGrowthSelf, 0) !== numOf(d.salaryGrowthPart, 0)) return refused('salaries');
   if (!skip('limits') && partLimitsDiffer(plan)) return refused('limits');
@@ -181,7 +194,7 @@ export function householdShapeOf(plan) {
   const age = { self: reqAge(d.currentAgeSelf, 40) }; age.part = reqAge(d.currentAgePart, age.self);
   const retire = { self: reqAge(d.retireAgeSelf, 60), part: reqAge(d.retireAgePart, 60) };
   const working = (k, t) => age[k] + t < retire[k];
-  if (!skip('year0') && (!working('self', 0) || !working('part', 0))) {
+  if (!skip('year0') && !taken('year0') && (!working('self', 0) || !working('part', 0))) {
     const saving = k => WRAPPERS.some(([w]) => { const a = acct(w, k); return !!a && (Array.isArray(a.contribByYear) ? numOf(a.contribByYear[0], 0) > 0 : numOf(a.contrib, 0) > 0); });
     if (['self', 'part'].some(k => working(k, 0) && (pay(k) > 0 || saving(k)))) return refused('year0');
   }

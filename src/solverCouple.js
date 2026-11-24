@@ -15,7 +15,7 @@ import { shareBy, SHARE_RULES, singlePlanFor, solveCouple, chooseJoint, rankFor,
 import { vecOf } from './solver/grid.js';
 import { solvedContext, yourContext, lifeOf, runPath, partsOf, retireYearOf, firstSweep, joinSkipRuns, shownPolicy } from './solverStrategy.js';
 import { wholeMenu, PRODUCT_DEFAULTS } from './solver/solve.js';
-import { prepareForSolve, JOINT_KEYS, partCeilingsDiffer } from './solverSettings.js';
+import { prepareForSolve, JOINT_KEYS, partCeilingsDiffer, APP_COUPLE } from './solverSettings.js';
 import { appPlan } from './solverApp.js';
 import { householdForm, householdFromTable, SCALES, mergedState } from './solver/household.js';
 
@@ -25,8 +25,12 @@ import { householdForm, householdFromTable, SCALES, mergedState } from './solver
    'hhzerofloor' leaves a household's minimum pot at the plan's nought in the cut, and 'partceilkey' hands the household plan
    a partner's ceilings that are the first person's, both as before the reviewer's fix round on D135's change of default;
    research/tests/couple-shown.test.mjs only: 'noshown' reads the couple's policy as it is in the views, not through
-   wholeMenu, as before the fix of 20 Nov */
+   wholeMenu, as before the fix of 20 Nov; research/tests/couple-shape.test.mjs and couple-default.test.mjs only: 'cutnotake'
+   cuts and assembles the household without the shapes step 4 takes (APP_COUPLE.takeShapes), as before its change of default */
 export const PLANT = { rule: '' };
+/* the shapes the household plan takes in the page's cut and assembly alike (step 4's change of default, D145: src/solverSettings.js
+   APP_COUPLE.takeShapes; src/solver/household.js householdPlanFor), the same in both so the assembly's plan is the cut's */
+const takeShapesOpt = () => (PLANT.rule === 'cutnotake' || !APP_COUPLE.takeShapes || !APP_COUPLE.takeShapes.length ? {} : { takeShapes: APP_COUPLE.takeShapes });
 
 /* the household's plan as a couple's tables are solved on: prepared as a single's is (prepareForSolve, then appPlan, so the
    tiers' returns are the tables'), as research/solver/audit-couples.mjs solverPlan prepares the candidate's. Each person's age
@@ -122,7 +126,7 @@ export function householdCut(E, M, plan, form) {
   const h0 = householdPlan(E, own), floorOwn = Math.max(0, E.num(h0.config && h0.config.solvencyFloor, 0));
   const floorKept = Math.round(PRODUCT_DEFAULTS.minPotYears * Math.max(0, E.num(h0.spending && h0.spending.targetSpend, 0)));
   const household = !(floorOwn > 0) && floorKept > 0 && PLANT.rule !== 'hhzerofloor' ? { ...h0, config: { ...h0.config, solvencyFloor: floorKept } } : h0;
-  const f = householdForm(E, household, { scale: form }), sc = f.hopts.scale;
+  const f = householdForm(E, household, { scale: form, ...takeShapesOpt() }), sc = f.hopts.scale;
   return { household, hplan: f.hp, bands: { k: sc.k, paOne: sc.paOne, paK: !!sc.paK }, ageWith: M.prepare(E, household).ctx.agePart0 };
 }
 /* the household assembled at the even split: its move the table's own, both people taking it (src/solver/household.js
@@ -130,7 +134,7 @@ export function householdCut(E, M, plan, form) {
    HSPA) and do not reach that move (the reviewer on D135's change of default, finding 2): the form and the split are what
    move it */
 export function householdSolved(E, M, { household, form, topK, tieJoint, holdPast }, table) {
-  const cp = householdFromTable(E, M, household, table.plan, table.r, { scale: form, topK, tieJoint, holdPast });
+  const cp = householdFromTable(E, M, household, table.plan, table.r, { scale: form, topK, tieJoint, holdPast, ...takeShapesOpt() });
   return { ...cp, split: 'even', counts: null };
 }
 /* the page's record of a household's solve (step 8's port, research/solver/HSP-PORT.md), plain data: its table's record, and

@@ -26,6 +26,7 @@ import { withCouple } from './solver/couple.js';
 import { withHouseholdSingle } from './solver/household.js';
 import { rankActions, wholeMenu } from './solver/solve.js';
 import { vecOf } from './solver/grid.js';
+import { TIER_ORDER } from './solver/fast.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 
 /* the wording's cases (PART-C-WORDING.md sections 1 and 2; B4: the length of the dip, three years) */
@@ -323,7 +324,17 @@ export const strategyOf = (E, solved, plan, { trials = 2000, seed = 12345 } = {}
  * no re-wrap) is not an action and has no skip.
  */
 const DRAW_PREFIX = { penPAm: 'pa-half', penPA: 'pa', penPAr: 'pa-raw', penBm: 'basic-mid', penBasic: 'basic', penHR: 'hr', penAny: 'any' };
-export function partsOf(a, ca) {
+/* a wrapper's tier as its steps below the risk the plan chose, by the tiers' names where the table's tiers are given (`tiers`,
+   a table's c.tiers, or a person's own ladder): the tier above, which the 'auto' rule can offer a thin plan (D16; src/solver/
+   solve.js solvePlanAuto), is riskier, so its steps are negative. Without them, the index, as before, which is the steps
+   below for every tier but one above (research/tests/tier-words.test.mjs; found 24 Nov, a step up worded as "3 steps lower
+   in risk"). Plant 'aboveindex' (that test): the index */
+export function stepsBelow(list, k) {
+  if (!list || PLANT.rule === 'aboveindex' || !list[k] || !list[0]) return k;
+  const at = TIER_ORDER.indexOf(list[k].name), own = TIER_ORDER.indexOf(list[0].name);
+  return at >= 0 && own >= 0 ? at - own : k;
+}
+export function partsOf(a, ca, tiers = null) {
   const firstPen = a.steps.findIndex(x => x.startsWith('pen'));
   const lead = a.steps.slice(0, firstPen < 0 ? 0 : a.steps.findIndex(x => !x.startsWith('pen'))).filter(x => x.startsWith('pen'));
   return {
@@ -331,7 +342,7 @@ export function partsOf(a, ca) {
     draw: lead.length ? DRAW_PREFIX[lead[lead.length - 1]] || lead[lead.length - 1] : 'none',
     isaFirst: a.steps.indexOf('isa') < a.steps.indexOf('other'),
     harvest: a.harvest ? a.harvestCeil || 'pa' : null,
-    tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0,
+    tierPen: stepsBelow(tiers && tiers.pen, ca.tierPen || 0), tierIsa: stepsBelow(tiers && tiers.isa, ca.tierIsa || 0),
     // D138: a working year's saving placed by the savings split (1 the pension first, 2 the ISA first), said only where the
     // move takes one, so a move without it reads as before. Plant 'nosavepart' (save-default.test.mjs): the save left out
     ...(a.save > 0 && PLANT.rule !== 'nosavepart' ? { save: a.save } : {})
@@ -369,12 +380,12 @@ export const SKIP_PARTS = ['level', 'draw', 'harvest', 'tierPen', 'tierIsa', 'sa
 /* this year's skips: the move taken apart and, for each part it takes, the best-ranked move that differs in that part (null
  * where none does) */
 export function skipsOf(E, solved) {
-  const f = firstMove(E, solved), ai0 = f.mv.index, p0 = partsOf(solved.actions[ai0], solved.c.acts[ai0]);
+  const f = firstMove(E, solved), ai0 = f.mv.index, p0 = partsOf(solved.actions[ai0], solved.c.acts[ai0], solved.c.tiers);
   const ranked = rankActions(solved, f.s, 0, f.held, solved.actions.length), list = [];
   for (const part of SKIP_PARTS) {
     const taken = part === 'level' ? p0.level !== 1 : part === 'draw' ? p0.draw !== 'none' : part === 'harvest' ? p0.harvest !== null : p0[part] > 0;
     if (!taken) continue;
-    const skip = ranked.find(ai => { const p = partsOf(solved.actions[ai], solved.c.acts[ai]); return part === 'draw' ? p.draw !== p0.draw : p[part] !== p0[part]; });
+    const skip = ranked.find(ai => { const p = partsOf(solved.actions[ai], solved.c.acts[ai], solved.c.tiers); return part === 'draw' ? p.draw !== p0.draw : p[part] !== p0[part]; });
     list.push({ part, value: p0[part], skip: skip === undefined ? null : skip });
   }
   return { f, ai0, p0, list };
@@ -418,7 +429,7 @@ export function actionsOf(E, solved, plan, { seed = 12345, n = 1000, base = null
     const sv = runs.survived[j];
     let saved = 0, lost = 0;
     for (let k = 0; k < n; k++) { if (planRuns[k].survived && !sv[k]) lost++; else if (!planRuns[k].survived && sv[k]) saved++; }
-    return { part: x.part, value: x.value, skip: { index: x.skip, parts: partsOf(solved.actions[x.skip], solved.c.acts[x.skip]) }, cost: (100 * (lost - saved)) / n, lost, saved, n };
+    return { part: x.part, value: x.value, skip: { index: x.skip, parts: partsOf(solved.actions[x.skip], solved.c.acts[x.skip], solved.c.tiers) }, cost: (100 * (lost - saved)) / n, lost, saved, n };
   });
   return { move: { index: ai0, parts: p0, label: solved.actions[ai0].label }, actions: out, retired: retireYearOf(f.sc) === 0, sweep: firstSweep(E, f.sc) };
 }
@@ -442,7 +453,7 @@ export function aheadOf(E, solved, plan, runs, { years = 10 } = {}) {
   const order = runs.solved.map((r, k) => [r.terminalPot, k]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   const k = order[Math.min(n - 1, Math.floor(n * 0.5))][1];
   const zs = E.pathsForSeed(runs.seed, k + 1, sc.totalYears)[k], rows = [], shown = shownPolicy(base);
-  const ctx = { ...sc, policyOverride: { ...base, choose(st, t, held) { const mv = shown.choose(st, t, held); if (t < years) rows.push({ t, age: sc.ageSelf0 + t, year: sc.baseYear + t, parts: partsOf(solved.actions[mv.index], solved.c.acts[mv.index]) }); return mv; } } };
+  const ctx = { ...sc, policyOverride: { ...base, choose(st, t, held) { const mv = shown.choose(st, t, held); if (t < years) rows.push({ t, age: sc.ageSelf0 + t, year: sc.baseYear + t, parts: partsOf(solved.actions[mv.index], solved.c.acts[mv.index], solved.c.tiers) }); return mv; } } };
   const state = E.freshState(ctx), zPath = zs.length > sc.totalYears + 1 ? zs[sc.totalYears + 1] : 0;
   for (let t = 0; t < Math.min(years, sc.totalYears + 1); t++) {
     const row = E.stepYear(ctx, state, t, { z: zs[t], zPath });
@@ -483,7 +494,7 @@ export const lifeOf = (E, sc, yc, zs) => ({ solved: lifeRun(E, sc, zs), yours: l
  */
 export function rowsOf(E, solved, market) {
   const sc = solvedContext(E, solved), base = sc.policyOverride, moves = [], shown = shownPolicy(base);
-  const ctx = { ...sc, policyOverride: { ...base, choose(st, t, held) { const mv = shown.choose(st, t, held); moves[t] = mv ? partsOf(solved.actions[mv.index], solved.c.acts[mv.index]) : null; return mv; } } };
+  const ctx = { ...sc, policyOverride: { ...base, choose(st, t, held) { const mv = shown.choose(st, t, held); moves[t] = mv ? partsOf(solved.actions[mv.index], solved.c.acts[mv.index], solved.c.tiers) : null; return mv; } } };
   const state = E.freshState(ctx), rows = [], m = PLANT.rule === 'rowsexp' ? 'expected' : market;
   for (let t = 0; t <= ctx.totalYears; t++) rows.push(E.stepYear(ctx, state, t, m));
   return { rows, parts: rows.map((_, t) => (PLANT.rule === 'rowsfirst' ? moves[0] : moves[t]) || null), verdict: E.evaluateRows(ctx, rows) };

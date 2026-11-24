@@ -1,0 +1,15 @@
+THE TIER ABOVE IN THE PAGE'S WORDS (24 Nov): node research/tests/tier-words.test.mjs on the fix, then --planted, then the same test on the code before it (84b80237)
+PASS  1. a single's tiers: every tier of a table's ladder, for each risk, two and three steps below, the tier above offered or not, taken apart as its steps by name, and its first year's, the next years', the action's and the audit's words naming its direction, its steps and where it ends  -- 24 ladders, 70 tiers, 6 above the risk chosen
+PASS  2. a couple's parts: each person's tier by their own table's names on today's route, by the household table's on the household route, by their own ladder's where the two ladders differ; the couple's words reading them as a single's  -- today's route, the household route and two ladders each read the tier above as one step up
+PASS  3. end to end: S008 as found takes the tier above, holds it from its first year on the expected market, and every year that moves to it is worded as a move up in risk, none as lower  -- the tier above on: thin, and no worse on the same paths; years held 14, moves to it worded 2
+ALL PASS: 3 checks
+
+plant 'aboveindex': the checks that fail: 1, 2, 3; wanted 1, 2, 3: yes
+plant 'abovewords': the checks that fail: 1, 2, 3; wanted 1, 2, 3: yes
+PLANTED: EACH PLANT FAILS EXACTLY ITS OWN CHECKS
+
+on the code before the fix (84b80237):
+FAIL  1. a single's tiers: every tier of a table's ladder, for each risk, two and three steps below, the tier above offered or not, taken apart as its steps by name, and its first year's, the next years', the action's and the audit's words naming its direction, its steps and where it ends  -- 24 ladders, 70 tiers, 6 above the risk chosen; wrong 6: Medium/High Risk 2/1 tier 3 (High Risk): parts 3, by name -1; Medium/High Risk 3/1 tier 4 (High Risk): parts 4, by name -1; Medium Risk 2/1 tier 3 (Medium/High Risk): parts 3, by name -1
+FAIL  2. a couple's parts: each person's tier by their own table's names on today's route, by the household table's on the household route, by their own ladder's where the two ladders differ; the couple's words reading them as a single's  -- today's route, self's tier above read 3; today's route, part's tier above read 3; the household route, self's tier above read 3; the household route, part's tier above read 3; the couple's words "You: Move your pension and ISA -1 step lower in risk; Your partner: Move their pension and ISA 1 step lower in risk"; the couple's ledger "you: pension -1 step safer"; the partner's action "Move their pension -1 step lower in risk"
+FAIL  3. end to end: S008 as found takes the tier above, holds it from its first year on the expected market, and every year that moves to it is worded as a move up in risk, none as lower  -- the tier above on: thin, and no worse on the same paths; years held 0, moves to it worded 0
+FAILED: 3 of 3 checks

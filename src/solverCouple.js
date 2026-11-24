@@ -180,8 +180,12 @@ export function modelStateOfCouple(cp, engineState) {
    the household's tiers past a person's riskier ones, the index is not the steps */
 export function personParts(joint, who, cp = null) {
   const o = joint.perOwner[who], ca = { tierPen: o.tierPen || 0, tierIsa: o.tierIsa || 0 };
-  if (cp && cp.tierMap) for (const [cat, key] of [['pen', 'tierPen'], ['isa', 'tierIsa']]) { const on = cp.tierMap.own[who][cat]; ca[key] = TIER_ORDER.indexOf(on[ca[key]]) - TIER_ORDER.indexOf(on[0]); }
-  return { ...partsOf({ steps: o.steps, harvest: o.harvest, harvestCeil: o.harvestCeil, spendLevel: joint.spendLevel }, ca) };
+  // each person's tiers as their own ladder names them (the tier above negative, solverStrategy.js stepsBelow): on today's
+  // route their own table's, on the household route the household table's, or, where its two people's ladders differ, their
+  // own; with no cp, the indices
+  const own = cp && cp.tierMap ? cp.tierMap.own[who] : null;
+  const tiers = own ? { pen: own.pen.map(name => ({ name })), isa: own.isa.map(name => ({ name })) } : isHousehold(cp) ? cp.H.c.tiers : cp && cp.tables && cp.tables[who] ? cp.tables[who].c.tiers : null;
+  return { ...partsOf({ steps: o.steps, harvest: o.harvest, harvestCeil: o.harvestCeil, spendLevel: joint.spendLevel }, ca, tiers) };
 }
 export const jointParts = (joint, cp = null) => ({ level: joint.spendLevel !== undefined ? joint.spendLevel : 1, split: joint.split, self: personParts(joint, 'self', cp), part: personParts(joint, 'part', cp) });
 /* the joint move with one person's move replaced by their move `ai` (the first person's also sets the household's draw, as
@@ -234,11 +238,11 @@ export function coupleSkipsOf(E, cp) {
     list.push({ who: 'household', part: 'level', value: level0, joint: alt === undefined ? null : { ...j0, spendLevel: lvl(cp.tables.self, alt) } });
   }
   for (const who of WHO) {
-    const tab = cp.tables[who], p0 = personParts(j0, who);
+    const tab = cp.tables[who], p0 = personParts(j0, who, cp);
     for (const part of PERSON_SKIPS) {
       const taken = part === 'draw' ? p0.draw !== 'none' : part === 'harvest' ? p0.harvest !== null : p0[part] > 0;
       if (!taken) continue;
-      const alt = ranked[who].find(ai => { const p = partsOf(tab.actions[ai], { tierPen: tab.actions[ai].tierPen || 0, tierIsa: tab.actions[ai].tierIsa || 0 }); return part === 'draw' ? p.draw !== p0.draw : p[part] !== p0[part]; });
+      const alt = ranked[who].find(ai => { const p = partsOf(tab.actions[ai], { tierPen: tab.actions[ai].tierPen || 0, tierIsa: tab.actions[ai].tierIsa || 0 }, tab.c.tiers); return part === 'draw' ? p.draw !== p0.draw : p[part] !== p0[part]; });
       // plant 'skipother': the other person moved to their next-ranked move instead, this person's move left as it was
       const other = who === 'self' ? 'part' : 'self', otherAlt = ranked[other].find(ai => ai !== (other === 'self' ? j0.ia : j0.ib));
       const forced = alt === undefined ? null : PLANT.rule === 'skipother' && otherAlt !== undefined ? withPersonMove(cp, j0, other, otherAlt) : withPersonMove(cp, j0, who, alt);
@@ -260,7 +264,7 @@ export function householdSkipsOf(E, cp) {
   const ranked = shownRank(() => rankFor(H, s, 0, tiered(H) ? { pen: held.pen, isa: held.isa } : null, H.actions.length));
   // where the two people's ladders differ, a move differs in a part for a person where its household parts differ (each
   // person takes the household's tier by name), and each skip's value is the person's own (personParts with cp)
-  const hParts = ai => partsOf(H.actions[ai], { tierPen: H.actions[ai].tierPen || 0, tierIsa: H.actions[ai].tierIsa || 0 });
+  const hParts = ai => partsOf(H.actions[ai], { tierPen: H.actions[ai].tierPen || 0, tierIsa: H.actions[ai].tierIsa || 0 }, H.c.tiers);
   const level0 = j0.spendLevel !== undefined ? j0.spendLevel : 1;
   if (level0 !== 1) {
     const alt = ranked.find(ai => lvl(ai) !== level0);

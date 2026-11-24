@@ -15,6 +15,11 @@
  * flagged; the threshold in whole paths must be the one the read printed, or the beside exits 1. An N line with no cap or no
  * tax says so (MINOR 2).
  *   node research/solver/couples-any-beside.mjs > research/solver/results-couples-any-beside.txt
+ * The registered read's file the same way, after its read (its unit lines the same reducer's; N absent, so no N section; a unit
+ * D34 flags named, where the rehearsal flagged none): written 24 Nov while the registered run was running, before any of its
+ * outcome existed, and the rehearsal's file reproducing byte for byte:
+ *   node research/solver/couples-any-beside.mjs research/solver/results-couples-any-registered.txt
+ *     > research/solver/results-couples-any-registered-beside.txt
  */
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -81,7 +86,9 @@ if (process.argv[2] === '--planted') {
 
 const FILE = process.argv[2] || join(HERE, 'results-couples-any.txt');
 const by = unitsByClass(readFileSync(FILE, 'utf8'));
-console.log(`EVERY COUPLE ON THE SOLVER, THE DRESS REHEARSAL: BESIDE THE READ (EXPLORATORY; written after the read, deciding nothing; from ${FILE.replace(/.*research\/solver\//, '')}'s unit lines)`);
+// the registered read's own file (results-couples-any-registered.txt, reduce-couples-any.mjs --registered): the same lines, N absent
+const REGD = /registered/.test(FILE.replace(/.*\//, ''));
+console.log(`EVERY COUPLE ON THE SOLVER, ${REGD ? 'THE REGISTERED TEST' : 'THE DRESS REHEARSAL'}: BESIDE THE READ (EXPLORATORY; written after the read, deciding nothing; from ${FILE.replace(/.*research\/solver\//, '')}'s unit lines)`);
 for (const [c, a] of Object.entries(by)) {
   if (!a.length) { console.log(`${c}: no unit lines read`); continue; }
   console.log(`${c}, ${a.length} units: ROUTE survives ${range(a, 'route', x => `${x}%`)}; APP ${range(a, 'app', x => `${x}%`)}; paths lost ${range(a, 'lost')}, saved ${range(a, 'saved')}; the mean pot ${range(a, 'pot', pctOf)}; the capped pot ${range(a, 'capped', pctOf)}; lifetime tax ${range(a, 'tax', pctOf)}`);
@@ -95,11 +102,13 @@ for (const [c, a] of Object.entries(by)) {
 }
 const read = ['W', 'R', 'L', 'P'].flatMap(c => by[c] || []), couples = [...new Set(read.map(u => u.couple))];
 const readD34 = withD34(read);
-if (readD34.length) console.log(`over W, R, L and P, ${readD34.length} units: ${ratesLine(readD34)}; D34's statistic at least ${Math.min(...readD34.map(u => u.margin))} paths below its threshold on every unit; ${readD34.some(u => u.mismatch) ? `the read's threshold not D34's on ${readD34.filter(u => u.mismatch).length}` : `the read's threshold D34's at the unit's paths on all ${readD34.length}`}`);
+if (readD34.length) console.log(`over W, R, L and P, ${readD34.length} units: ${ratesLine(readD34)}; ${readD34.some(u => u.flagged) ? `D34's statistic past its threshold on ${readD34.filter(u => u.flagged).length} (${readD34.filter(u => u.flagged).map(u => u.id).join(', ')})` : `D34's statistic at least ${Math.min(...readD34.map(u => u.margin))} paths below its threshold on every unit`}; ${readD34.some(u => u.mismatch) ? `the read's threshold not D34's on ${readD34.filter(u => u.mismatch).length}` : `the read's threshold D34's at the unit's paths on all ${readD34.length}`}`);
 console.log('by couple, over W, R, L and P, ROUTE against APP:');
 for (const cp of couples) {
   const a = read.filter(u => u.couple === cp);
   console.log(`   ${cp}, ${a.length} units: the mean pot ${range(a, 'pot', pctOf)}; the capped pot ${range(a, 'capped', pctOf)}, in pounds a path ${range(a, 'cappedGbp', gbp)}; lifetime tax ${range(a, 'tax', pctOf)}, in pounds a path ${range(a, 'taxGbp', gbp)} (APP's ${range(a, 'taxApp', lv)})`);
 }
-console.log('N, unit by unit (reported, not read; beside C\'s question):');
-for (const u of by.N || []) console.log(nLine(u));
+if (!REGD || (by.N || []).length) {
+  console.log('N, unit by unit (reported, not read; beside C\'s question):');
+  for (const u of by.N || []) console.log(nLine(u));
+}

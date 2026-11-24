@@ -11,9 +11,83 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (23 Nov, evening), for your word: step 4's change of default, and the protected edits it needs, asked by name.**
+- **What is built.** `COUPLES-OPEN.md` step 4 (D139's plan; D141: "step 4, three shapes, comes next"): the household plan
+  takes three shapes it refuses today, off in code (`STEP4-SHAPES.md`; `household-shapes.test.mjs`,
+  `results-household-shapes.txt`).
+  - **'growth'** (the two people's contributions to one wrapper growing at different rates): exact, carried as the wrapper's
+    year-by-year schedule, which the engine, the forward run and the exact model all read. 180 plans refused today are
+    taken, none apart in 9,240 plan years.
+  - **'year0'** (a later retiree paid or saving in plan year 0): exact. The year-0 take-home equals the engine's own, and
+    the year-0 deposits are pro-rated as the engine pro-rates contributions. 120 plans are taken, none apart.
+  - **'cashisa'** (a cash ISA subscription): the two subscriptions added. It is exact before the first retirement while no
+    one person's own limit binds (1,495 such years, none apart). Where one person's own cash ISA cap binds, the
+    household's doubled cap shelters more (1,385 years in the uneven variant, by up to £7,428.38 a year). After the first
+    retirement the later retiree's subscriptions are not made (their sheltering left to the year-end step, unmeasured).
+  - **The identity:** with the option unset, none of 972 household plans differs from the code before
+    (`results-household-shapes-identity.txt`).
+- **The change of default** (COUPLES-OPEN.md step 4, "its own change of default, with the reviewer"):
+  - the option on in `APP_COUPLE`;
+  - the guard's `householdShapeOf` no longer refusing the shapes taken;
+  - the decided-defaults block's new key;
+  - the reviewer on the change of default, then B1's gate;
+  - its D-line naming what such couples take by inference.
+- **The protected edits it needs, asked by name:**
+  - `research/tests/couple-shape.test.mjs`: the guard's shapes held equal to the household plan's again;
+  - `research/tests/couple-default.test.mjs`: the block's new key, with its plant;
+  - `research/tests/run-all.mjs`: `household-shapes.test.mjs` joining the fast tier's joining list.
+- **The agent's recommendation:** all three shapes, with shape 2's limits said in the D-line. Today such a couple inside
+  the old guard runs today's two-table route, and outside it the app's rules. The household route is the one the
+  registered test read.
+
+**OPEN (23 Nov, afternoon), for your word: the pricing fix's read (EXPLORATORY), FIX DOES NOT HOLD, and the way on.**
+- **What ran.** D143 ordered the household plan's tax on a partner's state pension fixed as its own change, read
+  EXPLORATORY on the couples trade's units and S191-90 before it becomes a default. Candidate A (`PRICING-FIX.md`, the form
+  'pensionsPAown', off in code; 61eed66d) taxes the partner's state pension and other taxable income against their own
+  allowance and hands it to the household net. Its read ran on 14 units, seed 7002, 4,000 paths, its rule committed first
+  (`results-pricing-fix.txt`; `reports/2026-11-23-pricing-fix-read.md`).
+- **The read.** The shortfall closes: on S037's Y90, Y100, E95 and E100, FIX's spending gap below Y75 is `£56` a year
+  against ROUTE's `£369`. But NO HARM fails on both parts. D34 flags S191-90 (FIX loses 25 paths and saves 3, its threshold
+  21), and the pooled survival change is `-0.173` points (`-0.231` to `-0.115` by path), past the bar of `-0.1`. So FIX
+  DOES NOT HOLD, and by its rule nothing changes.
+- **Beside** (`results-pricing-fix-beside.txt`, written after the read):
+  - FIX keeps fewer paths on 12 of the 14 units. 111 of its 121 lost paths end below the minimum pot in the last plan year;
+    the other 10, all S191-90's, run short in its last three plan years.
+  - The couples trade's PA2 (the allowance two people's), on the same 13 units and paths, loses 98 paths and saves 25
+    against ROUTE, pooled `-0.140` (`-0.199` to `-0.082`); 96 of its lost paths end below the minimum pot in the last
+    plan year. FIX loses 96 and saves 21, pooled `-0.144`.
+- **What drives the loss is not shown.**
+  - The error `PRICING-FIX.md` named for A, under-priced draws, cannot be the whole cause. On E100 and the three controls
+    (the elder holding every wrapper, `k` 1), A prices the draws and fixed incomes as the engine does. Both arms still
+    give the household two people's savings and dividend allowances and CGT exempt amount, which matter on the controls'
+    GIAs of `£45,000` to `£120,000`. On Y100 A prices the draws above the engine. FIX still loses paths on four of them
+    (Y100 `-0.225`, E100 `-0.150`, S119-E100 `-0.200`, S199-E100 `-0.200` points), 37 of the 121.
+  - PA2, which under-prices a single drawer's draws, lost about as many paths on S037-E100 (7 against FIX's 6).
+  - One reading, not shown: the over-pricing has been a margin at the plan's end. Step 8's own late-tail test bears
+    against a spending margin (THE GROWTH: the table's late gap explained by its tiers, R `136.8%`, not its spending
+    level, L `-97.2%`).
+- **The reviewer at the read: FAIL**, one BLOCKING (the first write-up said the losses fit under-priced draws and
+  recommended C on it) and three MINOR, answered in one fix (`reviews/2026-11-23-read-pricing-fix.md`). Then PASS on the
+  second look, three MINOR, each answered (`-2.md`).
+- **The ways on:**
+  - **(Keep) Recommended:** the route as shipped. The rule's outcome already keeps it: D143 accepted S037's shortfall, and
+    removing the over-pricing costs survival at the plan's end, which comes first. If the pricing is to be corrected
+    later, the plan's end comes first: a test (EXPLORATORY) of the household table's judgement of the minimum pot against
+    the engine's, most nearly on S037-E100. It is named, not designed. If it finds the judgement right, neither B nor C
+    would remove the losses, and the pricing line ends there; if wrong, its fix comes first, and B or C after.
+  - **(C)** Two schedules in the household table's forward run, the year's draw split as the engine funds it. It is not
+    shown exact: the household table's state holds each wrapper summed over both people, so once one person's wrapper
+    runs down it cannot tell whose allowance a draw meets. On E100 and the controls it would price as A does. A day to
+    build, the read as before.
+  - **(B)** One schedule whose allowance and bands move each year to the binding person's thresholds. It is cheaper, and
+    approximate.
+- **In every case,** the timing defect the test of the class found stands fixed: each moved income is counted from its
+  owner's retirement, as the engine counts it, moving none of `876` household plans (`results-household-timing.txt`). It
+  goes to `main` with the next batch on B1's gate.
+
 **ANSWERED by D143 (23 Nov, morning): "Unlock enforcement", read as the go on (A), the recommendation (said so to the
 maintainer); built as D144 (23 Nov): the reviewer on the change of default FAIL (one BLOCKING, the limits card), one
-fix, then PASS; to `main` on B1's gate with the fourteenth batch; the pricing fix next, as its own change. Was OPEN (23 Nov, early), for your word: the guard's own units, the registered read (D139 to D141), and the
+fix, then PASS; to `main` on B1's gate with the fourteenth batch; the pricing fix next, as its own change (built, 61eed66d; its read launched 23 Nov 15:39 UK, `PRICING-FIX.md`; its test found a second defect, each moved income counted from the household's first retirement, fixed with it). Was OPEN (23 Nov, early), for your word: the guard's own units, the registered read (D139 to D141), and the
 change of default it would make.**
 - **The read** (once, 22 Nov 23:37 UK; `results-couples-open.txt`; `reports/2026-11-22-couples-open-read.md`): Y, E, S
   and G each OPEN on the household route. No unit is flagged by D34. Each class's pooled survival is `+11.538` to

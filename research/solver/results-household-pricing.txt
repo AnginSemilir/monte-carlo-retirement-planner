@@ -1,0 +1,11 @@
+the class: 2760 household plans of the library's 210 couples re-held 90/10 and 10/90 (k below 1.2, a partner's state pension): as entered 420; the partner's DB pension 420; both given a DB pension 420; the partner's DB pension from now, valued in July 420; the partner retiring now, their DB pension from now, valued in July 240 (180 refused for their shape); the partner's DB pension and earnings 420; the partner working past the state pension age 420; 118440 plan years, 90600 with both retired
+reached: the partner taxed on their own fixed income in 55920 years, 240 of them plan year 0 on a fraction under one and 360 with the partner working; the partner's earnings beside their fixed income in 2100; the first person's fixed income above one allowance, both retired, in 11940
+PASS  1. as now ('pensionsPA'), the household plan taxes the fixed incomes above the engine's two-person tax in some year both are retired (the defect)  -- 71580 of 90600 years above it, the most £3,144.78 a year
+PASS  2. under 'pensionsPAown', in every plan year, the household's fixed income as now less the partner's own tax on their fixed income, stacked on their taxable pay and earnings; its taxable part as now less the partner's fixed income; the two plans the same but for their incomes; each branch reached  -- 0 years off in cash (the most £0), 0 in taxable income, plans differing beyond their incomes 0
+PASS  3. under 'pensionsPAown', in every year both are retired, the household's tax plus the partner's own, less the engine's, is what stays on the household's schedule on its rules less on each person's own; nought where the partner has no earnings and the first person's fixed income is within one allowance  -- 0 years off (the most £0); 76560 years with no earnings and the first person within one allowance, 0 of them not nought
+PASS  4. as now ('pensionsPA'), in every plan year, the household plan's fixed income less the later retiree's take-home the engine's, each income from its owner's retirement at the earliest; some incomes reached that would start before their owner retires, after the household's first retirement  -- 0 years off; 420 such incomes
+
+ALL PASS: 4 checks
+
+plant 'partsp': the checks that fail: 2, 3; wanted 2, 3: yes
+plant 'incfloor': the checks that fail: 2, 4; wanted 2, 4: yes

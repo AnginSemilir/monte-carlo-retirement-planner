@@ -1,0 +1,52 @@
+EVERY COUPLE ON THE SOLVER, WHY THE YOUNGER COHORT'S LIFETIME TAX RISES UNDER ROUTE (EXPLORATORY, deciding nothing): S357F-Wg-own, S357F-N-own, S351F-Ri3s-Y75, the rehearsal's seed 7002 (already read), its first 200 paths, each year's mean over them; code d91a642206b9
+S357F-Wg-own (class W; the first person 37 now, pension access from plan year 21): the plan's own cash £1,080k
+    APP   at the end of plan year 0: the pensions £908k, the ISAs £382k, the taxable account £125k, cash £1,071k; lifetime tax £363,115 a path: before pension access £221,335, after £141,781; income tax beyond the tax on pay £310,047, CGT £53,068; the taxable pension drawn £622,616
+    ROUTE at the end of plan year 0: the pensions £896k, the ISAs £377k, the taxable account £1,171k, cash £54k; lifetime tax £1,273,469 a path: before pension access £241,336, after £1,032,133; income tax beyond the tax on pay £1,042,019, CGT £231,450; the taxable pension drawn £572,856
+    every five plan years, APP | ROUTE: tax (income tax beyond pay + CGT), the taxable account, cash
+    year  0 (age 37): £19k + £0k, £125k, £1,071k | £19k + £0k, £1,171k, £54k
+    year  5 (age 42): £14k + £0k, £157k, £892k | £11k + £0k, £1,244k, £54k
+    year 10 (age 47): £12k + £0k, £201k, £878k | £13k + £0k, £1,526k, £54k
+    year 15 (age 52): £3k + £0k, £255k, £826k | £6k + £1k, £1,793k, £54k
+    year 20 (age 57): £0k + £0k, £328k, £432k | £2k + £4k, £1,792k, £54k
+    year 25 (age 62): £0k + £2k, £314k, £136k | £7k + £3k, £1,806k, £51k
+    year 30 (age 67): £0k + £2k, £218k, £41k | £10k + £2k, £2,076k, £46k
+    year 35 (age 72): £1k + £2k, £166k, £11k | £12k + £4k, £2,397k, £35k
+    year 40 (age 77): £2k + £1k, £140k, £1k | £16k + £4k, £2,959k, £27k
+    year 45 (age 82): £3k + £1k, £154k, £0k | £23k + £5k, £3,876k, £24k
+    year 50 (age 87): £4k + £1k, £149k, £0k | £30k + £7k, £4,754k, £26k
+    year 55 (age 92): £5k + £1k, £158k, £0k | £38k + £8k, £5,811k, £27k
+    year 60 (age 97): £5k + £1k, £159k, £0k | £48k + £10k, £6,927k, £25k
+S357F-N-own (class N; the first person 37 now, pension access from plan year 21): the plan's own cash £1,080k
+    APP   at the end of plan year 0: the pensions £908k, the ISAs £388k, the taxable account £125k, cash £1,071k; lifetime tax £984,476 a path: before pension access £275,686, after £708,790; income tax beyond the tax on pay £984,476, CGT £0; the taxable pension drawn £13
+    ROUTE at the end of plan year 0: the pensions £908k, the ISAs £388k, the taxable account £1,090k, cash £132k; lifetime tax £2,586,918 a path: before pension access £293,431, after £2,293,488; income tax beyond the tax on pay £2,498,736, CGT £88,182; the taxable pension drawn £20,225
+    every five plan years, APP | ROUTE: tax (income tax beyond pay + CGT), the taxable account, cash
+    year  0 (age 37): £19k + £0k, £125k, £1,071k | £19k + £0k, £1,090k, £132k
+    year  5 (age 42): £15k + £0k, £157k, £891k | £10k + £0k, £1,147k, £132k
+    year 10 (age 47): £12k + £0k, £201k, £876k | £13k + £0k, £1,415k, £132k
+    year 15 (age 52): £11k + £0k, £255k, £876k | £15k + £0k, £1,733k, £132k
+    year 20 (age 57): £9k + £0k, £329k, £891k | £18k + £1k, £2,171k, £132k
+    year 25 (age 62): £8k + £0k, £424k, £921k | £23k + £1k, £2,698k, £132k
+    year 30 (age 67): £8k + £0k, £545k, £962k | £27k + £2k, £3,336k, £132k
+    year 35 (age 72): £18k + £0k, £701k, £1,038k | £43k + £2k, £4,167k, £132k
+    year 40 (age 77): £20k + £0k, £921k, £1,129k | £51k + £2k, £5,351k, £132k
+    year 45 (age 82): £21k + £0k, £1,228k, £1,228k | £62k + £3k, £6,977k, £132k
+    year 50 (age 87): £23k + £0k, £1,569k, £1,337k | £74k + £4k, £8,746k, £132k
+    year 55 (age 92): £24k + £0k, £1,991k, £1,455k | £89k + £1k, £10,979k, £132k
+    year 60 (age 97): £25k + £0k, £2,540k, £1,585k | £108k + £3k, £13,954k, £132k
+S351F-Ri3s-Y75 (class R; the first person 37 now, pension access from plan year 21): the plan's own cash £203k
+    APP   at the end of plan year 0: the pensions £175k, the ISAs £75k, the taxable account £23k, cash £203k; lifetime tax £15,415 a path: before pension access £5,324, after £10,091; income tax beyond the tax on pay £6,890, CGT £8,525; the taxable pension drawn £342,518
+    ROUTE at the end of plan year 0: the pensions £175k, the ISAs £73k, the taxable account £212k, cash £22k; lifetime tax £225,429 a path: before pension access £11,844, after £213,585; income tax beyond the tax on pay £174,505, CGT £50,924; the taxable pension drawn £353,728
+    every five plan years, APP | ROUTE: tax (income tax beyond pay + CGT), the taxable account, cash
+    year  0 (age 37): £1k + £0k, £23k, £203k | £1k + £0k, £212k, £22k
+    year  5 (age 42): £0k + £0k, £29k, £183k | £0k + £0k, £266k, £22k
+    year 10 (age 47): £0k + £0k, £38k, £193k | £1k + £0k, £341k, £22k
+    year 15 (age 52): £0k + £0k, £48k, £182k | £1k + £0k, £430k, £22k
+    year 20 (age 57): £0k + £0k, £134k, £35k | £0k + £0k, £534k, £22k
+    year 25 (age 62): £0k + £0k, £96k, £7k | £4k + £0k, £658k, £21k
+    year 30 (age 67): £0k + £0k, £83k, £3k | £2k + £1k, £789k, £21k
+    year 35 (age 72): £0k + £0k, £64k, £0k | £2k + £1k, £921k, £20k
+    year 40 (age 77): £0k + £0k, £48k, £0k | £2k + £1k, £1,092k, £20k
+    year 45 (age 82): £0k + £0k, £47k, £0k | £3k + £1k, £1,332k, £19k
+    year 50 (age 87): £0k + £0k, £44k, £0k | £5k + £2k, £1,560k, £18k
+    year 55 (age 92): £0k + £0k, £46k, £0k | £7k + £2k, £1,841k, £15k
+    year 60 (age 97): £0k + £0k, £49k, £0k | £10k + £3k, £2,176k, £14k

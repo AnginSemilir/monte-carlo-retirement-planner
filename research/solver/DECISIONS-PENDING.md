@@ -18,11 +18,23 @@ below this section says "the beta", read it as history. The order from here:
   - **Its exactness:** the household's salary and contributions are the couple's two added, in every year, to a penny
     (`household-salaries.test.mjs` check 4).
   - **What N's units show** (`results-couples-any-beside.txt`, N's lines): ROUTE's capped pot is higher on all eight. On
-    the younger cohort's four, ROUTE pays far more lifetime tax for a small gain in the capped pot. Why is not shown.
+    the younger cohort's four, ROUTE pays far more lifetime tax for a small gain in the capped pot.
+  - **Why the tax rises, now traced** (EXPLORATORY, the rehearsal's seed 7002, already read;
+    `results-couples-any-tax-trace.txt`, on S357F-Wg-own, S357F-N-own and S351F-Ri3s-Y75). It is not a defect:
+    - ROUTE invests the couple's cash in the taxable account in plan year 0, where APP keeps it as cash. On S357F-Wg-own,
+      with `£1,080k` of the plan's own in cash, the taxable account at the end of plan year 0 is `£1,171k` under ROUTE
+      against `£125k`, and cash `£54k` against `£1,071k`.
+    - That account's income and gains are then taxed each year, most of it after pension access. On S357F-Wg-own, ROUTE's
+      lifetime tax is `£1,273,469` a path against APP's `£363,115`: income tax beyond the tax on pay `£1,042,019` against
+      `£310,047`, and CGT `£231,450` against `£53,068`.
+    - The taxable pension drawn is about the same in both arms (`£572,856` and `£622,616`), so the pension draws are not
+      the cause.
+    - The same holds on S357F-N-own and S351F-Ri3s-Y75: the taxable account at the end of plan year 0 is `£1,090k` and
+      `£212k` under ROUTE, against `£125k` and `£23k` under APP.
   - **The choice:** C opens by inference from its exactness, or not at all (such a couple keeps today's handling).
-  - **The agent's recommendation:** open C by inference, with its own change of default after the registered read. Before
-    that, one short trace, EXPLORATORY on the rehearsal's own units, of why the younger cohort's tax rises so far: it shows
-    on W's units too, which the app takes by default since D146.
+  - **The agent's recommendation:** open C by inference, with its own change of default after the registered read. The
+    tax rise is the cost of investing cash the app's rules leave idle, and the capped pot, which the solver weighs, is
+    higher on every N unit.
 - **The classic planner.** Put to you in chat on 24 Nov. The agent's recommendation is to retire it now, unless you want the
   tournament pages or the one-deploy rollback, which only it gives.
   - **Done as one change:** its screens and its 9 checks go; the gate's 6 shared checks move into the one remaining mode;

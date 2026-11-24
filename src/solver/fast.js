@@ -42,6 +42,8 @@ export const N4 = { plant: '' };
 // the savings split's live years read over the routes the menu offers (D138); `plant` 'anyyear' reads each year over both
 // routes, whatever is offered (save-default.test.mjs check 10)
 export const SAVE_YEAR = { plant: '' };
+// research/tests/household-salaries.test.mjs only (compile): 'nosched' reads a dated salary schedule as the salary and its growth
+export const SALARY = { plant: '' };
 const CATS = ['pen', 'isa', 'other', 'cash'];
 
 /* Net income of a gross figure, as segments between the engine's own breakpoints. */
@@ -258,7 +260,7 @@ export function compile(m, actions) {
     const sv0 = saveOn && yr.working[t] ? ctx.saveSplitAt(t) : null, sv = sv0 && (!sv0.differs || (SAVE_YEAR.plant === 'anyyear' ? sv0.differs.some(Boolean) : offeredSaves.some(v => sv0.differs[v]))) ? sv0 : null;
     if (sv) { yr.saveYear[t] = 1; for (let v = 1; v <= 2; v++) CATS.forEach((c, i) => { const id = idOf[c]; yr.saveCon[v][i][t] = acc[id] ? (id in sv.variants[v] ? sv.variants[v][id] : yr.con[i][t]) : 0; }); }
     if (yr.working[t] && o.salary > 0) {
-      const salary = E.salaryAtYear(o, t);
+      const salary = E.salaryAtYear(SALARY.plant === 'nosched' ? { ...o, salaryByYear: null } : o, t);
       yr.pay[t] = E.taxablePayOf(salary, yr.con[0][t], P, o.selfEmployed) * yr.frac[t];
       if (yr.saveYear[t]) for (let v = 1; v <= 2; v++) yr.paySave[v][t] = E.taxablePayOf(salary, yr.saveCon[v][0][t], P, o.selfEmployed) * yr.frac[t];
     }

@@ -1156,7 +1156,8 @@ function normalizePlan(raw) {
       if (v === null || v === undefined || typeof v === 'object') obj[k] = '';
     });
   };
-  scrub(plan.demographics); scrub(plan.spending, ['spendBands', 'policyOverride']); scrub(plan.config);
+  // a dated salary schedule (research/solver/COUPLES-ANY.md B: the household plan's, which no page shows or edits) is a list
+  scrub(plan.demographics, ['salaryByYearSelf', 'salaryByYearPart']); scrub(plan.spending, ['spendBands', 'policyOverride']); scrub(plan.config);
   if (typeof plan.config.harvestPersonalAllowance !== 'boolean') plan.config.harvestPersonalAllowance = plan.config.harvestPersonalAllowance === '' ? true : !!plan.config.harvestPersonalAllowance;
   // A plan saved before the rule existed has no field, and no field means what it always meant: fixed.
   if (typeof plan.config.guardrails !== 'boolean') plan.config.guardrails = false;
@@ -1778,6 +1779,9 @@ function buildContext(rawPlan) {
     age0: o === 'self' ? ageSelf0 : agePart0,
     retireAge: o === 'self' ? retireSelf : retirePart,
     salary: Math.max(0, num(o === 'self' ? d.salarySelf : d.salaryPart, 0)),
+    // a dated schedule of pay by plan year (research/solver/COUPLES-ANY.md B: the household plan's, its two people's salaries
+    // added, each at its own growth), which salaryAtYear reads in place of the salary and its growth; no page sets it
+    ...(v => (Array.isArray(v) ? { salaryByYear: v.map(x => Math.max(0, num(x, 0))) } : {}))(o === 'self' ? d.salaryByYearSelf : d.salaryByYearPart),
     // growth on top of inflation; 0 leaves pay flat in today's money
     salaryGrowth: clamp(num(o === 'self' ? d.salaryGrowthSelf : d.salaryGrowthPart, 0), -100, 100) / 100,
     // trading profit rather than salary: Class 4 NIC, and pension relief at the income tax rate only
@@ -3498,6 +3502,7 @@ function contribAtYear(a, t) {
  * whatever is expected on top of that, and can be negative for a career winding down.
  */
 function salaryAtYear(o, t) {
+  if (o.salaryByYear) return o.salaryByYear[t] || 0;
   if (!(o.salary > 0)) return 0;
   return o.salary * Math.pow(1 + (o.salaryGrowth || 0), t);
 }

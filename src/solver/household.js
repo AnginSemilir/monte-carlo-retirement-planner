@@ -37,7 +37,9 @@
  * research/tests/household-risks.test.mjs's (COUPLES-ANY.md A, amendment 1): 'riskfirst' keeps the first person's risk where
  * the two people's accounts of one wrapper hold different risks; 'ceilfirst' gives the household plan the first person's
  * ceilings alone; 'tierindex' gives both people the household's tier index; 'nofirstswitch' leaves the riskier person at their
- * own tier in the plan's first year.
+ * own tier in the plan's first year. research/tests/household-salaries.test.mjs's (COUPLES-ANY.md B and C): 'salsched1' builds
+ * the household's salary schedule from the first person's salary alone; 'noretireend' puts the household's retirement in the
+ * plan's last year where nobody retires within the plan.
  */
 import { rankFor, tiePick, layerOf, ratesAt, SPLITS } from './couple.js';
 import { NODES, WEIGHTS, chooseAction } from './solve.js';
@@ -102,6 +104,9 @@ export const TAKE_SHAPES = Object.freeze(['growth', 'cashisa', 'year0']);
    three alone): 'risks', the two people's accounts of one wrapper at different risks; 'limits', the partner's own limits
    (tierCeilingPart) */
 export const RISK_SHAPES = Object.freeze(['risks', 'limits']);
+/* COUPLES-ANY.md's B and C: 'salaries', both people paid, their salaries growing at different rates; 'noretire', nobody
+   retiring within the plan; each named only explicitly */
+export const SALARY_SHAPES = Object.freeze(['salaries', 'noretire']);
 const PA_K = Object.freeze(['pensionsPA', 'pensionsPAown']);
 export const SCALED = Object.freeze(['paTaperThreshold', 'basicBandLimit', 'higherBandLimit', 'scotStarterLimit', 'scotBasicLimit', 'scotIntermediateLimit',
   'scotHigherLimit', 'scotAdvancedLimit']);
@@ -146,11 +151,16 @@ export function householdPlanFor(E, plan, opts = {}) {
   // the first plan year in which anyone has retired: the synthetic person retires then
   let tR = 0;
   while (tR <= T && working('self', tR) && working('part', tR)) tR++;
-  if (tR > T) throw new Error('householdPlanFor: nobody retires within the plan');
   // the shapes STEP4-SHAPES.md takes, each only where opts.takeShapes names it (true: all three), off unless named, so that a
   // household plan without them is the code before's byte for byte
   const takes = new Set(opts.takeShapes === true ? TAKE_SHAPES : Array.isArray(opts.takeShapes) ? opts.takeShapes : []);
-  for (const w of takes) if (!TAKE_SHAPES.includes(w) && !RISK_SHAPES.includes(w)) throw new Error(`householdPlanFor: opts.takeShapes '${w}' (want ${[...TAKE_SHAPES, ...RISK_SHAPES].map(x => `'${x}'`).join(', ')})`);
+  for (const w of takes) if (!TAKE_SHAPES.includes(w) && !RISK_SHAPES.includes(w) && !SALARY_SHAPES.includes(w)) throw new Error(`householdPlanFor: opts.takeShapes '${w}' (want ${[...TAKE_SHAPES, ...RISK_SHAPES, ...SALARY_SHAPES].map(x => `'${x}'`).join(', ')})`);
+  // the shape 'noretire' (COUPLES-ANY.md C): where nobody retires within the plan the household works to its end, its
+  // retirement past the plan's last year (as the single solver solves a person who never retires within the plan): both
+  // salaries and both people's contributions in every plan year, no take-home income and no later retiree's deposit. Plant
+  // 'noretireend': the retirement in the plan's last year
+  if (tR > T && !takes.has('noretire')) throw new Error('householdPlanFor: nobody retires within the plan');
+  if (tR > T && planted('noretireend')) tR = T;
   // the accounts, added by wrapper; each wrapper's risk must be the two people's same, and its contribution growth too unless
   // the shape 'growth' is taken (below)
   const byKey = {}, scheduled = new Set(), firstOf = {}, restOf = {};
@@ -221,7 +231,13 @@ export function householdPlanFor(E, plan, opts = {}) {
     byKey[key].contribByYear = sched;
   }
   if (subscribes && !takes.has('cashisa')) throw new Error('householdPlanFor: a cash ISA subscription');
-  if (E.num(d.salaryGrowthSelf, 0) !== E.num(d.salaryGrowthPart, 0) && E.num(d.salarySelf, 0) > 0 && E.num(d.salaryPart, 0) > 0) throw new Error('householdPlanFor: the two salaries grow at different rates');
+  const salariesApart = E.num(d.salaryGrowthSelf, 0) !== E.num(d.salaryGrowthPart, 0) && E.num(d.salarySelf, 0) > 0 && E.num(d.salaryPart, 0) > 0;
+  if (salariesApart && !takes.has('salaries')) throw new Error('householdPlanFor: the two salaries grow at different rates');
+  // the shape 'salaries' (COUPLES-ANY.md B): the household's salary a dated schedule, the two people's salaries added year by
+  // year, each at its own growth, in every plan year before the first retirement and nought after (the later retiree's pay
+  // from then reaching the household as their take-home, below); the engine's salaryAtYear reads it, and so do the forward
+  // run and the exact model, which ask it. Plant 'salsched1': the first person's salary alone
+  const salSched = salariesApart && tR > 0 ? Array.from({ length: T + 1 }, (_, t) => (t < tR ? E.salaryAtYear(own.self, t) + (planted('salsched1') ? 0 : E.salaryAtYear(own.part, t)) : 0)) : null;
   const L = plan.solver && plan.solver.locks, partOwn = !!(L && L.tierCeilingPart && Object.keys(L.tierCeilingPart).length);
   if (partOwn && !takes.has('limits')) throw new Error('householdPlanFor: the partner\'s own limits (tierCeilingPart)');
   // the later retiree's take-home and contributions, plan year by plan year, from the first retirement until they retire
@@ -313,6 +329,7 @@ export function householdPlanFor(E, plan, opts = {}) {
     ...d, planningMode: 'single', currentAgeSelf: ageA, retireAgeSelf: ageA + tR,
     salarySelf: tR > 0 ? E.num(d.salarySelf, 0) + E.num(d.salaryPart, 0) : 0,
     salaryGrowthSelf: E.num(d.salarySelf, 0) > 0 ? d.salaryGrowthSelf : d.salaryGrowthPart,
+    ...(salSched ? { salaryByYearSelf: salSched } : {}),
     employmentSelf: d.employmentSelf, statePensionSelf: E.num(d.statePensionSelf, 0),
     cgtGainsUsedSelf: E.num(d.cgtGainsUsedSelf, 0) + E.num(d.cgtGainsUsedPart, 0), cfBroughtForwardSelf: E.num(d.cfBroughtForwardSelf, 0) + E.num(d.cfBroughtForwardPart, 0),
     mpaaAgeSelf: d.mpaaAgeSelf

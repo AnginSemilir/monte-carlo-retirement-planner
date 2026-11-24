@@ -311,7 +311,9 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   // here alone, the pin left at 71fb4271c681)
   // 24 Nov: COUPLES-ANY.md A (its amendment 1) adds each person's ladder the household's tiers in the engine and the household's
   // move by name in household.js, off in code for a couple whose risks are alike, so the code moves again: re-pinned
-  check('(7d) the solver\'s code id 43b1dc88901b (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work, then the pricing form, then step 4\'s shapes, then their change of default and its fix round, then COUPLES-ANY A)', !!cid && cid.hash === '43b1dc88901b', cid ? cid.hash : 'none');
+  // 24 Nov, again: COUPLES-ANY.md B and C (the engine's dated salary schedule, the forward run's plant, the household plan's
+  // shapes 'salaries' and 'noretire'), off in code: re-pinned
+  check('(7d) the solver\'s code id d91a642206b9 (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work, then the pricing form, then step 4\'s shapes, then their change of default and its fix round, then COUPLES-ANY A, then B and C)', !!cid && cid.hash === 'd91a642206b9', cid ? cid.hash : 'none');
 }
 
 // 8. the twin (PRESCRIPTIVE-PLAN.md step 3)

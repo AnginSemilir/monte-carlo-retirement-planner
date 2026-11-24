@@ -17,7 +17,8 @@ import { solvedContext, yourContext, lifeOf, runPath, partsOf, retireYearOf, fir
 import { wholeMenu, PRODUCT_DEFAULTS } from './solver/solve.js';
 import { prepareForSolve, JOINT_KEYS, partCeilingsDiffer, APP_COUPLE } from './solverSettings.js';
 import { appPlan } from './solverApp.js';
-import { householdForm, householdFromTable, SCALES, mergedState } from './solver/household.js';
+import { householdForm, householdFromTable, SCALES, mergedState, heldOf, perOwnerOf } from './solver/household.js';
+import { TIER_ORDER } from './solver/fast.js';
 
 /* research/tests/couple-solve-client.test.mjs only: 'swap' hands each person the other's table; 'noage' cuts the plans with no
    partner's age (each solved as a single would be); research/tests/couple-default.test.mjs only: 'rawages' leaves a blank age
@@ -31,6 +32,9 @@ export const PLANT = { rule: '' };
 /* the shapes the household plan takes in the page's cut and assembly alike (step 4's change of default, D145: src/solverSettings.js
    APP_COUPLE.takeShapes; src/solver/household.js householdPlanFor), the same in both so the assembly's plan is the cut's */
 const takeShapesOpt = () => (PLANT.rule === 'cutnotake' || !APP_COUPLE.takeShapes || !APP_COUPLE.takeShapes.length ? {} : { takeShapes: APP_COUPLE.takeShapes });
+/* the shapes a cut and its assembly take: the app's (takeShapesOpt), or, where a research caller names them, those (COUPLES-ANY.md
+   A's 'risks' and 'limits' before their change of default; research/tests/household-risks.test.mjs) */
+const shapesOf = (takeShapes) => (takeShapes ? { takeShapes } : takeShapesOpt());
 
 /* the household's plan as a couple's tables are solved on: prepared as a single's is (prepareForSolve, then appPlan, so the
    tiers' returns are the tables'), as research/solver/audit-couples.mjs solverPlan prepares the candidate's. Each person's age
@@ -119,22 +123,22 @@ export const isPair = x => isCouple(x) || isHousehold(x);
  *     keeps once written. They hold the same accounts as none (lockedPlan), so the household plan is handed none. Ceilings
  *     that differ stay, and the household plan refuses them, so such a couple keeps today's route (plant 'partceilkey').
  */
-export function householdCut(E, M, plan, form) {
+export function householdCut(E, M, plan, form, { takeShapes = null } = {}) {
   if (!SCALES.includes(form)) throw new Error(`householdCut: the page solves a household at a scaled form (${SCALES.join(', ')}), not ${form}`);
   const L = plan && plan.solver && plan.solver.locks;
   const own = L && L.tierCeilingPart && !partCeilingsDiffer(plan) && PLANT.rule !== 'partceilkey' ? (({ tierCeilingPart, ...rest }) => ({ ...plan, solver: { ...plan.solver, locks: rest } }))(L) : plan;
   const h0 = householdPlan(E, own), floorOwn = Math.max(0, E.num(h0.config && h0.config.solvencyFloor, 0));
   const floorKept = Math.round(PRODUCT_DEFAULTS.minPotYears * Math.max(0, E.num(h0.spending && h0.spending.targetSpend, 0)));
   const household = !(floorOwn > 0) && floorKept > 0 && PLANT.rule !== 'hhzerofloor' ? { ...h0, config: { ...h0.config, solvencyFloor: floorKept } } : h0;
-  const f = householdForm(E, household, { scale: form, ...takeShapesOpt() }), sc = f.hopts.scale;
+  const f = householdForm(E, household, { scale: form, ...shapesOf(takeShapes) }), sc = f.hopts.scale;
   return { household, hplan: f.hp, bands: { k: sc.k, paOne: sc.paOne, paK: !!sc.paK }, ageWith: M.prepare(E, household).ctx.agePart0 };
 }
 /* the household assembled at the even split: its move the table's own, both people taking it (src/solver/household.js
    chooseHouseholdSingle). `topK`, `tieJoint` and `holdPast` are passed as step 8's arm passed them (audit-household-hsp.mjs's
    HSPA) and do not reach that move (the reviewer on D135's change of default, finding 2): the form and the split are what
    move it */
-export function householdSolved(E, M, { household, form, topK, tieJoint, holdPast }, table) {
-  const cp = householdFromTable(E, M, household, table.plan, table.r, { scale: form, topK, tieJoint, holdPast, ...takeShapesOpt() });
+export function householdSolved(E, M, { household, form, topK, tieJoint, holdPast, takeShapes = null }, table) {
+  const cp = householdFromTable(E, M, household, table.plan, table.r, { scale: form, topK, tieJoint, holdPast, ...shapesOf(takeShapes) });
   return { ...cp, split: 'even', counts: null };
 }
 /* the page's record of a household's solve (step 8's port, research/solver/HSP-PORT.md), plain data: its table's record, and
@@ -170,18 +174,24 @@ export function modelStateOfCouple(cp, engineState) {
   return { pots: { ...engineState.pots }, basis: { ...engineState.giaBasis }, cgtCarry: { ...engineState.cgtCarry }, cumPcls: { ...engineState.cumPcls },
     lumpTaken: { ...engineState.lumpSumTaken }, cashIsa: { ...(engineState.cashIsa || {}) }, guard: null, tierHeld };
 }
-/* one person's part of a joint move, as a single's move is taken apart; the split and the household's level beside it */
-export function personParts(joint, who) {
-  const o = joint.perOwner[who];
-  return { ...partsOf({ steps: o.steps, harvest: o.harvest, harvestCeil: o.harvestCeil, spendLevel: joint.spendLevel }, { tierPen: o.tierPen || 0, tierIsa: o.tierIsa || 0 }) };
+/* one person's part of a joint move, as a single's move is taken apart; the split and the household's level beside it. With
+   `cp` a household whose two people's ladders differ (src/solver/household.js tierMapOf; COUPLES-ANY.md A, amendment 1), a
+   person's tier is read as its steps below their own risk, by name, as the page's words read a tier: where the engine added
+   the household's tiers past a person's riskier ones, the index is not the steps */
+export function personParts(joint, who, cp = null) {
+  const o = joint.perOwner[who], ca = { tierPen: o.tierPen || 0, tierIsa: o.tierIsa || 0 };
+  if (cp && cp.tierMap) for (const [cat, key] of [['pen', 'tierPen'], ['isa', 'tierIsa']]) { const on = cp.tierMap.own[who][cat]; ca[key] = TIER_ORDER.indexOf(on[ca[key]]) - TIER_ORDER.indexOf(on[0]); }
+  return { ...partsOf({ steps: o.steps, harvest: o.harvest, harvestCeil: o.harvestCeil, spendLevel: joint.spendLevel }, ca) };
 }
-export const jointParts = joint => ({ level: joint.spendLevel !== undefined ? joint.spendLevel : 1, split: joint.split, self: personParts(joint, 'self'), part: personParts(joint, 'part') });
+export const jointParts = (joint, cp = null) => ({ level: joint.spendLevel !== undefined ? joint.spendLevel : 1, split: joint.split, self: personParts(joint, 'self', cp), part: personParts(joint, 'part', cp) });
 /* the joint move with one person's move replaced by their move `ai` (the first person's also sets the household's draw, as
    chooseJoint takes it from theirs) */
 export function withPersonMove(cp, joint, who, ai) {
   // a household's (step 8's port): each person's alternative one of the household table's own moves
   const tab = isHousehold(cp) ? cp.H : cp.tables[who], a = tab.actions[ai], on = tiered(tab);
-  const per = { steps: a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', ...(on ? { tierPen: a.tierPen || 0, tierIsa: a.tierIsa || 0, tierPenName: tierName(tab, 'pen', a.tierPen || 0), tierIsaName: tierName(tab, 'isa', a.tierIsa || 0) } : {}) };
+  const per0 = { steps: a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', ...(on ? { tierPen: a.tierPen || 0, tierIsa: a.tierIsa || 0, tierPenName: tierName(tab, 'pen', a.tierPen || 0), tierIsaName: tierName(tab, 'isa', a.tierIsa || 0) } : {}) };
+  // a household's whose two people's ladders differ: the household's tier at this person's own index (perOwnerOf)
+  const per = isHousehold(cp) && cp.tierMap && on ? perOwnerOf(cp, per0)[who] : per0;
   const top = who === 'self' ? { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump } : {};
   const out = { ...joint, ...top, perOwner: { ...joint.perOwner, [who]: per }, ...(who === 'self' ? { ia: ai } : { ib: ai }) };
   if (PLANT.rule === 'nosplit') delete out.split;
@@ -246,19 +256,22 @@ export function coupleSkipsOf(E, cp) {
 export function householdSkipsOf(E, cp) {
   const f = coupleFirstMove(E, cp), j0 = f.joint, list = [], H = cp.H;
   const lvl = ai => (H.levelOf ? H.levelOf[ai] : H.actions[ai].spendLevel !== undefined ? H.actions[ai].spendLevel : 1);
-  const held = f.state.tierHeld.self, s = vecOf(H.m, PLANT.rule === 'hhpersonrank' ? ownerState(f.state, 'self') : mergedState(cp, f.state));
+  const held = heldOf(cp, f.state), s = vecOf(H.m, PLANT.rule === 'hhpersonrank' ? ownerState(f.state, 'self') : mergedState(cp, f.state));
   const ranked = shownRank(() => rankFor(H, s, 0, tiered(H) ? { pen: held.pen, isa: held.isa } : null, H.actions.length));
+  // where the two people's ladders differ, a move differs in a part for a person where its household parts differ (each
+  // person takes the household's tier by name), and each skip's value is the person's own (personParts with cp)
+  const hParts = ai => partsOf(H.actions[ai], { tierPen: H.actions[ai].tierPen || 0, tierIsa: H.actions[ai].tierIsa || 0 });
   const level0 = j0.spendLevel !== undefined ? j0.spendLevel : 1;
   if (level0 !== 1) {
     const alt = ranked.find(ai => lvl(ai) !== level0);
     list.push({ who: 'household', part: 'level', value: level0, joint: alt === undefined ? null : { ...j0, spendLevel: lvl(alt) } });
   }
   for (const who of WHO) {
-    const p0 = personParts(j0, who);
+    const p0 = personParts(j0, who, cp), c0 = cp.tierMap ? hParts(j0.ia) : p0;
     for (const part of PERSON_SKIPS) {
       const taken = part === 'draw' ? p0.draw !== 'none' : part === 'harvest' ? p0.harvest !== null : p0[part] > 0;
       if (!taken) continue;
-      const alt = ranked.find(ai => { const p = partsOf(H.actions[ai], { tierPen: H.actions[ai].tierPen || 0, tierIsa: H.actions[ai].tierIsa || 0 }); return part === 'draw' ? p.draw !== p0.draw : p[part] !== p0[part]; });
+      const alt = ranked.find(ai => { const p = hParts(ai); return part === 'draw' ? p.draw !== c0.draw : p[part] !== c0[part]; });
       list.push({ who, part, value: p0[part], joint: alt === undefined ? null : withPersonMove(cp, j0, who, alt) });
     }
   }
@@ -297,9 +310,9 @@ export function coupleActionsOf(E, cp, plan, { seed = 12345, n = 1000, base = nu
     const sv = runs.survived[j];
     let saved = 0, lost = 0;
     for (let k = 0; k < n; k++) { if (planRuns[k].survived && !sv[k]) lost++; else if (!planRuns[k].survived && sv[k]) saved++; }
-    return { who: x.who, part: x.part, value: x.value, skip: { parts: jointParts(x.joint) }, cost: (100 * (lost - saved)) / n, lost, saved, n };
+    return { who: x.who, part: x.part, value: x.value, skip: { parts: jointParts(x.joint, cp) }, cost: (100 * (lost - saved)) / n, lost, saved, n };
   });
-  return { couple: true, move: { parts: jointParts(f.joint) }, actions, retired: retireYearOf(f.sc) === 0, sweep: firstSweep(E, f.sc) };
+  return { couple: true, move: { parts: jointParts(f.joint, cp) }, actions, retired: retireYearOf(f.sc) === 0, sweep: firstSweep(E, f.sc) };
 }
 /* the next years for a couple: each year's joint move taken apart on the median path of the runs given (a single's aheadOf) */
 export function coupleAheadOf(E, cp, plan, runs, { years = 10 } = {}) {
@@ -307,7 +320,7 @@ export function coupleAheadOf(E, cp, plan, runs, { years = 10 } = {}) {
   const order = runs.solved.map((r, k) => [r.terminalPot, k]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   const k = order[Math.min(n - 1, Math.floor(n * 0.5))][1];
   const zs = E.pathsForSeed(runs.seed, k + 1, sc.totalYears)[k], rows = [];
-  const ctx = { ...sc, policyOverride: { ...base, choose(st, t) { const j = shown.choose(st, t); if (t < years) rows.push({ t, age: sc.ageSelf0 + t, year: sc.baseYear + t, parts: jointParts(j) }); return j; } } };
+  const ctx = { ...sc, policyOverride: { ...base, choose(st, t) { const j = shown.choose(st, t); if (t < years) rows.push({ t, age: sc.ageSelf0 + t, year: sc.baseYear + t, parts: jointParts(j, cp) }); return j; } } };
   const state = E.freshState(ctx), zPath = zs.length > sc.totalYears + 1 ? zs[sc.totalYears + 1] : 0;
   for (let t = 0; t < Math.min(years, sc.totalYears + 1); t++) {
     const row = E.stepYear(ctx, state, t, { z: zs[t], zPath });
@@ -322,7 +335,7 @@ export function coupleAheadOf(E, cp, plan, runs, { years = 10 } = {}) {
 /* one market's run of the solved couple year by year, each year's joint move taken apart (a single's rowsOf) */
 export function coupleRowsOf(E, cp, market) {
   const sc = solvedContext(E, cp), base = sc.policyOverride, moves = [], shown = shownOf(base);
-  const ctx = { ...sc, policyOverride: { ...base, choose(st, t) { const j = shown.choose(st, t); moves[t] = j ? jointParts(j) : null; return j; } } };
+  const ctx = { ...sc, policyOverride: { ...base, choose(st, t) { const j = shown.choose(st, t); moves[t] = j ? jointParts(j, cp) : null; return j; } } };
   const state = E.freshState(ctx), rows = [];
   for (let t = 0; t <= ctx.totalYears; t++) rows.push(E.stepYear(ctx, state, t, market));
   return { couple: true, rows, parts: rows.map((_, t) => moves[t] || null), verdict: E.evaluateRows(ctx, rows) };

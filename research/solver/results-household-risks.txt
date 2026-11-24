@@ -1,0 +1,14 @@
+COUPLES-ANY.md A, its amendment 1 (24 Nov, the full tier): node research/tests/household-risks.test.mjs, then --planted; code id 43b1dc88901b
+PASS  1. the moves: random household moves on the library's couples with their risks planted apart, each person at their own index: every person's tier the household's by name and one of their own ladder's, the engine and the exact model's year in step to a penny  -- 72 runs, 2988 household-years; tiers not the household's by name 0, outside the person's ladder 0; the largest gap £3.73e-9
+PASS  2. the first year's switch: the household holding its own tiers in plan year 0, the riskier person's wrapper moves onto the household's tier and is charged, the cautious person's holds; the risks alike (each couple as entered), no map and nothing charged  -- 24 couples with their risks apart: the riskier moved 40, the cautious held 40, charged where their pot was above £1,000 24 of 24; as entered 8, a map or a charge on 0
+PASS  3. the app's route: the page's cut taking the shapes, the household's table solved, the household assembled with its tier map, the engine under its own policy accepting every move, each person's tier the household's by name, the engine and the model in step; the household plan's risks the cautious and the larger holding's; with the partner's own ceilings, the household's the stricter and no person ever riskier than their own ceiling or locked risk  -- 4 households, 80 paths, 2640 decisions; tiers not the household's by name 0; the largest gap in step £4.66e-10; wrappers apart 7; tiers riskier than a person's ceiling or locked risk 0
+PASS  4. identity: the risks alike, every couple's ladders (as entered and mirrored, two and three steps below) the code before's and every household plan taking A's shapes the one built without them, byte for byte; the risks apart, every person's ladder beginning with the code before's, and the app's own rules and today's two-table route the code before's on every path  -- 840 ladder sets, 0 differing; 420 household plans, 0 differing; the risks apart, 384 ladders, 0 not beginning with the code before's; the app's own rules on 80 paths of 4 couples apart, 0 couples differing; today's two-table route on 2 couples apart (both tables and 20 paths), 0 differing
+ALL PASS: 4 checks
+
+plant 'noladderadd': the checks that fail: 1, 2, 3; wanted 1, 2, 3: yes
+plant 'tierindex': the checks that fail: 1, 2, 3; wanted 1, 2, 3: yes
+plant 'nofirstswitch': the checks that fail: 1, 2, 3; wanted 1, 2, 3: yes
+plant 'ceilfirst': the checks that fail: 3; wanted 3: yes
+plant 'riskfirst': the checks that fail: 1, 2, 3; wanted 1, 2, 3: yes
+plant 'ladderinsert': the checks that fail: 4; wanted 4: yes
+PLANTED: EACH PLANT FAILS EXACTLY ITS OWN CHECKS

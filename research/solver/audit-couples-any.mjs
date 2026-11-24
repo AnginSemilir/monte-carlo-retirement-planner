@@ -18,6 +18,15 @@
  *   node research/solver/audit-couples-any.mjs rehearsal part k/n    the dress rehearsal (seed 7002, CA_N paths, 4,000 unless set)
  *   node research/solver/audit-couples-any.mjs --planted             the checks on planted inputs
  *   CA_PTS the points (a smoke only); CA_N the paths; CA_ONLY a comma list of unit ids; CA_OUT the folder
+ * THE REGISTERED TEST (COUPLES-ANY.md, the test; registrations/couples-any.md), on the registered panel (REG=1,
+ * couples-any-registered-panel.json: W, R, L and P on four couples no run has used, N left out):
+ *   REG=1 node research/solver/audit-couples-any.mjs pilot part k/n       the pilot: every unit, seed 7002, PILOT_N paths
+ *                                                                         (EXPLORATORY: the preflight, each unit's discordance
+ *                                                                         for the paths, the budget)
+ *   REG=1 node research/solver/audit-couples-any.mjs registered part k/n  the registered run: seed HELD, couples-any-paths.json's
+ *                                                                         paths, only under the registration through the
+ *                                                                         launcher, on the code the panel was landed on, none of
+ *                                                                         the smoke's limits and no other panel or landing
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -40,6 +49,13 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), REPO = join(HERE, '../..');
 export const SEED = 7002, W = 0.02, CHECK = 200, WARM = 3, CHUNK = 1000, N_DEFAULT = 4000;
+export const HELD = 7027, PILOT_N = 1000, REG = process.env.REG === '1';
+export const REGISTRATION = 'research/solver/registrations/couples-any.md';
+export const PATHS_FILE = join(HERE, 'couples-any-paths.json');
+/* the settings a registered run refuses: a panel or landing other than the registered one, which would change the units while
+   the stamp stayed, and any of the smoke's limits (as audit-couples-open.mjs's, its design review's MINOR 7) */
+export const REGISTERED_REFUSES = ['COUPLES_ANY_PANEL', 'COUPLES_ANY_LAND_OUT', 'CA_PTS', 'CA_N', 'CA_ONLY', 'CA_OUT'];
+export const registeredEnvProblems = env => REGISTERED_REFUSES.filter(k => env[k] !== undefined && env[k] !== '');
 export const ARMS = ['APP', 'ROUTE'];
 export const ROUTE_CTX = 'solvedContext';
 /* a context's MPAA ages, the first person's then the partner's (the engine's owners) */
@@ -54,7 +70,9 @@ export const CONFIG = Object.freeze({
 export const configOf = arm => hashOf(CONFIG[arm]);
 export const KEYS = { survived: Uint8Array, failYear: Int16Array, pot: Float64Array, estate: Float64Array, tax: Float64Array, delivered: Float64Array, unmet: Float64Array };
 export const STAMP_ROOTS = ['research/solver/audit-couples-any.mjs', 'research/solver/reduce-couples-any.mjs', 'research/solver/couples-any-panel.mjs', 'research/solver/batch-couples-any.sh'];
-export const STAMP_DATA = ['research/solver/couples-any-panel.json'];
+export const STAMP_DATA = REG
+  ? ['research/solver/couples-any-registered-panel.json', 'research/solver/couples-any-orders.json', 'research/solver/couples-any-paths.json']
+  : ['research/solver/couples-any-panel.json'];
 export function stampFiles(root = REPO) {
   const code = new Set(codeFiles(root)), seen = new Set(STAMP_ROOTS), queue = [...STAMP_ROOTS], out = [...STAMP_ROOTS];
   while (queue.length) {
@@ -106,7 +124,9 @@ function planted() {
     cases.push(['the stamp holds the panel, its scripts, the app\'s route and the guard, and none of the code\'s own', `${need.every(x => f.includes(x))} ${f.some(x => x === 'research/engine.mjs' || x.startsWith('src/solver/'))}`, 'true false']); }
   // the panel: 144 units, each class's count, each unit once, N's not landed and every other landed
   { const by = k => panel.filter(u => u.cls === k).length;
-    cases.push(['the panel: 144 units, W 24, R 96, L 8, P 8, N 8, each once', `${panel.length} ${['W', 'R', 'L', 'P', 'N'].map(by).join(' ')} ${new Set(panel.map(u => u.id)).size}`, '144 24 96 8 8 8 144']); }
+    cases.push([REG ? 'the registered panel: 136 units, W 24, R 96, L 8, P 8, no N, each once' : 'the panel: 144 units, W 24, R 96, L 8, P 8, N 8, each once', `${panel.length} ${['W', 'R', 'L', 'P', 'N'].map(by).join(' ')} ${new Set(panel.map(u => u.id)).size}`, REG ? '136 24 96 8 8 0 136' : '144 24 96 8 8 8 144']); }
+  cases.push(['the registered run refuses another panel, another landing and every limit, and takes a clean setting', `${registeredEnvProblems({ COUPLES_ANY_PANEL: 'x', CA_N: '5' }).join(',')} | ${registeredEnvProblems({ COUPLES_ANY_LAND_OUT: 'y', CA_PTS: '4', CA_ONLY: 'a', CA_OUT: 'z' }).join(',')} | ${registeredEnvProblems({ REG: '1', CA_N: '' }).join(',')}`, 'COUPLES_ANY_PANEL,CA_N | COUPLES_ANY_LAND_OUT,CA_PTS,CA_ONLY,CA_OUT | ']);
+  cases.push([`the stamp's data files${REG ? ': the registered panel, its order and its paths' : ': the rehearsal\'s panel'}`, STAMP_DATA.map(f => f.replace('research/solver/', '')).join(','), REG ? 'couples-any-registered-panel.json,couples-any-orders.json,couples-any-paths.json' : 'couples-any-panel.json']);
   // a unit's checks before any solve: a clean unit, then each planted fault
   { const U = panel.find(u => u.cls === 'R') || panel[0], sh = shapeOfUnit(U.plan, U.variant);
     cases.push([`${U.id}: a clean unit, no problem`, unitProblems(U, U.label, sh).join('; '), '']);
@@ -118,7 +138,7 @@ function planted() {
     cases.push([`${U.id}: a W unit the guard keeps off`, unitProblems(U, U.label, { ...sh, guard: { on: false, why: 'shape', route: null } }).join('; '), 'the guard off (shape)']); }
   // ROUTE solved at light settings on one unit of each of R, P and N: every shape named, the household on its route, the tier
   // map where R's two ladders differ and none where they are alike
-  for (const cls of ['R', 'P', 'N']) {
+  for (const cls of REG ? ['R', 'P'] : ['R', 'P', 'N']) {
     const U = panel.find(u => u.cls === cls), { hp } = anySolverPlanOf(U.plan), R = solveRoute(hp, { pts: 4, light: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } });
     cases.push([`${U.id}: ROUTE solves a household, the tier map ${cls === 'R' ? 'in use' : 'none'}`, `${!!R.cp.household} ${R.tierMap}`, `true ${cls === 'R'}`]);
   }
@@ -133,19 +153,28 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (args[0] === '--planted') process.exit(planted() ? 1 : 0);
   const panel = readAnyPanel();
   if (args[0] === '--units') { panel.forEach((u, k) => console.log(`${k} ${u.id}`)); console.log(panel.length); process.exit(0); }
-  const MODE = args[0];
-  if (MODE !== 'rehearsal') { console.error('audit-couples-any: rehearsal part k/n'); process.exit(2); }
+  const MODE = args[0], REGISTERED = MODE === 'registered', PILOT = MODE === 'pilot';
+  if (!['rehearsal', 'pilot', 'registered'].includes(MODE)) { console.error('audit-couples-any: rehearsal, pilot or registered part k/n'); process.exit(2); }
+  // the pilot and the registered run read the registered panel; the dress rehearsal its own
+  if ((REGISTERED || PILOT) !== REG) { console.error(`audit-couples-any: ${MODE} runs ${REGISTERED || PILOT ? 'with' : 'without'} REG=1`); process.exit(2); }
+  if (REGISTERED && registeredEnvProblems(process.env).length) { console.error(`audit-couples-any: the registered run takes no other panel, landing or limit (${registeredEnvProblems(process.env).join(', ')} set)`); process.exit(2); }
+  if (REGISTERED && process.env.PREDICTION_FILE !== REGISTRATION) { console.error(`audit-couples-any: the registered run runs only under ${REGISTRATION}, through the launcher (PREDICTION_FILE ${process.env.PREDICTION_FILE || 'unset'})`); process.exit(2); }
+  // the registered run only on the code the panel was landed on: a change of code means landing again, a new pilot and review
+  if (REGISTERED) { const pc = JSON.parse(readFileSync(join(HERE, 'couples-any-registered-panel.json'), 'utf8')).code, cc = codeId(); if (!cc || cc.hash !== pc) { console.error(`audit-couples-any: the code ${cc ? cc.hash : 'unknown'} is not the code the panel was landed on (${pc})`); process.exit(2); } }
+  const reg = REGISTERED ? JSON.parse(readFileSync(PATHS_FILE, 'utf8')) : null;
   const only = process.env.CA_ONLY ? new Set(process.env.CA_ONLY.split(',')) : null, units = panel.filter(u => !only || only.has(u.id));
   const at = args.indexOf('part'), [pk, pn] = at >= 0 ? args[at + 1].split('/').map(Number) : [NaN, NaN];
   if (!(pn === units.length && pk >= 0 && pk < pn)) { console.error(`audit-couples-any: part k/${units.length}`); process.exit(2); }
-  const pts = Number(process.env.CA_PTS) || APP_POINTS, U = units[pk], seed = SEED, n = Number(process.env.CA_N) || N_DEFAULT;
+  const pts = Number(process.env.CA_PTS) || APP_POINTS, U = units[pk], seed = REGISTERED ? HELD : SEED;
+  const n = REGISTERED ? reg.N : Number(process.env.CA_N) || (PILOT ? PILOT_N : N_DEFAULT);
+  if (REGISTERED && !(Number.isInteger(n) && n > 0)) { console.error(`audit-couples-any: ${PATHS_FILE} gives no paths`); process.exit(2); }
   const smoke = pts !== APP_POINTS, light = smoke && pts <= 6 ? { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } : null;
-  const OUT = process.env.CA_OUT || join(HERE, 'results', 'couples-any-7002');
+  const OUT = process.env.CA_OUT || join(HERE, 'results', REGISTERED ? 'couples-any-run' : PILOT ? 'couples-any-pilot' : 'couples-any-7002');
   mkdirSync(join(OUT, 'parts'), { recursive: true });
   const cid = codeId(), STAMP = { code: cid ? cid.hash : 'unknown', audit: stampFilesHash(), prediction: process.env.PREDICTION_FILE || 'NOT-LAUNCHED', sha: process.env.PREDICTION_SHA || '-', node: process.version };
   console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);   // fair-gate.mjs LOG_STAMP
   const PROC = `${hostname()}:${process.pid}:${Date.now()}`, t0 = Date.now(), order = orderOf(pk);
-  console.log(`EVERY COUPLE ON THE SOLVER (THE DRESS REHEARSAL, EXPLORATORY): unit ${pk}/${pn}: ${U.id} (class ${U.cls}, ${U.cohort}), target ${U.target}, seed ${seed}, ${n} paths, ${pts} points, estate weight ${W}; configs ${ARMS.map(x => `${x} ${configOf(x)}`).join(', ')}`);
+  console.log(`EVERY COUPLE ON THE SOLVER (${REGISTERED ? 'THE REGISTERED TEST' : PILOT ? 'THE REGISTERED TEST\'S PILOT, EXPLORATORY' : 'THE DRESS REHEARSAL, EXPLORATORY'}): unit ${pk}/${pn}: ${U.id} (class ${U.cls}, ${U.cohort}), target ${U.target}, seed ${seed}, ${n} paths, ${pts} points, estate weight ${W}; configs ${ARMS.map(x => `${x} ${configOf(x)}`).join(', ')}`);
   const { a, hp } = anySolverPlanOf(U.plan), shape = shapeOfUnit(U.plan, U.variant);
   const before = unitProblems(U, a.label, shape);
   if (before.length) { console.error(`audit-couples-any: ${U.id}: ${before.join('; ')}`); process.exit(3); }

@@ -11,6 +11,24 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (24 Nov, evening), for your word: whether C opens, and the classic planner.**
+- **C, nobody retiring within the plan** (`COUPLES-ANY.md` amendment 2). The dress rehearsal (EXPLORATORY,
+  `results-couples-any.txt`, its N lines; `reports/2026-11-24-couples-any-rehearsal-read.md`) passed W, R, L and P and
+  reported N's eight units. Both arms survive every path there, so no rule can read C, registered or not.
+  - **Its exactness:** the household's salary and contributions are the couple's two added, in every year, to a penny
+    (`household-salaries.test.mjs` check 4).
+  - **What N's units show** (`results-couples-any-beside.txt`, N's lines): ROUTE's capped pot is higher on all eight. On
+    the younger cohort's four, ROUTE pays far more lifetime tax for a small gain in the capped pot. Why is not shown.
+  - **The choice:** C opens by inference from its exactness, or not at all (such a couple keeps today's handling).
+  - **The agent's recommendation:** open C by inference, with its own change of default after the registered read. Before
+    that, one short trace, EXPLORATORY on the rehearsal's own units, of why the younger cohort's tax rises so far: it shows
+    on W's units too, which the app takes by default since D146.
+- **The classic planner.** Put to you in chat on 24 Nov. The agent's recommendation is to retire it now, unless you want the
+  tournament pages or the one-deploy rollback, which only it gives.
+  - **Done as one change:** its screens and its 9 checks go; the gate's 6 shared checks move into the one remaining mode;
+    the merge rule in CLAUDE.md and `run-all.sh` follows.
+  - **Your word needed:** the last two are protected, so they need "unlock enforcement".
+
 **OPEN (23 Nov, night), for your word only where you want it otherwise: every couple on the solver, the rest of the way
 (D145 (3), `COUPLES-ANY.md`).**
 - **The plan,** written before any of it is built: the household plan takes the shapes it still refuses.

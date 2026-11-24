@@ -26,6 +26,10 @@
  * put together, each unit's line in the panel's order under part 0's header and one count:
  *   node research/solver/couples-any-port-identity.mjs --combine part0.txt part1.txt ... > research/solver/results-couples-any-port-identity.txt
  * which refuses parts that miss a unit or hold one twice, a part whose own count disagrees with its lines, or no header.
+ * THE REGISTERED TEST (REG=1): the same on the registered run's W units (results/couples-any-run, seed 7027, every path the run
+ * ran), after the run and before its read, which reads W only with it (reduce-couples-any.mjs, its file naming the run's stamp):
+ *   REG=1 CAI_PART=k/n node research/solver/couples-any-port-identity.mjs > part; then --combine as above
+ *     > research/solver/results-couples-any-registered-port-identity.txt
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -40,7 +44,7 @@ import { solvedContext } from '../../src/solverStrategy.js';
 import { APP_COUPLE, appJoint, APP_POINTS } from '../../src/solverSettings.js';
 import { coupleSolverOn } from '../../src/couplesSwitch.js';
 import { tablesOf, digestOf } from '../../src/solverDigest.js';
-import { readAnyPanel, anySolverPlanOf } from './couples-any-panel.mjs';
+import { readAnyPanel, anySolverPlanOf, REG } from './couples-any-panel.mjs';
 import { runPath } from './audit-phase4.mjs';
 import { KEYS } from './audit-couples-any.mjs';
 import { codeId } from './code-id.mjs';
@@ -109,8 +113,8 @@ if (process.argv[2] === '--combine') {
   console.log(c.text);
   process.exit(c.same === c.n ? 0 : 1);
 }
-const DIR = process.env.CAI_DIR || join(HERE, 'results', 'couples-any-7002'), only = process.argv.slice(2);
-if (!existsSync(DIR)) { console.error(`couples-any-port-identity: the dress rehearsal is not here (${DIR})`); process.exit(2); }
+const DIR = process.env.CAI_DIR || join(HERE, 'results', REG ? 'couples-any-run' : 'couples-any-7002'), only = process.argv.slice(2);
+if (!existsSync(DIR)) { console.error(`couples-any-port-identity: ${REG ? 'the registered run' : 'the dress rehearsal'} is not here (${DIR})`); process.exit(2); }
 const SMOKE = process.env.CAI_SMOKE === '1', joint = appJoint(), FORM = APP_COUPLE.household;
 const SOLVE = SMOKE ? { points: 6, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } } : { points: APP_POINTS };
 const js = x => JSON.stringify(x);
@@ -120,8 +124,8 @@ const all = readAnyPanel().filter(u => u.cls === 'W' && existsSync(join(DIR, `${
 const units = all.filter((u, i) => i % partN === partK);
 const read = U => JSON.parse(gunzipSync(readFileSync(join(DIR, `${U.id}.json.gz`))).toString());
 const stamps = new Set(all.map(u => { const s = read(u).stamp; return `code ${s.code} audit ${s.audit}`; }));
-if (stamps.size !== 1) { console.error(`couples-any-port-identity: the rehearsal's W units are on ${stamps.size} stamps`); process.exit(2); }
-if (partK === 0) console.log(`EVERY COUPLE ON THE SOLVER, W'S IDENTITY (EXPLORATORY${SMOKE ? ', A SMOKE: 6 points on a small lattice' : ''}): the app's route for a couple with one of step 4's shapes, on the dress rehearsal's ${all.length} W units (seed 7002), stamp ${[...stamps][0]}, against its ROUTE arrays; this code ${(codeId() || {}).hash || 'unknown'}; the couples' form ${FORM}, the app's shapes ${APP_COUPLE.takeShapes.join(', ')}`);
+if (stamps.size !== 1) { console.error(`couples-any-port-identity: ${REG ? 'the registered run\'s' : 'the rehearsal\'s'} W units are on ${stamps.size} stamps`); process.exit(2); }
+if (partK === 0) console.log(`EVERY COUPLE ON THE SOLVER, W'S IDENTITY (${REG ? 'THE REGISTERED TEST' : 'EXPLORATORY'}${SMOKE ? ', A SMOKE: 6 points on a small lattice' : ''}): the app's route for a couple with one of step 4's shapes, on ${REG ? 'the registered run\'s' : 'the dress rehearsal\'s'} ${all.length} W units (seed ${REG ? 7027 : 7002}), stamp ${[...stamps][0]}, against its ROUTE arrays; this code ${(codeId() || {}).hash || 'unknown'}; the couples' form ${FORM}, the app's shapes ${APP_COUPLE.takeShapes.join(', ')}`);
 let identical = 0;
 for (const U of units) {
   const P = read(U), want = Object.fromEntries(Object.entries(KEYS).map(([k, Ty]) => [k, dec(P.arms.ROUTE[k], Ty)]));

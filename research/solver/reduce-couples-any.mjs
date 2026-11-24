@@ -24,6 +24,15 @@
  *   node research/solver/reduce-couples-any.mjs [dir] > research/solver/results-couples-any-rehearsal.txt
  *   node research/solver/reduce-couples-any.mjs --smoke [dir]     a smoke's gate and the rule's run, no figure printed
  *   node research/solver/reduce-couples-any.mjs --planted
+ * THE REGISTERED TEST (registrations/couples-any.md; REG=1, the registered panel: W, R, L and P on four couples no run has
+ * used): the stamps against the registration's git blob (requireFairLogs), the same gate at seed HELD and couples-any-paths.json's
+ * paths, the same rule, W read only with its identity on the registered run (results-couples-any-registered-port-identity.txt,
+ * naming the run's stamp); its outcomes the registration's: a class passing opens by its own change of default (the reviewer and
+ * B1's gate), W passing stays on by default (D146); a class failing keeps today's handling and goes to the maintainer with its
+ * units, W at once:
+ *   REG=1 node research/solver/reduce-couples-any.mjs --pilot [dir]       the pilot's gate alone (EXPLORATORY), no figure printed
+ *   REG=1 node research/solver/reduce-couples-any.mjs --registered [dir] > research/solver/results-couples-any-registered.txt
+ *     read once, by its rule, after the identity
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -33,13 +42,13 @@ import { keptSpend } from './reduce-household-hsp.mjs';
 import { cells } from './reduce-household.mjs';
 import { requireFairLogs } from './fair-gate.mjs';
 import { loadDir, compareClass, m1ByUnit, allSpendOf } from './reduce-couples-open.mjs';
-import { ARMS, KEYS, SEED, W, N_DEFAULT, ROUTE_CTX, configOf, stampFilesHash } from './audit-couples-any.mjs';
+import { ARMS, KEYS, SEED, W, N_DEFAULT, ROUTE_CTX, configOf, stampFilesHash, HELD, PILOT_N, REGISTRATION, PATHS_FILE } from './audit-couples-any.mjs';
 import { READ_CLASSES, VARIANTS, R_KINDS, unitProblems as panelProblems } from './couples-any-panel.mjs';
 import { APP_POINTS } from '../../src/solverSettings.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const POOL_BAR = 0, SPEND_BAR = -0.05;
-export const IDENTITY_FILE = join(HERE, 'results-couples-any-port-identity.txt');
+export const IDENTITY_FILE = join(HERE, process.env.REG === '1' ? 'results-couples-any-registered-port-identity.txt' : 'results-couples-any-port-identity.txt');
 const f3 = x => (x >= 0 ? '+' : '') + x.toFixed(3), f4 = x => (x >= 0 ? '+' : '') + x.toFixed(4);
 const gbp = x => `${x < 0 ? '-' : ''}£${Math.abs(Math.round(x)).toLocaleString('en-GB')}`;
 const iv = (r, f = f3) => `${f(r.d)} (${f(r.lo)} to ${f(r.hi)})`;
@@ -138,7 +147,7 @@ export function rParts(units) {
   }
   return out;
 }
-export function report(units, { identity = { ok: true, why: null } } = {}) {
+export function report(units, { identity = { ok: true, why: null }, registered = false } = {}) {
   const R = rule(units, identity), out = [];
   for (const [k, r] of Object.entries(R)) {
     const p = r.parts;
@@ -148,7 +157,7 @@ export function report(units, { identity = { ok: true, why: null } } = {}) {
       out.push(`  2. a gain: pooled survival ${iv(r.C.pooled)} points, by path, its lower end above ${POOL_BAR}: ${p.gain ? 'HOLDS' : 'FAILS'}`);
       out.push(`  3. spending on the paths both keep ${iv(r.C.kept, f4)}%, the units weighted equally, not below ${SPEND_BAR}%: ${p.spend ? 'HOLDS' : 'FAILS'}`);
       out.push(`     beside, not a bar: spending over all paths ${iv(r.C.all, f4)}%, the units weighted equally`);
-      if (k === 'W') out.push(`     the page's route held to the audit's on its ${r.C.rows.length} units path for path (results-couples-any-port-identity.txt)`);
+      if (k === 'W') out.push(`     the page's route held to the audit's on its ${r.C.rows.length} units path for path (${IDENTITY_FILE.replace(/.*\//, '')})`);
     }
     for (const row of r.C.rows) out.push(`    ${unitLine(units.find(x => x.id === row.id))}; the threshold ${row.j} paths${row.flag ? ' FLAGGED' : ''}`);
     if (k === 'R') { out.push('  beside, not a bar: R by its parts'); out.push(...rParts(units)); }
@@ -164,7 +173,13 @@ export function report(units, { identity = { ok: true, why: null } } = {}) {
   out.push(`M1 by unit (D116; named, not a bar): ${m1.length ? m1.map(x => `${x.id} (${x.net} paths kept net; spending on the paths both keep ${iv(x.kept, f4)}%, over all paths ${f3(x.all)}%; the pot capped ${x.cap ? `${f3(x.cap.pct)}% (${gbp(x.cap.gbp)} a path)` : 'no cap'})`).join('; ') : 'none: no unit keeps more paths and spends less on the paths both keep beyond noise'}`);
   const pass = Object.entries(R).filter(([, r]) => r.outcome === 'PASSES').map(([k]) => k), fail = Object.entries(R).filter(([, r]) => r.outcome === 'FAILS').map(([k]) => k), unread = Object.entries(R).filter(([, r]) => r.outcome === 'NOT READ').map(([k]) => k);
   const and = a => (a.length > 1 ? `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}` : a[0]);
-  out.push(`OUTCOME: ${pass.length ? `${and(pass)} ${pass.length > 1 ? 'pass and go' : 'passes and goes'} to the registered test` : 'no class passes'}${fail.length ? `; ${and(fail)} ${fail.length > 1 ? 'do' : 'does'} not, and ${fail.length > 1 ? 'go' : 'goes'} to the maintainer with ${fail.length > 1 ? 'their' : 'its'} units${fail.includes('W') ? ', W at once (on by default since D146)' : ''}` : ''}${unread.length ? `; ${and(unread)} not read (its identity not shown)` : ''}${ns.length ? '; N reported, not read' : ''} (EXPLORATORY: nothing opens on this read; the registered test reads by this rule)`);
+  // the registered read's outcomes (registrations/couples-any.md): a class passing opens by its own change of default, W passing
+  // stays on (D146); a class failing keeps today's handling and goes to the maintainer with its units, W at once
+  const opens = pass.filter(k => k !== 'W');
+  const passTxt = !pass.length ? 'no class passes' : !registered ? `${and(pass)} ${pass.length > 1 ? 'pass and go' : 'passes and goes'} to the registered test`
+    : [opens.length ? `${and(opens)} ${opens.length > 1 ? 'pass, each opening by its own' : 'passes, opening by its own'} change of default (the reviewer and B1's gate)` : null, pass.includes('W') ? 'W passes and stays on by default (D146)' : null].filter(Boolean).join('; ');
+  const failTxt = fail.length ? `; ${and(fail)} ${fail.length > 1 ? 'do' : 'does'} not, ${registered ? `${fail.length > 1 ? 'keep' : 'keeps'} today's handling (today's route inside the guard before D143, the app's rules outside it) and ` : 'and '}${fail.length > 1 ? 'go' : 'goes'} to the maintainer with ${fail.length > 1 ? 'their' : 'its'} units${fail.includes('W') ? ', W at once (on by default since D146)' : ''}` : '';
+  out.push(`OUTCOME: ${passTxt}${failTxt}${unread.length ? `; ${and(unread)} not read (its identity not shown)` : ''}${ns.length ? '; N reported, not read' : ''}${registered ? ` (the registered read: ${REGISTRATION})` : ' (EXPLORATORY: nothing opens on this read; the registered test reads by this rule)'}`);
   const t = u => (u.arms.ROUTE.cpuUs / u.N / 1e3), ta = u => (u.arms.APP.cpuUs / u.N / 1e3);
   out.push(`beside: a path's CPU, APP the median ${median(units.map(ta)).toFixed(1)} ms, ROUTE ${median(units.map(t)).toFixed(1)} ms; ROUTE's solve the median ${median(units.map(u => u.arms.ROUTE.solveSecs)).toFixed(0)} s`);
   return { R, out };
@@ -204,6 +219,13 @@ function planted() {
     cases.push(['W passing and R failing: R to the maintainer, W to the registered test', /^OUTCOME: W passes and goes to the registered test; R does not, and goes to the maintainer with its units \(/.test(r) ? 'as said' : r, 'as said']); }
   { const r = report([unit('w', 0, 'W', base, harm), unit('r', 1, 'R', base, gain)]).out.find(l => l.startsWith('OUTCOME'));
     cases.push(['W failing goes to the maintainer at once', /W does not, and goes to the maintainer with its units, W at once/.test(r) ? 'at once' : r, 'at once']); }
+  // the registered read's outcomes (registrations/couples-any.md): opening by a change of default, W staying on, a failing class
+  // keeping today's handling, W failing at once
+  { const r1 = report([unit('w', 0, 'W', base, gain), unit('r', 1, 'R', base, gain), unit('l', 2, 'L', base, gain)], { registered: true }).out.find(l => l.startsWith('OUTCOME'));
+    const r2 = report([unit('w', 0, 'W', base, harm), unit('p', 1, 'P', base, gain)], { registered: true }).out.find(l => l.startsWith('OUTCOME'));
+    const ok1 = r1 === 'OUTCOME: R and L pass, each opening by its own change of default (the reviewer and B1\'s gate); W passes and stays on by default (D146) (the registered read: research/solver/registrations/couples-any.md)';
+    const ok2 = /^OUTCOME: P passes, opening by its own change of default \(the reviewer and B1's gate\); W does not, keeps today's handling \(today's route inside the guard before D143, the app's rules outside it\) and goes to the maintainer with its units, W at once \(on by default since D146\) \(the registered read: /.test(r2);
+    cases.push(['the registered read\'s outcomes: R and L open, W stays on; W failing keeps today\'s handling and goes at once', `${ok1} ${ok2}`, 'true true']); }
   // W's identity: read with it, not read without it, nor on another run's, nor with a unit not identical
   { const us = [unit('w1', 0, 'W', base, gain), unit('w2', 1, 'W', base, gain)], head = 'EVERY COUPLE ON THE SOLVER, W\'S IDENTITY (EXPLORATORY): the rehearsal\'s units, stamp code c audit a';
     const good = `${head}\nw1         IDENTICAL; ...\nw2         IDENTICAL; ...\n2 of 2 units IDENTICAL\n`;
@@ -260,22 +282,29 @@ function planted() {
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
   if (args.includes('--planted')) process.exit(planted() ? 1 : 0);
-  const DIR = args.find(a => !a.startsWith('--')) || join(HERE, 'results', `couples-any-${SEED}`);
+  const PILOT = args.includes('--pilot'), REGISTERED = args.includes('--registered');
+  // the pilot and the registered read take the registered panel (REG=1, so the stamp's data files are its)
+  if ((PILOT || REGISTERED) !== (process.env.REG === '1')) { console.error(`reduce-couples-any: ${PILOT ? '--pilot' : REGISTERED ? '--registered' : 'the dress rehearsal'} reads ${PILOT || REGISTERED ? 'with' : 'without'} REG=1`); process.exit(2); }
+  const seed = REGISTERED ? HELD : SEED;
+  const DIR = args.find(a => !a.startsWith('--')) || join(HERE, 'results', REGISTERED ? 'couples-any-run' : PILOT ? 'couples-any-pilot' : `couples-any-${SEED}`);
   if (!existsSync(DIR)) { console.error(`reduce-couples-any: no ${DIR}`); process.exit(2); }
   const { readAnyPanel } = await import('./couples-any-panel.mjs');
   const panel = readAnyPanel().map(u => ({ id: u.id, cls: u.cls, variant: u.variant, kind: u.kind, hold: u.hold }));
   const smoke = args.includes('--smoke'), units = loadDir(DIR).sort((a, b) => a.k - b.k);
   const want = smoke ? panel.filter(w => units.some(u => u.id === w.id)) : panel;
   const logs = Object.fromEntries(readdirSync(DIR).filter(x => /^case\d+\.txt$/.test(x)).map(x => [x, readFileSync(join(DIR, x), 'utf8')]));
-  console.log(`EVERY COUPLE ON THE SOLVER, THE DRESS REHEARSAL (EXPLORATORY; COUPLES-ANY.md amendment 2): ${units.length} units from ${DIR.replace(/.*research\/solver\//, '')}, seed ${SEED}${smoke ? ', a smoke' : ''}`);
-  if (smoke && units.some(u => u.N === N_DEFAULT && u.pts === APP_POINTS)) { console.log('a smoke at the read\'s own count of paths and points: refused (read it without --smoke)'); process.exit(1); }
-  // the fair-test gate on the launch logs (CHECKLIST 3): an exploratory run's stamped by the launcher with PREDICTION none
-  if (!smoke) requireFairLogs(Object.values(logs), 'none', { blob: () => '-' });
-  const P = gate(units, want, { audit: stampFilesHash(), logs, n: smoke ? units[0] && units[0].N : N_DEFAULT, pts: smoke ? units[0] && units[0].pts : APP_POINTS });
+  const n = REGISTERED ? JSON.parse(readFileSync(PATHS_FILE, 'utf8')).N : PILOT ? PILOT_N : N_DEFAULT;
+  console.log(`EVERY COUPLE ON THE SOLVER, ${REGISTERED ? `THE REGISTERED TEST (${REGISTRATION})` : PILOT ? 'THE REGISTERED TEST\'S PILOT (EXPLORATORY; its gate alone)' : 'THE DRESS REHEARSAL (EXPLORATORY; COUPLES-ANY.md amendment 2)'}: ${units.length} units from ${DIR.replace(/.*research\/solver\//, '')}, seed ${seed}${smoke ? ', a smoke' : ''}`);
+  if (smoke && units.some(u => u.N === n && u.pts === APP_POINTS)) { console.log('a smoke at the read\'s own count of paths and points: refused (read it without --smoke)'); process.exit(1); }
+  // the fair-test gate on the launch logs (CHECKLIST 3): under the registration every log stamped by the launcher with the
+  // registration's git blob; the dress rehearsal's with PREDICTION none; a smoke, not launched, has none; the pilot runs directly
+  if (REGISTERED && !smoke) requireFairLogs(Object.values(logs), REGISTRATION);
+  else if (!smoke && !PILOT) requireFairLogs(Object.values(logs), 'none', { blob: () => '-' });
+  const P = gate(units, want, { seed, audit: stampFilesHash(), logs, n: smoke ? units[0] && units[0].N : n, pts: smoke ? units[0] && units[0].pts : APP_POINTS });
   if (P.length) { console.log(`THE GATE: REFUSED\n  ${P.join('\n  ')}`); process.exit(1); }
   const identity = identityOf(existsSync(IDENTITY_FILE) ? readFileSync(IDENTITY_FILE, 'utf8') : null, units);
-  if (smoke) { const r = report(units, { identity }); console.log(`THE GATE: fair on the smoke's ${units.length} units; the rule ran (${r.out.length} lines), no figure printed`); process.exit(0); }
+  if (smoke || PILOT) { const r = report(units, { identity, registered: REGISTERED }); console.log(`THE GATE: fair on ${smoke ? 'the smoke\'s' : 'the pilot\'s'} ${units.length} units; the rule ran (${r.out.length} lines), no figure printed`); process.exit(0); }
   const u0 = units[0];
-  console.log(`THE GATE: fair; one code ${u0.stamp.code}, audit ${u0.stamp.audit}, seed ${SEED}, ${u0.N} paths, ${u0.pts} points; both arms at their configurations; each unit's record and shape the panel's; each unit's own log with its done line`);
-  console.log(report(units, { identity }).out.join('\n'));
+  console.log(`THE GATE: fair; one code ${u0.stamp.code}, audit ${u0.stamp.audit}, seed ${seed}, ${u0.N} paths, ${u0.pts} points; both arms at their configurations; each unit's record and shape the panel's; each unit's own log with its done line`);
+  console.log(report(units, { identity, registered: REGISTERED }).out.join('\n'));
 }

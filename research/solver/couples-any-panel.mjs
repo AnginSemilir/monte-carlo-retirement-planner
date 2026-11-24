@@ -24,6 +24,27 @@
  *   node research/solver/couples-any-panel.mjs combine           couples-any-panel.json from the five landings
  *   node research/solver/couples-any-panel.mjs summary > research/solver/results-couples-any-panel.txt
  *   node research/solver/couples-any-panel.mjs --planted         the checks on planted inputs
+ * THE REGISTERED TEST'S PANEL (COUPLES-ANY.md, the test; registrations/couples-any.md), with REG=1: the kinds the rule reads
+ * (N left out: both arms survive every path there, so no rule reads it, amendment 2) on couples no run has used:
+ *   node research/solver/couples-any-panel.mjs freeze               the scan and the order, taken once (couples-any-orders.json):
+ *                                                                    held-out.mjs touchedAll on the day, with the couples the tests
+ *                                                                    take by place, the household line's bases and step 8's couples;
+ *                                                                    the library's order (couples-orders.json, D4's) with the touched
+ *                                                                    left out, four taken evenly then the rest in order as reserves
+ *                                                                    (the younger cohort has none left untouched)
+ *   REG=1 node research/solver/couples-any-panel.mjs land <couple> [main|work|all]
+ *                                                                    its MAIN_KINDS (W0, R's twelve, L), its WORK_KINDS (Wg, Wc, P)
+ *                                                                    or both (all, the default where both still work), each at both
+ *                                                                    holdings, into results/couples-any-land-reg/
+ *   REG=1 node research/solver/couples-any-panel.mjs combine        couples-any-registered-panel.json by walkAny: the order walked
+ *                                                                    for four couples whose every MAIN_KINDS unit is taken; then for
+ *                                                                    each in turn the WORK_KINDS on itself where both still work
+ *                                                                    (bothWorkOf) and every unit is taken, else on the next couple in
+ *                                                                    the order, in neither list, where both work and every unit is
+ *                                                                    taken (the rehearsal's S227 in S025's place, made a rule); a
+ *                                                                    couple passed over reported with why; the walk stopping at the
+ *                                                                    first couple it needs that is not yet landed
+ *   REG=1 node research/solver/couples-any-panel.mjs summary > research/solver/results-couples-any-registered-panel.txt
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -43,6 +64,10 @@ import { coupleSolverOn, householdShapeOf } from '../../src/couplesSwitch.js';
 import { householdPlan } from '../../src/solverCouple.js';
 import { householdPlanFor, TAKE_SHAPES, RISK_SHAPES, SALARY_SHAPES } from '../../src/solver/household.js';
 import { codeId } from './code-id.mjs';
+import { touchedAll } from './held-out.mjs';
+import { byIndex, ORDERS_FILE } from './couple-panel.mjs';
+import { householdLineBases, evenly } from './household-hsp-panel.mjs';
+import { createHash } from 'node:crypto';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const FORM = 'pensionsPA';
@@ -66,8 +91,49 @@ export const ALL_COUPLES = Object.freeze([['S025', 'lib'], ['S227', 'lib'], ['S2
 export const kindsOf = cid => Object.keys(KINDS).filter(k => (KINDS[k].work ? COUPLES_WORK : COUPLES_FIXED).some(([c]) => c === cid));
 export const VARIANTS = Object.freeze(Object.fromEntries(Object.keys(KINDS).flatMap(k => HOLDS.map(h => [`${k}-${h}`, { kind: k, hold: h, ...KINDS[k] }]))));
 export const variantsOf = cid => kindsOf(cid).flatMap(k => HOLDS.map(h => `${k}-${h}`));
-export const PANEL = process.env.COUPLES_ANY_PANEL || join(HERE, 'couples-any-panel.json');
-const OUT = process.env.COUPLES_ANY_LAND_OUT || join(HERE, 'results', 'couples-any-land');
+export const REG = process.env.REG === '1', N_REG = 4;
+export const ORDERS = join(HERE, 'couples-any-orders.json');
+export const PANEL = process.env.COUPLES_ANY_PANEL || join(HERE, REG ? 'couples-any-registered-panel.json' : 'couples-any-panel.json');
+const OUT = process.env.COUPLES_ANY_LAND_OUT || join(HERE, 'results', REG ? 'couples-any-land-reg' : 'couples-any-land');
+/* the registered test's kinds: those on any couple, and those where both work (N left out: no rule reads it) */
+export const MAIN_KINDS = Object.freeze(['W0', ...Object.keys(R_KINDS), 'L']);
+export const WORK_KINDS = Object.freeze(['Wg', 'Wc', 'P']);
+export const variantsOfKinds = kinds => kinds.flatMap(k => HOLDS.map(h => `${k}-${h}`));
+/* both people still working in the library's plan: each before their own retirement age */
+export function bothWorkOf(h) {
+  const d = h.plan.demographics, a = E.num(d.currentAgeSelf, 40), b = E.num(d.currentAgePart, a);
+  return E.num(d.retireAgeSelf, a) > a && E.num(d.retireAgePart, b) > b;
+}
+/* the registered walk (lands: couple id -> landing record; works: couple id -> both still working): four couples in the order
+   whose every MAIN_KINDS unit is taken; then for each in turn the WORK_KINDS on itself where both work and every unit is taken,
+   else on the next couple in the order, in neither list, where both work and every unit is taken; those passed over with why
+   (for which list), and the first couple it needs that is not yet landed (gap), where it stops */
+export function walkAny(order, lands, works, n = N_REG) {
+  const probs = (L, kinds) => variantsOfKinds(kinds).flatMap(v => unitProblems(v, L.variants[v]).map(p => `${v}: ${p}`));
+  const main = [], work = [], passed = []; let gap = null;
+  for (const id of order) {
+    if (main.length === n) break;
+    if (!lands[id]) { gap = id; break; }
+    const bad = probs(lands[id], MAIN_KINDS);
+    if (bad.length) passed.push({ id, for: 'main', not: bad }); else main.push(id);
+  }
+  if (main.length < n) return { main, work, passed, gap };
+  const tried = new Set();
+  for (const id of main) {
+    let got = null;
+    for (const c of [id, ...order.filter(x => !main.includes(x))]) {
+      if (work.some(x => x.id === c) || tried.has(c) || !works(c)) continue;
+      if (!lands[c]) { gap = c; break; }
+      tried.add(c);
+      const bad = probs(lands[c], WORK_KINDS);
+      if (bad.length) { passed.push({ id: c, for: 'work', not: bad }); continue; }
+      got = c; break;
+    }
+    if (!got) break;
+    work.push({ for: id, id: got });
+  }
+  return { main, work, passed, gap };
+}
 export const unitIdOf = (cid, v) => `${cid}-${v}`;
 const baseOf = cid => cid.replace(/F$/, '');
 const acct = (p, id) => p.accounts.find(a => a.id === id);
@@ -171,6 +237,19 @@ function planted() {
   const off = { landed: true, shape: { ...shapeOfUnit(unitPlan(byId.S273, 'lib', 'Wg-own', 40000), 'Wg-own'), guard: { on: false, why: 'shape' } } };
   cases.push(['planted: a W unit the guard keeps off is refused', unitProblems('Wg-own', off).length > 0, unitProblems('Wg-own', off).join('; ')]);
   cases.push(['planted: an unlanded unit is refused, an unlanded N is not', unitProblems('Rp2t-own', { ...plain, landed: false }).includes('not landed') && !unitProblems('N-own', { landed: false, shape: shapeOfUnit(unitPlan(byId.S273, 'lib', 'N-own', 40000), 'N-own') }).includes('not landed'), '']);
+  // the registered walk (walkAny) on planted landings: every unit taken unless broken
+  { const WITHOUT = { growth: 'p grow at different rates', cashisa: 'p a cash ISA', year0: 'p plan year 0', risks: 'p different risks', limits: 'p own limits', salaries: 'p salaries grow', noretire: 'p nobody retires' };
+    const ok = v => ({ landed: true, shape: { withAll: null, without: WITHOUT[VARIANTS[v].shape], guard: VARIANTS[v].cls === 'W' ? { on: true, why: null, route: 'household' } : { on: false, why: 'shape', route: null } } });
+    const land = (kinds, broken) => ({ variants: Object.fromEntries(variantsOfKinds(kinds).map(v => [v, v === broken ? { ...ok(v), landed: false } : ok(v)])) });
+    const all = [...MAIN_KINDS, ...WORK_KINDS], show = w => `main ${w.main.join(',')} work ${w.work.map(x => `${x.for}:${x.id}`).join(',')} passed ${w.passed.map(x => `${x.id}/${x.for}`).join(',')} gap ${w.gap}`;
+    const W1 = walkAny(['A', 'B', 'C', 'D', 'E', 'F', 'G'], { A: land(MAIN_KINDS), B: land(MAIN_KINDS, 'Rp2s-Y75'), C: land(all), D: land(MAIN_KINDS), E: land(all), F: land(WORK_KINDS), G: land(WORK_KINDS) }, id => 'CEFG'.includes(id));
+    cases.push(['the registered walk: B passed over, the work kinds on C and E themselves and on F and G in the retired A\'s and D\'s places', show(W1) === 'main A,C,D,E work A:F,C:C,D:G,E:E passed B/main gap null', show(W1)]);
+    const W2 = walkAny(['A', 'B', 'C', 'D', 'E'], { A: land(all, 'P-own'), B: land(all), C: land(all), D: land(all), E: land(WORK_KINDS) }, () => true);
+    cases.push(['the registered walk: a working couple whose work unit is not taken gives its place to the next', show(W2) === 'main A,B,C,D work A:E,B:B,C:C,D:D passed A/work gap null', show(W2)]);
+    const W3 = walkAny(['A', 'X'], { A: land(MAIN_KINDS) }, () => false), W4 = walkAny(['A', 'B', 'C', 'D', 'Y'], { A: land(MAIN_KINDS), B: land(MAIN_KINDS), C: land(MAIN_KINDS), D: land(MAIN_KINDS) }, id => id === 'Y');
+    cases.push(['the registered walk stops at the first couple it needs not yet landed, for the four and for a place', `${show(W3)} | ${show(W4)}` === 'main A work  passed  gap X | main A,B,C,D work  passed  gap Y', `${show(W3)} | ${show(W4)}`]);
+    const kinds = `${variantsOfKinds(MAIN_KINDS).length} ${variantsOfKinds(WORK_KINDS).length} ${[...MAIN_KINDS, ...WORK_KINDS].includes('N')}`;
+    cases.push(['the registered kinds: N left out, each at both holdings', kinds === '28 6 false', kinds]); }
   let bad = 0;
   for (const [name, c, why] of cases) { console.log(`${c ? 'ok  ' : 'FAIL'} ${name}${why ? `  -- ${why}` : ''}`); if (!c) bad++; }
   console.log(bad ? `PLANTED: ${bad} failed` : `PLANTED: ALL ${cases.length} PASS`);
@@ -182,10 +261,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (mode === '--planted') process.exit(planted() ? 1 : 0);
   const byId = Object.fromEntries(couplesOf().map(h => [h.id, h]));
   if (mode === 'land') {
-    const cid = process.argv[3], c = ALL_COUPLES.find(x => x[0] === cid);
-    if (!c) { console.error(`couples-any-panel: land <one of ${ALL_COUPLES.map(x => x[0]).join(', ')}>`); process.exit(2); }
+    const cid = process.argv[3], c = REG ? (existsSync(ORDERS) && JSON.parse(readFileSync(ORDERS, 'utf8')).order.includes(cid) ? [cid, 'lib'] : null) : ALL_COUPLES.find(x => x[0] === cid);
+    if (!c) { console.error(REG ? 'couples-any-panel: REG=1 land <a couple of couples-any-orders.json> [main|work|all]' : `couples-any-panel: land <one of ${ALL_COUPLES.map(x => x[0]).join(', ')}>`); process.exit(2); }
     const cohort = c[1], h = byId[baseOf(cid)], t0 = Date.now(), variants = {};
-    for (const v of variantsOf(cid)) {
+    const which = REG ? (process.argv[4] || (bothWorkOf(h) ? 'all' : 'main')) : null;
+    if (REG && (!['main', 'work', 'all'].includes(which) || (which !== 'main' && !bothWorkOf(h)))) { console.error(`couples-any-panel: ${cid}: ${which} (the work kinds only where both still work)`); process.exit(2); }
+    const vs = REG ? variantsOfKinds(which === 'main' ? MAIN_KINDS : which === 'work' ? WORK_KINDS : [...MAIN_KINDS, ...WORK_KINDS]) : variantsOf(cid);
+    for (const v of vs) {
       let label = null, r;
       const survivalAt = T => { const a = armA(appPlan(unitPlan(h, cohort, v, T)), { tournament: false }); label = a.label; return E.monteCarlo(E.buildContext(E.resolveMpaa(a.planState)), { trials: LAND_PATHS, seed: LAND_SEED }).successRate; };
       if (VARIANTS[v].cls === 'N') { const T = E.num(h.plan.spending.targetSpend, 0); r = { target: T, survival: survivalAt(T), landed: false, steps: [{ target: T }], reported: true }; }
@@ -197,10 +279,36 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     }
     mkdirSync(OUT, { recursive: true });
     const id = codeId(), head = execSync('git rev-parse --short=12 HEAD', { cwd: HERE }).toString().trim();
-    writeFileSync(join(OUT, `${cid}.json`), JSON.stringify({ couple: cid, base: h.id, cohort, libraryTarget: E.num(h.plan.spending.targetSpend, 0), variants, code: id ? id.hash : 'unknown', head, secs: (Date.now() - t0) / 1000 }, null, 1) + '\n');
+    writeFileSync(join(OUT, `${cid}.json`), JSON.stringify({ couple: cid, base: h.id, cohort, libraryTarget: E.num(h.plan.spending.targetSpend, 0), ...(REG ? { kinds: which, bothWork: bothWorkOf(h) } : {}), variants, code: id ? id.hash : 'unknown', head, secs: (Date.now() - t0) / 1000 }, null, 1) + '\n');
     console.log(`${cid} landed in ${Math.round((Date.now() - t0) / 1000)} s`);
   }
-  if (mode === 'combine') {
+  if (mode === 'freeze') {
+    if (existsSync(ORDERS)) { console.error('couples-any-panel: couples-any-orders.json exists; the order is taken once'); process.exit(2); }
+    const o = JSON.parse(readFileSync(ORDERS_FILE, 'utf8')), used = touchedAll();
+    for (const id of byIndex()) used.add(id);
+    for (const id of householdLineBases()) used.add(id);
+    for (const c of JSON.parse(readFileSync(join(HERE, 'household-hsp-panel.json'), 'utf8')).cohorts) for (const q of c.panel) used.add(q.base);
+    const ids = [...used].sort(), hash = createHash('sha256').update(ids.join(',')).digest('hex').slice(0, 12);
+    const pool = o.lib.filter(id => !used.has(id) && byId[id]), order = evenly(pool, N_REG);
+    writeFileSync(ORDERS, JSON.stringify({ built: new Date().toISOString(), from: 'couples-orders.json lib (D4\'s order); the younger cohort has no couple left untouched', touched: { count: ids.length, hash, ids }, untouched: pool.length, untouchedYoung: o.young.filter(id => !used.has(id) && byId[id]).length, order, bothWork: order.filter(id => bothWorkOf(byId[id])) }, null, 1) + '\n');
+    console.log(`frozen: the four ${order.slice(0, N_REG).join(', ')}, then ${order.length - N_REG} reserves (${pool.length} untouched; both still working in ${order.filter(id => bothWorkOf(byId[id])).length}); touched ${ids.length} ids (hash ${hash})`);
+  }
+  if (mode === 'combine' && REG) {
+    const order = JSON.parse(readFileSync(ORDERS, 'utf8')).order, lands = Object.fromEntries(order.filter(id => existsSync(join(OUT, `${id}.json`))).map(id => [id, JSON.parse(readFileSync(join(OUT, `${id}.json`), 'utf8'))]));
+    const w = walkAny(order, lands, id => bothWorkOf(byId[id]));
+    console.log(`the registered panel: main ${w.main.join(', ')}; work ${w.work.map(x => x.id === x.for ? x.id : `${x.id} in ${x.for}'s place`).join(', ')}${w.passed.length ? `; passed over ${w.passed.map(x => `${x.id} for ${x.for} (${x.not.join('; ')})`).join('; ')}` : ''}${w.gap ? `; stopped at the first not yet landed, ${w.gap}` : ''}`);
+    if (w.main.length < N_REG || w.work.length < N_REG) { console.log('panel: INCOMPLETE, land more of the order'); process.exit(1); }
+    const ids = [...new Set([...w.main, ...w.work.map(x => x.id)])], codes = new Set(ids.map(id => lands[id].code));
+    if (codes.size !== 1) { console.log(`panel: the landings are on ${codes.size} codes (${[...codes].join(', ')}): land them again on one`); process.exit(1); }
+    const couples = ids.map(cid => {
+      const L = lands[cid], kinds = [...(w.main.includes(cid) ? MAIN_KINDS : []), ...(w.work.some(x => x.id === cid) ? WORK_KINDS : [])];
+      return { couple: cid, base: L.base, cohort: 'lib', role: w.main.includes(cid) ? (w.work.some(x => x.id === cid) ? 'both' : 'main') : 'work', units: variantsOfKinds(kinds).map(v => ({ id: unitIdOf(cid, v), variant: v, cls: VARIANTS[v].cls, kind: VARIANTS[v].kind, hold: VARIANTS[v].hold, target: L.variants[v].target, survival: L.variants[v].survival, label: L.variants[v].label, why: L.variants[v].shape.guard.why, route: L.variants[v].shape.guard.route })) };
+    });
+    writeFileSync(PANEL, JSON.stringify({ built: new Date().toISOString(), code: [...codes][0], main: w.main, work: w.work, passed: w.passed, couples }, null, 1) + '\n');
+    const S = couples.flatMap(c => c.units.map(u => u.survival));
+    console.log(`panel: ${couples.length} couples, ${couples.reduce((t, c) => t + c.units.length, 0)} units, to ${PANEL} on code ${[...codes][0]}; arm A from ${Math.min(...S).toFixed(1)}% to ${Math.max(...S).toFixed(1)}%`);
+  }
+  if (mode === 'combine' && !REG) {
     const codes = new Set(), couples = [], bad = [];
     for (const [cid, cohort] of ALL_COUPLES) {
       const f = join(OUT, `${cid}.json`);
@@ -218,9 +326,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   if (mode === 'summary') {
     const j = JSON.parse(readFileSync(PANEL, 'utf8')), units = readAnyPanel();
-    console.log(`EVERY COUPLE ON THE SOLVER, THE DRESS REHEARSAL'S PANEL (EXPLORATORY; COUPLES-ANY.md amendment 2): couples-any-panel.json, built ${j.built}, code ${j.code}`);
+    console.log(REG ? `EVERY COUPLE ON THE SOLVER, THE REGISTERED TEST'S PANEL (COUPLES-ANY.md, the test): couples-any-registered-panel.json, built ${j.built}, code ${j.code}; the four ${j.main.join(', ')}; the kinds where both work on ${j.work.map(x => x.id === x.for ? x.id : `${x.id} (in ${x.for}'s place, ${x.for} retired)`).join(', ')}; passed over: ${j.passed.length ? j.passed.map(x => `${x.id} for ${x.for} (${x.not.join('; ')})`).join('; ') : 'none'}`
+      : `EVERY COUPLE ON THE SOLVER, THE DRESS REHEARSAL'S PANEL (EXPLORATORY; COUPLES-ANY.md amendment 2): couples-any-panel.json, built ${j.built}, code ${j.code}`);
     for (const c of j.couples) {
-      console.log(`${c.couple} (${c.cohort}):`);
+      console.log(`${c.couple} (${c.cohort}${c.role ? `, ${c.role}` : ''}):`);
       for (const u of units.filter(x => x.couple === c.couple)) console.log(`    ${u.id.padEnd(14)} class ${u.cls}; target ${u.target}, arm A ${u.survival.toFixed(1)}% (${u.label}); the first person holds ${(100 * firstShare(u.plan)).toFixed(0)}%; the guard ${u.why ? `off (${u.why})` : 'on'}`);
     }
     console.log(`${units.length} units: ${CLASSES.map(k => `${k} ${units.filter(u => u.cls === k).length}`).join(', ')}`);

@@ -15,7 +15,10 @@ reviewer.
     retiree paid and saving in plan year 0), taken by the app by default since D146 by inference (`COUPLES-OPEN.md`
     amendment 1, MINOR 6), measured here.
   - **R:** one wrapper, the pension or the ISA, held by the two at different risks (A's 'risks').
-  - **L:** the partner's own limits differing from the first person's (A's 'limits').
+  - **L:** the partner's own limits differing from the first person's (A's 'limits'). After `lockedPlan` each person's
+    wrapper is held at their own limit, so the two pensions are held at different risks and L's units take A's 'risks'
+    with it, as A designs ("The partner's own limits reduce to this", `COUPLES-ANY.md` A; `couples-any-panel.mjs`
+    `SHAPE_WORDS`, L's refusal without A's shapes being "different risks").
   - **P:** two salaries growing at different rates (B's 'salaries').
   - Today the household plan refuses R's, L's and P's shapes, so such a couple keeps today's two-table route inside the guard
     before D143 and the app's rules outside it (D141, D144).
@@ -83,6 +86,10 @@ reviewer.
   - **R, L or P opens:** the household plan takes its shape in the app ('risks', 'limits', 'salaries': `src/solverSettings.js`
     `APP_COUPLE.takeShapes` and the guard's `HOUSEHOLD_TAKES`), so such a couple runs the household route, inside the guard
     before D143 and outside it where its class is open.
+  - **L opens only with R:** L's units take R's way ('risks') for the pension their limits hold apart, and the guard reads
+    a couple whose partner's limits differ as 'limits' whatever risks its accounts hold as entered (`src/couplesSwitch.js`
+    `householdShapeOf`). So L passing while R does not comes back to the maintainer with both classes' units; R passing
+    while L does not opens R alone, a couple whose limits differ staying off for 'limits'.
   - **The change of default**, for each class that opens, in the commit of the D-line naming this run, with the reviewer on it:
     - the shape taken in the app and the guard, and the coverage line's words;
     - the decided-defaults block, `couple-default.test.mjs` and `couple-shape.test.mjs` (protected: the maintainer's unlock,
@@ -98,7 +105,8 @@ reviewer.
     - R: risks apart in both wrappers at once, or a wrapper apart more than three profiles;
     - L: limits other than L's, the ISA's, and limits with risks apart;
     - P: salary growths other than `2%` and `-1%`;
-    - two of the shapes at once (each unit holds one);
+    - two of the shapes at once (each unit holds one as entered; L's limits hold its pensions apart after `lockedPlan`,
+      R's way, by construction);
     - a couple entered younger first (its mirror; every unit has the elder first), a couple with no minimum pot set;
     - the younger cohort (the dress rehearsal alone, EXPLORATORY);
     - the 'lower' estate aim, consent to change risk withdrawn, the dial's other positions and the speed mode;
@@ -116,7 +124,8 @@ reviewer.
     app's guard keeping R, L and P off the household route and putting W on it);
   - each arm at its configuration, ROUTE on the page's own context.
   - A part of a unit's run saved before a restart is taken up again only under the same stamp and the same tables.
-- **What the pilot shows** (`results-couples-any-sizing.txt`; the 136 registered units, 1,000 paths of seed 7002, run 24 Nov 16:14 to 17:19 UK on the final files, its gate fair by `reduce-couples-any.mjs --pilot`, EXPLORATORY):
+- **What the pilot shows** (`results-couples-any-sizing.txt`; the 136 registered units, 1,000 paths of seed 7002, run 24 Nov 16:14 to 17:19 UK on the final code, panel and order, its gate fair by `reduce-couples-any.mjs --pilot`,
+  EXPLORATORY; its audit stamp `371b8bcacf45` is the run's `dce06b2581ae` with the paths file its sizing then wrote left out):
   - ROUTE against APP from `+5.30` to `+14.50` points on every unit; by class the mean W `+11.97`, R `+10.31`, L `+11.97`, P
     `+11.90`. Every unit's pilot change is a gain, so D34's chance of flagging a unit at 26,000 paths is read at no true
     change: from `0.001` to `0.004`.

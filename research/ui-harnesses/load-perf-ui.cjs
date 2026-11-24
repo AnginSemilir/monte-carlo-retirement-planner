@@ -94,8 +94,15 @@ const JS_CEILING = 228;
  * entered second (src/coupleOrder.js, the mirror and each answer put back as entered, and src/solver/horizon.js; D104 (1)),
  * and the entry grew 107 bytes. So the measured figure plus one; loading the mirror only when such a couple is solved is
  * left for the work on the screens. D94 (2)'s rule stands for the next batch.
+ *
+ * 239 on 24 Nov 2026, by D94 (2): the seventeenth batch read 238KB at B1's gate (2a6593a6, code-stamp:57c0c089a306a48e),
+ * 237.79KB over the wire against main's own build's 237.49KB (989bb0f3, 237). The first load is the entry and jsx-runtime
+ * alone, and the whole growth is the entry's 308 bytes compressed, 966 before compression, the same 966 in each of the two
+ * engine workers: the engine's own code in src/App.jsx, each person's ladder gaining the household's tiers where a couple's
+ * two pensions or two ISAs hold different risks, and the dated salary schedule (research/solver/COUPLES-ANY.md A and B). So
+ * the measured figure plus one, reported at its merge. D94 (2)'s rule stands for the next batch.
  */
-const JS_CEILING_SWITCH_ON = 237;
+const JS_CEILING_SWITCH_ON = 239;
 /*
  * The byte count is the load-bearing assertion and the ceiling below is the looser one, on purpose. Three
  * runs of the same build spread about 100ms either way - 2,011 to 2,080 after, 2,105 to 2,225 before - so

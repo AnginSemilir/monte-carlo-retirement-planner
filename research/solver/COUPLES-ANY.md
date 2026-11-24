@@ -36,6 +36,9 @@ only an approximation of a couple, its decisions may be less good, but no figure
 
 ### A. Different risks in one wrapper (`risks`) and the partner's own limits (`limits`)
 
+*Amended on 24 Nov, before any of it was built: amendment 1, at the end, says how each person's tier is named and what
+its check on a person's risk reads.*
+
 - **Why it is refused now.** Each person's pension and ISA hold a ladder of tiers in the engine (`App.jsx` `buildContext`
   `tierProfiles`): their own risk first, then up to three steps safer, then every riskier tier. The household's move names a
   tier by its index for both people (`perOwner` self and partner alike). Where the two ladders differ, one index means two
@@ -153,3 +156,60 @@ Each overrun is reported to the maintainer.
   other positions, the speed mode, a couple entered younger first) is by inference, said in its D-line.
 - The protected edits it needs (the seed's reservation; the tests that pin each change of default) are asked by name when they
   arise, unless an unlock in force covers them (D145).
+
+## Amendment 1 (24 Nov, before A is built): how each person's tier is named where the two people's risks differ
+
+Read before building A: the engine's ladders (`src/App.jsx` `buildContext` `tierProfiles`, its year's 7f), the forward run's
+(`src/solver/fast.js` `tiersFor`, the same rule), the exact model's year (`src/solver/model.js`, which reads the engine's
+ladders), and the household's move (`src/solver/household.js` `chooseHouseholdSingle`, `householdMoveOf`, and the page's
+views in `src/solverCouple.js`, each giving both people the table's index). Two things in A as written change.
+
+**1. A tier the table chooses that one person's ladder lacks.** A says it "is taken at the nearest tier that person's ladder
+holds, never a riskier one". That cannot always hold.
+- Tiers run from High Risk (0) to Cash Equivalents (5). A ladder is the wrapper's own risk, up to two or three steps safer,
+  then, where all those steps exist, every riskier tier.
+- Where the household holds a wrapper at the cautious risk c and the riskier person's own risk is r < c, the household's
+  safest steps can lie past the riskier person's safest.
+- Example: r High, c Medium/High. The household can choose Low Risk, which the riskier person's ladder lacks. Its nearest
+  tier in that ladder, Medium/Low, is riskier than the table's choice.
+
+The way, exact for the engine:
+- **Each person's ladder gains the household's missing tiers.** In a couple whose two people's accounts of one wrapper differ
+  in risk, each person's ladder for that wrapper is their own, with the household's tiers it lacks added at its end (the
+  household's ladder: the cautious risk's, by the same rule, with as many steps below as both wrappers' cautious risks
+  allow).
+  - Their own risk stays index 0, the tier they hold at the start. Every index of their own ladder means what it meant.
+  - So outside the household route (today's two-table route, the app's own rules) nothing a table asks moves.
+  - The forward run and the exact model read the same ladders. The model reads the engine's; the forward run solves the
+    household plan, whose ladder is the household's.
+- **The household's move names its tier.** Each person takes that name's index in their own ladder, so the engine's name
+  check holds by construction.
+- **The riskier person's first move is a switch.** In the plan's first year, moving the riskier person onto the shared tier
+  is a change from their own risk. The engine charges it at the switch charge, as it charges any change of tier, and the
+  table, solved on the household plan, does not see it.
+- **The tier the table reads as held** is the name the cautious person holds, at its index in the household's ladder:
+  index 0 at the start, and the shared tier once the household has moved.
+- **Where nothing tiers, no mapping is needed.** With consent to change risk withdrawn (the table has no tier state), each
+  person holds their own risk throughout, the riskier person's wrapper growing at it while the table sees the cautious.
+
+**2. A person's tier against their own risk.** A's check, "no person's tier is ever riskier than their own locked risk",
+holds only where the solve may not go riskier than its risk: where a ceiling binds or consent to change risk is withdrawn
+(`lockedPlan`'s `riskAbove: false`). With consent given, a single's table may choose a tier riskier than its own wherever
+the tier above is offered (D16), its ladder running on to High Risk. So may the household's, past the cautious risk, and
+under it the riskier person can be moved riskier than their own risk, as a single can.
+- So the check is: no person's tier is ever riskier than their own ceiling.
+- Where `riskAbove` is false, no person's tier is ever riskier than their own locked risk.
+- The household plan's ceiling for a wrapper is the stricter of the two people's. Its `riskAbove` is false wherever either
+  person's binds, as a single's is wherever one of theirs binds.
+
+Its checks, beside A's as written, each with its plant:
+- **The moves.** On the library's couples with the pension's and the ISA's risks planted apart (one to three steps, either
+  way): every person's tier is a tier of their own ladder; every move the table makes is the engine's, in step with the
+  exact model to a penny; and with ceilings, no person's tier is ever riskier than their ceiling.
+- **The switch charge.** The first year's switch is charged on the riskier person's wrapper, and on no wrapper whose two risks
+  are alike.
+- **Identity.** With the risks alike, every ladder and every household plan is the code before's, byte for byte. With them
+  apart, every run of today's two-table route and of the app's own rules is the code before's on every path.
+- **Plants:** the household's index given to both people (the engine refuses, as today); the added tiers left off (the name
+  check refuses the household's safest tiers); the riskier person's first move left at their own tier (no switch charged,
+  and their wrapper not on the shared tier); the household's ceiling the first person's alone.

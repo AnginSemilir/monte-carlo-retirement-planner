@@ -165,6 +165,9 @@ const RISK_EQUITY_WEIGHTS = {
   'High Risk': 0.90, 'Medium/High Risk': 0.70, 'Medium Risk': 0.50,
   'Medium/Low Risk': 0.30, 'Low Risk': 0.10, 'Cash Equivalents': 0.00
 };
+// research/tests/household-risks.test.mjs only (buildContext's ladders): 'noladderadd' adds none of the household's tiers;
+// 'ladderinsert' puts them among a person's own tiers, before their riskier ones, so the person's own indices move
+const LADDER_PLANT = { rule: '' };
 
 /*
  * `real` is the median (geometric) annual real return; `volatility` is the annual σ of the log return.
@@ -1153,7 +1156,8 @@ function normalizePlan(raw) {
       if (v === null || v === undefined || typeof v === 'object') obj[k] = '';
     });
   };
-  scrub(plan.demographics); scrub(plan.spending, ['spendBands', 'policyOverride']); scrub(plan.config);
+  // a dated salary schedule (research/solver/COUPLES-ANY.md B: the household plan's, which no page shows or edits) is a list
+  scrub(plan.demographics, ['salaryByYearSelf', 'salaryByYearPart']); scrub(plan.spending, ['spendBands', 'policyOverride']); scrub(plan.config);
   if (typeof plan.config.harvestPersonalAllowance !== 'boolean') plan.config.harvestPersonalAllowance = plan.config.harvestPersonalAllowance === '' ? true : !!plan.config.harvestPersonalAllowance;
   // A plan saved before the rule existed has no field, and no field means what it always meant: fixed.
   if (typeof plan.config.guardrails !== 'boolean') plan.config.guardrails = false;
@@ -1775,6 +1779,9 @@ function buildContext(rawPlan) {
     age0: o === 'self' ? ageSelf0 : agePart0,
     retireAge: o === 'self' ? retireSelf : retirePart,
     salary: Math.max(0, num(o === 'self' ? d.salarySelf : d.salaryPart, 0)),
+    // a dated schedule of pay by plan year (research/solver/COUPLES-ANY.md B: the household plan's, its two people's salaries
+    // added, each at its own growth), which salaryAtYear reads in place of the salary and its growth; no page sets it
+    ...(v => (Array.isArray(v) ? { salaryByYear: v.map(x => Math.max(0, num(x, 0))) } : {}))(o === 'self' ? d.salaryByYearSelf : d.salaryByYearPart),
     // growth on top of inflation; 0 leaves pay flat in today's money
     salaryGrowth: clamp(num(o === 'self' ? d.salaryGrowthSelf : d.salaryGrowthPart, 0), -100, 100) / 100,
     // trading profit rather than salary: Class 4 NIC, and pension relief at the income tax rate only
@@ -2074,15 +2081,47 @@ function buildContext(rawPlan) {
   // second person's lists took the first person's); a single's lists as before
   const wanted = tableOverride && tableOverride.tiersBelow === 3 ? 3 : 2;
   const belowOf = (owner) => (wanted > 2 && accounts.some(a => a.owner === owner && (a.cat === 'pen' || a.cat === 'isa') && !stepOk(TIER_ORDER.indexOf(a.risk), wanted)) ? 2 : wanted);
+  const tierAt = (name) => { const prof = riskOf(name); return { name, real: clamp(num(prof.real, 0), -50, 50) / 100, vol: clamp(num(prof.volatility, 12), 0, 100) / 100, sigmaParam: clamp(num(prof.sigmaParam, 0), 0, 100) / 100, equityWeight: RISK_EQUITY_WEIGHTS[name], isCash: name === 'Cash Equivalents' }; };
   accounts.forEach(a => {
     const below = belowOf(a.owner);
     const k0 = TIER_ORDER.indexOf(a.risk);
     const list = [{ name: a.risk, real: a.real, vol: a.vol, sigmaParam: a.sigmaParam, equityWeight: a.equityWeight, isCash: a.isCash }];
-    const tierAt = (name) => { const prof = riskOf(name); return { name, real: clamp(num(prof.real, 0), -50, 50) / 100, vol: clamp(num(prof.volatility, 12), 0, 100) / 100, sigmaParam: clamp(num(prof.sigmaParam, 0), 0, 100) / 100, equityWeight: RISK_EQUITY_WEIGHTS[name], isCash: name === 'Cash Equivalents' }; };
     for (let d = 1; d <= below && stepOk(k0, d); d++) list.push(tierAt(TIER_ORDER[k0 + d]));
     if (list.length === 1 + below) for (let d = 1; k0 - d >= 0; d++) list.push(tierAt(TIER_ORDER[k0 - d]));
     tierProfiles[a.id] = list;
   });
+  /*
+   * EACH PERSON'S LADDER GAINS THE HOUSEHOLD'S TIERS (research/solver/COUPLES-ANY.md A, amendment 1). Where a couple's two
+   * pensions, or two ISAs, hold different risks, the household plan holds that wrapper at the more cautious of the two
+   * (src/solver/household.js householdPlanFor), so its table's tiers run from the cautious risk, with as many steps below as
+   * both wrappers' cautious risks allow (the rule above, as src/solver/fast.js tiersFor reads the household plan). Each
+   * person's ladder for that wrapper is their own with the household's tiers it lacks added at its end, so the household's
+   * move can name its tier and each person take that name's index in their own ladder. A person's own risk stays index 0,
+   * the tier they hold at the start, and every index of their own ladder means what it meant, so nothing a table of
+   * today's routes asks moves. LADDER_PLANT 'noladderadd': none added; 'ladderinsert': put before the riskier tiers
+   */
+  if (isCouple && LADDER_PLANT.rule !== 'noladderadd') {
+    const pairOf = cat => ['self', 'part'].map(k => accounts.find(a => a.owner === k && a.cat === cat)).filter(Boolean);
+    const cautiousOf = cat => pairOf(cat).reduce((r, a) => (r === null || TIER_ORDER.indexOf(a.risk) > TIER_ORDER.indexOf(r) ? a.risk : r), null);
+    const apart = ['pen', 'isa'].filter(cat => { const p = pairOf(cat); return p.length === 2 && p[0].risk !== p[1].risk; });
+    if (apart.length) {
+      const hBelow = wanted > 2 && ['pen', 'isa'].some(cat => { const r = cautiousOf(cat); return r !== null && !stepOk(TIER_ORDER.indexOf(r), wanted); }) ? 2 : wanted;
+      for (const cat of apart) {
+        const c0 = TIER_ORDER.indexOf(cautiousOf(cat)), names = [TIER_ORDER[c0]];
+        for (let d = 1; d <= hBelow && stepOk(c0, d); d++) names.push(TIER_ORDER[c0 + d]);
+        if (names.length === 1 + hBelow) for (let d = 1; c0 - d >= 0; d++) names.push(TIER_ORDER[c0 - d]);
+        for (const a of pairOf(cat)) {
+          const list = tierProfiles[a.id];
+          for (const n of names) {
+            if (list.some(p => p.name === n)) continue;
+            // the plant 'ladderinsert': the household's tier put among the person's own, before their first riskier tier
+            const at = LADDER_PLANT.rule === 'ladderinsert' ? list.findIndex((p, i) => i > 0 && TIER_ORDER.indexOf(p.name) < TIER_ORDER.indexOf(list[0].name)) : -1;
+            if (at > 0) list.splice(at, 0, tierAt(n)); else list.push(tierAt(n));
+          }
+        }
+      }
+    }
+  }
   const ctx = {
     plan, warnings, isCouple, P, owners, accounts, acc,
     policyOverride: tableOverride, tierProfiles,
@@ -3463,6 +3502,7 @@ function contribAtYear(a, t) {
  * whatever is expected on top of that, and can be negative for a career winding down.
  */
 function salaryAtYear(o, t) {
+  if (o.salaryByYear) return o.salaryByYear[t] || 0;
   if (!(o.salary > 0)) return 0;
   return o.salary * Math.pow(1 + (o.salaryGrowth || 0), t);
 }
@@ -7192,7 +7232,7 @@ function frontierSpend(row, targetRate = 90) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { pensionCeiling, niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, planHasKnownCost, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, taxablePayOf, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
+const E = { LADDER_PLANT, pensionCeiling, niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, planHasKnownCost, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, taxablePayOf, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
 /*
  * The engine's public surface. Simple.jsx consumes it from here rather than from a module of its own,
  * which is a deliberate and temporary coupling: with one entrance both pages ship in the same bundle

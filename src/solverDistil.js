@@ -87,13 +87,13 @@ export function distilOf(E, solved, plan, { seed = 12345, n = 1000, fit = 400, b
   const sc = solvedContext(E, solved), pol = sc.policyOverride, paths = E.pathsForSeed(seed, n, sc.totalYears);
   // following it: each year the solved plan's own move, with the tree's level in place of the table's
   const byParts = new Map();
-  solved.actions.forEach((a, ai) => { const p = partsOf(a, solved.c.acts[ai]); const k = JSON.stringify({ ...p, level: undefined }) + '|' + p.level; if (!byParts.has(k)) byParts.set(k, ai); });
+  solved.actions.forEach((a, ai) => { const p = partsOf(a, solved.c.acts[ai], solved.c.tiers); const k = JSON.stringify({ ...p, level: undefined }) + '|' + p.level; if (!byParts.has(k)) byParts.set(k, ai); });
   const follow = { ...sc, policyOverride: { ...pol, choose(st, t, held) {
     const mv = pol.choose(st, t, held);
     if (!(E.spendTargetAtAge(sc, sc.ageSelf0 + t) > 0 && sc.ageSelf0 + t >= sc.owners[0].retireAge)) return mv;
     const lv = levelOf(tree, featuresOf(E, sc, st, t));
     if (lv === mv.spendLevel) return mv;
-    const p = partsOf(solved.actions[mv.index], solved.c.acts[mv.index]), j = byParts.get(JSON.stringify({ ...p, level: undefined }) + '|' + lv);
+    const p = partsOf(solved.actions[mv.index], solved.c.acts[mv.index], solved.c.tiers), j = byParts.get(JSON.stringify({ ...p, level: undefined }) + '|' + lv);
     return j === undefined ? mv : moveOf(solved, j, mv);
   } } };
   const planRuns = base && base.length >= n ? base.slice(0, n) : paths.map(zs => runPath(E, sc, zs));

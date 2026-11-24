@@ -1,0 +1,6 @@
+THE TIER ABOVE IN THE PAGE'S WORDS: WHICH PLANS IT REACHES (EXPLORATORY, 24 Nov; the harnesses' light settings, a guide; counts by node research/solver/tier-above-scan.mjs --count 40df1247, from the per-plan record committed at 40df1247, which the scan's parts made: it solved each plan and read no outcome of it, so by the maintainer's ruling it does not use them (D147) and this file names only a plan the tier above reaches)
+the library's plans as entered: 420, singles 210, couples on the household route 210, not solved 0
+the rule's decision, singles: off: no tier above the plan 210
+the rule's decision, couples on the household route: off: no tier above the plan 210
+the tier above taken on 0
+IN ALL: 420 library plans as entered; the tier above taken on 0; no tier above the plan on 420 (every one holds its pension at High Risk, so the joint step has no rung above it); not solved 0. The defect reaches a plan whose pension and ISA are both below High Risk and whose simulated survival without the tier above is below 85%, as research/tests/tier-words.test.mjs check 3's single plan is.

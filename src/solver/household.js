@@ -34,6 +34,12 @@
  * research/tests/household-landing.test.mjs's (the reviewer on step 4's change of default, findings 1 and 6): 'roomclaim'
  * leaves the later retiree's deposits unmarked, so the engine claims them against the household person's room as before;
  * 'firstsched' keeps the first account's dated schedule where two people's accounts of one wrapper merge, as before.
+ * research/tests/household-risks.test.mjs's (COUPLES-ANY.md A, amendment 1): 'riskfirst' keeps the first person's risk where
+ * the two people's accounts of one wrapper hold different risks; 'ceilfirst' gives the household plan the first person's
+ * ceilings alone; 'tierindex' gives both people the household's tier index; 'nofirstswitch' leaves the riskier person at their
+ * own tier in the plan's first year. research/tests/household-salaries.test.mjs's (COUPLES-ANY.md B and C): 'salsched1' builds
+ * the household's salary schedule from the first person's salary alone; 'noretireend' puts the household's retirement in the
+ * plan's last year where nobody retires within the plan.
  */
 import { rankFor, tiePick, layerOf, ratesAt, SPLITS } from './couple.js';
 import { NODES, WEIGHTS, chooseAction } from './solve.js';
@@ -94,6 +100,13 @@ export const inBands = (E, single, fn) => (bandsSingle(single) && !planted('sing
 export const SCALES = Object.freeze(['pensions', 'bands', 'pensionsPA', 'pensionsPAown']);
 /* the shapes householdPlanFor takes where opts.takeShapes names them (research/solver/STEP4-SHAPES.md; COUPLES-OPEN.md step 4) */
 export const TAKE_SHAPES = Object.freeze(['growth', 'cashisa', 'year0']);
+/* the shapes COUPLES-ANY.md's A takes (its amendment 1), each only where opts.takeShapes names it (takeShapes true is step 4's
+   three alone): 'risks', the two people's accounts of one wrapper at different risks; 'limits', the partner's own limits
+   (tierCeilingPart) */
+export const RISK_SHAPES = Object.freeze(['risks', 'limits']);
+/* COUPLES-ANY.md's B and C: 'salaries', both people paid, their salaries growing at different rates; 'noretire', nobody
+   retiring within the plan; each named only explicitly */
+export const SALARY_SHAPES = Object.freeze(['salaries', 'noretire']);
 const PA_K = Object.freeze(['pensionsPA', 'pensionsPAown']);
 export const SCALED = Object.freeze(['paTaperThreshold', 'basicBandLimit', 'higherBandLimit', 'scotStarterLimit', 'scotBasicLimit', 'scotIntermediateLimit',
   'scotHigherLimit', 'scotAdvancedLimit']);
@@ -138,11 +151,16 @@ export function householdPlanFor(E, plan, opts = {}) {
   // the first plan year in which anyone has retired: the synthetic person retires then
   let tR = 0;
   while (tR <= T && working('self', tR) && working('part', tR)) tR++;
-  if (tR > T) throw new Error('householdPlanFor: nobody retires within the plan');
   // the shapes STEP4-SHAPES.md takes, each only where opts.takeShapes names it (true: all three), off unless named, so that a
   // household plan without them is the code before's byte for byte
   const takes = new Set(opts.takeShapes === true ? TAKE_SHAPES : Array.isArray(opts.takeShapes) ? opts.takeShapes : []);
-  for (const w of takes) if (!TAKE_SHAPES.includes(w)) throw new Error(`householdPlanFor: opts.takeShapes '${w}' (want ${TAKE_SHAPES.map(x => `'${x}'`).join(', ')})`);
+  for (const w of takes) if (!TAKE_SHAPES.includes(w) && !RISK_SHAPES.includes(w) && !SALARY_SHAPES.includes(w)) throw new Error(`householdPlanFor: opts.takeShapes '${w}' (want ${[...TAKE_SHAPES, ...RISK_SHAPES, ...SALARY_SHAPES].map(x => `'${x}'`).join(', ')})`);
+  // the shape 'noretire' (COUPLES-ANY.md C): where nobody retires within the plan the household works to its end, its
+  // retirement past the plan's last year (as the single solver solves a person who never retires within the plan): both
+  // salaries and both people's contributions in every plan year, no take-home income and no later retiree's deposit. Plant
+  // 'noretireend': the retirement in the plan's last year
+  if (tR > T && !takes.has('noretire')) throw new Error('householdPlanFor: nobody retires within the plan');
+  if (tR > T && planted('noretireend')) tR = T;
   // the accounts, added by wrapper; each wrapper's risk must be the two people's same, and its contribution growth too unless
   // the shape 'growth' is taken (below)
   const byKey = {}, scheduled = new Set(), firstOf = {}, restOf = {};
@@ -152,7 +170,7 @@ export function householdPlanFor(E, plan, opts = {}) {
     if (a.owner === 'Partner' && planted('nopartpots')) continue;
     if (byKey[key]) (restOf[key] = restOf[key] || []).push(a); else firstOf[key] = a;
     const g = byKey[key] || (byKey[key] = { ...a, id: `${key}_self`, owner: 'Myself', balance: 0, contrib: 0 });
-    if ((g.risk || '') !== (a.risk || '')) throw new Error(`householdPlanFor: the two people's ${a.category} hold different risks (${g.risk}, ${a.risk})`);
+    if ((g.risk || '') !== (a.risk || '') && !takes.has('risks')) throw new Error(`householdPlanFor: the two people's ${a.category} hold different risks (${g.risk}, ${a.risk})`);
     if (E.num(g.growth, 0) !== E.num(a.growth, 0) && E.num(a.contrib, 0) > 0 && E.num(g.contrib, 0) > 0) {
       // a cash ISA's own growth the engine never reads (its subscription is flat, its money folded into the owner's cash at
       // the cash account's growth), so under the shape 'cashisa' it does not refuse
@@ -163,6 +181,19 @@ export function householdPlanFor(E, plan, opts = {}) {
     // contributions while both work: both people's (each stops at their own retirement in the engine; after the first
     // retirement the later retiree's are the deposits below)
     if (E.num(a.contrib, 0) > 0) { g.contrib = E.num(g.contrib, 0) + E.num(a.contrib, 0); g.growth = a.growth; }
+  }
+  // the shape 'risks' (COUPLES-ANY.md A, amendment 1): two people's accounts of one wrapper at different risks, each as the
+  // locks leave it. The pension and the ISA, which the table moves between tiers, are held at the more cautious of the two:
+  // each person's ladder in the engine gains the household's tiers it lacks (App.jsx buildContext), and each person takes the
+  // household's tier by its name (tierMapOf, below). The other investments, cash and cash ISA, which carry no moves, take the
+  // risk of the larger holding, the more cautious where the two hold the same; each person's grows at their own in the engine.
+  // Plant 'riskfirst': the first person's risk kept, as the merge did before
+  if (takes.has('risks') && !planted('riskfirst')) for (const key of Object.keys(byKey)) {
+    const all = [firstOf[key], ...(restOf[key] || [])].filter(Boolean), ix = a => TIER_ORDER.indexOf(a.risk);
+    if (new Set(all.map(a => a.risk || '')).size < 2) continue;
+    const bal = a => E.num(a.balance, 0);
+    byKey[key].risk = (key === 'pen' || key === 'isa' ? all.reduce((r, a) => (ix(a) > ix(r) ? a : r))
+      : all.reduce((r, a) => (bal(a) > bal(r) || (bal(a) === bal(r) && ix(a) > ix(r)) ? a : r))).risk;
   }
   // the shape 'growth' (STEP4-SHAPES.md shape 1): a wrapper whose two people's contributions grow at different rates carries
   // the two added year by year as its own schedule (contribByYear, which the engine's contribAtYear, the forward run and the
@@ -200,9 +231,15 @@ export function householdPlanFor(E, plan, opts = {}) {
     byKey[key].contribByYear = sched;
   }
   if (subscribes && !takes.has('cashisa')) throw new Error('householdPlanFor: a cash ISA subscription');
-  if (E.num(d.salaryGrowthSelf, 0) !== E.num(d.salaryGrowthPart, 0) && E.num(d.salarySelf, 0) > 0 && E.num(d.salaryPart, 0) > 0) throw new Error('householdPlanFor: the two salaries grow at different rates');
-  const L = plan.solver && plan.solver.locks;
-  if (L && L.tierCeilingPart && Object.keys(L.tierCeilingPart).length) throw new Error('householdPlanFor: the partner\'s own limits (tierCeilingPart)');
+  const salariesApart = E.num(d.salaryGrowthSelf, 0) !== E.num(d.salaryGrowthPart, 0) && E.num(d.salarySelf, 0) > 0 && E.num(d.salaryPart, 0) > 0;
+  if (salariesApart && !takes.has('salaries')) throw new Error('householdPlanFor: the two salaries grow at different rates');
+  // the shape 'salaries' (COUPLES-ANY.md B): the household's salary a dated schedule, the two people's salaries added year by
+  // year, each at its own growth, in every plan year before the first retirement and nought after (the later retiree's pay
+  // from then reaching the household as their take-home, below); the engine's salaryAtYear reads it, and so do the forward
+  // run and the exact model, which ask it. Plant 'salsched1': the first person's salary alone
+  const salSched = salariesApart && tR > 0 ? Array.from({ length: T + 1 }, (_, t) => (t < tR ? E.salaryAtYear(own.self, t) + (planted('salsched1') ? 0 : E.salaryAtYear(own.part, t)) : 0)) : null;
+  const L = plan.solver && plan.solver.locks, partOwn = !!(L && L.tierCeilingPart && Object.keys(L.tierCeilingPart).length);
+  if (partOwn && !takes.has('limits')) throw new Error('householdPlanFor: the partner\'s own limits (tierCeilingPart)');
   // the later retiree's take-home and contributions, plan year by plan year, from the first retirement until they retire
   const P = ctx.P, incomes = [], deposits = [];
   for (let t = tR; t <= T; t++) for (const k of ['self', 'part']) {
@@ -292,11 +329,21 @@ export function householdPlanFor(E, plan, opts = {}) {
     ...d, planningMode: 'single', currentAgeSelf: ageA, retireAgeSelf: ageA + tR,
     salarySelf: tR > 0 ? E.num(d.salarySelf, 0) + E.num(d.salaryPart, 0) : 0,
     salaryGrowthSelf: E.num(d.salarySelf, 0) > 0 ? d.salaryGrowthSelf : d.salaryGrowthPart,
+    ...(salSched ? { salaryByYearSelf: salSched } : {}),
     employmentSelf: d.employmentSelf, statePensionSelf: E.num(d.statePensionSelf, 0),
     cgtGainsUsedSelf: E.num(d.cgtGainsUsedSelf, 0) + E.num(d.cgtGainsUsedPart, 0), cfBroughtForwardSelf: E.num(d.cfBroughtForwardSelf, 0) + E.num(d.cfBroughtForwardPart, 0),
     mpaaAgeSelf: d.mpaaAgeSelf
   };
   const locks = L ? (({ tierCeilingPart, ...rest }) => rest)(L) : null;
+  // the shape 'limits' (COUPLES-ANY.md A): with the partner's own limits, which src/solverSettings.js lockedPlan holds their
+  // wrappers to (the first person's tierCeiling holding theirs), the household plan takes, wrapper by wrapper, the stricter of
+  // the two people's ceilings, so its table goes riskier than neither person's ceiling, and its riskAbove is false wherever
+  // either person's is set, as the couple's is. Plant 'ceilfirst': the first person's ceilings alone
+  if (locks && partOwn && takes.has('limits')) {
+    const real = c => (typeof c === 'string' && TIER_ORDER.includes(c) ? c : null), tc = L.tierCeiling || {}, tp = L.tierCeilingPart || {};
+    const stricter = (a, b) => (a === null ? b : b === null ? a : TIER_ORDER.indexOf(a) >= TIER_ORDER.indexOf(b) ? a : b);
+    locks.tierCeiling = Object.fromEntries(['pen', 'isa'].map(w => [w, planted('ceilfirst') ? real(tc[w]) : stricter(real(tc[w]), real(tp[w]))]));
+  }
   return {
     ...plan, demographics, config, accounts: Object.values(byKey), otherIncomes: [...moved, ...incomes],
     oneOffContributions: [...(plan.oneOffContributions || []).map(c => ({ ...c, owner: 'Myself' })), ...deposits],
@@ -324,6 +371,61 @@ export function mergedState(cp, state) {
 
 const tiered = (tab) => !!(tab.c && tab.c.acts && tab.c.acts.some(a => (a.tierPen || 0) > 0 || (a.tierIsa || 0) > 0));
 const tierName = (tab, cat, k) => (tab.c && tab.c.tiers && tab.c.tiers[cat] && tab.c.tiers[cat][k] ? tab.c.tiers[cat][k].name : null);
+/*
+ * EACH PERSON'S TIER, BY NAME (COUPLES-ANY.md A, amendment 1). The household table's tiers run from the household plan's risk
+ * in each wrapper, each person's ladder in the engine from their own (App.jsx buildContext adds the household's tiers a
+ * person's lacks). Where every person's ladder holds the table's tiers at the table's own indices (every couple whose two
+ * people hold each wrapper at the same risk), the household's index is each person's, as before, and tierMapOf gives null.
+ * Otherwise it maps each household index of each wrapper to its tier's index in each person's ladder, by name, and names,
+ * for each wrapper, the person whose ladder begins at the household's risk (the cautious one, the first person where both
+ * do): the tier the table reads as held is the one that person holds (heldOf). perOwnerOf gives each person their own index
+ * for the household's move. Plants: 'tierindex' gives both people the household's index (the engine's name check refuses
+ * the move); 'nofirstswitch' leaves the riskier person at their own tier in the plan's first year.
+ */
+export function tierMapOf(m, H) {
+  if (!tiered(H)) return null;
+  const map = {}, own = {}, cautious = {};
+  let same = true;
+  for (const o of m.ctx.owners) { map[o.key] = {}; own[o.key] = {}; }
+  for (const cat of ['pen', 'isa']) {
+    const hn = H.c.tiers[cat].map(x => x.name);
+    for (const o of m.ctx.owners) {
+      const prof = m.ctx.tierProfiles && m.ctx.tierProfiles[o.ids[cat]];
+      if (!prof) throw new Error(`household: no tiers for ${o.key}'s ${cat}`);
+      const on = prof.map(x => x.name);
+      own[o.key][cat] = on;
+      map[o.key][cat] = hn.map(n => { const i = on.indexOf(n); if (i < 0) throw new Error(`household: the household's ${cat} tier ${n} is not in ${o.key}'s ladder (${on.join(', ')})`); return i; });
+      if (map[o.key][cat].some((i, k) => i !== k)) same = false;
+      if (cautious[cat] === undefined && on[0] === hn[0]) cautious[cat] = o.key;
+    }
+    if (cautious[cat] === undefined) throw new Error(`household: neither person's ${cat} is held at the household's risk (${hn[0]})`);
+  }
+  return same ? null : { map, own, cautious };
+}
+/* the household's tiers held, as its table reads them: the first person's indices where no map is needed (as before) */
+export function heldOf(cp, state) {
+  const tm = cp.tierMap;
+  if (!tm) { const hs = state.tierHeld && state.tierHeld.self; return { pen: (hs && hs.pen) || 0, isa: (hs && hs.isa) || 0 }; }
+  const out = {};
+  for (const cat of ['pen', 'isa']) {
+    const who = tm.cautious[cat], h = state.tierHeld && state.tierHeld[who], k = (h && h[cat]) || 0, i = tm.map[who][cat].indexOf(k);
+    if (i < 0) throw new Error(`household: ${who}'s ${cat} holds ${tm.own[who][cat][k]}, which is not one of the household's tiers`);
+    out[cat] = i;
+  }
+  return out;
+}
+/* each person's part of the household's move: the first person's `po`, the partner's `pb` (each with the household's tier
+   indices and names), each tier at that person's own index where the ladders differ; t the plan year (for the plant) */
+export function perOwnerOf(cp, po, pb = po, t = null) {
+  const tm = cp.tierMap;
+  if (!tm || po.tierPen === undefined || planted('tierindex')) return { self: { ...po }, part: { ...pb } };
+  const mapped = (x, who) => {
+    const y = { ...x, tierPen: tm.map[who].pen[x.tierPen || 0], tierIsa: tm.map[who].isa[x.tierIsa || 0] };
+    if (planted('nofirstswitch') && t === 0) for (const [cat, key, name] of [['pen', 'tierPen', 'tierPenName'], ['isa', 'tierIsa', 'tierIsaName']]) if (tm.cautious[cat] !== who && tm.own[who][cat][0] !== tm.own[tm.cautious[cat]][cat][0]) { y[key] = 0; y[name] = tm.own[who][cat][0]; }
+    return y;
+  };
+  return { self: mapped(po, 'self'), part: mapped(pb, 'part') };
+}
 const CUT_RD = new Float64Array(4);
 function cutAhead(tab, s, t, layer) {
   const k = Math.min(t, tab.m.ctx.totalYears), L = layer !== null ? tab.tsLayers[layer] : tab;
@@ -399,8 +501,10 @@ export function assembleHousehold(E, M, plan, H, opts = {}) {
   if ((m.ctx.solvencyFloor || 0) !== (H.m.ctx.solvencyFloor || 0)) throw new Error(`solveHousehold: the minimum pots differ (${m.ctx.solvencyFloor}, ${H.m.ctx.solvencyFloor}); the plan must set the household's`);
   const idOf = {};
   for (const a of H.m.ctx.accounts) { if (idOf[a.cat] !== undefined) throw new Error(`solveHousehold: two ${a.cat} accounts in the household plan`); idOf[a.cat] = a.id; }
+  const tierMap = tierMapOf(m, H);
   return {
     E, M, m, plan, hplan: hp, hopts, H, hm: H.m, idOf, household: true, splits: opts.splits || SPLITS, topK: opts.topK || 3, wB: H.wB, switchCost: H.c.switchCost || 0, tiersBelow,
+    ...(tierMap ? { tierMap } : {}),
     ...(opts.tieJoint > 0 ? { tieJoint: opts.tieJoint } : {}), ...(opts.holdPast > 0 ? { holdPast: opts.holdPast } : {}),
     meta: { household: 'A', topK: opts.topK || 3, solveMs, tieJoint: opts.tieJoint || 0, holdPast: opts.holdPast || 0, ...(single.length ? { single: [...single] } : {}), ...(sc ? { scale: { rule: opts.scale, s: sc.s, k: sc.k } } : {}) }
   };
@@ -437,6 +541,7 @@ export function householdValue(cp, post, t, out = null, ai = null) {
 /* The household's move this year, both people taking it, at the funding split the rollout picks. */
 export function chooseHousehold(cp, state, t, out = null) {
   const { m, M, H, splits, topK } = cp, T = m.ctx.totalYears;
+  if (cp.tierMap) throw new Error('chooseHousehold: the two people\'s ladders differ (COUPLES-ANY.md A); the household\'s own chooser, chooseHouseholdSingle, takes such a couple');
   const s0 = vecOf(H.m, mergedState(cp, state)), tH = tiered(H);
   const held = state.tierHeld && state.tierHeld.self ? { pen: state.tierHeld.self.pen || 0, isa: state.tierHeld.self.isa || 0 } : { pen: 0, isa: 0 };
   const heldB = state.tierHeld && state.tierHeld.part ? { pen: state.tierHeld.part.pen || 0, isa: state.tierHeld.part.isa || 0 } : { pen: 0, isa: 0 };
@@ -559,8 +664,7 @@ export function pensionsShare(cp, state) {
 const M_initialPots = cp => cp.M.initialState(cp.m).pots;
 export function chooseHouseholdSingle(cp, state, t) {
   const { m, M, H } = cp, T = m.ctx.totalYears, tH = tiered(H);
-  const hs = state.tierHeld && state.tierHeld.self;
-  const held = tH ? { pen: (hs && hs.pen) || 0, isa: (hs && hs.isa) || 0 } : null;
+  const held = tH ? heldOf(cp, state) : null;
   const s = vecOf(H.m, mergedState(cp, state));
   const ai = chooseAction(planted('notiebreak') ? { ...H, tieAboveCap: 0 } : H, s, t, held), a = H.actions[ai];
   const level = H.levelOf ? H.levelOf[ai] : a.spendLevel !== undefined ? a.spendLevel : 1;
@@ -568,7 +672,7 @@ export function chooseHouseholdSingle(cp, state, t) {
   let bi = ai;
   if (planted('partnersecond')) { const r2 = rankFor(H, s, t, held, 2), o = r2.find(x => x !== ai); if (o !== undefined) bi = o; }
   const po = poOf(a), pb = bi === ai ? po : poOf(H.actions[bi]);
-  const mk = split => ({ steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', sweepCash: true, ...(a.sweepIsa ? { sweepIsa: true } : {}), lump: !!a.lump, contrib: null, spendLevel: level, split, switchCost: cp.switchCost || 0, perOwner: { self: { ...po }, part: { ...pb } }, ia: ai, ib: bi });
+  const mk = split => ({ steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', sweepCash: true, ...(a.sweepIsa ? { sweepIsa: true } : {}), lump: !!a.lump, contrib: null, spendLevel: level, split, switchCost: cp.switchCost || 0, perOwner: perOwnerOf(cp, po, pb, t), ia: ai, ib: bi });
   if (cp.counts) {
     cp.counts.decisions++;
     if (H.g && H.g.axes && H.g.axes.W && s[0] + s[1] + s[2] > 2 * H.g.axes.W.hi) {
@@ -599,7 +703,7 @@ export function householdMoveOf(cp, ai, split = 0.5) {
   if (!a) throw new Error(`householdMoveOf: no move ${ai} in the household's table`);
   const level = H.levelOf ? H.levelOf[ai] : a.spendLevel !== undefined ? a.spendLevel : 1;
   const po = { steps: a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', ...(tH ? { tierPen: a.tierPen || 0, tierIsa: a.tierIsa || 0, tierPenName: tierName(H, 'pen', a.tierPen || 0), tierIsaName: tierName(H, 'isa', a.tierIsa || 0) } : {}) };
-  return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', sweepCash: true, ...(a.sweepIsa ? { sweepIsa: true } : {}), lump: !!a.lump, contrib: null, spendLevel: level, split, switchCost: cp.switchCost || 0, perOwner: { self: { ...po }, part: { ...po } }, ia: ai, ib: ai };
+  return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', sweepCash: true, ...(a.sweepIsa ? { sweepIsa: true } : {}), lump: !!a.lump, contrib: null, spendLevel: level, split, switchCost: cp.switchCost || 0, perOwner: perOwnerOf(cp, po), ia: ai, ib: ai };
 }
 
 /* One path under the single's chooser, in the exact reduced model (runHouseholdPolicy's form). */

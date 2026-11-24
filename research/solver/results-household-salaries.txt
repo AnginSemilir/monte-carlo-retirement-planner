@@ -1,0 +1,11 @@
+COUPLES-ANY.md B and C (24 Nov, the full tier): node research/tests/household-salaries.test.mjs, then --planted; code id d91a642206b9
+PASS  1. the schedule: the household plan's salary in each plan year the couple's two salaries added before the first retirement, to a penny, and nought from it, its relevant earnings likewise  -- 30 couples, 1540 plan years; the largest gap £0.0000, in relevant earnings £0.0000; a salary after the first retirement in 0 years
+PASS  2. in step: the forward run's taxable pay in each working year the engine's, to a penny  -- 30 household plans, 480 working years; the largest gap £0.0000
+PASS  3. identity: every library couple's household plan, as entered and mirrored, the one built without the shape, byte for byte; every library plan's salary, owner by owner and year by year, its own formula's  -- 420 household plans, 0 differing; 27360 owner-years, 0 read otherwise
+PASS  4. nobody retiring: the household plan works to the plan's end, its salary and its contributions the couple's two added in every plan year, to a penny, no take-home income and no later retiree's deposit, and the single solver solves it  -- 70 couples, 3040 plan years; retiring within the plan 0, with a take-home income or a later retiree's deposit 0; the largest gap £0.0000; the solve: 800 moves, 20 paths run
+ALL PASS: 4 checks
+
+plant 'salsched1': the checks that fail: 1, 4; wanted 1, 4: yes
+plant 'nosched': the checks that fail: 2; wanted 2: yes
+plant 'noretireend': the checks that fail: 4; wanted 4: yes
+PLANTED: EACH PLANT FAILS EXACTLY ITS OWN CHECKS

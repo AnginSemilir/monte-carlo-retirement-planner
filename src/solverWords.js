@@ -66,12 +66,18 @@ export function dialLineWords(h, fmt) {
 const DRAW = { 'pa-half': 'up to half your personal allowance', pa: 'up to your personal allowance', 'pa-raw': 'up to your personal allowance, not counting your interest and dividends', 'basic-mid': 'up to the middle of the basic-rate band', basic: 'up to the basic-rate limit', hr: 'up to the higher-rate taper threshold' };
 const WRAP = { pa: 'your personal allowance', paraw: 'your personal allowance, not counting your interest and dividends', basic: 'the basic-rate limit', hr: 'the higher-rate taper threshold', pam: 'half your personal allowance', bm: 'the middle of the basic-rate band' };
 const steps = k => `${k} step${k > 1 ? 's' : ''}`;
+/* a tier part is its steps below the risk chosen, negative for the tier above it (D16's 'auto' rule; src/solverStrategy.js
+   stepsBelow): a move to it is a step up. research/tests/tier-words.test.mjs plant 'abovewords': the sign dropped, a step up
+   worded as a step down, as before */
+const signed = k => (WORDS_PLANT.rule === 'abovewords' ? Math.abs(k) : k);
+const lowerOrHigher = (whose, what, k0) => { const k = signed(k0); return k >= 0 ? `Move ${whose} ${what} ${steps(k)} lower in risk` : `Move ${whose} ${what} ${steps(-k)} higher in risk`; };
+const safer = (what, k0) => { const k = signed(k0); return k >= 0 ? `${what} ${steps(k)} safer` : `${what} ${steps(-k)} riskier`; };
 export const PART_WORDS = {
   level: (v, { target, fmt }) => (v < 1 ? `Spend ${fmt(v * target)} this year, ${pct(100 * v)} of your target` : `Spend up to ${fmt(v * target)} this year, ${pct(100 * v)} of your target`),
   draw: v => (v === 'any' ? 'Take what you need from your pension first' : `Take from your pension first, ${DRAW[v] || v}`),
   harvest: v => `Move pension money into your ISA, up to ${WRAP[v] || v}`,
-  tierPen: k => `Move your pension ${steps(k)} lower in risk`,
-  tierIsa: k => `Move your ISA ${steps(k)} lower in risk`,
+  tierPen: k => lowerOrHigher('your', 'pension', k),
+  tierIsa: k => lowerOrHigher('your', 'ISA', k),
   // D138: the savings split's choice in a working year, at the net cost of the plan's own pension and ISA saving that year
   // (src/App.jsx saveSplitRoutes; SAVINGS-SPLIT.md): 1 the pension first, grossed up within its allowance, then the ISA; 2 the
   // ISA first, then the pension. Worded without "this year" so the next years' rows can end it ", each year"
@@ -105,12 +111,17 @@ export function actionWords(x, ctx) {
  * a step down.
  */
 export const WORDS_PLANT = { rule: '' };
-const tierWords = (what, was, now) => (now === was && WORDS_PLANT.rule !== 'tiereach' ? null
-  : now === was ? (now ? `Move your ${what} ${steps(now)} lower in risk` : null)
-    : was === 0 ? `Move your ${what} ${steps(now)} lower in risk`
-      : now === 0 ? `Move your ${what} back to the risk you chose`
-        : now < was && WORDS_PLANT.rule !== 'tierdown' ? `Move your ${what} ${steps(was - now)} back up in risk (${now} below the risk you chose)`
-          : `Move your ${what} ${steps(Math.abs(now - was))} further down in risk (${now} below the risk you chose)`);
+// where a tier ends against the risk chosen, below it or (the tier above, D16) above it
+const whereEnds = n => (n > 0 ? `${n} below the risk you chose` : `${-n} above the risk you chose`);
+const tierWords = (what, was0, now0) => {
+  const was = signed(was0), now = signed(now0);
+  return (now === was && WORDS_PLANT.rule !== 'tiereach' ? null
+    : now === was ? (now ? lowerOrHigher('your', what, now) : null)
+      : was === 0 ? lowerOrHigher('your', what, now)
+        : now === 0 ? `Move your ${what} back to the risk you chose`
+          : now < was && WORDS_PLANT.rule !== 'tierdown' ? `Move your ${what} ${steps(was - now)} ${now > 0 ? 'back up' : was > 0 ? 'up' : 'further up'} in risk (${whereEnds(now)})`
+            : `Move your ${what} ${steps(Math.abs(now - was))} ${now < 0 ? 'back down' : was < 0 ? 'down' : 'further down'} in risk (${whereEnds(now)})`);
+};
 export function aheadWords(row, { fmt }, prev = null) {
   const p = row.parts, lines = [];
   if (p.save) lines.push(PART_WORDS.save(p.save));
@@ -149,8 +160,8 @@ export function ledgerWords(p, spending, row = null) {
   if (p.save) w.push(p.save === 1 ? 'saving: pension first' : p.save === 2 ? 'saving: ISA first' : `save ${p.save}`);
   if (p.draw !== 'none') w.push(p.draw === 'any' ? 'pension first' : `pension first, to ${SHORT_DRAW[p.draw] || p.draw}`);
   if (p.harvest) w.push(`pension to ISA, to ${SHORT_WRAP[p.harvest] || p.harvest}`);
-  if (p.tierPen) w.push(`pension ${steps(p.tierPen)} safer`);
-  if (p.tierIsa) w.push(`ISA ${steps(p.tierIsa)} safer`);
+  if (p.tierPen) w.push(safer('pension', p.tierPen));
+  if (p.tierIsa) w.push(safer('ISA', p.tierIsa));
   if (row && row.sweptToIsa >= 0.5) w.push(`cash ISA ${Math.round(row.sweptToIsa).toLocaleString('en-GB')} to ISA`);
   if (row && row.sweptToGia >= 0.5) w.push(`cash ${Math.round(row.sweptToGia).toLocaleString('en-GB')} to taxable`);
   else if (row && row.sweptFromGia >= 0.5) w.push(`taxable ${Math.round(row.sweptFromGia).toLocaleString('en-GB')} to cash`);
@@ -186,8 +197,8 @@ export const WHO_NAME = { self: 'You', part: 'Your partner', household: 'Togethe
 export const PARTNER_WORDS = {
   draw: v => (v === 'any' ? 'Take what is needed from their pension first' : `Take from their pension first, ${DRAW_THEIR[v] || v}`),
   harvest: v => `Move their pension money into their ISA, up to ${WRAP_THEIR[v] || v}`,
-  tierPen: k => `Move their pension ${steps(k)} lower in risk`,
-  tierIsa: k => `Move their ISA ${steps(k)} lower in risk`
+  tierPen: k => lowerOrHigher('their', 'pension', k),
+  tierIsa: k => lowerOrHigher('their', 'ISA', k)
 };
 // research/tests/couple-words.test.mjs plant 'partneryour': the partner's moves worded as if they were the first person's
 const personWords = (who, part, v, ctx) => {
@@ -245,8 +256,8 @@ export function coupleLedgerWords(p, spending, row = null) {
     const q = p[who], name = who === 'self' ? 'you' : 'partner', bits = [];
     if (q.draw !== 'none') bits.push(q.draw === 'any' ? 'pension first' : `pension first, to ${SHORT_DRAW[q.draw] || q.draw}`);
     if (q.harvest) bits.push(`pension to ISA, to ${SHORT_WRAP[q.harvest] || q.harvest}`);
-    if (q.tierPen) bits.push(`pension ${steps(q.tierPen)} safer`);
-    if (q.tierIsa) bits.push(`ISA ${steps(q.tierIsa)} safer`);
+    if (q.tierPen) bits.push(safer('pension', q.tierPen));
+    if (q.tierIsa) bits.push(safer('ISA', q.tierIsa));
     if (bits.length) w.push(`${name}: ${bits.join(', ')}`);
   }
   if (row && row.sweptToIsa >= 0.5) w.push(`cash ISA ${Math.round(row.sweptToIsa).toLocaleString('en-GB')} to ISA`);

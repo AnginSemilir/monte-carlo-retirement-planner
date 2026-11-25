@@ -37,15 +37,20 @@
  *      library's 210 couples as entered, the pattern search, the cut's household plan carrying the minimum pot its table is
  *      solved with (as solvePlan sets it, no solve run) and its model the same one;
  *   9. a partner's own ceilings (the limits per person) that are the first person's wrapper for wrapper, as the limits card
- *      leaves them set back to free (the reviewer's finding 3), solve as one household; a partner's own ceiling that differs
- *      falls back to today's route, its record naming the household plan's refusal (lockedPlan lowers the partner's pension
- *      to the ceiling first, so the household plan refuses its risk before it reads the limit).
+ *      leaves them set back to free (the reviewer's finding 3), solve as one household; and since COUPLES-ANY's change of
+ *      default (D148) a partner's own ceiling that differs solves as one household too, the household plan holding both people
+ *      to the stricter of the two (before it, it fell back to today's route, its record naming the household plan's refusal:
+ *      lockedPlan lowers the partner's pension to the ceiling first, so the household plan refused its risk before it read the
+ *      limit).
  * Plants (--planted; each wants exactly the checks named): the key's 'bandsunkeyed' (the bands left out of the key: check 3),
  * the client's 'partnobands' (the first part handed no bands: every check whose table is solved split, 1, 2, 4, 5 and 6, its
  * assembly refused on the band for gains), 'noformcheck' (each assembly's setting unread: check 4), 'keyvariant' (a variant
- * keyed: check 5), 'nofallback' (a refusal of the plan's shape failing the solve: check 7), and the cut's (src/solverCouple.js)
- * 'hhzerofloor' (a household's minimum pot left at the plan's nought: check 8) and 'partceilkey' (a partner's ceilings that
- * are the first person's handed to the household plan: check 9).
+ * keyed: check 5), 'nofallback' (a refusal of the plan's shape failing the solve: check 7; since D148 check 9's differing
+ * ceiling is taken, so no refusal arises there), and the cut's (src/solverCouple.js) 'hhzerofloor' (a household's minimum pot
+ * left at the plan's nought: check 8). 'partceilkey' (a partner's ceilings that are the first person's handed to the
+ * household plan, which refused them: check 9) was retired on 25 Nov (the reviewer on D148's change of default, finding 2):
+ * since D148 the household plan takes a partner's own limits and holds the stricter of the two, which for two equal
+ * ceilings is the same, so handing them on changes nothing a check can see.
  *   node research/tests/household-client.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -66,7 +71,7 @@ import { fileURLToPath } from 'node:url';
 
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['bandsunkeyed', ['3']], ['partnobands', ['1', '2', '4', '5', '6']], ['noformcheck', ['4']], ['keyvariant', ['5']], ['nofallback', ['7', '9']], ['hhzerofloor', ['8']], ['partceilkey', ['9']]]) {
+  for (const [plant, want] of [['bandsunkeyed', ['3']], ['partnobands', ['1', '2', '4', '5', '6']], ['noformcheck', ['4']], ['keyvariant', ['5']], ['nofallback', ['7']], ['hhzerofloor', ['8']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, HOUSEHOLD_CLIENT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
@@ -160,7 +165,7 @@ class InProcessWorker {
 globalThis.Worker = InProcessWorker;
 const C = await import('../../src/solverClient.js');
 C.PLANT.rule = ['partnobands', 'noformcheck', 'keyvariant', 'nofallback'].includes(PLANT) ? PLANT : '';
-COUPLE_PLANT.rule = ['hhzerofloor', 'partceilkey'].includes(PLANT) ? PLANT : '';
+COUPLE_PLANT.rule = ['hhzerofloor'].includes(PLANT) ? PLANT : '';
 KEY_PLANT.rule = PLANT === 'bandsunkeyed' ? PLANT : '';
 
 // the whole: the cut, its table solved whole inside its bands, the household assembled on it, its record and its paths

@@ -72,16 +72,19 @@
  *      lump sum hold for both;
  *      the guard (D99): the same couple re-held 90/10, its elder holding 90%, is solved to the end, no couples card, every
  *      figure the reference's bit for bit (the household's bands from its 90/10 pensions); a couple the household plan refuses
- *      (D135: the same couple re-held 90/10, the partner's ISA held at another risk than the first person's) is solved on
- *      today's route, each person's table with their partner's age and then the couple (src/solverCouple.js couplePlans,
+ *      (D135: the same couple re-held 90/10 with neither of them retiring within the plan, the one shape it still refuses since
+ *      D148; before it, the partner's ISA held at another risk than the first person's) is solved on today's route, each person's table with their partner's age and then the couple (src/solverCouple.js couplePlans,
  *      assembleCouple), no couples card, every figure the reference's on the couples' default share rule and joint move bit
  *      for bit (the reference solves today's route on APP_COUPLE's); since D143 (the household route's classes open,
  *      src/couplesSwitch.js HOUSEHOLD_OPEN): re-held 25/75, its younger partner holding 75%, solved on the household route,
- *      no couples card, every figure the reference's bit for bit; the same with the partner's ISA at another risk (a shape the
- *      household plan refuses) the couples card with its reason ('shape'), the refusal and its words; the same couple as
+ *      no couples card, every figure the reference's bit for bit; the same with neither of them retiring within the plan (the
+ *      shape the household plan refuses) the couples card with its reason ('shape'), the refusal and its words; since D148
+ *      the same re-held 25/75 with the partner's ISA at another risk (b5), the partner's own pension limit differing (b6, You's
+ *      Limits saying both are held to the more cautious of their two limits) and both paid with salaries growing apart (b7),
+ *      each solved on the household route, every figure the reference's bit for bit; the same couple as
  *      entered, its partner made 12 years younger and with £15,000 a year of other taxable income from 67 (a DB pension, as
  *      step 5's S147-db; D128, src/couplesSwitch.js DB_GAP_UP_TO), solved on the household route, no couples card, every figure
- *      the reference's bit for bit; and that with the partner's ISA at another risk the couples card with its reason
+ *      the reference's bit for bit; and that with neither of them retiring within the plan the couples card with its reason
  *      ('shape'), not the gap's; and check 10's card, couples off, gives its reason 'off'; the speed mode offered to the couple with the couple's warning (D98); a couple entered
  *      younger first (D104 (1), src/couplesSwitch.js SWAP_ELDER): the same couple re-held 75/25, its elder holding 75%,
  *      entered elder first and then the other way round by this harness's own hand (each person's fields, the end age so the
@@ -806,17 +809,18 @@ const firstDiff = (a, b, at = '') => {
           ok(19, 'couples on, held 90/10: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
           await p.context().close(); }
         // (g) a couple the household plan refuses (D135; src/solver/household.js householdPlanFor, the plan's own shapes): the same
-        // couple re-held 90/10, the partner's ISA held at another risk than the first person's, is solved on today's route, two
-        // tables and the joint move, on the pots' share (held 90/10, so a page solving it on the half share fails here: plant
+        // couple re-held 90/10, inside the guard before D143, with neither of them retiring within the plan, the one shape the
+        // household plan still refuses since COUPLES-ANY's change of default (D148; before it the partner's ISA held at another
+        // risk than the first person's, which it now takes: the reviewer on that change, finding 1), is solved on today's route,
+        // two tables and the joint move, on the pots' share (held 90/10, so a page solving it on the half share fails here: plant
         // 'couplehalf'), no couples card, every figure today's reference's bit for bit
-        { const odd = reheld(0.9), isaPart = odd.accounts.find(a => a.id === 'isa_part'), isaSelf = odd.accounts.find(a => a.id === 'isa_self');
-          if (!isaPart || !isaSelf) throw new Error('check 19 (g): the fixture has no ISA for each person');
-          isaPart.risk = isaSelf.risk === 'Medium Risk' ? 'Medium/High Risk' : 'Medium Risk';
+        { const odd = reheld(0.9);
+          Object.assign(odd.demographics, { retireAgeSelf: 120, retireAgePart: 120, salarySelf: 30000, salaryPart: 30000, salaryGrowthSelf: 0, salaryGrowthPart: 0 });
           const why = await householdRefusal(odd);
           const { p, errs } = await open(b, odd, { port: COUPLES_PORT });
           const doneG = await waitCard(p, 'done', WAIT_MS), cardG = !!(await p.$('[data-place="plan"] [data-planner-couple]'));
           const pageG = doneG ? await figs(p) : null, plG = await saved(p), wantG = pageG ? await refCouple(plG) : null;
-          ok(19, 'couples on: a couple the household plan refuses (re-held 90/10, the partner\'s ISA at another risk) is solved on today\'s route (D135): no couples card, every figure the reference\'s on the pots\' share and the joint move bit for bit',
+          ok(19, 'couples on: a couple the household plan refuses (re-held 90/10, neither of them retiring within the plan) is solved on today\'s route (D135): no couples card, every figure the reference\'s on the pots\' share and the joint move bit for bit',
             !!why && /^householdPlanFor: /.test(why) && doneG && !cardG && !!pageG && JSON.stringify(pageG) === JSON.stringify(wantG),
             `the household plan ${why ? `refuses it ("${why.slice(0, 80)}")` : 'TAKES it'}; done ${doneG}; card ${cardG}; ${pageG && wantG ? (firstDiff(pageG, wantG) || `survival ${pageG.headline.survival}% the reference's`) : 'no figures'}`);
           ok(19, 'couples on, refused by the household plan: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));

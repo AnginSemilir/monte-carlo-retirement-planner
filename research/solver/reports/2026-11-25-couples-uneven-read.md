@@ -23,8 +23,14 @@ section 3). It changes no default, no gate and nothing in the candidate.
   - PA2's household plan is ROUTE's but for its allowance and its tax thresholds, each moved by the allowance's difference;
     FIX's is ROUTE's but for its incomes.
   - Every arm matches `E.runTrial` on its first 200 paths.
-- **The figures.** Every figure below is the read's own, from `results-couples-uneven.txt`. Counts of its lines are marked
-  as such.
+- **The reviewer at the read** (`reviews/2026-11-25-read-couples-uneven.md`): first look FAIL, one BLOCKING (the write-up
+  left out M1's two names, which the rule sends to the maintainer with this read) and one MINOR (the D134 paragraph said
+  more than the test can show), answered in one fix round; second look PASS (`-2.md`), three MINOR, each answered (where the
+  survival cost falls, a count in `DECISIONS-PENDING.md`, and STATE.md's next actions carrying the hold before `main`).
+- **The figures.** Every figure below is the read's own, from `results-couples-uneven.txt`, unless it is marked post hoc.
+  Counts of its lines are marked as such. The post hoc figures come from `results-couples-uneven-beside.txt`
+  (`couples-uneven-beside.mjs`, written after the read from the reviewer's leads, on the run's own arrays, deciding
+  nothing).
 
 ## In plain words
 
@@ -52,8 +58,33 @@ kinds. D is `+£437` (`+£435` to `+£440`) a year, so the premise holds.
 that each person's state pension and draws have their own allowance. That is D143's pricing gap, reaching the draws as
 well as a partner's state pension. The even split is not the cause: SPLIT's rise is ROUTE's.
 
-By the rule, in every outcome the registered read and its passes stand, and nothing of seed 7027 runs again. The rule
-sends the pricing to the household line's next build, EXPLORATORY, read first by D34 for survival.
+The rule's clause for every outcome (`COUPLES-UNEVEN.md`): "the registered read and its passes stand, and nothing of seed
+7027 runs again; M1's two names go to the maintainer before any default changes, with this read beside them; R's, L's and
+P's change of default is drafted beside it, since the rise is the household route's and not theirs." For PA2 EXPLAINS IT,
+the rule sends the pricing to the household line's next build, EXPLORATORY, read first by D34 for survival.
+
+## M1's two names, by this read
+
+The registered read's M1 named S041-Rp1t-Y75 and S041-Ri1s-Y75 (more paths kept than the app's rules, less spent on the
+paths both keep). The maintainer's word on them, D148, came before this read: it accepted both shortfalls on the agent's
+recommendation, and R's, L's and P's change of default was built and committed (84f0aac7) beside the running test.
+- **What the read prints of their two kinds** (counts of its lines): ROUTE's tax rise at 25/75 is `+£525` a year on Rp1t
+  and `+£539` on Ri1s; PA2's is `-£11` and `-£20`.
+- **So, by the read,** ROUTE's part of each name is the household table's allowance at `k`. That is D143's pricing gap,
+  which D145 (2) left in the route when the pricing fix lost paths. The other part, by the deep review, is the app's rules
+  doing better at 25/75 (arm A's pick moving to ISA First).
+- **The read itself prints no M1 by arm.** Post hoc (`results-couples-uneven-beside.txt` A and B):
+  - M1's own rule names the same two units under ROUTE (`519` and `472` paths kept net, spending on the paths both keep
+    `-1.0706%` and `-0.4909%`), and under SPLIT, but none under PA2 or FIX. On the two units PA2 spends `+0.7616%` and
+    `+1.4299%` more than APP on the paths both keep.
+  - The price is survival elsewhere: PA2 less ROUTE is `-0.537` points (`-0.656` to `-0.419`) at 60/40 and `-0.507`
+    (`-0.632` to `-0.382`) at 25/75, by path.
+  - It is not paid on the two named units, where PA2 keeps more paths than ROUTE (the read's D34 lines: lost 3 and saved
+    8 on Rp1t-Y75, lost 3 and saved 17 on Ri1s-Y75). It falls on the units with a wrapper two or three profiles apart,
+    where D34 flags PA2. So the trade is between couples, not within the two named ones.
+- **So the maintainer's word on M1 is a word on that gap.** Keeping the route as shipped keeps the gap and its two M1
+  names; pricing it out (PA2) takes the names away and gives up about half a point of survival. This read goes to the
+  maintainer beside D148 before anything goes to `main` (`DECISIONS-PENDING.md`).
 
 ## Beside, deciding nothing
 
@@ -99,10 +130,14 @@ counts of the read's lines):
 - **It shows that the pricing is not free.** PA2 keeps fewer paths than ROUTE on 10 of the 28 units by D34. Against APP at
   25/75 its survival gain is `+11.870` against ROUTE's `+12.377`, and its spending gain is `+2.3624%` against `+0.6271%`.
   - This is the same pattern as the pricing fix's read (`results-pricing-fix.txt`, FIX DOES NOT HOLD), on other units.
-- **It does not show the table reading a couple as safer than it is** (D134's stop). The test does not compare a table's
-  forecast with simulation. By its construction, the table at `k` prices more tax than the two-allowance table (at 25/75
-  its allowance is `k` = `1.333` times one person's, against two). And at 25/75, ROUTE's survival gain over APP is above
-  both pricing arms'.
+- **It cannot speak to D134's stop** (a table reading a couple as safer than it is). No arm here reads a table against
+  simulation, so the test can show neither that stop nor its absence.
+- **Where the pricing arms lose paths** (post hoc, `results-couples-uneven-beside.txt` C; a lead, not a result):
+  - Of the 932 paths PA2 loses against ROUTE, 931 fail in the plan's last year, 910 of them with no spending unmet, so they
+    end below the minimum pot.
+  - FIX's are the same: 1,495 of 1,509 in the last year, 1,445 with no spending unmet.
+  - That is the late tail D134's test took apart. Whether it is a trade made on a right reading or on a misreading, nothing
+    here measures.
 - **It does not show why the two-allowance table loses paths,** nor whether some other pricing would remove the tax rise
   and keep ROUTE's survival. Nothing here tests one.
 - **It reads one couple,** S041 (retired, 68 and 65), at two holdings, on the tuning seed.
@@ -113,6 +148,7 @@ counts of the read's lines):
   by D34 for survival. Both pricings tested so far lose paths against ROUTE by D34: FIX here and on the pricing fix's read
   (D145 (2): the pricing fix not taken), PA2 here. So whether to build another, and against what bar, goes to the
   maintainer with this read (`DECISIONS-PENDING.md`).
-- **R, L and P's change of default (D148) is not stopped.** By the rule, no outcome stops it, since the rise is the
-  household route's and not those classes'. It goes on to the reviewer on the change of default and B1's gate. This read
-  was its last condition before `main`.
+- **R, L and P's change of default (D148) is not stopped by the rule:** no outcome stops it, since the rise is the household
+  route's and not those classes'. But the rule sends M1's two names to the maintainer with this read beside them before any
+  default changes, and D148 took them before the read. So the maintainer's word, with this read beside it, comes before
+  `main`. The reviewer on the change of default and B1's gate go on meanwhile.

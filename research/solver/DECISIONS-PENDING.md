@@ -11,6 +11,50 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (25 Nov, midday), for your word before batch 18 goes to `main`: the deep review's test, read beside D148.**
+- **Why this comes back to you.** D148 accepted M1's two names (S041-Rp1t-Y75 and S041-Ri1s-Y75) before the deep review's
+  test had read. Its rule sends those names to you with its read beside them before any default changes
+  (`COUPLES-UNEVEN.md`). So R, L and P's change of default is built, with its reviewer's second look and B1's gate still to
+  run, and waits for your word before `main`.
+- **What the test found** (EXPLORATORY, seed 7002; `results-couples-uneven.txt`; `reports/2026-11-25-couples-uneven-read.md`):
+  PA2 EXPLAINS IT.
+  - On S041's 14 kinds, the household route pays `+£437` a year more tax at 25/75 than at 60/40.
+  - Pricing the household's allowance at two people's (PA2) takes that to `+£3`. Moving its split (SPLIT) leaves `+£440`.
+  - So the rise is the household table's allowance at `k`: the pricing gap D143 found, which you left in the route when
+    the pricing fix lost paths (D145 (2)).
+- **What it says of M1's two names.** On their two kinds ROUTE's rise is `+£525` and `+£539` a year, PA2's `-£11` and
+  `-£20`. So each name is that gap plus the app's rules doing better at 25/75, not a survival trade. Post hoc, deciding
+  nothing (`results-couples-uneven-beside.txt`):
+  - M1's own rule names the two units under ROUTE, and none under PA2 or FIX.
+  - The price of pricing the gap out is survival elsewhere: PA2 keeps `0.537` points fewer paths than ROUTE at 60/40 and
+    `0.507` at 25/75. D34 flags PA2 against ROUTE on 10 of the 28 units, and FIX on 13.
+  - That price is not paid on the two named units, where PA2 keeps more paths than ROUTE (lost 3 and saved 8, and lost 3
+    and saved 17). It falls on the units holding a wrapper two or three profiles apart. So the trade is between couples.
+  - Of PA2's 932 lost paths, 931 fail in the plan's last year, 910 of them with every year's spending met but the pot below
+    the minimum pot.
+- **The choice:**
+  - (a) D148 stands as you gave it: the route as shipped, its pricing gap and M1's two shortfalls; batch 18 goes to `main`
+    once its reviewer passes and B1's gate is green.
+  - (b) hold batch 18, and look first for a pricing that removes the gap and keeps the route's survival (EXPLORATORY,
+    read first by D34). Open-ended: neither pricing tried so far does it.
+- **The agent's recommendation:** (a). It is the trade D145 (2) already made: survival first, and both pricings tried lose
+  it. If you later want the spending back, the lead to follow is why the two-allowance table's extra paths fail only at the
+  plan's very end.
+- **Also with you, from the reviewer on D148 (MINOR 3): R more than three profiles apart**, which no test measured.
+  - The household plans a wrapper from the more cautious of the two risks. So where one partner holds Cash Equivalents,
+    the other's whole wrapper goes to cash for the plan.
+  - The reviewer's light look (post hoc, one couple, S123-Rp3t-own): survival within a few paths of today's route, the
+    median pot about `30%` lower at five profiles apart.
+  - Keeping such couples off the household route would send those outside the guard to the app's rules. On R's registered
+    units (one to three profiles apart) the household route kept `+10.600` points more survival than the app's rules
+    (`results-couples-any-registered.txt`). So the agent recommends leaving it as D148 has it (by inference, now said in
+    its line), with an EXPLORATORY test of R at four and five profiles apart if you want it measured.
+
+**DECIDED (25 Nov, morning): D148.** Every couple on the solver's registered read, put to you in chat with the agent's
+recommendation. Your words "Unlock enforcement" were read as the go on that recommendation: both M1 names' shortfalls
+accepted, R, L and P's change of default built, and the deep review's test read before anything goes to `main`. Its read
+is above, for your word before `main`. C and the classic planner are still open (below).
+
 **OPEN (24 Nov, evening), for your word: whether C opens, and the classic planner.**
 - **C, nobody retiring within the plan** (`COUPLES-ANY.md` amendment 2). The dress rehearsal (EXPLORATORY,
   `results-couples-any.txt`, its N lines; `reports/2026-11-24-couples-any-rehearsal-read.md`) passed W, R, L and P and

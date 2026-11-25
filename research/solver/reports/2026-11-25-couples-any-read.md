@@ -31,8 +31,9 @@ the tree it ran on, the same).
 
 **The read.** Read once at 06:36 UK by `reduce-couples-any.mjs --registered` (with `REG=1`) from the launch worktree, its
 gate fair, its output whole in `results-couples-any-registered.txt`. The ranges below come from
-`results-couples-any-registered-beside.txt`, which `couples-any-beside.mjs` prints from the read's own unit lines; that
-script was written on 24 Nov, before any of seed 7027's outcome existed, and decides nothing. The MPAA ages come from
+`results-couples-any-registered-beside.txt`, which `couples-any-beside.mjs` prints from the read's own unit lines. That
+script's change for this read was committed on 24 Nov at 22:04 UTC (575998b5), while the run was going and before the read,
+and it decides nothing. The MPAA ages come from
 `results-couples-any-registered-mpaa.txt`, which `couples-any-mpaa.mjs` prints from the same lines; it was written after the
 read and decides nothing.
 
@@ -77,7 +78,9 @@ both with the younger holding 75% and their wrapper one profile apart:
 | S041-Rp1t-Y75 | the pension, the partner's the safer | `85.59%` to `98.98%` | `3,483` | `-0.9379%` (`-0.9936` to `-0.8823`) | `-0.753%` | `-4.597%` (`-£25,362`) |
 | S041-Ri1s-Y75 | the ISA, the first person's the safer | `86.75%` to `98.85%` | `3,147` | `-0.3579%` (`-0.4091` to `-0.3066`) | `-0.397%` | `+6.309%` (`+£35,138`) |
 
-- ROUTE loses no path on either and saves `3,483` and `3,147`, and pays for it with a little less spending.
+- ROUTE loses no path on either and saves `3,483` and `3,147`, and spends less on the paths both keep. The read does not
+  show why, or that one is the price of the other. Other units of S041 keep as many paths and spend more on the paths both
+  keep: S041-W0-Y75, for one, saves `3,679` paths and loses none, and spends `+1.5096%` on the paths both keep.
 - They are the two units the pilot's M1 named on `1,000` paths of seed 7002 (`results-couples-any-sizing.txt`), so the
   registration said the read would most likely come to the maintainer first.
 - They are also the only two units where ROUTE delivers less lifetime spending over all paths than APP beyond noise: S041-Rp1t-Y75
@@ -139,10 +142,23 @@ caps that person's pension saving):
   - on none of S041's or S123's, the two retired couples;
   - `60/60` to `60/58` on `33` units, `60/60` to `58/58` on `27`, and `58/60` to `58/58` on `2`.
 - In the dress rehearsal ROUTE's were earlier on `1` of `144` units.
-- Each arm's ages come from its own context (`audit-couples-any.mjs` `mpaaOf`): APP's resolved on arm A's plan
-  (`resolveMpaa`: the first year a person takes taxable pension income on the expected path), ROUTE's the page's own context
-  for the solved couple. Each arm's paths run on its own ages, so every figure above carries them.
-- Why ROUTE's ages are earlier on these couples is not shown here.
+- Where the ages come from, read from the code and not measured:
+  - Each arm's ages are its own context's (`audit-couples-any.mjs` `mpaaOf`), and both are resolved by `resolveMpaa` (the
+    first year a person takes taxable pension income on the expected path of the app's rules, on the plan as arm A's policy
+    holds it).
+  - APP's are resolved with the guardrails on and the five-year lookahead (`audit-couples-any.mjs`).
+  - ROUTE's are resolved with the guardrails off and no lookahead, as the page prepares every plan it solves
+    (`src/solverSettings.js` `prepareForSolve`), and the page's context for the solved couple carries them.
+  - So neither arm's ages come from ROUTE's own moves. Why the two settings reach different ages on these couples is not
+    shown.
+- What the ages reach, read from the code and not measured:
+  - The engine levies no charge on pension contributions past a person's MPAA age.
+  - The age moves money only through a pension's room for a one-off deposit or a staged tranche
+    (`mpaaAppliesAtYear`, through `wrapperHeadroomAtYear` in `buildContext`'s routing). Its other callers, the savings
+    split's routes and the accumulation tool, are not in these runs.
+  - Of the 62 units' plans, only S207's hold a one-off contribution: the first person's Auto deposit in 2033, at 62, past
+    that person's MPAA age in both arms. S281's, S185's and S197's hold none.
+  - So, by the code, the earlier ages move no money on any of the 62 units.
 
 ## What it does not show
 
@@ -160,18 +176,31 @@ caps that person's pension saving):
   - a couple entered younger first, and a couple with no minimum pot set;
   - the younger cohort, which had no couple left untouched (the dress rehearsal alone, EXPLORATORY);
   - the 'lower' estate aim, consent to change risk withdrawn, the dial's other positions and the speed mode.
+- **The cost of L's limits.** APP reads no solver limits, so L compares the household route under the two people's limits
+  with the app's rules without them, as the user would see it. L's pass does not show that the limits cost nothing (the
+  registration; its design review, item 9).
 - **N's class, C** (nobody retiring within the plan), which is not registered and is the maintainer's.
 - **E** (today's two-table route leaving the app's solve), which is its own change of default.
 
 ## The reviewer at the read
 
-To follow.
+- First look: FAIL, one BLOCKING and three MINOR (`reviews/2026-11-25-read-couples-any.md`). The read itself stands: the
+  reviewer reproduced the gate, W's identity, each class's rule and M1's names from the stored arrays. Answered in one fix
+  round:
+  - **BLOCKING:** the two units M1 names were said to pay for the paths they keep with less spending, which no results
+    file shows. Now the write-up says only that the two occur together, and that the read does not show why.
+  - **The beside's timing:** its script's change was committed while the run was going, before the read, and not before
+    any of seed 7027's outcome existed; corrected here and in the script's header.
+  - **The MPAA ages:** what the code shows of where they come from and what they reach, marked as read from the code.
+  - **L's limits:** the registration's caveat, that L's pass does not show the limits cost nothing, added to what the read
+    does not show.
+- Second look: to follow.
 
 ## Next
 
-- The reviewer at the read, then the deep review.
+- The reviewer's second look, and the deep review.
 - To the maintainer, before any default changes: the two units M1 names. The agent's recommendation is to accept both
-  trades, as D134 accepted S273-90's and D143 S037's, and to build R, L and P's change of default. It is drafted
+  units' shortfalls, as D143 accepted S037's and D134 S273-90's, and to build R, L and P's change of default. It is drafted
   (`drafts/couples-any-default.patch`, `drafts/COUPLES-ANY-DEFAULT.md`); its protected edits are asked for by name:
   `couple-default.test.mjs`, `couple-limits-card.test.mjs` and `couple-shape.test.mjs`. Then the reviewer on the change of
   default and B1's gate.

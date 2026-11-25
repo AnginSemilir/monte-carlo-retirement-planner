@@ -16,8 +16,9 @@
  * tax says so (MINOR 2).
  *   node research/solver/couples-any-beside.mjs > research/solver/results-couples-any-beside.txt
  * The registered read's file the same way, after its read (its unit lines the same reducer's; N absent, so no N section; a unit
- * D34 flags named, where the rehearsal flagged none): written 24 Nov while the registered run was running, before any of its
- * outcome existed, and the rehearsal's file reproducing byte for byte:
+ * D34 flags named, where the rehearsal flagged none): committed 24 Nov at 22:04 UTC (575998b5) while the registered run was
+ * running and before its read, no outcome of seed 7027 read in writing it (its unit records then partly written), and the
+ * rehearsal's file reproducing byte for byte:
  *   node research/solver/couples-any-beside.mjs research/solver/results-couples-any-registered.txt
  *     > research/solver/results-couples-any-registered-beside.txt
  */

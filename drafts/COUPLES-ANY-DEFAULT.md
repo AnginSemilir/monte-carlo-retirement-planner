@@ -87,4 +87,10 @@ All of this ran at the lowest priority, so the registered run kept its cores.
     clause.
   - The shape card's check 19 and the checks that use a refused shape then have no shape left to use.
 - **E:** today's route leaving the app comes after A to C's classes have read and C is decided.
-- **The D-line, the inference list and STATE.md's records** are written with the change itself.
+- **The D-line, the inference list and STATE.md's records** are written with the change itself. The D-line carries, beside
+  the registration's inference list, two things the reviewer at the read asked for (`reviews/2026-11-25-read-couples-any.md`,
+  findings 1 and 4):
+  - the two units M1 names (S041-Rp1t-Y75 and S041-Ri1s-Y75) as shortfalls the maintainer accepted, the read not showing that
+    the lower spending is the price of the paths kept;
+  - L's pass not showing that the limits cost nothing, since APP reads no solver limits (the registration; its design review,
+    item 9).

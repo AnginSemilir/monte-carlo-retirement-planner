@@ -16,7 +16,7 @@ below this section says "the beta", read it as history. The order from here:
   test had read. Its rule sends those names to you with its read beside them before any default changes
   (`COUPLES-UNEVEN.md`). So R, L and P's change of default is built, its reviewer's second look PASS (two MINOR answered,
   e923e552), B1's gate ALL REQUIRED GREEN in both modes on it (`code-stamp:b03f6922ce573bf8`), `release/batch-18` cut at
-  the gate's commit with its pull request open, and it waits for your word before `main`.
+  the gate's commit (23b6f42f) with pull request 30 open as a draft, and it waits for your word before `main`.
 - **What the test found** (EXPLORATORY, seed 7002; `results-couples-uneven.txt`; `reports/2026-11-25-couples-uneven-read.md`):
   PA2 EXPLAINS IT.
   - On S041's 14 kinds, the household route pays `+£437` a year more tax at 25/75 than at 60/40.

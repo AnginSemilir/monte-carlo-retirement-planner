@@ -14,8 +14,8 @@ below this section says "the beta", read it as history. The order from here:
 **OPEN (25 Nov, midday), for your word before batch 18 goes to `main`: the deep review's test, read beside D148.**
 - **Why this comes back to you.** D148 accepted M1's two names (S041-Rp1t-Y75 and S041-Ri1s-Y75) before the deep review's
   test had read. Its rule sends those names to you with its read beside them before any default changes
-  (`COUPLES-UNEVEN.md`). So R, L and P's change of default is built, with its reviewer's second look and B1's gate still to
-  run, and waits for your word before `main`.
+  (`COUPLES-UNEVEN.md`). So R, L and P's change of default is built, its reviewer's second look PASS (two MINOR answered,
+  e923e552), B1's gate running, and waits for your word before `main`.
 - **What the test found** (EXPLORATORY, seed 7002; `results-couples-uneven.txt`; `reports/2026-11-25-couples-uneven-read.md`):
   PA2 EXPLAINS IT.
   - On S041's 14 kinds, the household route pays `+£437` a year more tax at 25/75 than at 60/40.
@@ -34,7 +34,7 @@ below this section says "the beta", read it as history. The order from here:
     the minimum pot.
 - **The choice:**
   - (a) D148 stands as you gave it: the route as shipped, its pricing gap and M1's two shortfalls; batch 18 goes to `main`
-    once its reviewer passes and B1's gate is green.
+    once B1's gate is green (its reviewer has passed).
   - (b) hold batch 18, and look first for a pricing that removes the gap and keeps the route's survival (EXPLORATORY,
     read first by D34). Open-ended: neither pricing tried so far does it.
 - **The agent's recommendation:** (a). It is the trade D145 (2) already made: survival first, and both pricings tried lose

@@ -11,7 +11,10 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**OPEN (25 Nov, midday), for your word before batch 18 goes to `main`: the deep review's test, read beside D148.**
+**DECIDED (25 Nov, night): D149, "Ship it as is, and leave them in".** (a) taken: D148 stands as given, the route as
+shipped with its pricing gap and M1's two shortfalls, and batch 18 merged to `main` on B1's gate (pull request 30,
+771a9736). R more than three profiles apart is left on the household route by inference, the test at four and five apart
+not run unless asked. No other pricing is built unless you ask. The entry as it was put to you:
 - **Why this comes back to you.** D148 accepted M1's two names (S041-Rp1t-Y75 and S041-Ri1s-Y75) before the deep review's
   test had read. Its rule sends those names to you with its read beside them before any default changes
   (`COUPLES-UNEVEN.md`). So R, L and P's change of default is built, its reviewer's second look PASS (two MINOR answered,
@@ -54,7 +57,7 @@ below this section says "the beta", read it as history. The order from here:
 **DECIDED (25 Nov, morning): D148.** Every couple on the solver's registered read, put to you in chat with the agent's
 recommendation. Your words "Unlock enforcement" were read as the go on that recommendation: both M1 names' shortfalls
 accepted, R, L and P's change of default built, and the deep review's test read before anything goes to `main`. Its read
-is above, for your word before `main`. C and the classic planner are still open (below).
+is above, with your word on it (D149). C and the classic planner are still open (below).
 
 **OPEN (24 Nov, evening), for your word: whether C opens, and the classic planner.**
 - **C, nobody retiring within the plan** (`COUPLES-ANY.md` amendment 2). The dress rehearsal (EXPLORATORY,

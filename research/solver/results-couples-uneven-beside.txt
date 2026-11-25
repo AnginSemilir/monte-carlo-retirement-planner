@@ -1,0 +1,34 @@
+BESIDE THE HOUSEHOLD ROUTE AT UNEVEN HOLDINGS' READ (post hoc, deciding nothing; seed 7002, already read; 28 units, 4000 paths each; no unit solved or run)
+
+A. M1's own rule (reduce-couples-open.mjs m1ByUnit) with each household arm in ROUTE's place, against APP:
+  ROUTE names 2: S041-Rp1t-Y75 (519 paths kept net; spending on the paths both keep -1.0706 (-1.2117 to -0.9296)%); S041-Ri1s-Y75 (472 paths kept net; spending on the paths both keep -0.4909 (-0.6206 to -0.3612)%)
+  PA2   names 0
+  SPLIT names 2: S041-Rp1t-Y75 (524 paths kept net; spending on the paths both keep -1.0796 (-1.2207 to -0.9385)%); S041-Ri1s-Y75 (473 paths kept net; spending on the paths both keep -0.4832 (-0.6126 to -0.3538)%)
+  FIX   names 0
+  Each household arm on the two units the registered read named, against APP:
+    S041-Rp1t-Y75 ROUTE 519 paths kept net (519 saved, 0 lost); spending on the paths both keep -1.0706 (-1.2117 to -0.9296)%
+    S041-Rp1t-Y75 PA2   524 paths kept net (524 saved, 0 lost); spending on the paths both keep +0.7616 (+0.6238 to +0.8995)%
+    S041-Rp1t-Y75 SPLIT 524 paths kept net (524 saved, 0 lost); spending on the paths both keep -1.0796 (-1.2207 to -0.9385)%
+    S041-Rp1t-Y75 FIX   522 paths kept net (522 saved, 0 lost); spending on the paths both keep +0.8732 (+0.7343 to +1.0121)%
+    S041-Ri1s-Y75 ROUTE 472 paths kept net (472 saved, 0 lost); spending on the paths both keep -0.4909 (-0.6206 to -0.3612)%
+    S041-Ri1s-Y75 PA2   486 paths kept net (487 saved, 1 lost); spending on the paths both keep +1.4299 (+1.2981 to +1.5617)%
+    S041-Ri1s-Y75 SPLIT 473 paths kept net (473 saved, 0 lost); spending on the paths both keep -0.4832 (-0.6126 to -0.3538)%
+    S041-Ri1s-Y75 FIX   482 paths kept net (483 saved, 1 lost); spending on the paths both keep +1.5749 (+1.4438 to +1.7061)%
+
+B. Each arm less ROUTE, pooled over each holding's 14 units: survival by path, points; spending on the paths both keep, %:
+  60/40 PA2   survival -0.537 (-0.656 to -0.419); spending +0.6138 (+0.5972 to +0.6304)
+  60/40 SPLIT survival -0.002 (-0.050 to +0.046); spending +0.0160 (+0.0136 to +0.0184)
+  60/40 FIX   survival -1.313 (-1.489 to -1.136); spending +0.9662 (+0.9426 to +0.9898)
+  25/75 PA2   survival -0.507 (-0.632 to -0.382); spending +1.6418 (+1.6107 to +1.6728)
+  25/75 SPLIT survival +0.002 (-0.040 to +0.044); spending +0.0120 (+0.0083 to +0.0158)
+  25/75 FIX   survival -0.752 (-0.898 to -0.606); spending +1.8213 (+1.7881 to +1.8544)
+
+C. Where the paths each arm loses against ROUTE fail (over the 28 units), and each arm's own failed paths:
+  PA2   loses 932: failing in the plan's last year 931, in its last three 932, with no spending unmet 910, before its last five 0
+  SPLIT loses 104: failing in the plan's last year 103, in its last three 103, with no spending unmet 102, before its last five 0
+  FIX   loses 1509: failing in the plan's last year 1495, in its last three 1507, with no spending unmet 1445, before its last five 0
+  APP   fails 16109 paths: in the plan's last year 8693, with no spending unmet 6754
+  ROUTE fails 2201 paths: in the plan's last year 1503, with no spending unmet 1298
+  PA2   fails 2786 paths: in the plan's last year 2202, with no spending unmet 1948
+  SPLIT fails 2201 paths: in the plan's last year 1504, with no spending unmet 1320
+  FIX   fails 3357 paths: in the plan's last year 2703, with no spending unmet 2368

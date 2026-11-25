@@ -247,12 +247,12 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
       // by each part kept; each assembly's form read back, a difference refused
       // plant 'nohousehold' (couple-default.test.mjs check 3): the couples' default form not taken, today's route instead
       const form = couple ? (couple.household !== undefined ? couple.household : PLANT.rule === 'nohousehold' ? null : APP_COUPLE.household || null) : null;
-      // a couple the household plan cannot take (src/solver/household.js householdPlanFor's refusals: the two people's accounts
-      // of one wrapper at different risks, their pay growing at different rates, the partner's own limits, nobody retiring in
-      // the plan; since step 4's change of default, D145, it takes contributions growing at different rates, a cash ISA
-      // subscription and a later retiree paid or saving in the plan's first year: src/solverSettings.js APP_COUPLE.takeShapes)
-      // is solved on today's route, as before the household default, and its record says why (`householdRefused`); any other
-      // error stands. Plant 'nofallback'
+      // a couple the household plan cannot take (src/solver/household.js householdPlanFor's refusals: nobody retiring in the plan;
+      // since step 4's change of default, D145, it takes contributions growing at different rates, a cash ISA subscription and
+      // a later retiree paid or saving in the plan's first year, and since COUPLES-ANY's (D148) the two people's accounts of
+      // one wrapper at different risks, the partner's own limits and their pay growing at different rates:
+      // src/solverSettings.js APP_COUPLE.takeShapes) is solved on today's route, as before the household default, and its record
+      // says why (`householdRefused`); any other error stands. Plant 'nofallback'
       // (household-client.test.mjs check 7): a refusal fails the solve
       let refusedWhy = null;
       // D143: a couple the guard hands over only because the household route's classes opened it (src/couplesSwitch.js

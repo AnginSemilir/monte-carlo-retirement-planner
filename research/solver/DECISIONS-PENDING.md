@@ -11,6 +11,81 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (25 Nov, midday), for your word before batch 18 goes to `main`: the deep review's test, read beside D148.**
+- **Why this comes back to you.** D148 accepted M1's two names (S041-Rp1t-Y75 and S041-Ri1s-Y75) before the deep review's
+  test had read. Its rule sends those names to you with its read beside them before any default changes
+  (`COUPLES-UNEVEN.md`). So R, L and P's change of default is built, its reviewer's second look PASS (two MINOR answered,
+  e923e552), B1's gate ALL REQUIRED GREEN in both modes on it (`code-stamp:b03f6922ce573bf8`), `release/batch-18` cut at
+  the gate's commit with its pull request open, and it waits for your word before `main`.
+- **What the test found** (EXPLORATORY, seed 7002; `results-couples-uneven.txt`; `reports/2026-11-25-couples-uneven-read.md`):
+  PA2 EXPLAINS IT.
+  - On S041's 14 kinds, the household route pays `+£437` a year more tax at 25/75 than at 60/40.
+  - Pricing the household's allowance at two people's (PA2) takes that to `+£3`. Moving its split (SPLIT) leaves `+£440`.
+  - So the rise is the household table's allowance at `k`: the pricing gap D143 found, which you left in the route when
+    the pricing fix lost paths (D145 (2)).
+- **What it says of M1's two names.** On their two kinds ROUTE's rise is `+£525` and `+£539` a year, PA2's `-£11` and
+  `-£20`. So each name is that gap plus the app's rules doing better at 25/75, not a survival trade. Post hoc, deciding
+  nothing (`results-couples-uneven-beside.txt`):
+  - M1's own rule names the two units under ROUTE, and none under PA2 or FIX.
+  - The price of pricing the gap out is survival elsewhere: PA2 keeps `0.537` points fewer paths than ROUTE at 60/40 and
+    `0.507` at 25/75. D34 flags PA2 against ROUTE on 10 of the 28 units, and FIX on 13.
+  - That price is not paid on the two named units, where PA2 keeps more paths than ROUTE (lost 3 and saved 8, and lost 3
+    and saved 17). It falls on the units holding a wrapper two or three profiles apart. So the trade is between couples.
+  - Of PA2's 932 lost paths, 931 fail in the plan's last year, 910 of them with every year's spending met but the pot below
+    the minimum pot.
+- **The choice:**
+  - (a) D148 stands as you gave it: the route as shipped, its pricing gap and M1's two shortfalls; batch 18 goes to `main`
+    once its pull request's CI is green (its reviewer has passed and B1's gate is green).
+  - (b) hold batch 18, and look first for a pricing that removes the gap and keeps the route's survival (EXPLORATORY,
+    read first by D34). Open-ended: neither pricing tried so far does it.
+- **The agent's recommendation:** (a). It is the trade D145 (2) already made: survival first, and both pricings tried lose
+  it. If you later want the spending back, the lead to follow is why the two-allowance table's extra paths fail only at the
+  plan's very end.
+- **Also with you, from the reviewer on D148 (MINOR 3): R more than three profiles apart**, which no test measured.
+  - The household plans a wrapper from the more cautious of the two risks. So where one partner holds Cash Equivalents,
+    the other's whole wrapper goes to cash for the plan.
+  - The reviewer's light look (post hoc, one couple, S123-Rp3t-own): survival within a few paths of today's route, the
+    median pot about `30%` lower at five profiles apart.
+  - Keeping such couples off the household route would send those outside the guard to the app's rules. On R's registered
+    units (one to three profiles apart) the household route kept `+10.600` points more survival than the app's rules
+    (`results-couples-any-registered.txt`). So the agent recommends leaving it as D148 has it (by inference, now said in
+    its line), with an EXPLORATORY test of R at four and five profiles apart if you want it measured.
+
+**DECIDED (25 Nov, morning): D148.** Every couple on the solver's registered read, put to you in chat with the agent's
+recommendation. Your words "Unlock enforcement" were read as the go on that recommendation: both M1 names' shortfalls
+accepted, R, L and P's change of default built, and the deep review's test read before anything goes to `main`. Its read
+is above, for your word before `main`. C and the classic planner are still open (below).
+
+**OPEN (24 Nov, evening), for your word: whether C opens, and the classic planner.**
+- **C, nobody retiring within the plan** (`COUPLES-ANY.md` amendment 2). The dress rehearsal (EXPLORATORY,
+  `results-couples-any.txt`, its N lines; `reports/2026-11-24-couples-any-rehearsal-read.md`) passed W, R, L and P and
+  reported N's eight units. Both arms survive every path there, so no rule can read C, registered or not.
+  - **Its exactness:** the household's salary and contributions are the couple's two added, in every year, to a penny
+    (`household-salaries.test.mjs` check 4).
+  - **What N's units show** (`results-couples-any-beside.txt`, N's lines): ROUTE's capped pot is higher on all eight. On
+    the younger cohort's four, ROUTE pays far more lifetime tax for a small gain in the capped pot.
+  - **Why the tax rises, now traced** (EXPLORATORY, the rehearsal's seed 7002, already read;
+    `results-couples-any-tax-trace.txt`, on S357F-Wg-own, S357F-N-own and S351F-Ri3s-Y75). It is not a defect:
+    - ROUTE invests the couple's cash in the taxable account in plan year 0, where APP keeps it as cash. On S357F-Wg-own,
+      with `£1,080k` of the plan's own in cash, the taxable account at the end of plan year 0 is `£1,171k` under ROUTE
+      against `£125k`, and cash `£54k` against `£1,071k`.
+    - That account's income and gains are then taxed each year, most of it after pension access. On S357F-Wg-own, ROUTE's
+      lifetime tax is `£1,273,469` a path against APP's `£363,115`: income tax beyond the tax on pay `£1,042,019` against
+      `£310,047`, and CGT `£231,450` against `£53,068`.
+    - The taxable pension drawn is about the same in both arms (`£572,856` and `£622,616`), so the pension draws are not
+      the cause.
+    - The same holds on S357F-N-own and S351F-Ri3s-Y75: the taxable account at the end of plan year 0 is `£1,090k` and
+      `£212k` under ROUTE, against `£125k` and `£23k` under APP.
+  - **The choice:** C opens by inference from its exactness, or not at all (such a couple keeps today's handling).
+  - **The agent's recommendation:** open C by inference, with its own change of default after the registered read. The
+    tax rise is the cost of investing cash the app's rules leave idle, and the capped pot, which the solver weighs, is
+    higher on every N unit.
+- **The classic planner.** Put to you in chat on 24 Nov. The agent's recommendation is to retire it now, unless you want the
+  tournament pages or the one-deploy rollback, which only it gives.
+  - **Done as one change:** its screens and its 9 checks go; the gate's 6 shared checks move into the one remaining mode;
+    the merge rule in CLAUDE.md and `run-all.sh` follows.
+  - **Your word needed:** the last two are protected, so they need "unlock enforcement".
+
 **OPEN (23 Nov, night), for your word only where you want it otherwise: every couple on the solver, the rest of the way
 (D145 (3), `COUPLES-ANY.md`).**
 - **The plan,** written before any of it is built: the household plan takes the shapes it still refuses.

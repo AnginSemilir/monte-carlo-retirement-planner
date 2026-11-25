@@ -1,10 +1,12 @@
 /*
  * THE LIMITS CARD'S ROWS AND WRITES (src/SolverConfig.jsx SolverLocks; the reviewer on D143's change of default, finding 1). A
  * couple's limits on the riskiest tier: the first person's (`tierCeiling`) and the partner's own (`tierCeilingPart`, from the
- * first edit of a per-person row; until then the first person's, as src/solverSettings.js lockedPlan reads them). The
- * household plan refuses a couple whose two people's limits differ (src/couplesSwitch.js householdShapeOf, 'limits'), so a couple
- * the household route alone opens (D143) is switched off by a per-person edit, and keeps the app's rules, where a couple inside
- * the guard before D143 goes to today's route.
+ * first edit of a per-person row; until then the first person's, as src/solverSettings.js lockedPlan reads them). Before
+ * COUPLES-ANY's change of default (D148) the household plan refused a couple whose two people's limits differ
+ * (src/couplesSwitch.js householdShapeOf, 'limits'), so a couple the household route alone opens (D143) was switched off by a
+ * per-person edit, and kept the app's rules, where a couple inside the guard before D143 went to today's route. Since it, the
+ * household plan takes them (src/couplesSwitch.js limitsTaken: 'limits' with 'risks'), so every couple the solver runs is shown a
+ * row per person (limitsMode 'perPerson'); the plant 'beforeanycard' the card before it.
  *   limitsMode(plan)   'single', one person's plan; 'perPerson', a row for each person's wrappers: a couple the solver runs with
  *                      today's route open to it (on, inside the guard before D143, whose limits that differ send it to today's
  *                      route, which takes each person's limits), or a couple whose two people's limits already differ, so the
@@ -18,13 +20,21 @@
  *                      person's until then); a household's row `tierCeiling`, and `tierCeilingPart` set alike wherever the plan
  *                      carries it, so a couple's two people's limits never part from the household's row.
  *   withLocks(plan, patch)   the plan with the patch merged as the card merges it (LOCKS_FREE beneath the plan's own locks).
+ *   householdLimits(plan)   whether the couple is solved on the household route (the guard runs it and, the couples' default
+ *                      naming the household plan, the household plan takes its shape: src/couplesSwitch.js householdShapeOf, as
+ *                      src/solverClient.js asks it), where a per-person row is not each person's alone: the household plan holds
+ *                      both people's wrappers of a kind to the more cautious of their two limits on it (src/solver/household.js
+ *                      householdPlanFor, the shape 'limits'; the deep review of the registered read, reviews/2026-11-25-deep-
+ *                      couples-any.md), which the card says (src/SolverConfig.jsx; solver-planner-ui.cjs check 19 (b6), its plant
+ *                      'lockseach' the card's words before D148).
  * research/tests/couple-limits-card.test.mjs reads each write back through the guard. Plants (that test only): 'perperson' the card
  * before this fix (per-person rows for every couple the guard runs, one row writing the first person's limit alone for any
  * other); 'partleft' the household's row leaving the partner's own limits as they were; 'inguardhh' a couple the solver runs
  * per person given the household's one row; 'singlepart' a single's row writing a partner's limits it carries (the reviewer's
- * second look, MINOR 2).
+ * second look, MINOR 2); 'stricterany' the household's words for every couple the guard runs, its shape not read (check 6).
  */
-import { coupleSolverOn, partLimitsDiffer } from './couplesSwitch.js';
+import { coupleSolverOn, partLimitsDiffer, limitsTaken, householdShapeOf } from './couplesSwitch.js';
+import { APP_COUPLE } from './solverSettings.js';
 
 export const PLANT = { rule: '' };
 export const LOCKS_FREE = Object.freeze({ pensionBefore: null, tierCeiling: Object.freeze({ pen: null, isa: null }), lumpSum: 'free' });
@@ -40,6 +50,8 @@ export function limitsMode(plan) {
   const g = coupleSolverOn(plan);
   if (PLANT.rule === 'perperson') return g.on ? 'perPerson' : 'oneRow';
   if (g.on && !g.lifted) return PLANT.rule === 'inguardhh' ? 'household' : 'perPerson';
+  // since D148 the household plan takes the partner's own limits, so a per-person edit switches no opened couple off
+  if (g.on && limitsTaken() && PLANT.rule !== 'beforeanycard') return 'perPerson';
   return partLimitsDiffer(plan) ? 'perPerson' : 'household';
 }
 export const limitsRows = (plan, mode) => (mode === 'perPerson' ? ['self', 'part'] : [null])
@@ -52,5 +64,9 @@ export function limitsPatch(plan, mode, who, w, v) {
   }
   const alike = (mode === 'household' || (mode === 'single' && PLANT.rule === 'singlepart')) && hasPart && PLANT.rule !== 'partleft';
   return { tierCeiling: { ...tc, [w]: v }, ...(alike ? { tierCeilingPart: { ...LOCKS_FREE.tierCeiling, ...L.tierCeilingPart, [w]: v } } : {}) };
+}
+export function householdLimits(plan) {
+  if (!plan || !plan.demographics || plan.demographics.planningMode !== 'couple' || !APP_COUPLE.household) return false;
+  return coupleSolverOn(plan).on && (PLANT.rule === 'stricterany' || !householdShapeOf(plan).refused);
 }
 export const withLocks = (plan, patch) => ({ ...plan, solver: { ...((plan && plan.solver) || {}), locks: { ...LOCKS_FREE, ...locksOf(plan), ...patch } } });

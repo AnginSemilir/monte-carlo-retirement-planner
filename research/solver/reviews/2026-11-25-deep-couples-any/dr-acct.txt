@@ -1,0 +1,12 @@
+S041 APP   (14 kinds), Y75 less own: spending +165 a year, tax -352 a year, end pot +80,769, capped +37,096, survival 0.14 points; target -14
+S041 ROUTE (14 kinds), Y75 less own: spending -401 a year, tax +440 a year, end pot -19,524, capped -15,199, survival 0.20 points; target -14
+S123 APP   (14 kinds), Y75 less own: spending -661 a year, tax -34 a year, end pot +126,217, capped +51,666, survival 0.03 points; target -986
+S123 ROUTE (14 kinds), Y75 less own: spending -847 a year, tax +446 a year, end pot +79,410, capped +44,771, survival 1.00 points; target -986
+S207 APP   (17 kinds), Y75 less own: spending +120 a year, tax -322 a year, end pot +261,161, capped +26,459, survival 0.23 points; target +35
+S207 ROUTE (17 kinds), Y75 less own: spending -173 a year, tax +12 a year, end pot +7,797, capped +8,420, survival -0.03 points; target +35
+S281 APP   (17 kinds), Y75 less own: spending -197 a year, tax +378 a year, end pot +83,263, capped -1,189, survival 0.13 points; target -165
+S281 ROUTE (17 kinds), Y75 less own: spending -284 a year, tax +286 a year, end pot +17,701, capped +508, survival 0.12 points; target -165
+S185 APP   (3 kinds), Y75 less own: spending -570 a year, tax +81 a year, end pot +156,694, capped +23,495, survival 0.96 points; target -767
+S185 ROUTE (3 kinds), Y75 less own: spending -702 a year, tax +362 a year, end pot +30,778, capped +18,175, survival 0.28 points; target -767
+S197 APP   (3 kinds), Y75 less own: spending -1 a year, tax +9 a year, end pot +84,777, capped +2,940, survival -0.08 points; target +0
+S197 ROUTE (3 kinds), Y75 less own: spending -112 a year, tax +1 a year, end pot -4,694, capped +4,361, survival 0.09 points; target +0

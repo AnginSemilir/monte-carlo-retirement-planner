@@ -37,15 +37,20 @@
  *      library's 210 couples as entered, the pattern search, the cut's household plan carrying the minimum pot its table is
  *      solved with (as solvePlan sets it, no solve run) and its model the same one;
  *   9. a partner's own ceilings (the limits per person) that are the first person's wrapper for wrapper, as the limits card
- *      leaves them set back to free (the reviewer's finding 3), solve as one household; a partner's own ceiling that differs
- *      falls back to today's route, its record naming the household plan's refusal (lockedPlan lowers the partner's pension
- *      to the ceiling first, so the household plan refuses its risk before it reads the limit).
+ *      leaves them set back to free (the reviewer's finding 3), solve as one household; and since COUPLES-ANY's change of
+ *      default (D148) a partner's own ceiling that differs solves as one household too, the household plan holding both people
+ *      to the stricter of the two (before it, it fell back to today's route, its record naming the household plan's refusal:
+ *      lockedPlan lowers the partner's pension to the ceiling first, so the household plan refused its risk before it read the
+ *      limit).
  * Plants (--planted; each wants exactly the checks named): the key's 'bandsunkeyed' (the bands left out of the key: check 3),
  * the client's 'partnobands' (the first part handed no bands: every check whose table is solved split, 1, 2, 4, 5 and 6, its
  * assembly refused on the band for gains), 'noformcheck' (each assembly's setting unread: check 4), 'keyvariant' (a variant
- * keyed: check 5), 'nofallback' (a refusal of the plan's shape failing the solve: check 7, and check 9's partner whose ceiling differs), and the cut's (src/solverCouple.js)
- * 'hhzerofloor' (a household's minimum pot left at the plan's nought: check 8) and 'partceilkey' (a partner's ceilings that
- * are the first person's handed to the household plan: check 9).
+ * keyed: check 5), 'nofallback' (a refusal of the plan's shape failing the solve: check 7; since D148 check 9's differing
+ * ceiling is taken, so no refusal arises there), and the cut's (src/solverCouple.js) 'hhzerofloor' (a household's minimum pot
+ * left at the plan's nought: check 8). 'partceilkey' (a partner's ceilings that are the first person's handed to the
+ * household plan, which refused them: check 9) was retired on 25 Nov (the reviewer on D148's change of default, finding 2):
+ * since D148 the household plan takes a partner's own limits and holds the stricter of the two, which for two equal
+ * ceilings is the same, so handing them on changes nothing a check can see.
  *   node research/tests/household-client.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -66,7 +71,7 @@ import { fileURLToPath } from 'node:url';
 
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['bandsunkeyed', ['3']], ['partnobands', ['1', '2', '4', '5', '6']], ['noformcheck', ['4']], ['keyvariant', ['5']], ['nofallback', ['7', '9']], ['hhzerofloor', ['8']], ['partceilkey', ['9']]]) {
+  for (const [plant, want] of [['bandsunkeyed', ['3']], ['partnobands', ['1', '2', '4', '5', '6']], ['noformcheck', ['4']], ['keyvariant', ['5']], ['nofallback', ['7']], ['hhzerofloor', ['8']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, HOUSEHOLD_CLIENT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
@@ -160,7 +165,7 @@ class InProcessWorker {
 globalThis.Worker = InProcessWorker;
 const C = await import('../../src/solverClient.js');
 C.PLANT.rule = ['partnobands', 'noformcheck', 'keyvariant', 'nofallback'].includes(PLANT) ? PLANT : '';
-COUPLE_PLANT.rule = ['hhzerofloor', 'partceilkey'].includes(PLANT) ? PLANT : '';
+COUPLE_PLANT.rule = ['hhzerofloor'].includes(PLANT) ? PLANT : '';
 KEY_PLANT.rule = PLANT === 'bandsunkeyed' ? PLANT : '';
 
 // the whole: the cut, its table solved whole inside its bands, the household assembled on it, its record and its paths
@@ -254,7 +259,9 @@ const digestsOf = async made => Promise.all(made.map(a => digestOf(tablesOf(a.cp
     threw ? `threw: ${threw.slice(0, 160)}` : `base ${!!baseMsg}, keyed with the bands ${baseMsg ? baseMsg.key === wantBaseKey : '-'} (the position-1 key ${wantBaseKey === oneKey}), its parts' bands ${basePart.map(m => m.bands === js(cut3.bands)).join('/')}; the position on it ${posMsg ? posMsg.base : '-'}; assembled ${made.length}`); }
 
 // 7. a couple the household plan refuses: today's route, its record saying why; a refusal that is not the plan's shape stands
-{ const odd = JSON.parse(JSON.stringify(plan)); odd.accounts.find(a => a.id === 'isa_part').risk = 'Medium Risk';
+// (since COUPLES-ANY's change of default, D148: the shape refused now is nobody retiring within the plan, the partner's ISA at
+// another risk taken since that change)
+{ const odd = JSON.parse(JSON.stringify(plan)); Object.assign(odd.demographics, { retireAgeSelf: 120, retireAgePart: 120 });
   let refusal = ''; try { householdCut(E, M, odd, FORM); } catch (e) { refusal = e.message; }
   const at = log.length, from = couples.length;
   let done = null, threw = '';
@@ -264,14 +271,14 @@ const digestsOf = async made => Promise.all(made.map(a => digestOf(tablesOf(a.cp
   const sent = log.slice(at), made = couples.slice(from);
   const slots = sent.filter(m => m.kind === 'solve').map(m => m.slot), cutPots = sent.some(m => m.kind === 'couple-plans');
   const rec = done && done.couple ? done.couple : {};
-  const fellBack = !threw && /^householdPlanFor: the two people's S&S ISAs hold different risks/.test(refusal) && cutPots && js(slots) === js(['self', 'part'])
+  const fellBack = !threw && /^householdPlanFor: nobody retires within the plan/.test(refusal) && cutPots && js(slots) === js(['self', 'part'])
     && !sent.some(m => m.kind === 'household') && made.length === 3 && made.filter(c => !c.isPart).length === 1
     && rec.household === null && rec.householdRefused === refusal && rec.shareRule === 'pots' && js(rec.joint) === js(appJoint());
   // a fault stands: a form the page does not solve at (an unscaled one)
   let fault = ''; const j2 = C.startSolve(plan, { ...light, parts: 1, couple: { engine: E, household: 'even' } });
   try { await j2.done; } catch (e) { fault = e.message; }
   j2.close();
-  ok('7. a couple the household plan refuses (the partner\'s ISA at another risk) is solved on today\'s route: cut on the pots\' share, both people\'s tables solved in their slots, the couple assembled with the joint move by the owner and both parts, its record naming no household and the refusal; a form the page does not solve at fails the solve',
+  ok('7. a couple the household plan refuses (nobody retiring within the plan) is solved on today\'s route: cut on the pots\' share, both people\'s tables solved in their slots, the couple assembled with the joint move by the owner and both parts, its record naming no household and the refusal; a form the page does not solve at fails the solve',
     fellBack && /^householdCut: the page solves a household at a scaled form/.test(fault),
     threw ? `threw: ${threw.slice(0, 200)}` : `the refusal "${refusal.slice(0, 90)}"; cut on the pots' share ${cutPots}, tables solved in ${slots.join(', ')}, assembled as a couple ${made.length} times; the record ${js({ household: rec.household, shareRule: rec.shareRule, joint: rec.joint })}, its reason ${rec.householdRefused === refusal ? 'the refusal' : js(rec.householdRefused)}; the form 'even': ${fault ? fault.slice(0, 90) : 'not refused'}`); }
 
@@ -300,13 +307,14 @@ const digestsOf = async made => Promise.all(made.map(a => digestOf(tablesOf(a.cp
     `S001: ${threw ? `threw: ${threw.slice(0, 120)}` : `the record ${done && done.couple ? done.couple.household : '-'}, the minimum pots ${js(floors)} against ${want}`}; the library: ${n} of ${lib.length} couples cut (${refused} refused), ${zero} with their minimum pot at nought, ${differ} whose table and model differ${first.length ? ` (${first.join('; ')})` : ''}`); }
 
 // 9. a partner's own ceilings: the first person's wrapper for wrapper, as the limits card leaves them set back to free, one
-// household; a partner's own ceiling that differs, today's route with the refusal named
+// household; a partner's own ceiling that differs, since COUPLES-ANY's change of default (D148) one household too, the
+// household plan taking the partner's own limits with the two people's risks ('limits' with 'risks')
 { const withLocks = part => ({ ...plan, solver: { ...(plan.solver || {}), locks: { pensionBefore: null, tierCeiling: { pen: null, isa: null }, lumpSum: 'free', tierCeilingPart: part } } });
   const run1 = async p => { let done = null, threw = ''; const job = C.startSolve(p, { ...light, parts: 1, couple: { engine: E } }); try { done = await job.done; } catch (e) { threw = e.message; } job.close(); return { done, threw }; };
   const same = await run1(withLocks({ pen: null, isa: null })), other = await run1(withLocks({ pen: 'Medium Risk', isa: null }));
   const r1 = same.done && same.done.couple ? same.done.couple : {}, r2 = other.done && other.done.couple ? other.done.couple : {};
-  ok('9. a partner\'s own ceilings that are the first person\'s (both free, as the limits card leaves them set back) solve as one household; a partner\'s own pension ceiling that differs falls back to today\'s route, its record naming the household plan\'s refusal (the ceiling, applied to the partner\'s pension first, refused as its risk or as the limit)',
-    !same.threw && r1.household === FORM && !r1.householdRefused && !other.threw && r2.household === null && /^householdPlanFor: /.test(r2.householdRefused || ''),
+  ok('9. a partner\'s own ceilings that are the first person\'s (both free, as the limits card leaves them set back) solve as one household; a partner\'s own pension ceiling that differs solves as one household too since COUPLES-ANY\'s change (D148; before it, it fell back to today\'s route, its record naming the household plan\'s refusal (the ceiling, applied to the partner\'s pension first, refused as its risk or as the limit)',
+    !same.threw && r1.household === FORM && !r1.householdRefused && !other.threw && r2.household === FORM && !r2.householdRefused,
     `the same: ${same.threw ? `threw ${same.threw.slice(0, 100)}` : `household ${r1.household}${r1.householdRefused ? `, refused: ${r1.householdRefused.slice(0, 80)}` : ''}`}; a differing one: ${other.threw ? `threw ${other.threw.slice(0, 100)}` : `household ${r2.household}, refused: ${(r2.householdRefused || '-').slice(0, 80)}`}`); }
 
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);

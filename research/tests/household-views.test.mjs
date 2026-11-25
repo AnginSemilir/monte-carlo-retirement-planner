@@ -15,9 +15,16 @@
  *   4. each skip runs through the engine, its cost (paths saved and lost against the plan's own runs, 200 paths of seed 99001)
  *      the same with the plan's runs handed in as run afresh, and the same with its runs split across two parts and joined;
  *   5. the next years (coupleAheadOf) and a market's rows (coupleRowsOf) take apart the household moves the engine took on
- *      that path, year for year.
+ *      that path, year for year;
+ *   6. since COUPLES-ANY's change of default (D148; the reviewer on it, finding 4), a couple whose two people hold one wrapper
+ *      at different risks (the library's S001 held 60/40, the partner's ISA one profile safer than the first person's, as the
+ *      page assembles it): the household's ladder for the ISA starts at the partner's, so the first person's ISA tier move
+ *      this year is offered no skip (no household move keeps it where it is: `noStay`), its words saying why
+ *      (src/solverWords.js NO_STAY_WORDS); and no move of the two units above, whose people hold their wrappers alike, is.
  * Plants (--planted; each wants exactly the checks named): 'hhpersonrank' (the moves ranked at the first person's own state:
- * check 3), 'nosplit' (the split dropped from a forced move, a move put back as itself among them: checks 2 and 3).
+ * check 3), 'nosplit' (the split dropped from a forced move, a move put back as itself among them: checks 2 and 3),
+ * 'skipstay' (src/solverCouple.js householdSkipsOf: the skip offered as before D148's fix round, the household's best other
+ * tier, which can never mean staying put: check 6).
  *   node research/tests/household-views.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -28,6 +35,8 @@ import { rankFor } from '../../src/solver/couple.js';
 import { vecOf } from '../../src/solver/grid.js';
 import { householdCut, householdSolved, coupleFirstMove, coupleSkipsOf, coupleSkipRuns, coupleActionsOf, coupleAheadOf, coupleRowsOf, modelStateOfCouple, withPersonMove, personParts, jointParts, isHousehold, isPair, PLANT } from '../../src/solverCouple.js';
 import { solvedContext, strategyRuns, partsOf } from '../../src/solverStrategy.js';
+import { coupleActionWords, NO_STAY_WORDS } from '../../src/solverWords.js';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { appJoint } from '../../src/solverSettings.js';
 import { readHspPanel } from '../solver/household-hsp-panel.mjs';
 import { execFileSync } from 'node:child_process';
@@ -35,7 +44,7 @@ import { fileURLToPath } from 'node:url';
 
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['hhpersonrank', ['3']], ['nosplit', ['2', '3']]]) {
+  for (const [plant, want] of [['hhpersonrank', ['3']], ['nosplit', ['2', '3']], ['skipstay', ['6']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, HOUSEHOLD_VIEWS_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
@@ -120,6 +129,23 @@ ok('4. every skip runs through the engine, its cost the same with the plan\'s ru
     if (rows.parts.some((p, t) => JSON.stringify(p) !== JSON.stringify(seen2[t] || null))) bad++;
   }
   ok('5. the next years and a market\'s rows take apart the household moves the engine took, year for year', bad === 0, `${bad} differing`); }
+
+// 6. one wrapper held at two risks: the person holding it at more risk offered no skip that could never mean staying put
+{ const c = buildScenarios().find(x => x.id === 'S001'), re = structuredClone(c.plan), tot = {};
+  for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); tot[k] = (tot[k] || 0) + (Number(a.balance) || 0); }
+  for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); if (/_self$/.test(a.id)) a.balance = tot[k] * 0.6; else if (/_part$/.test(a.id)) a.balance = tot[k] * 0.4; }
+  const mine = re.accounts.find(a => a.id === 'isa_self'), theirs = re.accounts.find(a => a.id === 'isa_part'), RISK = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
+  if (!mine || !theirs) throw new Error('check 6: S001 has no ISA for each person');
+  theirs.risk = RISK[RISK.indexOf(mine.risk) + 1];
+  const cut = householdCut(E, M, re, FORM), b = cut.bands;
+  const H = bandsAt(E, b.k, b.paOne, () => solveForApp(E, M, cut.hplan, { ...light, ageWith: cut.ageWith }), b.paK);
+  const cp = householdSolved(E, M, { household: cut.household, form: FORM, topK: 3, tieJoint: joint.tieJoint, holdPast: joint.holdPast }, { plan: cut.hplan, r: H });
+  const acts = coupleActionsOf(E, cp, cut.household, { seed: SEED, n: N }).actions, ctx = { target: 30000, fmt: x => `£${Math.round(x)}` };
+  const stay = acts.filter(a => a.noStay), isa = acts.find(a => a.who === 'self' && a.part === 'tierIsa');
+  const elsewhere = results.flatMap(r => r.a1.actions).filter(a => a.noStay).length;
+  ok('6. since D148, a couple holding one wrapper at two risks (S001 held 60/40, the partner\'s ISA one profile safer): the first person\'s ISA tier move this year offered no skip, no household move keeping it where it is, its words saying why; no move so marked where the two hold their wrappers alike',
+    !!cp.tierMap && !!isa && isa.noStay === true && isa.skip === null && isa.cost === null && stay.every(a => a.who === 'self' && a.part === 'tierIsa') && coupleActionWords(isa, ctx).cost === NO_STAY_WORDS && elsewhere === 0,
+    `the tier map ${cp.tierMap ? 'on' : 'off'}; this year's actions ${acts.map(a => `${a.who} ${a.part} ${a.value}${a.noStay ? ' (no skip: noStay)' : a.cost === null ? ' (no skip)' : ` (skip ${a.cost.toFixed(2)})`}`).join(', ')}; marked on the units held alike ${elsewhere}`); }
 
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
 process.exit(fail ? 1 : 0);

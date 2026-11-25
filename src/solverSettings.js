@@ -127,8 +127,16 @@ export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.sol
  * that the household's doubled cap shelters more, and the later retiree's subscriptions after the first retirement are not
  * made), and a later retiree paid or saving in plan year 0 ('year0', exact). The guard reads the same three as taken
  * (src/couplesSwitch.js HOUSEHOLD_TAKES; research/tests/couple-shape.test.mjs holds the two alike).
+ * Since COUPLES-ANY's change of default (D148: research/solver/COUPLES-ANY.md; registrations/couples-any.md, its classes each
+ * read once on seed 7027, every one passing; the maintainer's go, under the unlock of the tests that pin it) the household
+ * plan takes three more shapes, each opened by its class's read: the two people's accounts of one wrapper
+ * at different risks ('risks', R: the wrapper held at the more cautious of the two, each person's tier named into their own
+ * ladder, the riskier person's first move a switch the table does not see; not exact) and the partner's own limits ('limits',
+ * L, opening only with R, whose way its units carry), and two salaries growing at different rates ('salaries', P: the
+ * household's salary a dated schedule, the two added year by year, exact). 'noretire' (C, nobody retiring within the plan)
+ * is the maintainer's. The guard reads the same as taken (HOUSEHOLD_TAKES), as for step 4's.
  */
-export const APP_COUPLE = Object.freeze({ shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2, household: 'pensionsPA', takeShapes: Object.freeze(['growth', 'cashisa', 'year0']) });
+export const APP_COUPLE = Object.freeze({ shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2, household: 'pensionsPA', takeShapes: Object.freeze(['growth', 'cashisa', 'year0', 'risks', 'limits', 'salaries']) });
 /* the joint move's options of the couples' default, as assembleCouple takes them */
 export const appJoint = () => ({ tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast });
 /* the joint move's options as a couple's record names them (src/solverCouple.js coupleMeta), and one key for comparing what a

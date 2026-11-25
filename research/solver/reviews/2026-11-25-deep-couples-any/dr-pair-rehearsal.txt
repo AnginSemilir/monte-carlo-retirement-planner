@@ -1,0 +1,36 @@
+S025: each kind's spending as a share of its unit's target, in points, on the paths its own and Y75 units keep under both arms; ROUTE less APP at each holding, and Y75 less own for each arm (post hoc)
+L     k 1.667/1.333 paths 3364: ROUTE-APP own +1.56 Y75 +1.60 | Y75-own ROUTE -0.16 APP -0.20 | ISA First, lump sum | ISA First, lump sum
+Ri1s  k 1.667/1.333 paths 3368: ROUTE-APP own +1.93 Y75 +1.41 | Y75-own ROUTE -0.52 APP -0.00 | ISA First, lump sum | ISA First
+Ri1t  k 1.667/1.333 paths 3353: ROUTE-APP own +1.03 Y75 +1.53 | Y75-own ROUTE +0.06 APP -0.45 | Bracket Fill, lump sum | ISA First
+Ri2s  k 1.667/1.333 paths 3356: ROUTE-APP own +1.43 Y75 +1.36 | Y75-own ROUTE -0.16 APP -0.09 | Bracket Fill (harvest off) | ISA First
+Ri2t  k 1.667/1.333 paths 3340: ROUTE-APP own +1.32 Y75 +1.59 | Y75-own ROUTE -0.16 APP -0.43 | Bracket Fill | ISA First
+Ri3s  k 1.667/1.333 paths 3371: ROUTE-APP own +1.56 Y75 +1.12 | Y75-own ROUTE -0.42 APP +0.02 | ISA First | ISA First
+Ri3t  k 1.667/1.333 paths 3374: ROUTE-APP own +1.77 Y75 +1.48 | Y75-own ROUTE -0.69 APP -0.40 | ISA First, lump sum | ISA First
+Rp1s  k 1.667/1.333 paths 3377: ROUTE-APP own +1.33 Y75 +1.40 | Y75-own ROUTE +0.07 APP -0.00 | ISA First | ISA First
+Rp1t  k 1.667/1.333 paths 3367: ROUTE-APP own +0.96 Y75 +1.41 | Y75-own ROUTE -0.45 APP -0.89 | Bracket Fill | ISA First
+Rp2s  k 1.667/1.333 paths 3424: ROUTE-APP own +0.89 Y75 +1.75 | Y75-own ROUTE +0.08 APP -0.78 | Bracket Fill (harvest off) | ISA First, lump sum
+Rp2t  k 1.667/1.333 paths 3368: ROUTE-APP own +1.55 Y75 +1.29 | Y75-own ROUTE -0.16 APP +0.09 | ISA First, lump sum | ISA First (harvest off)
+Rp3s  k 1.667/1.333 paths 3421: ROUTE-APP own +1.24 Y75 +1.69 | Y75-own ROUTE +0.35 APP -0.09 | ISA First | ISA First, lump sum
+Rp3t  k 1.667/1.333 paths 3347: ROUTE-APP own +1.10 Y75 +1.27 | Y75-own ROUTE +0.10 APP -0.07 | ISA First | ISA First (harvest off)
+W0    k 1.667/1.333 paths 3392: ROUTE-APP own +0.68 Y75 +0.90 | Y75-own ROUTE +0.06 APP -0.16 | ISA First, lump sum | ISA First, lump sum
+mean over 14 kinds: ROUTE-APP own +1.31 Y75 +1.42; Y75-own ROUTE -0.14 APP -0.25
+S273: each kind's spending as a share of its unit's target, in points, on the paths its own and Y75 units keep under both arms; ROUTE less APP at each holding, and Y75 less own for each arm (post hoc)
+L     k 1.667/1.333 paths 3410: ROUTE-APP own +11.16 Y75 +12.27 | Y75-own ROUTE -0.19 APP -1.31 | Bracket Fill Basic | Bracket Fill Basic
+N     k 1.667/1.333 paths 4000: ROUTE-APP own NaN Y75 NaN | Y75-own ROUTE NaN APP NaN | Bracket Fill Basic | Bracket Fill Basic
+P     k 1.667/1.333 paths 3412: ROUTE-APP own +11.50 Y75 +12.61 | Y75-own ROUTE -0.20 APP -1.31 | Bracket Fill Basic | Bracket Fill Basic
+Ri1s  k 1.667/1.333 paths 3401: ROUTE-APP own +10.17 Y75 +11.72 | Y75-own ROUTE +0.25 APP -1.30 | Bracket Fill Basic | Bracket Fill Basic
+Ri1t  k 1.667/1.333 paths 3399: ROUTE-APP own +10.11 Y75 +11.82 | Y75-own ROUTE +0.25 APP -1.46 | Bracket Fill Basic | Bracket Fill Basic
+Ri2s  k 1.667/1.333 paths 3410: ROUTE-APP own +10.78 Y75 +11.66 | Y75-own ROUTE -0.26 APP -1.14 | Bracket Fill Basic | Bracket Fill Basic
+Ri2t  k 1.667/1.333 paths 3414: ROUTE-APP own +10.62 Y75 +11.85 | Y75-own ROUTE -0.25 APP -1.47 | Bracket Fill Basic | Bracket Fill Basic
+Ri3s  k 1.667/1.333 paths 3381: ROUTE-APP own +10.34 Y75 +10.79 | Y75-own ROUTE -0.57 APP -1.02 | Bracket Fill Basic | Bracket Fill Basic
+Ri3t  k 1.667/1.333 paths 3377: ROUTE-APP own +10.10 Y75 +11.15 | Y75-own ROUTE -0.57 APP -1.63 | Bracket Fill Basic | Bracket Fill Basic
+Rp1s  k 1.667/1.333 paths 3377: ROUTE-APP own +9.90 Y75 +12.38 | Y75-own ROUTE +1.04 APP -1.44 | Bracket Fill Basic | Bracket Fill Basic
+Rp1t  k 1.667/1.333 paths 3395: ROUTE-APP own +10.62 Y75 +11.64 | Y75-own ROUTE -0.34 APP -1.36 | Bracket Fill Basic | Bracket Fill Basic
+Rp2s  k 1.667/1.333 paths 3398: ROUTE-APP own +10.16 Y75 +12.37 | Y75-own ROUTE +0.95 APP -1.26 | Bracket Fill Basic | Bracket Fill Basic
+Rp2t  k 1.667/1.333 paths 3388: ROUTE-APP own +10.72 Y75 +11.20 | Y75-own ROUTE -0.99 APP -1.47 | Bracket Fill Basic | Bracket Fill Basic
+Rp3s  k 1.667/1.333 paths 3373: ROUTE-APP own +10.11 Y75 +11.29 | Y75-own ROUTE +0.31 APP -0.87 | Bracket Fill Basic | Bracket Fill Basic
+Rp3t  k 1.667/1.333 paths 3387: ROUTE-APP own +10.45 Y75 +11.19 | Y75-own ROUTE -1.12 APP -1.86 | Bracket Fill Basic | Bracket Fill Basic
+W0    k 1.667/1.333 paths 3386: ROUTE-APP own +9.87 Y75 +10.54 | Y75-own ROUTE +0.66 APP -0.01 | Bracket Fill Basic | Bracket Fill Basic
+Wc    k 1.667/1.333 paths 3371: ROUTE-APP own +10.62 Y75 +12.35 | Y75-own ROUTE +0.28 APP -1.44 | Bracket Fill Basic | Bracket Fill Basic
+Wg    k 1.667/1.333 paths 3383: ROUTE-APP own +11.35 Y75 +13.26 | Y75-own ROUTE +0.35 APP -1.57 | Bracket Fill Basic | Bracket Fill Basic
+mean over 18 kinds: ROUTE-APP own NaN Y75 NaN; Y75-own ROUTE NaN APP NaN

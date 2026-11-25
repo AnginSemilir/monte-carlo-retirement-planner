@@ -15,7 +15,7 @@ import { SPEED_WORDS } from './solverWords.js';
 import { FiguresList } from './SolverFigures.jsx';
 import { costWords } from './solveStatus.js';
 import { coupleSolverOn } from './couplesSwitch.js';
-import { limitsMode, limitsRows, limitsPatch, ownTier, LOCKS_FREE } from './limitsCard.js';
+import { limitsMode, limitsRows, limitsPatch, ownTier, householdLimits, LOCKS_FREE } from './limitsCard.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 // the page's own pieces (phone.jsx's Fine and PhoneCollapse, numberFormat.jsx's MoneyInput, ui.js's fieldCls) come in as the
 // `ui` prop from App.jsx: imported here, they split phone.jsx out of the page's first chunk into one of its own, a request
@@ -183,6 +183,10 @@ export function SolverLocks({ plan, setPlan, isPhone, ui }) {
   // solver-planner-ui.cjs check 10, its plant 'lockspart' the card read from the planning mode alone)
   const mode = d.planningMode === 'couple' && PLANNER_PLANT.has('lockspart') ? 'perPerson' : limitsMode(plan);
   const isCouple = mode === 'perPerson', g = d.planningMode === 'couple' ? coupleSolverOn(plan) : null;
+  // since COUPLES-ANY's change of default (D148) a couple on the household route with its two people's limits apart is held to
+  // the more cautious of the two on each kind of account (src/limitsCard.js householdLimits), which the card says (the words
+  // the agent's draft and the maintainer's to change; solver-planner-ui.cjs check 19 (b6), its plant 'lockseach' the words before)
+  const stricter = isCouple && householdLimits(plan) && !PLANNER_PLANT.has('lockseach');
   const hasPart = isCouple && L.tierCeilingPart && typeof L.tierCeilingPart === 'object';
   const tp = { ...LOCKS_FREE.tierCeiling, ...(hasPart ? L.tierCeilingPart : tc) };
   const setTier = (who, w, v) => set(limitsPatch(plan, mode, who, w, v));
@@ -194,7 +198,7 @@ export function SolverLocks({ plan, setPlan, isPhone, ui }) {
       <div>
         <h2 className="text-base font-semibold text-slate-900">What the solver may change</h2>
         <p className="text-xs text-slate-500 mt-1">Left free, the solver decides. A limit here holds in every year of the solved plan.</p>
-        {isCouple && <p data-locks-couple className="text-xs text-slate-500 mt-1">For the two of you: the pension age and the lump sum hold for both of you; the riskiest tier is set for each of you.</p>}
+        {isCouple && <p data-locks-couple data-locks-stricter={stricter ? 'yes' : 'no'} className="text-xs text-slate-500 mt-1">For the two of you: the pension age and the lump sum hold for both of you; the riskiest tier is set for each of you{stricter ? ', but as your plan is worked out for the two of you as one household, both of you are held to the more cautious of your two limits on each kind of account' : ''}.</p>}
         {isCouple && g && g.why === 'shape' && g.shape === 'limits' && <p data-locks-differ className="text-xs text-amber-800 mt-1">Your limits differ between the two of you, which the new planner cannot yet plan as one household: set them alike and it can work out your plan.</p>}
         {mode === 'household' && g && g.on && <p data-locks-household className="text-xs text-slate-500 mt-1">For the two of you: the pension age, the lump sum and each riskiest tier hold for both of you.</p>}
       </div>

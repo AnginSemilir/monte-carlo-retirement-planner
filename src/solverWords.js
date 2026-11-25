@@ -95,9 +95,13 @@ export function sweepWords(sw, { fmt }) {
   if (sw.fromGia >= 0.5) return `Top your cash buffer up with ${amt(sw.fromGia)} from your taxable account`;
   return null;
 }
+// a couple on the household route whose two people hold a wrapper at different risks: the household plans it from the more
+// cautious of the two, so the person holding it at more risk is offered no move that keeps it where it is, and no skip
+// (src/solverCouple.js householdSkipsOf `noStay`, D148; the words the agent's draft and the maintainer's to change)
+export const NO_STAY_WORDS = 'Your plan is worked out for the two of you as one household, which plans this kind of account from the more cautious of your two risk levels, so keeping it where it is is not one of its choices.';
 export function actionWords(x, ctx) {
   const what = PART_WORDS[x.part] ? PART_WORDS[x.part](x.value, ctx) : `${x.part} ${x.value}`;
-  const cost = x.cost === null ? 'No other move this year differs here.'
+  const cost = x.noStay ? NO_STAY_WORDS : x.cost === null ? 'No other move this year differs here.'
     : x.cost > 0 ? `Skipping it costs ${x.cost.toFixed(1)} points of survival.`
       : `Skipping it costs no survival on ${x.n.toLocaleString()} markets.`;
   return { what, cost };

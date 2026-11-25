@@ -23,15 +23,18 @@ import { TIER_ORDER } from './solver/fast.js';
 /* research/tests/couple-solve-client.test.mjs only: 'swap' hands each person the other's table; 'noage' cuts the plans with no
    partner's age (each solved as a single would be); research/tests/couple-default.test.mjs only: 'rawages' leaves a blank age
    or end age as the plan has it, as before D99's fix round (householdPlan); research/tests/household-client.test.mjs only:
-   'hhzerofloor' leaves a household's minimum pot at the plan's nought in the cut, and 'partceilkey' hands the household plan
-   a partner's ceilings that are the first person's, both as before the reviewer's fix round on D135's change of default;
+   'hhzerofloor' leaves a household's minimum pot at the plan's nought in the cut, as before the reviewer's fix round on D135's
+   change of default;
    research/tests/couple-shown.test.mjs only: 'noshown' reads the couple's policy as it is in the views, not through
    wholeMenu, as before the fix of 20 Nov; research/tests/couple-shape.test.mjs and couple-default.test.mjs only: 'cutnotake'
-   cuts and assembles the household without the shapes step 4 takes (APP_COUPLE.takeShapes), as before its change of default */
+   cuts and assembles the household without the shapes step 4 takes (APP_COUPLE.takeShapes), as before its change of default;
+   'cutbeforeany' with step 4's three alone, as before COUPLES-ANY's (D148) */
 export const PLANT = { rule: '' };
 /* the shapes the household plan takes in the page's cut and assembly alike (step 4's change of default, D145: src/solverSettings.js
    APP_COUPLE.takeShapes; src/solver/household.js householdPlanFor), the same in both so the assembly's plan is the cut's */
-const takeShapesOpt = () => (PLANT.rule === 'cutnotake' || !APP_COUPLE.takeShapes || !APP_COUPLE.takeShapes.length ? {} : { takeShapes: APP_COUPLE.takeShapes });
+const STEP4_TAKES = Object.freeze(['growth', 'cashisa', 'year0']);
+const appTakes = () => (PLANT.rule === 'cutbeforeany' ? (APP_COUPLE.takeShapes || []).filter(w => STEP4_TAKES.includes(w)) : APP_COUPLE.takeShapes || []);
+const takeShapesOpt = () => (PLANT.rule === 'cutnotake' || !appTakes().length ? {} : { takeShapes: appTakes() });
 /* the shapes a cut and its assembly take: the app's (takeShapesOpt), or, where a research caller names them, those (COUPLES-ANY.md
    A's 'risks' and 'limits' before their change of default; research/tests/household-risks.test.mjs) */
 const shapesOf = (takeShapes) => (takeShapes ? { takeShapes } : takeShapesOpt());
@@ -121,12 +124,14 @@ export const isPair = x => isCouple(x) || isHousehold(x);
  *     assembly refused every such couple (plant 'hhzerofloor').
  *   - a partner's own ceilings that are, wrapper for wrapper, the first person's (partCeilingsDiffer), which the limits card
  *     keeps once written. They hold the same accounts as none (lockedPlan), so the household plan is handed none. Ceilings
- *     that differ stay, and the household plan refuses them, so such a couple keeps today's route (plant 'partceilkey').
+ *     that differ stay; before COUPLES-ANY's change of default (D148) the household plan refused them, so such a couple kept
+ *     today's route, and since it the household plan takes them, holding both people to the stricter of the two (its plant
+ *     'partceilkey', handing the equal ceilings on, retired with it: the stricter of two equal ceilings is the same).
  */
 export function householdCut(E, M, plan, form, { takeShapes = null } = {}) {
   if (!SCALES.includes(form)) throw new Error(`householdCut: the page solves a household at a scaled form (${SCALES.join(', ')}), not ${form}`);
   const L = plan && plan.solver && plan.solver.locks;
-  const own = L && L.tierCeilingPart && !partCeilingsDiffer(plan) && PLANT.rule !== 'partceilkey' ? (({ tierCeilingPart, ...rest }) => ({ ...plan, solver: { ...plan.solver, locks: rest } }))(L) : plan;
+  const own = L && L.tierCeilingPart && !partCeilingsDiffer(plan) ? (({ tierCeilingPart, ...rest }) => ({ ...plan, solver: { ...plan.solver, locks: rest } }))(L) : plan;
   const h0 = householdPlan(E, own), floorOwn = Math.max(0, E.num(h0.config && h0.config.solvencyFloor, 0));
   const floorKept = Math.round(PRODUCT_DEFAULTS.minPotYears * Math.max(0, E.num(h0.spending && h0.spending.targetSpend, 0)));
   const household = !(floorOwn > 0) && floorKept > 0 && PLANT.rule !== 'hhzerofloor' ? { ...h0, config: { ...h0.config, solvencyFloor: floorKept } } : h0;
@@ -255,7 +260,12 @@ export function coupleSkipsOf(E, cp) {
    ranked once on its table at the household's merged state, as its chooser reads them (src/solver/household.js
    chooseHouseholdSingle, the tiers held the first person's); for each part each person's move takes, the best-ranked household
    move that differs in that part, taken by that person alone (withPersonMove), the other person's move and the split held; the
-   household's level skipped to the level of its best-ranked move at another. Plant 'hhpersonrank' (household-views.test.mjs):
+   household's level skipped to the level of its best-ranked move at another. Since COUPLES-ANY's change of default (D148; the
+   reviewer on it, finding 4), where the two people hold a wrapper at different risks the household's ladder for it starts at
+   the more cautious of the two (src/solver/household.js tierMapOf), so for the person holding it at more risk no household
+   move may keep it where it is: that person's tier move then has no skip (`noStay`), the best other move being no choice to
+   stay put, and the page says why (src/solverWords.js actionWords; plant 'skipstay', household-views.test.mjs check 6: the
+   skip offered as before). Plant 'hhpersonrank' (household-views.test.mjs):
    the moves ranked at the first person's own state, not the household's. */
 export function householdSkipsOf(E, cp) {
   const f = coupleFirstMove(E, cp), j0 = f.joint, list = [], H = cp.H;
@@ -275,6 +285,12 @@ export function householdSkipsOf(E, cp) {
     for (const part of PERSON_SKIPS) {
       const taken = part === 'draw' ? p0.draw !== 'none' : part === 'harvest' ? p0.harvest !== null : p0[part] > 0;
       if (!taken) continue;
+      // no household move keeps this person's wrapper at the tier they hold (D148, above): no skip
+      const cat = part === 'tierPen' ? 'pen' : part === 'tierIsa' ? 'isa' : null;
+      if (cat && cp.tierMap && PLANT.rule !== 'skipstay') {
+        const h = f.state.tierHeld && f.state.tierHeld[who], k = (h && h[cat]) || 0;
+        if (!cp.tierMap.map[who][cat].includes(k)) { list.push({ who, part, value: p0[part], joint: null, noStay: true }); continue; }
+      }
       const alt = ranked.find(ai => { const p = hParts(ai); return part === 'draw' ? p.draw !== c0.draw : p[part] !== c0[part]; });
       list.push({ who, part, value: p0[part], joint: alt === undefined ? null : withPersonMove(cp, j0, who, alt) });
     }
@@ -310,7 +326,7 @@ export function coupleActionsOf(E, cp, plan, { seed = 12345, n = 1000, base = nu
   if (JSON.stringify(runs.skips) !== JSON.stringify(skipNames(sk))) throw new Error('coupleActionsOf: the parts ran other skips than this couple ranks');
   const planRuns = base && base.length >= n ? base.slice(0, n) : E.pathsForSeed(seed, n, f.sc.totalYears).map(zs => runPath(E, f.sc, Float64Array.from(zs)));
   const actions = sk.list.map((x, j) => {
-    if (!x.joint) return { who: x.who, part: x.part, value: x.value, skip: null, cost: null };
+    if (!x.joint) return { who: x.who, part: x.part, value: x.value, skip: null, cost: null, ...(x.noStay ? { noStay: true } : {}) };
     const sv = runs.survived[j];
     let saved = 0, lost = 0;
     for (let k = 0; k < n; k++) { if (planRuns[k].survived && !sv[k]) lost++; else if (!planRuns[k].survived && sv[k]) saved++; }

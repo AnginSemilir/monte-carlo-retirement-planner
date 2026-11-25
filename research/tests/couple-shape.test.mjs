@@ -16,11 +16,14 @@
  *      missed on some shape (CHECKLIST 5), for each refusal the household plan still makes (since step 4's change of default,
  *      D145, not the three it takes: src/couplesSwitch.js HOUSEHOLD_TAKES);
  *   4. the shapes step 4's change of default takes (D145: contributions growing at different rates, a cash ISA subscription,
- *      a later retiree paid or saving in plan year 0) are taken alike by the page and the guard: on each such shape made on
- *      the library's couples, either way round, the page's cut takes it wherever nothing else is refused and the guard reads
- *      it taken there, none missed, and the guard's taken shapes are the app's (APP_COUPLE.takeShapes); shown failing on
- *      both its plants: the guard before the change ('notake', src/couplesSwitch.js: it refuses them where the page takes
- *      them) and the cut before it ('cutnotake', src/solverCouple.js: the page refuses them where the guard reads them taken).
+ *      a later retiree paid or saving in plan year 0) and COUPLES-ANY's (D148: one wrapper held by the two at different
+ *      risks, the partner's own limits differing, two salaries growing at different rates) are taken alike by the page and the
+ *      guard: on each such shape made on the library's couples, either way round, the page's cut takes it wherever nothing
+ *      else is refused and the guard reads it taken there, none missed, and the guard's taken shapes are the app's
+ *      (APP_COUPLE.takeShapes); shown failing on each of its plants: the guard before step 4's change ('notake',
+ *      src/couplesSwitch.js: it refuses them where the page takes them) and the cut before it ('cutnotake',
+ *      src/solverCouple.js: the page refuses them where the guard reads them taken), and the same before COUPLES-ANY's
+ *      ('beforeany' and 'cutbeforeany': step 4's three alone taken).
  * The shapes: as entered; the two ages swapped (the partner the elder, handed to the solver on its mirror); each wrapper's
  * partner's risk one tier from the first person's; two risks a limit holds alike (both above the first person's pension
  * limit, the partner with none of their own) and a limit that does not; the partner's own limits differing, and the same as
@@ -115,13 +118,17 @@ ok('2. the over-reach counted by its reason, none on the library\'s couples as e
   }
   PLANT.rule = '';
   ok('3. each check shown failing on its plant: skipped, a refusal of its kind goes missed (the refusals the household plan still makes)', res.length > 0 && !res.some(x => /NONE/.test(x)), res.join(', ')); }
-// 4. the shapes step 4's change of default takes (D145), taken alike by the page and the guard: on each shape of the three
-// kinds, the page's cut takes it wherever nothing else is refused, and the guard reads it taken there (none over-reached), and
-// none the page refuses goes missed; shown failing on the guard before the change ('notake') and the cut before it ('cutnotake')
+// 4. the shapes step 4's change of default takes (D145) and COUPLES-ANY's (D148), taken alike by the page and the guard: on each
+// shape of the six kinds, the page's cut takes it wherever nothing else is refused, and the guard reads it taken there (none
+// over-reached), and none the page refuses goes missed; shown failing on the guard before each change ('notake', 'beforeany') and
+// the cut before it ('cutnotake', 'cutbeforeany')
 { const KINDS = {
     growth: ['both paying into ISAs, growing at different rates'],
     cashisa: ['a cash ISA subscription, the first person\'s', 'a cash ISA subscription, the partner\'s'],
-    year0: ['the first person retired, the partner working and paid', 'the first person retired, the partner working and saving', 'the first person retired, the partner saving in the first year by its dated contributions']
+    year0: ['the first person retired, the partner working and paid', 'the first person retired, the partner working and saving', 'the first person retired, the partner saving in the first year by its dated contributions'],
+    risks: ['pen', 'isa', 'other', 'cash', 'cashIsa'].map(w => `${w}: the partner's risk one tier off`),
+    limits: ['the partner\'s own limits differing'],
+    salaries: ['both paid, salaries growing at different rates']
   };
   const kindOf = name => Object.keys(KINDS).find(k => KINDS[k].includes(name)) || null;
   const takenBattery = cs => {
@@ -139,9 +146,13 @@ ok('2. the over-reach counted by its reason, none on the library\'s couples as e
   const few = [...couples, ...swapped].filter((_, i) => i % 5 === 0);
   PLANT.rule = 'notake'; const notake = takenBattery(few); PLANT.rule = '';
   CUT_PLANT.rule = 'cutnotake'; const cutnotake = takenBattery(few); CUT_PLANT.rule = '';
+  PLANT.rule = 'beforeany'; const beforeany = takenBattery(few); PLANT.rule = '';
+  CUT_PLANT.rule = 'cutbeforeany'; const cutbeforeany = takenBattery(few); CUT_PLANT.rule = '';
+  // before COUPLES-ANY's change step 4's three are still taken alike, and the three it takes are not
+  const step4 = per => ['growth', 'cashisa', 'year0'].every(k => per[k].over === 0 && per[k].missed === 0), anyOff = per => ['risks', 'limits', 'salaries'].every(k => per[k].over > 0 || per[k].missed > 0);
   const sameSet = JSON.stringify(Object.keys(HOUSEHOLD_TAKES).filter(k => HOUSEHOLD_TAKES[k]).sort()) === JSON.stringify([...(APP_COUPLE.takeShapes || [])].sort());
-  ok('4. the shapes step 4 takes (D145) taken alike by the page\'s cut and the guard, either way round, the guard\'s taken shapes the app\'s; shown failing with the guard before the change (\'notake\') and with the cut before it (\'cutnotake\')',
-    holds(all) && sameSet && !holds(notake) && !holds(cutnotake),
-    `${said(all)}; the guard's ${JSON.stringify(Object.keys(HOUSEHOLD_TAKES).filter(k => HOUSEHOLD_TAKES[k]))}, the app's ${JSON.stringify(APP_COUPLE.takeShapes)}; under 'notake' ${said(notake)}; under 'cutnotake' ${said(cutnotake)}`); }
+  ok('4. the shapes step 4 takes (D145) and COUPLES-ANY takes (D148) taken alike by the page\'s cut and the guard, either way round, the guard\'s taken shapes the app\'s; shown failing with the guard before each change (\'notake\', \'beforeany\') and with the cut before it (\'cutnotake\', \'cutbeforeany\'), before COUPLES-ANY\'s on its three shapes alone',
+    holds(all) && sameSet && !holds(notake) && !holds(cutnotake) && !holds(beforeany) && !holds(cutbeforeany) && step4(beforeany) && step4(cutbeforeany) && anyOff(beforeany) && anyOff(cutbeforeany),
+    `${said(all)}; the guard's ${JSON.stringify(Object.keys(HOUSEHOLD_TAKES).filter(k => HOUSEHOLD_TAKES[k]))}, the app's ${JSON.stringify(APP_COUPLE.takeShapes)}; under 'notake' ${said(notake)}; under 'cutnotake' ${said(cutnotake)}; under 'beforeany' ${said(beforeany)}; under 'cutbeforeany' ${said(cutbeforeany)}`); }
 console.log(fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`);
 process.exit(fail ? 1 : 0);

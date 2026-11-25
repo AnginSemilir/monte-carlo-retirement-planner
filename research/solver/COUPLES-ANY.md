@@ -213,3 +213,65 @@ Its checks, beside A's as written, each with its plant:
 - **Plants:** the household's index given to both people (the engine refuses, as today); the added tiers left off (the name
   check refuses the household's safest tiers); the riskier person's first move left at their own tier (no switch charged,
   and their wrapper not on the shared tier); the household's ceiling the first person's alone.
+
+## Amendment 2 (24 Nov, before any unit runs): the dress rehearsal's panel, arms and reading
+
+A, B and C are built off in code (STATE.md section 5). The dress rehearsal of the test above, EXPLORATORY, on the tuning seed
+7002, `4,000` paths a unit, on touched couples. Nothing it reads changes a default.
+
+**Its couples.** COUPLES-OPEN's four (S025 and S273 of the library, S351F and S357F of the younger cohort), with S227 (the
+library's, touched by the household line) in S025's place for the units where both people work, S025 being retired.
+
+**Its units**, each at two holdings: the library's own, the elder holding `60%` (inside the guard before D143), and the
+younger holding `75%` (outside it, Y's).
+- W, step 4's shapes, taken by default since D146:
+  - Wg: both working at least three more years, each paying `£3,000` a year into their ISA, the first person's growing at
+    `3%` a year and the partner's flat;
+  - Wc: both working at least three more years, each paying `£2,000` a year into a cash ISA;
+  - W0: the first person retired today and the partner paid and saving in the plan's first year (COUPLES-OPEN's
+    `laterWorking`).
+- R, A's risks, as the test above names them: the pension, or the ISA, one, two and three profiles apart, each way (the first
+  person's the safer, or the partner's), the other person's account left at the library's: twelve kinds.
+- L, A's limits: the first person's pension ceiling Medium/High Risk, the partner's own Medium Risk.
+- P, B's pay: both paid and working at least five more years, their salaries growing at `2%` and `-1%` a year.
+- N, C's nobody retiring: both working past the plan's end.
+
+Each is landed so APP survives `85 +/- 1%` on `1,000` paths of seed 7005 (D4's procedure), but N cannot be. Nothing is
+spent from the pots before the first retirement (the engine's year spends from it), so where nobody retires both arms survive
+every path at any target. N's units therefore run at the library's own target, and are reported on the pot and the tax, not
+read by the rule. Whether C opens by inference from its exactness, or not at all, goes to the maintainer with the read.
+
+The panel: 144 units (W 24, R 96, L 8, P 8, N 8). The kinds where both work (Wg, Wc, P, N) are on S227, S273, S351F and S357F;
+the rest (W0, R, L) on S025, S273, S351F and S357F.
+
+Every unit is checked before it runs. The household plan takes it with its class's shape named, and without it refuses it
+for that shape's reason, except W's, which the app's own shapes take. The app's guard (`src/couplesSwitch.js`) keeps R, L, P
+and N off the household route for their shape, and puts W's on it.
+
+The plan handed to the solvers is the one the household line's audits hand theirs (`shapes-panel.mjs` `solverPlanOf`: arm A's
+policy, the app's aims), with the plan's own locks kept, as the page hands its solve. The household line's audits handed the
+solver no locks (`audit-couples.mjs` `solverPlan`), which none of their units set. L's units set the two people's limits, so
+without them L would run with no limits at all. On a plan with no locks the solvers' plan is the old one, byte for byte
+(`couples-any-panel.mjs`'s planted checks).
+
+**Its arms**, each by the engine on the same paths, at estate weight `0.02` and the app's points:
+- APP, arm A, the app's own rules;
+- ROUTE, the household route taking every shape, the page's own cut and assembly (`src/solverCouple.js` `householdCut` and
+  `householdSolved` with `takeShapes` step 4's three, 'risks', 'limits', 'salaries' and 'noretire').
+
+**Before the read**, W's identity (the test above, class W): on every W unit, the app's own route (the cut, the table and the
+assembly as the page's worker makes them, at the app's own shapes) held to the rehearsal's ROUTE path for path, with the
+guard on (`couples-any-port-identity.mjs`, `results-couples-any-port-identity.txt`, naming the run's stamp). Where the
+younger holds `75%` the guard puts the couple on the household route alone, lifting Y (D144). At the library's holdings,
+inside the guard before D143, it names no route of its own and lifts nothing. The client then solves the couple at the
+couples' default form (`src/solverClient.js`, `APP_COUPLE.household`), on the household route wherever the household plan
+takes its shape, which the cut at the app's own shapes shows. Without it W is not read. (Corrected 24 Nov, before any unit
+ran: the smoke showed the library's holdings naming no route, which the first wording missed.)
+
+**Its reading**, for each class W, R, L and P, by D141's rule as the test above states it:
+1. no unit flagged by D34's harm rule, in whole paths;
+2. the class's pooled survival change by path, its interval's lower end above nought;
+3. the class's pooled spending on the paths both keep, the units weighted equally, its point not below `-0.05%`.
+
+**Its outcomes.** A class that passes goes to the registered test. A class that fails goes to the maintainer with its units.
+W failing goes to the maintainer at once.

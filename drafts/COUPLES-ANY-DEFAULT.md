@@ -69,7 +69,9 @@ All of this ran at the lowest priority, so the registered run kept its cores.
 
 ## What runs once the cores are free (after the registered run and W's identity)
 
-- **The draft's identity** on all 112 R, L and P units of the pilot, in four parts. It takes about 25 minutes on four cores.
+- **The draft's identity** on all 112 R, L and P units of the pilot, in four parts: run 25 Nov 06:45 to 07:38 UTC from the
+  scratch tree, `112 of 112 units IDENTICAL` (guard, table digest and every key of every path; its file
+  `research/solver/results-couples-any-default-identity.txt` in the scratch tree, committed with the change).
 - **The planner harness's check 19** with its new couples, each solved on the household route against the reference:
   - (b5): the partner's ISA at another risk;
   - (b6): the partner's own pension limit differing;

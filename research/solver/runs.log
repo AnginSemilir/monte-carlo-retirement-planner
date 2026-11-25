@@ -404,3 +404,4 @@
 24 Nov 18:34 UK | main | research/solver/registrations/couples-any.md | code d91a642206b9 | 48522d79 | load 1.13 0.95 0.97 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-couples-any.sh
 25 Nov 01:18 UK | main | research/solver/registrations/couples-any.md | code d91a642206b9 | 575998b5 | load 0.35 0.29 0.12 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-couples-any.sh
 25 Nov 03:57 UK | main | research/solver/registrations/couples-any.md | code d91a642206b9 | 84ce77b2 | load 0.96 0.37 0.14 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-couples-any.sh
+25 Nov 07:46 UK | main | none: the household route at uneven holdings, the deep review's one test (COUPLES-UNEVEN.md) | code d91a642206b9 | 58e29bbd | load 1.01 1.80 3.17 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-couples-uneven.sh

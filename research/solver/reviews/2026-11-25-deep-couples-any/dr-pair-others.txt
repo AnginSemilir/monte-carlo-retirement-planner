@@ -1,0 +1,54 @@
+S123: each kind's spending as a share of its unit's target, in points, on the paths its own and Y75 units keep under both arms; ROUTE less APP at each holding, and Y75 less own for each arm (post hoc)
+L     k 1.667/1.333 paths 21737: ROUTE-APP own +5.65 Y75 +2.96 | Y75-own ROUTE -0.44 APP +2.25 | Windfall to ISA, lump sum | ISA First, lump sum
+Ri1s  k 1.667/1.333 paths 22101: ROUTE-APP own +4.25 Y75 +3.41 | Y75-own ROUTE -0.29 APP +0.55 | ISA First, lump sum | ISA First, lump sum
+Ri1t  k 1.667/1.333 paths 21808: ROUTE-APP own +3.51 Y75 +3.41 | Y75-own ROUTE +0.38 APP +0.48 | Bracket Fill, lump sum | ISA First, lump sum
+Ri2s  k 1.667/1.333 paths 21824: ROUTE-APP own +3.71 Y75 +3.44 | Y75-own ROUTE +0.37 APP +0.64 | ISA First, lump sum | ISA First, lump sum
+Ri2t  k 1.667/1.333 paths 21729: ROUTE-APP own +3.53 Y75 +3.40 | Y75-own ROUTE +0.37 APP +0.50 | Bracket Fill, lump sum | Bracket Fill, lump sum
+Ri3s  k 1.667/1.333 paths 21822: ROUTE-APP own +3.41 Y75 +3.37 | Y75-own ROUTE +0.60 APP +0.64 | ISA First, lump sum | ISA First, lump sum
+Ri3t  k 1.667/1.333 paths 22055: ROUTE-APP own +3.87 Y75 +3.33 | Y75-own ROUTE +0.01 APP +0.55 | ISA First (harvest off), lump sum | Bracket Fill (harvest off), lump sum
+Rp1s  k 1.667/1.333 paths 21734: ROUTE-APP own +2.18 Y75 +2.51 | Y75-own ROUTE +1.39 APP +1.06 | ISA First, lump sum | Bracket Fill, lump sum
+Rp1t  k 1.667/1.333 paths 21586: ROUTE-APP own +2.83 Y75 +2.23 | Y75-own ROUTE -0.72 APP -0.13 | Bracket Fill | ISA First, lump sum
+Rp2s  k 1.667/1.333 paths 22145: ROUTE-APP own +2.72 Y75 +2.62 | Y75-own ROUTE +1.25 APP +1.35 | Bracket Fill, lump sum | ISA First, lump sum
+Rp2t  k 1.667/1.333 paths 20706: ROUTE-APP own +2.44 Y75 +3.54 | Y75-own ROUTE +0.89 APP -0.21 | ISA First, lump sum | Bracket Fill, lump sum
+Rp3s  k 1.667/1.333 paths 22040: ROUTE-APP own +3.49 Y75 +2.47 | Y75-own ROUTE +1.24 APP +2.25 | ISA First, lump sum | Bracket Fill, lump sum
+Rp3t  k 1.667/1.333 paths 21074: ROUTE-APP own +4.22 Y75 +5.04 | Y75-own ROUTE +0.96 APP +0.15 | Bracket Fill Basic | ISA First
+W0    k 1.667/1.333 paths 22318: ROUTE-APP own +4.52 Y75 +1.96 | Y75-own ROUTE -2.26 APP +0.29 | ISA First, lump sum | ISA First, lump sum
+mean over 14 kinds: ROUTE-APP own +3.59 Y75 +3.12; Y75-own ROUTE +0.27 APP +0.74
+S207: each kind's spending as a share of its unit's target, in points, on the paths its own and Y75 units keep under both arms; ROUTE less APP at each holding, and Y75 less own for each arm (post hoc)
+L     k 1.667/1.333 paths 22005: ROUTE-APP own +7.98 Y75 +7.97 | Y75-own ROUTE -0.51 APP -0.50 | ISA First | ISA First, lump sum
+P     k 1.667/1.333 paths 22005: ROUTE-APP own +8.65 Y75 +8.20 | Y75-own ROUTE -0.32 APP +0.14 | ISA First, lump sum | ISA First, lump sum
+Ri1s  k 1.667/1.333 paths 22081: ROUTE-APP own +7.71 Y75 +7.64 | Y75-own ROUTE -0.59 APP -0.52 | Bracket Fill Basic, lump sum | ISA First, lump sum
+Ri1t  k 1.667/1.333 paths 22204: ROUTE-APP own +5.20 Y75 +4.85 | Y75-own ROUTE -0.59 APP -0.24 | Bracket Fill, lump sum | Bracket Fill, lump sum
+Ri2s  k 1.667/1.333 paths 21919: ROUTE-APP own +7.60 Y75 +4.53 | Y75-own ROUTE -0.70 APP +2.37 | Windfall to ISA, lump sum | Bracket Fill, lump sum
+Ri2t  k 1.667/1.333 paths 21932: ROUTE-APP own +7.53 Y75 +4.18 | Y75-own ROUTE -0.58 APP +2.77 | Bracket Fill Basic, lump sum | Bracket Fill
+Ri3s  k 1.667/1.333 paths 22111: ROUTE-APP own +7.29 Y75 +6.89 | Y75-own ROUTE -0.54 APP -0.15 | ISA First, lump sum | ISA First, lump sum
+Ri3t  k 1.667/1.333 paths 21861: ROUTE-APP own +7.44 Y75 +6.85 | Y75-own ROUTE -0.54 APP +0.05 | Bracket Fill Basic, lump sum | ISA First, lump sum
+Rp1s  k 1.667/1.333 paths 22197: ROUTE-APP own +8.35 Y75 +7.90 | Y75-own ROUTE -0.45 APP -0.00 | ISA First, lump sum | ISA First, lump sum
+Rp1t  k 1.667/1.333 paths 22251: ROUTE-APP own +8.28 Y75 +7.98 | Y75-own ROUTE -0.44 APP -0.14 | ISA First, lump sum | ISA First, lump sum
+Rp2s  k 1.667/1.333 paths 22132: ROUTE-APP own +7.80 Y75 +7.92 | Y75-own ROUTE +0.14 APP +0.02 | ISA First, lump sum | ISA First, lump sum
+Rp2t  k 1.667/1.333 paths 22032: ROUTE-APP own +8.47 Y75 +6.98 | Y75-own ROUTE -1.77 APP -0.28 | ISA First, lump sum | ISA First, lump sum
+Rp3s  k 1.667/1.333 paths 21768: ROUTE-APP own +7.26 Y75 +7.27 | Y75-own ROUTE +0.73 APP +0.72 | ISA First, lump sum | ISA First
+Rp3t  k 1.667/1.333 paths 22065: ROUTE-APP own +8.30 Y75 +7.21 | Y75-own ROUTE -1.62 APP -0.52 | ISA First, lump sum | ISA First, lump sum
+W0    k 1.667/1.333 paths 21927: ROUTE-APP own +7.76 Y75 +6.40 | Y75-own ROUTE -0.36 APP +1.01 | ISA First | ISA First, lump sum
+Wc    k 1.667/1.333 paths 22005: ROUTE-APP own +8.81 Y75 +8.29 | Y75-own ROUTE -0.37 APP +0.16 | ISA First, lump sum | ISA First, lump sum
+Wg    k 1.667/1.333 paths 22060: ROUTE-APP own +7.76 Y75 +7.59 | Y75-own ROUTE -0.37 APP -0.20 | ISA First, lump sum | ISA First, lump sum
+mean over 17 kinds: ROUTE-APP own +7.78 Y75 +6.98; Y75-own ROUTE -0.52 APP +0.27
+S281: each kind's spending as a share of its unit's target, in points, on the paths its own and Y75 units keep under both arms; ROUTE less APP at each holding, and Y75 less own for each arm (post hoc)
+L     k 1.667/1.333 paths 22141: ROUTE-APP own +6.08 Y75 +5.81 | Y75-own ROUTE -0.35 APP -0.07 | Bracket Fill, lump sum | Bracket Fill, lump sum
+P     k 1.667/1.333 paths 21907: ROUTE-APP own +6.23 Y75 +5.87 | Y75-own ROUTE -0.36 APP +0.00 | Bracket Fill | Bracket Fill
+Ri1s  k 1.667/1.333 paths 21695: ROUTE-APP own +4.96 Y75 +4.57 | Y75-own ROUTE -0.34 APP +0.05 | Bracket Fill, lump sum | Bracket Fill, lump sum
+Ri1t  k 1.667/1.333 paths 21518: ROUTE-APP own +4.92 Y75 +5.61 | Y75-own ROUTE -0.33 APP -1.03 | Bracket Fill, lump sum | Bracket Fill Basic
+Ri2s  k 1.667/1.333 paths 21518: ROUTE-APP own +6.31 Y75 +5.52 | Y75-own ROUTE +0.93 APP +1.73 | Bracket Fill Basic | Bracket Fill
+Ri2t  k 1.667/1.333 paths 21624: ROUTE-APP own +5.07 Y75 +4.95 | Y75-own ROUTE -0.34 APP -0.21 | Bracket Fill, lump sum | Bracket Fill, lump sum
+Ri3s  k 1.667/1.333 paths 21837: ROUTE-APP own +5.17 Y75 +5.69 | Y75-own ROUTE -0.22 APP -0.74 | Bracket Fill, lump sum | Bracket Fill Basic
+Ri3t  k 1.667/1.333 paths 21626: ROUTE-APP own +4.96 Y75 +6.21 | Y75-own ROUTE -0.22 APP -1.48 | Bracket Fill, lump sum | Bracket Fill Basic
+Rp1s  k 1.667/1.333 paths 21767: ROUTE-APP own +5.23 Y75 +4.85 | Y75-own ROUTE -0.34 APP +0.03 | Bracket Fill, lump sum | Bracket Fill, lump sum
+Rp1t  k 1.667/1.333 paths 21789: ROUTE-APP own +5.20 Y75 +4.92 | Y75-own ROUTE -0.34 APP -0.06 | Bracket Fill, lump sum | Bracket Fill, lump sum
+Rp2s  k 1.667/1.333 paths 21890: ROUTE-APP own +5.48 Y75 +5.03 | Y75-own ROUTE -0.31 APP +0.14 | Bracket Fill, lump sum | Bracket Fill, lump sum
+Rp2t  k 1.667/1.333 paths 21952: ROUTE-APP own +5.35 Y75 +5.24 | Y75-own ROUTE -0.31 APP -0.21 | Bracket Fill, lump sum | Bracket Fill, lump sum
+Rp3s  k 1.667/1.333 paths 21848: ROUTE-APP own +5.26 Y75 +4.62 | Y75-own ROUTE -0.28 APP +0.35 | Bracket Fill | Bracket Fill, lump sum
+Rp3t  k 1.667/1.333 paths 21933: ROUTE-APP own +4.96 Y75 +5.12 | Y75-own ROUTE -0.27 APP -0.43 | Bracket Fill, lump sum | Bracket Fill, lump sum
+W0    k 1.667/1.333 paths 21770: ROUTE-APP own +5.92 Y75 +5.49 | Y75-own ROUTE +0.15 APP +0.58 | ISA First | Bracket Fill, lump sum
+Wc    k 1.667/1.333 paths 21741: ROUTE-APP own +5.86 Y75 +5.71 | Y75-own ROUTE -0.36 APP -0.21 | Bracket Fill | Bracket Fill
+Wg    k 1.667/1.333 paths 22102: ROUTE-APP own +6.12 Y75 +5.77 | Y75-own ROUTE -0.35 APP +0.00 | Bracket Fill, lump sum | Bracket Fill, lump sum
+mean over 17 kinds: ROUTE-APP own +5.48 Y75 +5.35; Y75-own ROUTE -0.22 APP -0.09

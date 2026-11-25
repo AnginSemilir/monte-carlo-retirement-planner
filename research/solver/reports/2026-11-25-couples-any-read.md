@@ -202,10 +202,20 @@ caps that person's pension saving):
 
 ## Next
 
-- The deep review.
-- To the maintainer, before any default changes: the two units M1 names. The agent's recommendation is to accept both
-  units' shortfalls, as D143 accepted S037's and D134 S273-90's, and to build R, L and P's change of default. It is drafted
-  (`drafts/couples-any-default.patch`, `drafts/COUPLES-ANY-DEFAULT.md`); its protected edits are asked for by name:
-  `couple-default.test.mjs`, `couple-limits-card.test.mjs` and `couple-shape.test.mjs`. Then the reviewer on the change of
-  default and B1's gate.
+- **The deep review is in** (`reviews/2026-11-25-deep-couples-any.md`, its scripts beside it). Post hoc, on runs already
+  read, a lead and not a result:
+  - the passes stand;
+  - M1's two names are not survival bought with spending, unlike S037's and S273-90's. On the paths both keep, ROUTE spends
+    more than APP in the markets where every saved path lies, and less only in good markets;
+  - about half of each name is the app's rules doing better at 25/75, and the rest is the household route losing money to
+    tax at 25/75 against 60/40 on every one of S041's kinds. That loss is the household route's, so W and the Y, E, S and G
+    classes already carry it;
+  - its leading cause is the household table taxing an uneven couple as one person (k times one person's allowance and
+    bands). Its one test, EXPLORATORY on seed 7002 and S041's 28 units, says whether the pricing or the even split is the
+    cause.
+- **That test runs next**, its rule committed before any unit runs.
+- **Then to the maintainer, before any default changes:** the two units M1 names, with the deep review and the test's read,
+  and R, L and P's change of default. It is drafted (`drafts/couples-any-default.patch`, `drafts/COUPLES-ANY-DEFAULT.md`),
+  and its protected edits are asked for by name: `couple-default.test.mjs`, `couple-limits-card.test.mjs` and
+  `couple-shape.test.mjs`. Then come the reviewer on the change of default and B1's gate.
 - Still open with the maintainer: whether C opens, and the classic planner.

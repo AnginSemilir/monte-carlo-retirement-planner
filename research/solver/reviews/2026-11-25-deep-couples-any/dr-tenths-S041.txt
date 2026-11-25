@@ -1,0 +1,84 @@
+S041-L-own     38800  Bracket Fill Basic, lump sum   yrs 28 | APP 85.26 ROUTE 99.20 | kept £/yr +912 (APP +37,474) all £/yr +902 | tax £/yr -1,028 (APP +1,131) | pot -20,485 capped +14,874
+   kept £/yr by tenth of APP's end pot: na +1,363 +1,852 +2,033 +1,801 +1,468 +889 +180 -391 -775
+   tax £/yr by tenth: -559 -594 -664 -750 -844 -927 -1,040 -1,195 -1,460 -2,251; saved/lost: 2394/0 1232/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-L-Y75     38800  ISA First, lump sum            yrs 28 | APP 85.05 ROUTE 99.09 | kept £/yr +114 (APP +37,905) all £/yr +147 | tax £/yr +363 (APP +100) | pot -244,241 capped -82,052
+   kept £/yr by tenth of APP's end pot: na +770 +1,148 +1,235 +993 +547 -85 -746 -1,186 -1,323
+   tax £/yr by tenth: +515 +572 +602 +545 +444 +349 +263 +171 +104 +71; saved/lost: 2363/0 1287/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Ri1s-own  39200  Bracket Fill Basic, lump sum   yrs 28 | APP 85.17 ROUTE 98.48 | kept £/yr +769 (APP +37,534) all £/yr +647 | tax £/yr -993 (APP +1,124) | pot +213,454 capped +158,417
+   kept £/yr by tenth of APP's end pot: na +530 +1,200 +1,615 +1,637 +1,449 +1,020 +373 -270 -747
+   tax £/yr by tenth: -442 -512 -570 -674 -794 -906 -1,039 -1,201 -1,480 -2,310; saved/lost: 2210/0 1255/2 0/0 0/1 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Ri1s-Y75  38400  ISA First, lump sum            yrs 28 | APP 86.75 ROUTE 98.85 | kept £/yr -134 (APP +37,535) all £/yr -147 | tax £/yr +599 (APP +77) | pot -54,873 capped +35,138
+   kept £/yr by tenth of APP's end pot: na +249 +700 +826 +618 +187 -348 -883 -1,210 -1,222
+   tax £/yr by tenth: +540 +652 +729 +730 +704 +683 +645 +573 +471 +261; saved/lost: 2302/0 845/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Ri1t-own  39200  Bracket Fill Basic, lump sum   yrs 28 | APP 84.73 ROUTE 98.48 | kept £/yr +688 (APP +37,633) all £/yr +593 | tax £/yr -992 (APP +1,124) | pot +180,483 capped +136,364
+   kept £/yr by tenth of APP's end pot: na +566 +1,202 +1,588 +1,563 +1,338 +873 +203 -394 -816
+   tax £/yr by tenth: -444 -512 -573 -678 -799 -910 -1,042 -1,205 -1,476 -2,286; saved/lost: 2210/0 1365/1 0/0 0/1 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Ri1t-Y75  39200  Bracket Fill Basic, lump sum   yrs 28 | APP 85.47 ROUTE 98.43 | kept £/yr +424 (APP +37,415) all £/yr +327 | tax £/yr -616 (APP +1,201) | pot +240,754 capped +171,514
+   kept £/yr by tenth of APP's end pot: na +118 +703 +1,149 +1,237 +1,070 +726 +122 -485 -959
+   tax £/yr by tenth: -139 -170 -183 -243 -322 -426 -572 -764 -1,137 -2,205; saved/lost: 2193/0 1176/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Ri2s-own  39200  Bracket Fill Basic, lump sum   yrs 28 | APP 85.27 ROUTE 95.98 | kept £/yr +782 (APP +37,303) all £/yr +568 | tax £/yr -824 (APP +1,123) | pot +233,849 capped +170,909
+   kept £/yr by tenth of APP's end pot: na +35 +774 +1,368 +1,642 +1,586 +1,276 +724 -13 -709
+   tax £/yr by tenth: -427 -419 -422 -494 -569 -672 -797 -957 -1,277 -2,204; saved/lost: 1648/0 1178/24 0/13 0/3 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Ri2s-Y75  39200  Bracket Fill Basic, lump sum   yrs 28 | APP 84.46 ROUTE 97.06 | kept £/yr +125 (APP +37,573) all £/yr +26 | tax £/yr -199 (APP +1,200) | pot +140,529 capped +100,005
+   kept £/yr by tenth of APP's end pot: na -136 +467 +896 +977 +782 +374 -271 -852 -1,256
+   tax £/yr by tenth: -12 +83 +112 +102 +45 -36 -144 -274 -525 -1,339; saved/lost: 1899/0 1400/12 0/11 0/1 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Ri2t-own  39200  Bracket Fill Basic, lump sum   yrs 28 | APP 85.01 ROUTE 95.97 | kept £/yr +620 (APP +37,477) all £/yr +452 | tax £/yr -824 (APP +1,124) | pot +178,274 capped +128,501
+   kept £/yr by tenth of APP's end pot: na +87 +777 +1,379 +1,511 +1,395 +993 +360 -319 -872
+   tax £/yr by tenth: -433 -417 -429 -493 -583 -680 -799 -963 -1,273 -2,171; saved/lost: 1648/0 1239/23 0/13 0/2 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Ri2t-Y75  39200  Bracket Fill Basic, lump sum   yrs 28 | APP 85.69 ROUTE 97.05 | kept £/yr +530 (APP +37,107) all £/yr +323 | tax £/yr -199 (APP +1,200) | pot +276,822 capped +203,562
+   kept £/yr by tenth of APP's end pot: na -213 +399 +907 +1,213 +1,281 +1,098 +637 -38 -836
+   tax £/yr by tenth: +6 +87 +120 +107 +69 -11 -123 -270 -542 -1,433; saved/lost: 1894/0 1092/20 0/9 0/3 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Ri3s-own  38600  Bracket Fill Basic, lump sum   yrs 28 | APP 86.04 ROUTE 96.56 | kept £/yr +1,719 (APP +36,670) all £/yr +1,403 | tax £/yr -679 (APP +1,133) | pot +274,379 capped +163,611
+   kept £/yr by tenth of APP's end pot: na +629 +1,563 +2,261 +2,601 +2,578 +2,390 +1,792 +1,081 +138
+   tax £/yr by tenth: -233 -292 -331 -399 -463 -532 -639 -808 -1,126 -1,967; saved/lost: 1737/0 1013/9 0/5 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Ri3s-Y75  38800  Bracket Fill Basic, lump sum   yrs 28 | APP 85.73 ROUTE 96.88 | kept £/yr +1,011 (APP +37,170) all £/yr +799 | tax £/yr -416 (APP +1,209) | pot +93,132 capped +34,690
+   kept £/yr by tenth of APP's end pot: na +268 +1,141 +1,735 +1,918 +1,794 +1,431 +767 +143 -421
+   tax £/yr by tenth: +9 +6 -27 -97 -182 -276 -412 -591 -892 -1,701; saved/lost: 1817/0 1090/5 0/3 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Ri3t-own  38800  Bracket Fill Basic, lump sum   yrs 28 | APP 85.74 ROUTE 96.35 | kept £/yr +1,411 (APP +37,046) all £/yr +1,147 | tax £/yr -624 (APP +1,131) | pot +177,808 capped +85,268
+   kept £/yr by tenth of APP's end pot: na +496 +1,393 +2,064 +2,331 +2,276 +1,964 +1,311 +592 -123
+   tax £/yr by tenth: -150 -216 -262 -339 -412 -496 -603 -769 -1,091 -1,899; saved/lost: 1700/0 1080/15 0/7 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Ri3t-Y75  38800  Bracket Fill, lump sum         yrs 28 | APP 85.91 ROUTE 96.85 | kept £/yr +289 (APP +37,897) all £/yr +108 | tax £/yr +755 (APP +37) | pot -136,218 capped -65,215
+   kept £/yr by tenth of APP's end pot: na -240 +578 +1,178 +1,229 +942 +392 -221 -661 -814
+   tax £/yr by tenth: +683 +778 +832 +827 +803 +793 +772 +737 +687 +640; saved/lost: 1810/0 1046/6 0/4 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Rp1s-own  39200  ISA First                      yrs 28 | APP 85.37 ROUTE 99.16 | kept £/yr +88 (APP +38,449) all £/yr +153 | tax £/yr -95 (APP +163) | pot -107,357 capped -8,794
+   kept £/yr by tenth of APP's end pot: na +624 +1,074 +1,208 +966 +476 -130 -789 -1,150 -1,234
+   tax £/yr by tenth: -131 -106 -28 -27 -56 -71 -93 -127 -159 -148; saved/lost: 2382/0 1205/1 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Rp1s-Y75  38800  ISA First, lump sum            yrs 28 | APP 85.50 ROUTE 99.21 | kept £/yr +51 (APP +37,855) all £/yr +85 | tax £/yr +458 (APP +95) | pot -94,963 capped +11,771
+   kept £/yr by tenth of APP's end pot: na +678 +1,019 +1,091 +865 +454 -115 -758 -1,182 -1,309
+   tax £/yr by tenth: +429 +598 +687 +697 +662 +605 +520 +351 +131 -101; saved/lost: 2394/0 1169/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Rp1t-own  38800  Bracket Fill Basic, lump sum   yrs 28 | APP 85.48 ROUTE 99.25 | kept £/yr +886 (APP +37,464) all £/yr +871 | tax £/yr -1,050 (APP +1,110) | pot +71,397 capped +82,981
+   kept £/yr by tenth of APP's end pot: na +1,350 +1,814 +1,970 +1,756 +1,424 +866 +162 -398 -760
+   tax £/yr by tenth: -602 -607 -683 -788 -887 -975 -1,082 -1,232 -1,469 -2,175; saved/lost: 2404/0 1175/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Rp1t-Y75  39200  ISA First                      yrs 28 | APP 85.59 ROUTE 98.98 | kept £/yr -361 (APP +38,454) all £/yr -284 | tax £/yr +468 (APP +123) | pot -131,228 capped -25,362
+   kept £/yr by tenth of APP's end pot: na +210 +624 +714 +453 -37 -661 -1,239 -1,531 -1,526
+   tax £/yr by tenth: +404 +550 +685 +716 +685 +633 +542 +381 +159 -75; saved/lost: 2337/0 1146/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Rp2s-own  39200  ISA First, lump sum            yrs 28 | APP 86.09 ROUTE 99.08 | kept £/yr +706 (APP +37,803) all £/yr +622 | tax £/yr -35 (APP +148) | pot +56,203 capped +63,769
+   kept £/yr by tenth of APP's end pot: na +723 +1,184 +1,524 +1,541 +1,375 +1,027 +313 -418 -907
+   tax £/yr by tenth: -209 -123 +10 +57 +65 +53 +30 -27 -88 -114; saved/lost: 2362/0 1016/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Rp2s-Y75  38800  ISA First, lump sum            yrs 28 | APP 85.90 ROUTE 99.08 | kept £/yr +179 (APP +37,805) all £/yr +172 | tax £/yr +372 (APP +91) | pot -168,882 capped -58,138
+   kept £/yr by tenth of APP's end pot: na +649 +1,106 +1,221 +1,025 +636 +79 -594 -1,063 -1,254
+   tax £/yr by tenth: +518 +582 +609 +548 +454 +357 +280 +181 +114 +78; saved/lost: 2362/0 1065/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Rp2t-own  38800  Bracket Fill Basic, lump sum   yrs 28 | APP 85.55 ROUTE 99.21 | kept £/yr +921 (APP +37,454) all £/yr +891 | tax £/yr -991 (APP +1,093) | pot -4,519 capped +22,619
+   kept £/yr by tenth of APP's end pot: na +1,281 +1,833 +2,014 +1,800 +1,479 +917 +209 -359 -726
+   tax £/yr by tenth: -583 -604 -663 -752 -834 -915 -1,008 -1,143 -1,366 -2,044; saved/lost: 2395/0 1156/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Rp2t-Y75  39200  ISA First, lump sum            yrs 28 | APP 86.60 ROUTE 98.87 | kept £/yr +285 (APP +37,829) all £/yr +199 | tax £/yr +363 (APP +112) | pot +11,221 capped +26,693
+   kept £/yr by tenth of APP's end pot: na +284 +808 +1,084 +1,089 +895 +539 -150 -805 -1,182
+   tax £/yr by tenth: +394 +518 +610 +577 +480 +385 +303 +190 +105 +68; saved/lost: 2306/0 884/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Rp3s-own  39200  ISA First, lump sum            yrs 28 | APP 85.76 ROUTE 97.74 | kept £/yr +1,118 (APP +37,618) all £/yr +839 | tax £/yr +628 (APP +146) | pot +128,835 capped +109,598
+   kept £/yr by tenth of APP's end pot: na +104 +911 +1,535 +1,861 +1,864 +1,794 +1,305 +506 -252
+   tax £/yr by tenth: +89 +139 +327 +510 +675 +824 +948 +1,022 +993 +753; saved/lost: 2020/0 1099/1 0/3 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Rp3s-Y75  38800  ISA First, lump sum            yrs 28 | APP 86.11 ROUTE 98.07 | kept £/yr +476 (APP +37,753) all £/yr +341 | tax £/yr +918 (APP +87) | pot -137,784 capped -47,342
+   kept £/yr by tenth of APP's end pot: na +300 +1,051 +1,351 +1,346 +981 +588 -72 -557 -771
+   tax £/yr by tenth: +611 +697 +796 +861 +934 +1,010 +1,086 +1,115 +1,102 +966; saved/lost: 2103/0 1009/1 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Rp3t-own  38800  ISA First, lump sum            yrs 28 | APP 85.45 ROUTE 98.05 | kept £/yr +770 (APP +37,816) all £/yr +619 | tax £/yr +668 (APP +125) | pot -132,775 capped -40,017
+   kept £/yr by tenth of APP's end pot: na +630 +1,370 +1,701 +1,659 +1,329 +868 +184 -312 -564
+   tax £/yr by tenth: +359 +372 +487 +593 +688 +781 +871 +906 +893 +727; saved/lost: 2098/0 1180/1 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-Rp3t-Y75  39600  ISA First, lump sum            yrs 28 | APP 84.28 ROUTE 98.01 | kept £/yr +242 (APP +37,996) all £/yr +122 | tax £/yr +824 (APP +133) | pot +60,267 capped +58,418
+   kept £/yr by tenth of APP's end pot: na +92 +575 +877 +922 +872 +616 +79 -671 -1,268
+   tax £/yr by tenth: +585 +661 +806 +873 +895 +899 +899 +872 +842 +906; saved/lost: 2087/0 1483/1 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0
+S041-W0-own    40700  Bracket Fill Basic, lump sum   yrs 28 | APP 84.98 ROUTE 99.07 | kept £/yr +1,043 (APP +39,400) all £/yr +1,005 | tax £/yr -1,438 (APP +1,504) | pot +87,140 capped +117,937
+   kept £/yr by tenth of APP's end pot: na +1,144 +1,662 +1,942 +1,887 +1,611 +1,209 +474 -47 -446
+   tax £/yr by tenth: -682 -771 -852 -972 -1,094 -1,240 -1,451 -1,731 -2,219 -3,368; saved/lost: 2361/0 1302/0 0/0 0/1 0/0 0/0 0/0 0/0 0/0 0/0
+S041-W0-Y75    40700  Bracket Fill Basic, lump sum   yrs 28 | APP 84.79 ROUTE 98.94 | kept £/yr +594 (APP +39,379) all £/yr +583 | tax £/yr -877 (APP +1,588) | pot +78,045 capped +110,224
+   kept £/yr by tenth of APP's end pot: na +599 +1,068 +1,339 +1,341 +1,116 +778 +132 -343 -676
+   tax £/yr by tenth: -120 -147 -179 -280 -401 -572 -823 -1,182 -1,796 -3,270; saved/lost: 2327/0 1352/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0

@@ -1,0 +1,44 @@
+S041: each kind's spending as a share of its unit's target, in points, on the paths its own and Y75 units keep under both arms; ROUTE less APP at each holding, and Y75 less own for each arm (post hoc)
+L     k 1.667/1.333 paths 21740: ROUTE-APP own +2.30 Y75 +0.31 | Y75-own ROUTE -0.95 APP +1.04 | Bracket Fill Basic, lump sum | ISA First, lump sum
+      Y75-own by tenth, ROUTE: NaN -1.02 -1.09 -1.04 -1.02 -0.98 -0.96 -0.89 -0.83 -0.71
+      Y75-own by tenth, APP:   NaN +0.64 +0.86 +0.96 +1.09 +1.23 +1.37 +1.33 +1.05 +0.62
+Ri1s  k 1.667/1.333 paths 21922: ROUTE-APP own +1.96 Y75 -0.33 | Y75-own ROUTE -0.15 APP +2.14 | Bracket Fill Basic, lump sum | ISA First, lump sum
+      Y75-own by tenth, ROUTE: NaN +0.22 -0.10 -0.26 -0.29 -0.25 -0.21 -0.17 -0.09 -0.00
+      Y75-own by tenth, APP:   NaN +1.14 +1.43 +1.77 +2.31 +2.74 +3.08 +2.93 +2.17 +1.12
+Ri1t  k 1.667/1.333 paths 21943: ROUTE-APP own +1.75 Y75 +1.10 | Y75-own ROUTE -1.15 APP -0.50 | Bracket Fill Basic, lump sum | Bracket Fill Basic, lump sum
+      Y75-own by tenth, ROUTE: NaN -1.14 -1.36 -1.34 -1.27 -1.27 -1.18 -1.09 -0.94 -0.75
+      Y75-own by tenth, APP:   NaN -0.13 -0.15 -0.26 -0.44 -0.62 -0.80 -0.91 -0.67 -0.30
+Ri2s  k 1.667/1.333 paths 21704: ROUTE-APP own +2.04 Y75 +0.32 | Y75-own ROUTE -1.09 APP +0.63 | Bracket Fill Basic, lump sum | Bracket Fill Basic, lump sum
+      Y75-own by tenth, ROUTE: NaN -0.70 -1.00 -1.27 -1.25 -1.27 -1.19 -1.11 -1.01 -0.76
+      Y75-own by tenth, APP:   NaN -0.51 -0.27 +0.01 +0.44 +0.81 +1.25 +1.48 +1.15 +0.59
+Ri2t  k 1.667/1.333 paths 21830: ROUTE-APP own +1.60 Y75 +1.42 | Y75-own ROUTE -1.08 APP -0.90 | Bracket Fill Basic, lump sum | Bracket Fill Basic, lump sum
+      Y75-own by tenth, ROUTE: NaN -0.72 -0.98 -1.29 -1.22 -1.26 -1.19 -1.09 -1.01 -0.76
+      Y75-own by tenth, APP:   NaN -0.14 -0.08 -0.26 -0.55 -0.89 -1.42 -1.89 -1.68 -0.76
+Ri3s  k 1.667/1.333 paths 21986: ROUTE-APP own +4.51 Y75 +2.63 | Y75-own ROUTE -1.09 APP +0.79 | Bracket Fill Basic, lump sum | Bracket Fill Basic, lump sum
+      Y75-own by tenth, ROUTE: NaN -1.36 -1.49 -1.40 -1.23 -1.10 -1.02 -0.91 -0.82 -0.61
+      Y75-own by tenth, APP:   NaN -0.52 -0.26 -0.02 +0.51 +1.03 +1.54 +1.89 +1.51 +0.75
+Ri3t  k 1.667/1.333 paths 21932: ROUTE-APP own +3.68 Y75 +0.78 | Y75-own ROUTE -0.70 APP +2.20 | Bracket Fill Basic, lump sum | Bracket Fill, lump sum
+      Y75-own by tenth, ROUTE: NaN -0.69 -0.77 -0.79 -0.80 -0.77 -0.75 -0.68 -0.59 -0.48
+      Y75-own by tenth, APP:   NaN +1.20 +1.50 +1.82 +2.37 +2.76 +3.14 +3.09 +2.25 +1.09
+Rp1s  k 1.667/1.333 paths 21884: ROUTE-APP own +0.22 Y75 +0.13 | Y75-own ROUTE -0.58 APP -0.49 | ISA First | ISA First, lump sum
+      Y75-own by tenth, ROUTE: NaN -0.46 -0.62 -0.66 -0.71 -0.66 -0.64 -0.57 -0.48 -0.36
+      Y75-own by tenth, APP:   NaN -0.43 -0.42 -0.54 -0.60 -0.73 -0.65 -0.55 -0.32 -0.14
+Rp1t  k 1.667/1.333 paths 21880: ROUTE-APP own +2.24 Y75 -0.91 | Y75-own ROUTE -1.65 APP +1.50 | Bracket Fill Basic, lump sum | ISA First
+      Y75-own by tenth, ROUTE: NaN -1.93 -1.96 -1.87 -1.76 -1.73 -1.66 -1.55 -1.38 -1.13
+      Y75-own by tenth, APP:   NaN +1.15 +1.32 +1.51 +1.66 +1.89 +1.95 +1.76 +1.31 +0.77
+Rp2s  k 1.667/1.333 paths 22038: ROUTE-APP own +1.80 Y75 +0.45 | Y75-own ROUTE -0.37 APP +0.98 | ISA First, lump sum | ISA First, lump sum
+      Y75-own by tenth, ROUTE: NaN -0.21 -0.32 -0.40 -0.45 -0.43 -0.45 -0.40 -0.37 -0.25
+      Y75-own by tenth, APP:   NaN -0.48 -0.07 +0.29 +0.87 +1.57 +2.08 +1.95 +1.27 +0.59
+Rp2t  k 1.667/1.333 paths 21910: ROUTE-APP own +2.33 Y75 +0.78 | Y75-own ROUTE -1.54 APP +0.01 | Bracket Fill Basic, lump sum | ISA First, lump sum
+      Y75-own by tenth, ROUTE: NaN -1.85 -1.89 -1.75 -1.60 -1.59 -1.51 -1.43 -1.31 -1.13
+      Y75-own by tenth, APP:   NaN +0.60 +0.79 +0.54 +0.18 -0.24 -0.66 -0.55 -0.24 +0.00
+Rp3s  k 1.667/1.333 paths 21896: ROUTE-APP own +2.91 Y75 +1.24 | Y75-own ROUTE -0.27 APP +1.39 | ISA First, lump sum | ISA First, lump sum
+      Y75-own by tenth, ROUTE: NaN +0.10 -0.15 -0.26 -0.41 -0.38 -0.36 -0.33 -0.28 -0.20
+      Y75-own by tenth, APP:   NaN -0.76 -0.36 +0.16 +0.98 +2.09 +2.90 +3.15 +2.21 +0.94
+Rp3t  k 1.667/1.333 paths 21623: ROUTE-APP own +2.01 Y75 +0.64 | Y75-own ROUTE -3.05 APP -1.68 | ISA First, lump sum | ISA First, lump sum
+      Y75-own by tenth, ROUTE: NaN -2.20 -2.46 -2.92 -3.15 -3.32 -3.51 -3.34 -3.17 -2.78
+      Y75-own by tenth, APP:   NaN -0.55 -0.43 -0.83 -1.27 -2.09 -2.86 -3.11 -2.21 -1.00
+W0    k 1.667/1.333 paths 21971: ROUTE-APP own +2.56 Y75 +1.46 | Y75-own ROUTE -1.17 APP -0.07 | Bracket Fill Basic, lump sum | Bracket Fill Basic, lump sum
+      Y75-own by tenth, ROUTE: NaN -1.45 -1.50 -1.56 -1.42 -1.27 -1.14 -0.96 -0.79 -0.59
+      Y75-own by tenth, APP:   NaN -0.10 -0.10 -0.11 -0.09 -0.09 -0.07 -0.05 -0.03 -0.00
+mean over 14 kinds: ROUTE-APP own +2.28 Y75 +0.72; Y75-own ROUTE -1.06 APP +0.50

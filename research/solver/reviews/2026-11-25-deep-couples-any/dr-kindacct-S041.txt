@@ -1,0 +1,16 @@
+L     APP spending +387 tax -1,031 pot +190,465 | ROUTE spending -368 tax +361 pot -33,291 | APP's pick Bracket Fill Basic, lump sum -> ISA First, lump sum
+Ri1s  APP spending +11 tax -1,047 pot +318,711 | ROUTE spending -783 tax +545 pot +50,383 | APP's pick Bracket Fill Basic, lump sum -> ISA First, lump sum
+Ri1t  APP spending -146 tax +77 pot -59,021 | ROUTE spending -413 tax +454 pot +1,249 | APP's pick the same
+Ri2s  APP spending +148 tax +77 pot +93,922 | ROUTE spending -394 tax +702 pot +601 | APP's pick the same
+Ri2t  APP spending -263 tax +76 pot -97,454 | ROUTE spending -392 tax +701 pot +1,094 | APP's pick the same
+Ri3s  APP spending +387 tax +75 pot +111,016 | ROUTE spending -217 tax +338 pot -70,231 | APP's pick the same
+Ri3t  APP spending +777 tax -1,094 pot +278,719 | ROUTE spending -261 tax +285 pot -35,308 | APP's pick Bracket Fill Basic, lump sum -> Bracket Fill, lump sum
+Rp1s  APP spending -515 tax -68 pot -5,272 | ROUTE spending -584 tax +484 pot +7,122 | APP's pick ISA First -> ISA First, lump sum
+Rp1t  APP spending +905 tax -988 pot +168,589 | ROUTE spending -250 tax +530 pot -34,036 | APP's pick Bracket Fill Basic, lump sum -> ISA First
+Rp2s  APP spending -78 tax -57 pot +213,616 | ROUTE spending -528 tax +350 pot -11,469 | APP's pick the same
+Rp2t  APP spending +467 tax -982 pot -68,909 | ROUTE spending -225 tax +372 pot -53,169 | APP's pick Bracket Fill Basic, lump sum -> ISA First, lump sum
+Rp3s  APP spending +33 tax -59 pot +267,067 | ROUTE spending -465 tax +231 pot +448 | APP's pick the same
+Rp3t  APP spending +230 tax +8 pot -278,970 | ROUTE spending -267 tax +164 pot -85,928 | APP's pick the same
+W0    APP spending -39 tax +84 pot -1,706 | ROUTE spending -461 tax +645 pot -10,801 | APP's pick the same
+ROUTE 25/75 less 60/40, mean over 14 kinds, by tenth of the 60/40 APP's end pot (worst first): tax a year +388 +447 +483 +504 +499 +479 +456 +425 +392 +330
+   spending a year (all paths) -221 -342 -448 -483 -478 -470 -455 -421 -381 -309

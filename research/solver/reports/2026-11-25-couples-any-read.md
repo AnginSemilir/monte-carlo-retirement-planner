@@ -143,13 +143,15 @@ caps that person's pension saving):
   - `60/60` to `60/58` on `33` units, `60/60` to `58/58` on `27`, and `58/60` to `58/58` on `2`.
 - In the dress rehearsal ROUTE's were earlier on `1` of `144` units.
 - Where the ages come from, read from the code and not measured:
-  - Each arm's ages are its own context's (`audit-couples-any.mjs` `mpaaOf`), and both are resolved by `resolveMpaa` (the
-    first year a person takes taxable pension income on the expected path of the app's rules, on the plan as arm A's policy
-    holds it).
-  - APP's are resolved with the guardrails on and the five-year lookahead (`audit-couples-any.mjs`).
-  - ROUTE's are resolved with the guardrails off and no lookahead, as the page prepares every plan it solves
-    (`src/solverSettings.js` `prepareForSolve`), and the page's context for the solved couple carries them.
-  - So neither arm's ages come from ROUTE's own moves. Why the two settings reach different ages on these couples is not
+  - Each arm's ages are its own context's (`audit-couples-any.mjs` `mpaaOf`), and both are resolved by `resolveMpaa`: the
+    first year a person takes taxable pension income on the expected path of the app's rules on a plan.
+  - APP's are resolved on arm A's pick (its withdrawal policy, drawdown strategy and harvest setting; `select-phase4.mjs`),
+    with the guardrails on and the five-year lookahead (`audit-couples-any.mjs`).
+  - ROUTE's are resolved on the plan as the solvers are handed it, with the guardrails off and no lookahead, as the page
+    prepares every plan it solves (`src/solverSettings.js` `prepareForSolve`). That plan keeps its own withdrawal policy,
+    drawdown strategy and harvest setting, taking arm A's policy name only where its pick carries a deposit order of its own
+    (`audit-phase4.mjs` `solverPlanOf`). The page's context for the solved couple carries these ages.
+  - So neither arm's ages come from ROUTE's own moves. Why the two resolutions reach different ages on these couples is not
     shown.
 - What the ages reach, read from the code and not measured:
   - The engine levies no charge on pension contributions past a person's MPAA age.
@@ -194,11 +196,13 @@ caps that person's pension saving):
   - **The MPAA ages:** what the code shows of where they come from and what they reach, marked as read from the code.
   - **L's limits:** the registration's caveat, that L's pass does not show the limits cost nothing, added to what the read
     does not show.
-- Second look: to follow.
+- Second look: PASS, one MINOR (`reviews/2026-11-25-read-couples-any-2.md`), answered: ROUTE's MPAA ages are resolved on
+  the plan as the solvers are handed it, its own rules, and not on arm A's policy as the first fix round said (an error the
+  reviewer traced to its own first look).
 
 ## Next
 
-- The reviewer's second look, and the deep review.
+- The deep review.
 - To the maintainer, before any default changes: the two units M1 names. The agent's recommendation is to accept both
   units' shortfalls, as D143 accepted S037's and D134 S273-90's, and to build R, L and P's change of default. It is drafted
   (`drafts/couples-any-default.patch`, `drafts/COUPLES-ANY-DEFAULT.md`); its protected edits are asked for by name:

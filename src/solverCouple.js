@@ -27,11 +27,14 @@ import { TIER_ORDER } from './solver/fast.js';
    a partner's ceilings that are the first person's, both as before the reviewer's fix round on D135's change of default;
    research/tests/couple-shown.test.mjs only: 'noshown' reads the couple's policy as it is in the views, not through
    wholeMenu, as before the fix of 20 Nov; research/tests/couple-shape.test.mjs and couple-default.test.mjs only: 'cutnotake'
-   cuts and assembles the household without the shapes step 4 takes (APP_COUPLE.takeShapes), as before its change of default */
+   cuts and assembles the household without the shapes step 4 takes (APP_COUPLE.takeShapes), as before its change of default;
+   'cutbeforeany' with step 4's three alone, as before COUPLES-ANY's (D148) */
 export const PLANT = { rule: '' };
 /* the shapes the household plan takes in the page's cut and assembly alike (step 4's change of default, D145: src/solverSettings.js
    APP_COUPLE.takeShapes; src/solver/household.js householdPlanFor), the same in both so the assembly's plan is the cut's */
-const takeShapesOpt = () => (PLANT.rule === 'cutnotake' || !APP_COUPLE.takeShapes || !APP_COUPLE.takeShapes.length ? {} : { takeShapes: APP_COUPLE.takeShapes });
+const STEP4_TAKES = Object.freeze(['growth', 'cashisa', 'year0']);
+const appTakes = () => (PLANT.rule === 'cutbeforeany' ? (APP_COUPLE.takeShapes || []).filter(w => STEP4_TAKES.includes(w)) : APP_COUPLE.takeShapes || []);
+const takeShapesOpt = () => (PLANT.rule === 'cutnotake' || !appTakes().length ? {} : { takeShapes: appTakes() });
 /* the shapes a cut and its assembly take: the app's (takeShapesOpt), or, where a research caller names them, those (COUPLES-ANY.md
    A's 'risks' and 'limits' before their change of default; research/tests/household-risks.test.mjs) */
 const shapesOf = (takeShapes) => (takeShapes ? { takeShapes } : takeShapesOpt());

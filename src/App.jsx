@@ -8782,10 +8782,11 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   // plants 'nogapguard', 'noopen' and 'notake' (research/ui-harnesses/solver-planner-ui.cjs check 19, a harness build's
   // PLANNER_PLANT): the couples' guard running a couple more than three years apart with other taxable income, as before D128;
   // the guard before D143, no class of the household route's open; the guard before step 4's change of default (D145), reading
-  // the shapes the household plan takes as refused. Set here, in the page's own render before any reader of the guard renders:
+  // the shapes the household plan takes as refused; 'beforeany' the guard before COUPLES-ANY's (D148), reading the shapes it
+  // takes as refused, step 4's three alone taken. Set here, in the page's own render before any reader of the guard renders:
   // src/couplesSwitch.js has no imports, and a statement at this file's top level would be a side effect every worker importing
   // the engine from it would carry (the guard's plants combine)
-  { const rule = ['nogapguard', 'noopen', 'notake'].filter(x => PLANNER_PLANT.has(x)).join(','); if (rule) COUPLES_SWITCH_PLANT.rule = rule; }
+  { const rule = ['nogapguard', 'noopen', 'notake', 'beforeany'].filter(x => PLANNER_PLANT.has(x)).join(','); if (rule) COUPLES_SWITCH_PLANT.rule = rule; }
   // which planner (step U): the new planner lands on Your plan (the quick start there for an empty plan); the classic as before
   const [planner, setPlannerState] = useState(readPlanner);
   // SOLVER spelled out, not left to plannerOn: with the line false the bundler folds solverOn to false and drops the solver's

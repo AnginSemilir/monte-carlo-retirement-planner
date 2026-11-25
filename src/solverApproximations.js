@@ -50,10 +50,14 @@ const withGap = line => line.replace(' of it. Any other', ` of it${GAP_CLAUSE}. 
 const SENTENCE_HEAD = ' For a couple, it works out one plan for the money you hold between you, as if one person held it all, with its tax bands set by how your pensions are split between you; each year you both take its steps, each with your own money, and every figure you see comes from simulating each of you with your own tax.';
 const exampleOf = taken => { const w = SHAPE_ORDER.find(x => !taken[x]); return !w ? null : w === 'risks' ? 'the two of you keeping one kind of account at different risk levels' : SHAPE_PHRASE[w]; };
 // since COUPLES-ANY's change of default (D148; the reviewer on it, finding 4), where the household plan takes the two people's
-// risks ('risks'), the line says that one kind of account held at two risk levels is planned from the more cautious of the two
-// (src/solver/household.js householdPlanFor, tierMapOf), so the one held at more risk is usually moved down in the first year;
-// the words the agent's draft and the maintainer's to change, worded apart from the refused shape's phrase (SHAPE_PHRASES)
-const RISKS_CLAUSE = ' Where the two of you keep one kind of account at different risk levels, it plans that account for both of you from the more cautious of the two, so the one held at more risk is usually moved down in the first year.';
+// risks ('risks'), the line says that two pensions, or two ISAs, held at different risk levels are planned from the more
+// cautious of the two (src/solver/household.js householdPlanFor, tierMapOf), so the one held at more risk is usually moved down
+// in the first year; and that with consent to change risk withdrawn (no tier moves, tierMapOf null) it keeps its risk while the
+// plan is still worked out from the more cautious. The other investments, cash and the cash ISA carry no moves and are planned
+// at the larger holding's risk, each person's growing at their own in the engine, which the line's 'every figure you see comes
+// from simulating each of you' covers (the reviewer's second look, finding 2: the clause had named every kind of account). The
+// words the agent's draft and the maintainer's to change, worded apart from the refused shape's phrase (SHAPE_PHRASES)
+const RISKS_CLAUSE = ' Where the two of you hold your pensions, or your ISAs, at different risk levels, it plans them for both of you from the more cautious of the two, so the one held at more risk is usually moved down in the first year. If you have not let the solver change how your pension and ISA are invested, the one held at more risk stays as you chose, but the plan is still worked out from the more cautious level.';
 const sentenceOf = taken => { const ex = exampleOf(taken), r = taken.risks ? RISKS_CLAUSE : ''; return ex ? `${SENTENCE_HEAD}${r} Where your plan has something one plan cannot hold, such as ${ex}, it plans each of you separately and puts the two together.` : `${SENTENCE_HEAD}${r}`; };
 const withHouseholdOf = taken => line => (APP_COUPLE.household ? `${line}${sentenceOf(taken)}` : line);
 // D143 (the household route's classes open: src/couplesSwitch.js HOUSEHOLD_OPEN): who it plans for, every couple but one whose

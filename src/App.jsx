@@ -1717,7 +1717,10 @@ function buildContext(rawPlan) {
   const agePart0 = isCouple ? req('Current age (Partner)', d.currentAgePart, ageSelf0, 0, 120) : 0;
   const retireSelf = req('Retirement age (Myself)', d.retireAgeSelf, 60, 0, 120);
   const retirePart = isCouple ? req('Retirement age (Partner)', d.retireAgePart, 60, 0, 120) : 999;
-  let terminalAge = clamp(num(d.terminalAge, 100), 1, 120);
+  // D150 (research/solver/COUPLES-ANY.md amendment 3, D): a plan the solver derives from a couple's plan as entered (the
+  // mirror, src/coupleOrder.js otherOrder, and the household and single plans cut from it, which carry its demographics)
+  // keeps the plan's own years where its end age passes 120, marked `derivedEnd`; a plan as entered stops at 120 as before
+  let terminalAge = clamp(num(d.terminalAge, 100), 1, d.derivedEnd === true ? 240 : 120);
   if (terminalAge <= ageSelf0) { warnings.push(`Terminal age (${terminalAge}) must exceed current age; using ${ageSelf0 + 1}.`); terminalAge = ageSelf0 + 1; }
   const nmpa = clamp(num(d.privatePensionAge, 58), 0, 120);
   const spa = clamp(num(d.statePensionAge, 68), 0, 120);
@@ -8783,10 +8786,11 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   // PLANNER_PLANT): the couples' guard running a couple more than three years apart with other taxable income, as before D128;
   // the guard before D143, no class of the household route's open; the guard before step 4's change of default (D145), reading
   // the shapes the household plan takes as refused; 'beforeany' the guard before COUPLES-ANY's (D148), reading the shapes it
-  // takes as refused, step 4's three alone taken. Set here, in the page's own render before any reader of the guard renders:
+  // takes as refused, step 4's three alone taken; 'beforeall' the guard before D150, nobody retiring within the plan refused
+  // and the age cap on. Set here, in the page's own render before any reader of the guard renders:
   // src/couplesSwitch.js has no imports, and a statement at this file's top level would be a side effect every worker importing
   // the engine from it would carry (the guard's plants combine)
-  { const rule = ['nogapguard', 'noopen', 'notake', 'beforeany'].filter(x => PLANNER_PLANT.has(x)).join(','); if (rule) COUPLES_SWITCH_PLANT.rule = rule; }
+  { const rule = ['nogapguard', 'noopen', 'notake', 'beforeany', 'beforeall'].filter(x => PLANNER_PLANT.has(x)).join(','); if (rule) COUPLES_SWITCH_PLANT.rule = rule; }
   // which planner (step U): the new planner lands on Your plan (the quick start there for an empty plan); the classic as before
   const [planner, setPlannerState] = useState(readPlanner);
   // SOLVER spelled out, not left to plannerOn: with the line false the bundler folds solverOn to false and drops the solver's

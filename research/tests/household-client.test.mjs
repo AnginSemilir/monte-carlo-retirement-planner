@@ -25,9 +25,10 @@
  *   6. at the dial's position 3, the store empty: the dial base (position 1) of the household plan solved first, split inside
  *      the bands (the owner and both parts handed them) and keyed with them, its key the household's own at position 1 (so a
  *      position-1 solve stored is the base restored), then the position on it; the household assembled;
- *   7. a couple the household plan refuses (householdPlanFor's refusals of a plan's shape: here S025-own with the partner's
- *      ISA held at another risk than the first person's) is solved on today's route, as before the household default: its two
- *      people's tables cut on the pots' share and solved in their slots, the couple assembled with the couples' joint move,
+ *   7. a couple the household plan refuses (householdPlanFor's refusals of a plan's shape: here S025-own with nobody retiring
+ *      within the plan, under the cut before D150, the plant 'cutbeforeall': since D150 the household plan refuses no shape at
+ *      the defaults, and the household cut takes this couple) is solved on today's route, as before the household default: its
+ *      two people's tables cut on the pots' share and solved in their slots, the couple assembled with the couples' joint move,
  *      the job's record naming no household and the refusal's reason (`householdRefused`); and a refusal that is not the
  *      plan's shape (a form the page does not solve at) fails the solve, never falls back;
  *   8. a couple whose minimum pot is left at nought, the page's default (the reviewer on D135's change of default, finding 1:
@@ -258,29 +259,33 @@ const digestsOf = async made => Promise.all(made.map(a => digestOf(tablesOf(a.cp
     !threw && !!bp && !!baseMsg && baseMsg.key === wantBaseKey && wantBaseKey === oneKey && baseMsg.bands === js(cut3.bands) && basePart.length === 2 && basePart.every(m => m.bands === js(cut3.bands)) && !!posMsg && posMsg.base && posMsg.bands === js(cut3.bands) && made.length === 3 && !!done,
     threw ? `threw: ${threw.slice(0, 160)}` : `base ${!!baseMsg}, keyed with the bands ${baseMsg ? baseMsg.key === wantBaseKey : '-'} (the position-1 key ${wantBaseKey === oneKey}), its parts' bands ${basePart.map(m => m.bands === js(cut3.bands)).join('/')}; the position on it ${posMsg ? posMsg.base : '-'}; assembled ${made.length}`); }
 
-// 7. a couple the household plan refuses: today's route, its record saying why; a refusal that is not the plan's shape stands
-// (since COUPLES-ANY's change of default, D148: the shape refused now is nobody retiring within the plan, the partner's ISA at
-// another risk taken since that change)
+// 7. a couple the household plan refuses: today's route, its record saying why; a refusal that is not the plan's shape stands.
+// Since D150 the household plan refuses no shape at the defaults (nobody retiring within the plan, the last it refused, taken: the
+// cut takes the couple below), so the refusal is the cut's before D150 (the plant 'cutbeforeall', the rollback), which the
+// client's fallback reads as it read the refusal before
 { const odd = JSON.parse(JSON.stringify(plan)); Object.assign(odd.demographics, { retireAgeSelf: 120, retireAgePart: 120 });
+  let takenNow = false; try { householdCut(E, M, odd, FORM); takenNow = true; } catch (e) { takenNow = false; }
+  const wasCut = COUPLE_PLANT.rule; COUPLE_PLANT.rule = 'cutbeforeall';
   let refusal = ''; try { householdCut(E, M, odd, FORM); } catch (e) { refusal = e.message; }
   const at = log.length, from = couples.length;
   let done = null, threw = '';
   const job = C.startSolve(odd, { ...light, parts: 3, couple: { engine: E } });
   try { done = await job.done; } catch (e) { threw = e.message; }
   job.close();
+  COUPLE_PLANT.rule = wasCut;
   const sent = log.slice(at), made = couples.slice(from);
   const slots = sent.filter(m => m.kind === 'solve').map(m => m.slot), cutPots = sent.some(m => m.kind === 'couple-plans');
   const rec = done && done.couple ? done.couple : {};
-  const fellBack = !threw && /^householdPlanFor: nobody retires within the plan/.test(refusal) && cutPots && js(slots) === js(['self', 'part'])
+  const fellBack = takenNow && !threw && /^householdPlanFor: nobody retires within the plan/.test(refusal) && cutPots && js(slots) === js(['self', 'part'])
     && !sent.some(m => m.kind === 'household') && made.length === 3 && made.filter(c => !c.isPart).length === 1
     && rec.household === null && rec.householdRefused === refusal && rec.shareRule === 'pots' && js(rec.joint) === js(appJoint());
   // a fault stands: a form the page does not solve at (an unscaled one)
   let fault = ''; const j2 = C.startSolve(plan, { ...light, parts: 1, couple: { engine: E, household: 'even' } });
   try { await j2.done; } catch (e) { fault = e.message; }
   j2.close();
-  ok('7. a couple the household plan refuses (nobody retiring within the plan) is solved on today\'s route: cut on the pots\' share, both people\'s tables solved in their slots, the couple assembled with the joint move by the owner and both parts, its record naming no household and the refusal; a form the page does not solve at fails the solve',
+  ok('7. a couple the household plan refuses (nobody retiring within the plan, under the cut before D150; since D150 the cut takes it) is solved on today\'s route: cut on the pots\' share, both people\'s tables solved in their slots, the couple assembled with the joint move by the owner and both parts, its record naming no household and the refusal; a form the page does not solve at fails the solve',
     fellBack && /^householdCut: the page solves a household at a scaled form/.test(fault),
-    threw ? `threw: ${threw.slice(0, 200)}` : `the refusal "${refusal.slice(0, 90)}"; cut on the pots' share ${cutPots}, tables solved in ${slots.join(', ')}, assembled as a couple ${made.length} times; the record ${js({ household: rec.household, shareRule: rec.shareRule, joint: rec.joint })}, its reason ${rec.householdRefused === refusal ? 'the refusal' : js(rec.householdRefused)}; the form 'even': ${fault ? fault.slice(0, 90) : 'not refused'}`); }
+    threw ? `threw: ${threw.slice(0, 200)}` : `at the defaults the cut ${takenNow ? 'takes it' : 'REFUSES it'}; before D150 the refusal "${refusal.slice(0, 90)}"; cut on the pots' share ${cutPots}, tables solved in ${slots.join(', ')}, assembled as a couple ${made.length} times; the record ${js({ household: rec.household, shareRule: rec.shareRule, joint: rec.joint })}, its reason ${rec.householdRefused === refusal ? 'the refusal' : js(rec.householdRefused)}; the form 'even': ${fault ? fault.slice(0, 90) : 'not refused'}`); }
 
 // 8. a couple whose minimum pot is left at nought: one household, its model, its table and the engine's context on one minimum
 // pot, one year of its target; and the library's couples as entered, cut at the default's form, the pattern search

@@ -5,8 +5,10 @@
  * new first person one; set by the sum of the ages, a fractional first age (60.5 and 62.1, to 95) left one person's table,
  * or the mirror, a year short, and the couple's solve failed. Each now carries the couple's whole years.
  *   1. the cut: over a grid of couples with fractional ages (the first person from 50 to 70 in tenths of a year, the partner
- *      at six gaps either side, three end ages), kept to those the guard's age cap lets run (src/couplesSwitch.js
- *      horizonFits), each person's plan as the page cuts it (src/solverCouple.js couplePlans) runs the couple's years;
+ *      at six gaps either side, three end ages), kept to those whose plan as entered runs within the 120 years a plan as
+ *      entered stops at (src/couplesSwitch.js horizonFits; since D150 a couple past it is cut on its mirror, which keeps the
+ *      plan's years: research/tests/couple-past120.test.mjs), each person's plan as the page cuts it (src/solverCouple.js
+ *      couplePlans) runs the couple's years;
  *   2. the mirror: over the same grid, the mirror (otherOrder) runs the couple's years;
  *   3. whole ages: on the library's 210 couples, as entered and mirrored, each person's cut plan and the mirror are the code
  *      before's to the bit (the two plants together are the code before);
@@ -54,7 +56,8 @@ console.log(`couple-horizon: a couple's horizon in whole plan years${PLANT ? `; 
 const yearsOf = p => E.buildContext(E.resolveMpaa(E.normalizePlan(p))).totalYears;
 const library = couplesOf(), base = E.normalizePlan(library[0].plan);
 
-// the grid: the first person from 50 to 70 in tenths, the partner at six gaps, three end ages, kept to what the age cap runs
+// the grid: the first person from 50 to 70 in tenths, the partner at six gaps, three end ages, kept to what a plan as entered runs
+// within 120 (past it, since D150, the mirror: couple-past120.test.mjs)
 const GAPS = [-7.6, -3, -0.4, 0.4, 3, 7.6], ENDS = [90, 95, 100.5], grid = [];
 for (let i = 0; i <= 200; i++) for (const g of GAPS) for (const T of ENDS) {
   const a = Math.round((50 + i / 10) * 10) / 10, p = JSON.parse(JSON.stringify(base));

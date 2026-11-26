@@ -21,17 +21,20 @@
  *   4. a single's plan, and one carrying a partner's limits (a couple's plan made a single's): one row ('single'), its edit
  *      writing its own limit alone;
  *   5. a couple the solver does not run, its two people's limits alike (each household-route unit with nobody retiring within
- *      the plan, the one shape the household plan still refuses, and the partner's own limits carried alike): kept off for its
- *      shape, one row a wrapper for the two of them ('household'), every edit of a row (No limit or each risk) writing the two
- *      people's limits alike, so they never part from the household's row;
+ *      the plan, the partner's own limits carried alike, under the guard before D150, the plant 'beforeall': since D150 the
+ *      guard keeps no couple off for its shape, the same units on the household route with the card per person, and the card's
+ *      form for a couple the solver does not run is the same whatever keeps it off, couples switched off among them): kept off
+ *      for its shape, one row a wrapper for the two of them ('household'), every edit of a row (No limit or each risk) writing
+ *      the two people's limits alike, so they never part from the household's row;
  *   6. since D148, the card's words for a couple on the household route (src/limitsCard.js householdLimits: both people held to
  *      the more cautious of their two limits on each kind of account, as the household plan holds them, the shape 'limits'; the
  *      deep review of the registered read): said exactly where the couple is solved on the household route, the guard running
  *      it and the page's household cut (src/solverCouple.js householdCut at the couples' default form, on the couple entered
  *      elder first) taking its plan, as src/solverClient.js asks them: on the household-route units as landed and with their
  *      two people's pension limits apart (said), the library's first 20 couples held 60/40 (inside the guard before D143: said),
- *      and the same with nobody retiring within the plan (on today's route: not said), the household-route units with nobody
- *      retiring (off: not said), and a single (not said).
+ *      the same with nobody retiring within the plan and the household-route units with nobody retiring (since D150 on the
+ *      household route: said; under the guard and the cut before D150, the plants 'beforeall' and 'cutbeforeall', the first on
+ *      today's route and the second kept off: not said), and a single (not said).
  * The limits per person themselves (the cut, the tables, the keys): research/tests/couple-limits.test.mjs.
  * Plants (--planted runs each and wants exactly its checks to fail): 'perperson' (src/limitsCard.js: the card before D143's
  * fix, per-person rows for every couple the guard runs and one row writing the first person's limit alone for any other:
@@ -40,8 +43,10 @@
  * 'inguardhh' (src/limitsCard.js: a couple the solver runs per person given the household's one row: check 2), 'singlepart'
  * (src/limitsCard.js: a single's row writing the partner's limits it carries: check 4; the reviewer's second look, MINOR 2),
  * and since D148 'beforeanycard' (src/limitsCard.js: the card before COUPLES-ANY's change of default, one row a wrapper for a
- * couple the household route alone opens: check 1), 'beforeany' (src/couplesSwitch.js: the guard before it, the partner's
- * own limits refused: checks 1 and 3, and check 6, the guard's reading of the shape then apart from the page's cut) and
+ * couple the household route alone opens: check 1, and since D150 check 5, whose couples with nobody retiring the household
+ * route alone opens), 'beforeany' (src/couplesSwitch.js: the guard before it, the partner's own limits refused: checks 1 and
+ * 3, check 6, the guard's reading of the shape then apart from the page's cut, and since D150 check 5, nobody retiring refused
+ * before it too) and
  * 'stricterany' (src/limitsCard.js: the household's words for every couple the guard runs, its shape not read: check 6).
  *   node research/tests/couple-limits-card.test.mjs [--planted]
  */
@@ -52,7 +57,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { coupleSolverOn, partLimitsDiffer, swapOf, PLANT as SWITCH_PLANT } from '../../src/couplesSwitch.js';
 import { limitsMode, limitsRows, limitsPatch, withLocks, householdLimits, PLANT } from '../../src/limitsCard.js';
-import { householdCut } from '../../src/solverCouple.js';
+import { householdCut, PLANT as CUT_PLANT } from '../../src/solverCouple.js';
 import { otherOrder } from '../../src/coupleOrder.js';
 import { APP_COUPLE } from '../../src/solverSettings.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
@@ -60,7 +65,7 @@ import { buildScenarios } from '../policy-study/scenarios.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['perperson', ['5']], ['partleft', ['5']], ['inguardhh', ['2']], ['singlepart', ['4']], ['beforeanycard', ['1']], ['beforeany', ['1', '3', '6']], ['stricterany', ['6']]]) {
+  for (const [plant, want] of [['perperson', ['5']], ['partleft', ['5']], ['inguardhh', ['2']], ['singlepart', ['4']], ['beforeanycard', ['1', '5']], ['beforeany', ['1', '3', '5', '6']], ['stricterany', ['6']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, COUPLE_LIMITS_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
@@ -140,40 +145,52 @@ const reheld = (plan, f) => { const re = structuredClone(plan), tot = {};
   ok('4. a single\'s plan, and one carrying a partner\'s limits: one row, its edit writing its own limit alone', res.every(r => r.ok),
     res.map((r, i) => `${i ? 'carrying a partner\'s limits' : 'as entered'}: the card '${r.mode}', the patch ${JSON.stringify(r.patch)}`).join('; ')); }
 
-// 5. a couple the solver does not run, its limits alike: one row a wrapper, every edit writing the two people's limits alike
-{ let n = 0, bad = 0, off = 0; const first = [];
+// 5. a couple the solver does not run, its limits alike: one row a wrapper, every edit writing the two people's limits alike. Since
+// D150 the guard keeps no couple off for its shape, so the couple is kept off by the guard before D150 (the plant 'beforeall', the
+// rollback: a household-route unit with nobody retiring within the plan off for its shape); at the defaults the same on, per person
+{ let n = 0, bad = 0, off = 0, onNow = 0; const first = [];
   const VAL = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
   for (const u of units) {
     const q = structuredClone(u.plan); q.demographics.retireAgeSelf = 120; q.demographics.retireAgePart = 120;
-    const base = withLocks(q, { tierCeiling: { pen: 'Medium/High Risk', isa: null }, tierCeilingPart: { pen: 'Medium/High Risk', isa: null } }), g = coupleSolverOn(base), mode = limitsMode(base);
-    if (g.on || g.why !== 'shape' || g.shape !== 'noretire' || mode !== 'household') { bad++; if (first.length < 3) first.push(`${u.id} with nobody retiring: ${say(base)}, the card '${mode}'`); continue; }
-    off++;
-    for (const [who, w] of limitsRows(base, mode)) for (const v of [null, ...VAL]) {
-      const e = edit(base, who, w, v), L = e.solver.locks;
-      n++; if (partLimitsDiffer(e) || !L.tierCeiling || L.tierCeiling[w] !== v || !L.tierCeilingPart || L.tierCeilingPart[w] !== v) { bad++; if (first.length < 3) first.push(`${u.id} with nobody retiring, the ${w} row to ${v}: ${say(e)}`); }
-    }
+    const base = withLocks(q, { tierCeiling: { pen: 'Medium/High Risk', isa: null }, tierCeilingPart: { pen: 'Medium/High Risk', isa: null } });
+    if (onHouse(base) && limitsMode(base) === 'perPerson') onNow++; else if (first.length < 3) first.push(`${u.id} with nobody retiring, at the defaults: ${say(base)}, the card '${limitsMode(base)}'`);
+    const was = SWITCH_PLANT.rule; SWITCH_PLANT.rule = [was, 'beforeall'].filter(Boolean).join(',');
+    try {
+      const g = coupleSolverOn(base), mode = limitsMode(base);
+      if (g.on || g.why !== 'shape' || g.shape !== 'noretire' || mode !== 'household') { bad++; if (first.length < 3) first.push(`${u.id} with nobody retiring, before D150: ${say(base)}, the card '${mode}'`); continue; }
+      off++;
+      for (const [who, w] of limitsRows(base, mode)) for (const v of [null, ...VAL]) {
+        const e = edit(base, who, w, v), L = e.solver.locks;
+        n++; if (partLimitsDiffer(e) || !L.tierCeiling || L.tierCeiling[w] !== v || !L.tierCeilingPart || L.tierCeilingPart[w] !== v) { bad++; if (first.length < 3) first.push(`${u.id} with nobody retiring, the ${w} row to ${v}: ${say(e)}`); }
+      }
+    } finally { SWITCH_PLANT.rule = was; }
   }
-  ok('5. a couple the solver does not run, its two people\'s limits alike (a household-route unit with nobody retiring within the plan, the partner\'s own limits carried alike): kept off for its shape, one row a wrapper for the two of them, every edit writing the two people\'s limits alike',
-    off === units.length && n > 0 && bad === 0, `${off} couples kept off for 'noretire', ${n} edits, ${bad} wrong${first.length ? ` (${first.join('; ')})` : ''}`); }
+  ok('5. a couple the solver does not run, its two people\'s limits alike (a household-route unit with nobody retiring within the plan, the partner\'s own limits carried alike, under the guard before D150): kept off for its shape, one row a wrapper for the two of them, every edit writing the two people\'s limits alike; since D150 the same couples on the household route, the card per person',
+    off === units.length && onNow === units.length && n > 0 && bad === 0, `before D150 ${off} couples kept off for 'noretire', ${n} edits, ${bad} wrong; since D150 ${onNow} of ${units.length} on the household route, per person${first.length ? ` (${first.join('; ')})` : ''}`); }
 
 // 6. the household's words exactly where the couple is solved on the household route
 { const cutTakes = p => { try { householdCut(E, M, swapOf(p) ? otherOrder(E, p) : p, APP_COUPLE.household); return true; } catch (e) { if (/^householdPlanFor: (?!opts\.|no group)/.test(e.message)) return false; throw e; } };
   const route = p => p.demographics.planningMode === 'couple' && !!APP_COUPLE.household && coupleSolverOn(p).on && cutTakes(p);
   const noRetire = p => { const q = structuredClone(p); q.demographics.retireAgeSelf = 120; q.demographics.retireAgePart = 120; return q; };
   const apart = p => withLocks(p, { tierCeiling: { pen: 'Medium/High Risk', isa: null }, tierCeilingPart: { pen: 'Medium Risk', isa: null } });
+  // nobody retiring within the plan: since D150 on the household route (said); under the guard and the cut before D150 (the
+  // plants 'beforeall' and 'cutbeforeall', the rollback; `true` below) inside the guard on today's route, outside it kept off
   const battery = [
-    ...units.flatMap(u => [[`${u.id} as landed`, u.plan], [`${u.id} its pension limits apart`, apart(u.plan)], [`${u.id} with nobody retiring`, noRetire(u.plan)]]),
-    ...couples.flatMap(c => [[`${c.id} held 60/40`, reheld(c.plan, 0.6)], [`${c.id} held 60/40, its pension limits apart`, apart(reheld(c.plan, 0.6))], [`${c.id} held 60/40 with nobody retiring`, apart(noRetire(reheld(c.plan, 0.6)))]]),
+    ...units.flatMap(u => [[`${u.id} as landed`, u.plan], [`${u.id} its pension limits apart`, apart(u.plan)], [`${u.id} with nobody retiring`, noRetire(u.plan)], [`${u.id} with nobody retiring, before D150`, noRetire(u.plan), true]]),
+    ...couples.flatMap(c => [[`${c.id} held 60/40`, reheld(c.plan, 0.6)], [`${c.id} held 60/40, its pension limits apart`, apart(reheld(c.plan, 0.6))], [`${c.id} held 60/40 with nobody retiring`, apart(noRetire(reheld(c.plan, 0.6)))], [`${c.id} held 60/40 with nobody retiring, before D150`, apart(noRetire(reheld(c.plan, 0.6))), true]]),
     ['a single', lib.find(x => x.plan.demographics.planningMode === 'single').plan]];
-  let said = 0, unsaid = 0, bad = 0, today = 0; const first = [];
-  for (const [name, p] of battery) {
-    const want = route(p), got = householdLimits(p);
+  const before = (rolled, f) => { if (!rolled) return f(); const was = [SWITCH_PLANT.rule, CUT_PLANT.rule]; SWITCH_PLANT.rule = [was[0], 'beforeall'].filter(Boolean).join(','); CUT_PLANT.rule = 'cutbeforeall'; try { return f(); } finally { [SWITCH_PLANT.rule, CUT_PLANT.rule] = was; } };
+  let said = 0, unsaid = 0, bad = 0, today = 0, kept = 0, retiringSaid = 0; const first = [];
+  for (const [name, p, rolled] of battery) before(rolled, () => {
+    const want = route(p), got = householdLimits(p), on = p.demographics.planningMode === 'couple' && coupleSolverOn(p).on;
     if (got) said++; else unsaid++;
-    if (p.demographics.planningMode === 'couple' && coupleSolverOn(p).on && !want) today++;
+    if (on && !want) today++;
+    if (p.demographics.planningMode === 'couple' && !on) kept++;
+    if (!rolled && /with nobody retiring$/.test(name) && got) retiringSaid++;
     if (got !== want) { bad++; if (first.length < 3) first.push(`${name}: ${got ? 'said' : 'not said'}, ${want ? 'on' : 'not on'} the household route (${say(p)})`); }
-  }
-  ok('6. since D148, the card says both people are held to the more cautious of their two limits on each kind of account exactly where the couple is solved on the household route (the guard running it and the page\'s household cut taking its plan): on the household-route units as landed and with their pension limits apart, and the library\'s couples held 60/40; not on today\'s route (60/40 with nobody retiring), on a couple kept off (nobody retiring) or on a single',
-    bad === 0 && said > 0 && unsaid > 0 && today > 0, `${battery.length} plans: said on ${said}, not on ${unsaid} (of them ${today} couples the guard runs on today's route), ${bad} wrong${first.length ? ` (${first.join('; ')})` : ''}`); }
+  });
+  ok('6. since D148, the card says both people are held to the more cautious of their two limits on each kind of account exactly where the couple is solved on the household route (the guard running it and the page\'s household cut taking its plan): on the household-route units as landed and with their pension limits apart, and the library\'s couples held 60/40, and since D150 each with nobody retiring; not on today\'s route or on a couple kept off (each with nobody retiring, under the guard and the cut before D150) or on a single',
+    bad === 0 && said > 0 && unsaid > 0 && today > 0 && kept > 0 && retiringSaid === units.length + couples.length, `${battery.length} plans: said on ${said} (of them ${retiringSaid} with nobody retiring, since D150), not on ${unsaid} (of them ${today} couples the guard runs on today's route and ${kept} kept off, before D150), ${bad} wrong${first.length ? ` (${first.join('; ')})` : ''}`); }
 
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
 process.exit(fail ? 1 : 0);

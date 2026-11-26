@@ -11,12 +11,39 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**OPEN (25 Nov, midday), for your word before batch 18 goes to `main`: the deep review's test, read beside D148.**
+**DECIDED (26 Nov, night): D151, "Yes".** Read as the go on both asks below: the five fast-tier tests of the couples'
+guard and defaults and the three browser checks are edited with C and D's change of default, each named in its commit.
+`research/tests/run-all.mjs` is not edited: the hook opens it only on the words "unlock enforcement", so the new test (the
+horizon past 120) stays in the full tier, which CI runs on every push, until those words. Section 4's records of Step 1 and
+Step 2 (21 Oct) and section 5's record before batch 18 are moved word for word to `HISTORY-2026-11.md`. Then your "Unlock
+enforcement" (D153): `run-all.mjs` edited, the new test in the fast tier's joining list. The entry as it was put to you:
+- **The unlock.** To run every plan on the new planner (D150, `COUPLES-ANY.md` amendment 3), the tests that check which
+  couples are kept off have to change with the code: today they check that a couple where nobody retires, and a plan past the
+  older partner's 120th year, stay on the app's own rules; afterwards they check that both run. By D130 those edits need your
+  "unlock enforcement". The files, each to be named in its commit:
+  - the five fast-tier tests of the couples' guard and defaults: `couple-default.test.mjs`, `couple-shape.test.mjs`,
+    `couple-limits-card.test.mjs`, `couple-swap.test.mjs` and `couple-horizon.test.mjs`;
+  - `research/tests/run-all.mjs`, to add the new test (the horizon past 120) to the fast tier's joining list;
+  - the planner's browser checks that use such a couple: `solver-planner-ui.cjs` check 19 (g), `solver-config-ui.cjs` check 3
+    and `solver-strategy-ui.cjs` check 5.
+- **Room in STATE.md.** It is at its 300-line limit again (D149 and D150 each took a line freed by folding two notes into the
+  lines above them, word for word). The agent asks to move section 5's finished record before batch 18 word for word to
+  `HISTORY-2026-11.md`, as on 21 and 24 Nov.
+
+**DECIDED (26 Nov, night): D150, "We need all options be able to be run".** Read as every plan and every option on the
+solver, none left on the app's rules: C opens by inference; D, a plan past the older partner's 120th year, is overruled, the
+solver's horizon running past it; the classic planner stays. The plan is `COUPLES-ANY.md` amendment 3. It answers the entry
+below of 24 Nov.
+
+**DECIDED (25 Nov, night): D149, "Ship it as is, and leave them in".** (a) taken: D148 stands as given, the route as
+shipped with its pricing gap and M1's two shortfalls, and batch 18 merged to `main` on B1's gate (pull request 30,
+771a9736). R more than three profiles apart is left on the household route by inference, the test at four and five apart
+not run unless asked. No other pricing is built unless you ask. The entry as it was put to you:
 - **Why this comes back to you.** D148 accepted M1's two names (S041-Rp1t-Y75 and S041-Ri1s-Y75) before the deep review's
   test had read. Its rule sends those names to you with its read beside them before any default changes
   (`COUPLES-UNEVEN.md`). So R, L and P's change of default is built, its reviewer's second look PASS (two MINOR answered,
   e923e552), B1's gate ALL REQUIRED GREEN in both modes on it (`code-stamp:b03f6922ce573bf8`), `release/batch-18` cut at
-  the gate's commit with its pull request open, and it waits for your word before `main`.
+  the gate's commit (23b6f42f) with pull request 30 open as a draft, and it waits for your word before `main`.
 - **What the test found** (EXPLORATORY, seed 7002; `results-couples-uneven.txt`; `reports/2026-11-25-couples-uneven-read.md`):
   PA2 EXPLAINS IT.
   - On S041's 14 kinds, the household route pays `+£437` a year more tax at 25/75 than at 60/40.
@@ -54,9 +81,10 @@ below this section says "the beta", read it as history. The order from here:
 **DECIDED (25 Nov, morning): D148.** Every couple on the solver's registered read, put to you in chat with the agent's
 recommendation. Your words "Unlock enforcement" were read as the go on that recommendation: both M1 names' shortfalls
 accepted, R, L and P's change of default built, and the deep review's test read before anything goes to `main`. Its read
-is above, for your word before `main`. C and the classic planner are still open (below).
+is above, with your word on it (D149). C and the classic planner are still open (below).
 
-**OPEN (24 Nov, evening), for your word: whether C opens, and the classic planner.**
+**DECIDED (26 Nov, night) by D150: whether C opens, and the classic planner** (C opens by inference; the classic planner
+stays). The entry as it was put to you:
 - **C, nobody retiring within the plan** (`COUPLES-ANY.md` amendment 2). The dress rehearsal (EXPLORATORY,
   `results-couples-any.txt`, its N lines; `reports/2026-11-24-couples-any-rehearsal-read.md`) passed W, R, L and P and
   reported N's eight units. Both arms survive every path there, so no rule can read C, registered or not.

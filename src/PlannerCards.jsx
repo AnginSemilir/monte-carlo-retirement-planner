@@ -20,7 +20,8 @@ import { DiagnosticCopy } from './DiagnosticCopy.jsx';
    nor, as the elder, more than 60% and at most 90% (since D104 (1), with SWAP_ELDER on, the elder entered either way), which
    keeps the app's rules until a test of those holdings reads; the card's words on who was tested follow SWAP_ELDER
    (src/couplesSwitch.js coupleSolverOn); 'ages': couples are on, and this one's partner would pass 120 before the plan ends,
-   which a person's table cannot run to (src/couplesSwitch.js horizonFits); 'gapincome': couples are on, and this one holds
+   which a person's table cut from the plan as entered cannot run to (src/couplesSwitch.js horizonFits; since D150 only where
+   the couple is not solved on its mirror, which keeps the plan's years: with the swap off, AGE_CAP on, or the rollback); 'gapincome': couples are on, and this one holds
    its money as the guard allows but its two people are more than three years apart and it has other taxable income, the
    kind a DB pension is entered as (D128, src/couplesSwitch.js DB_GAP_UP_TO and gapIncomeOf); `share` the first person's
    share of the pots; 'shape' (D143): couples are on, this one is outside the guard before D143, and its plan has a shape the

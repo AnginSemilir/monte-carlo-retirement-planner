@@ -24,16 +24,19 @@
  * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; Your plan says so, offers "try again"
  *    and the classic planner (the app's rules).
  * 5. A couple the solver does not run under the switch (D42; since couples are on, D99, one outside src/couplesSwitch.js's
- *    guard, its younger partner holding 75%): the couples card, nothing solved.
+ *    guard, its younger partner holding 75%; since D150 under the guard before D150, the preview's build plant 'beforeall'):
+ *    the couples card, nothing solved.
  *
  *   node research/ui-harnesses/solver-strategy-ui.cjs [port]      (the preview build is served on port + 8)
  */
 const { chromium } = require('/tmp/node_modules/playwright');
 // a couple the solver does not run (src/couplesSwitch.js: its younger partner holding 75% of every wrapper, outside the guard
-// before D143, and since COUPLES-ANY's change of default, D148, neither of them retiring within the plan, the one shape the
-// household plan still refuses, so the household route's classes do not open it: before D148 its partner's pension was held at
-// another risk than the first person's, which the household plan now takes; the reviewer on D148's change of default, finding
-// 1), so it keeps the app's rules and the couples card under the switch, as every couple did before couples were on
+// before D143, and neither of them retiring within the plan, which the household plan refused from COUPLES-ANY's change of
+// default, D148, until D150: before D148 its partner's pension was held at another risk than the first person's, which the
+// household plan took then; the reviewer on D148's change of default, finding 1), so it keeps the app's rules and the couples
+// card under the switch, as every couple did before couples were on. Since D150 the solver runs every couple, so the preview is
+// built with the guard before D150 (PLANNER_PLANT 'beforeall', the rollback, src/plannerPlant.js: nobody retiring within the
+// plan refused, set from the build's plant by src/App.jsx), the couple here its one reader: no other check here is a couple
 const unevenOf = plan => { const re = JSON.parse(JSON.stringify(plan)), tot = {}; for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); tot[k] = (tot[k] || 0) + (Number(a.balance) || 0); } for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); if (/_self$/.test(a.id)) a.balance = tot[k] * 0.25; else if (/_part$/.test(a.id)) a.balance = tot[k] * 0.75; } Object.assign(re.demographics, { retireAgeSelf: 120, retireAgePart: 120, salarySelf: 30000, salaryPart: 30000, salaryGrowthSelf: 0, salaryGrowthPart: 0 }); return re; };
 const { reference } = require('./lib/reference.cjs');
 const { execFileSync, spawn } = require('node:child_process');
@@ -137,7 +140,7 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
   const OUT = mkdtempSync(join(tmpdir(), 'solver-strategy-'));
   let server = null;
   try {
-    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT) } });
+    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), PLANNER_PLANT: 'beforeall' } });
     server = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT, '--port', PREVIEW_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
     let up = false;
     for (let i = 0; i < 40 && !up; i++) { try { const r = await fetch(`http://localhost:${PREVIEW_PORT}/`); up = r.ok; } catch (e) { await new Promise(res => setTimeout(res, 500)); } }
@@ -226,7 +229,7 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     if (!couple) ok('a couple in the library to test with', false);
     else { const { p, errs, urls } = await open(b, PREVIEW_PORT, unevenOf(couple.plan)), s = await tab(p);
       await p.waitForTimeout(2000);
-      ok(`switch on, opted in, a couple the solver does not run (${couple.id}, its younger partner holding 75% and neither of them retiring within the plan, the one shape the household plan refuses since D148): the couples card, and nothing solved`, s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
+      ok(`switch on, opted in, a couple the solver does not run (${couple.id}, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card, and nothing solved`, s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
       ok('a couple: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
   } finally {

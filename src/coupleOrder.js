@@ -27,7 +27,7 @@
  * PLANT.rule (tests only, a comma list): 'bandstay' leaves the bands where they were entered, as research/solver/couple-order.mjs
  * does; 'mirrorsum' sets the end age by the sum of the ages as it falls, as before; 'wholeend' the new first person's age plus
  * the whole years, the first form of the fix; 'incomeopen' leaves an open income's end blank whatever the mirror reads;
- * 'locksstay' leaves the limits per person where they were entered; below, each answer's: 'noback', 'nostrategy',
+ * 'locksstay' leaves the limits per person where they were entered; 'nomark' and 'markall' the mark of a mirror past 120 (D150); below, each answer's: 'noback', 'nostrategy',
  * 'noaheadparts', 'norowsparts', 'noverdict', 'gapadd'.
  */
 import { sameYears } from './solver/horizon.js';
@@ -56,6 +56,11 @@ export function otherOrder(E, plan) {
   d.currentAgeSelf = ctx.agePart0; d.currentAgePart = ctx.ageSelf0;
   const movedEnd = ctx.terminalAge - ctx.ageSelf0 + ctx.agePart0;
   d.terminalAge = planted('wholeend') ? ctx.agePart0 + ctx.totalYears : planted('mirrorsum') ? movedEnd : sameYears(movedEnd, ctx.agePart0, ctx.totalYears);
+  // D150 (research/solver/COUPLES-ANY.md amendment 3, D): where the partner entered second is the elder and would pass 120 within
+  // the plan, the moved end age passes it; the mirror is then marked as derived from the plan as entered, so the engine keeps
+  // its years (App.jsx buildContext `derivedEnd`), and the mark goes where it does not (mirrored twice, a plan is itself).
+  // Plants: 'nomark' never marks it (its years cut at 120, as before); 'markall' marks every mirror
+  if (!planted('nomark') && (planted('markall') || Number(d.terminalAge) > 120)) d.derivedEnd = true; else delete d.derivedEnd;
   // each account to the other person, its id's ending with it
   p.accounts = (p.accounts || []).map(a => ({ ...a, owner: swapOwner(a.owner), id: swapId(a.id) }));
   p.otherIncomes = (p.otherIncomes || []).map(i => ({ ...i, owner: swapOwner(i.owner) }));

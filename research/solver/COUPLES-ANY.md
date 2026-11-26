@@ -275,3 +275,66 @@ ran: the smoke showed the library's holdings naming no route, which the first wo
 
 **Its outcomes.** A class that passes goes to the registered test. A class that fails goes to the maintainer with its units.
 W failing goes to the maintainer at once.
+
+## Amendment 3 (26 Nov, D150, before any of it is built): every plan and every option on the solver
+
+The maintainer, on C and the classic planner: "We need all options be able to be run". Read as every plan the new planner
+takes, and every option its cards offer, solved, none left on the app's rules. Two kinds of couple are left on them today:
+C's (nobody retiring within the plan) and D's (a plan past the elder's 120th year). Both open, each without a new test against
+the app's rules, as below. The classic planner is not retired by this.
+
+### C opens by inference
+
+- **Why no test against the app's rules.** It cannot read one: nothing is spent from the pots before the first retirement, so
+  both arms survive every path at any target (amendment 2, N's units).
+- **What it rests on.** Its exactness: the household's salary and contributions are the couple's two added, in every year, to a
+  penny (`household-salaries.test.mjs` check 4). Beside it, the dress rehearsal's N units: the capped pot higher under ROUTE on
+  all eight, the tax higher on the younger cohort's four, traced to cash invested, not a defect
+  (`results-couples-any-tax-trace.txt`).
+
+### D: the solver's horizon past the elder's 120th year
+
+- **What breaks today.** The plan's end age is the first person's, at most 120. A partner older than the first person can pass
+  120 within the plan, and the engine runs the plan as entered to its end with the partner past 120. The household route
+  solves the couple elder first, on its mirror (`src/coupleOrder.js` `otherOrder`), whose end age is then past 120.
+  `buildContext` clamps it to 120, so the mirror has fewer years than the plan and the solve fails. The guard therefore keeps
+  such a couple on the app's rules (`horizonFits`, the card's reason `ages`).
+  - Measured (EXPLORATORY, plans only): the first person 50, the plan ending at 95. With the partner 80, the plan as entered
+    runs 45 years and its mirror 40. With the partner 75 or younger, both run 45.
+- **The way.** A plan the solver derives from the plan as entered (the mirror, and the household and single plans cut from it)
+  keeps the plan's own years where its end age passes 120. `buildContext` lifts its 120 ceiling on the end age for such a
+  derived plan alone, marked as derived. A plan as entered keeps the ceiling, so every plan within it is the same to the bit.
+  - Nothing in the engine's rules reads an age past 120 differently from 120. The state pension, the pension rules from 75 and
+    the dial's age weights all continue.
+- **Its test of the class** (a new test):
+  - **The variants:** the library's couples with the partner made older and entered second, so that their age at the plan's
+    end passes 120, at more than one gap.
+  - **Check 1:** the mirror runs the plan's whole years.
+  - **Check 2:** every year's flows (pay, incomes, bands, the state pension) are the plan as entered's, as
+    `couple-horizon.test.mjs` holds for couples within the ceiling.
+  - **Check 3:** the household's table covers the plan, the solve completes, and its figures are shown back as entered.
+  - **Check 4, the identity:** every plan within the ceiling the same to the bit (the library's 420 plans and their mirrors).
+  - **Its plants:** the ceiling kept for a derived plan (the solve fails), and the mark dropped from the cut (the plans part).
+- **By inference only.** No couple past 120 is tested against the app's rules. It takes the household route's outcomes as
+  any couple does.
+
+### The change of default (one commit, for C and D together)
+
+- **The code.**
+  - The household plan takes `noretire` (`src/solverSettings.js` `APP_COUPLE.takeShapes`), and the guard reads it as taken
+    (`HOUSEHOLD_TAKES`).
+  - The guard's age cap is lifted.
+  - The coverage line says the solver plans for one person or for a couple: no shape is left that it refuses.
+  - The decided-defaults block's `couples` entry changes with it.
+- **The tests.**
+  - The fast-tier tests of the couples' guard and defaults change with it, under the maintainer's unlock asked by name (D130):
+    `couple-default.test.mjs`, `couple-shape.test.mjs`, `couple-limits-card.test.mjs` (its couple kept off for nobody
+    retiring), `couple-swap.test.mjs` (its couple kept off past 120) and `couple-horizon.test.mjs` (its grid read within the
+    ceiling). D's new test joins the fast tier's joining list (`research/tests/run-all.mjs`, under the same unlock).
+  - `household-client.test.mjs` checks 7 and 9 take a plant in place of the refused shape, since none is left.
+  - The planner harness's check 19 (g) is solved on the household route.
+  - The two checks that need a couple kept off (`solver-config-ui.cjs` check 3, `solver-strategy-ui.cjs` check 5) take
+    one under the guard before this change, set from a harness build's plant.
+- **Then** the reviewer on the change of default, B1's gate and the nineteenth batch.
+- **What becomes unreachable.** Today's two-table route is then reached by no couple the app solves (E), so the client's
+  fallback to it is reached by none. Its code stays, for the research arms.

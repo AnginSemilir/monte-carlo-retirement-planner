@@ -11,6 +11,25 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**OPEN (26 Nov), for your word: the unlock D150's change of default needs, and room in STATE.md.**
+- **The unlock.** To run every plan on the new planner (D150, `COUPLES-ANY.md` amendment 3), the tests that check which
+  couples are kept off have to change with the code: today they check that a couple where nobody retires, and a plan past the
+  older partner's 120th year, stay on the app's own rules; afterwards they check that both run. By D130 those edits need your
+  "unlock enforcement". The files, each to be named in its commit:
+  - the five fast-tier tests of the couples' guard and defaults: `couple-default.test.mjs`, `couple-shape.test.mjs`,
+    `couple-limits-card.test.mjs`, `couple-swap.test.mjs` and `couple-horizon.test.mjs`;
+  - `research/tests/run-all.mjs`, to add the new test (the horizon past 120) to the fast tier's joining list;
+  - the planner's browser checks that use such a couple: `solver-planner-ui.cjs` check 19 (g), `solver-config-ui.cjs` check 3
+    and `solver-strategy-ui.cjs` check 5.
+- **Room in STATE.md.** It is at its 300-line limit again (D149 and D150 each took a line freed by folding two notes into the
+  lines above them, word for word). The agent asks to move section 5's finished record before batch 18 word for word to
+  `HISTORY-2026-11.md`, as on 21 and 24 Nov.
+
+**DECIDED (26 Nov, night): D150, "We need all options be able to be run".** Read as every plan and every option on the
+solver, none left on the app's rules: C opens by inference; D, a plan past the older partner's 120th year, is overruled, the
+solver's horizon running past it; the classic planner stays. The plan is `COUPLES-ANY.md` amendment 3. It answers the entry
+below of 24 Nov.
+
 **DECIDED (25 Nov, night): D149, "Ship it as is, and leave them in".** (a) taken: D148 stands as given, the route as
 shipped with its pricing gap and M1's two shortfalls, and batch 18 merged to `main` on B1's gate (pull request 30,
 771a9736). R more than three profiles apart is left on the household route by inference, the test at four and five apart
@@ -59,7 +78,8 @@ recommendation. Your words "Unlock enforcement" were read as the go on that reco
 accepted, R, L and P's change of default built, and the deep review's test read before anything goes to `main`. Its read
 is above, with your word on it (D149). C and the classic planner are still open (below).
 
-**OPEN (24 Nov, evening), for your word: whether C opens, and the classic planner.**
+**DECIDED (26 Nov, night) by D150: whether C opens, and the classic planner** (C opens by inference; the classic planner
+stays). The entry as it was put to you:
 - **C, nobody retiring within the plan** (`COUPLES-ANY.md` amendment 2). The dress rehearsal (EXPLORATORY,
   `results-couples-any.txt`, its N lines; `reports/2026-11-24-couples-any-rehearsal-read.md`) passed W, R, L and P and
   reported N's eight units. Both arms survive every path there, so no rule can read C, registered or not.

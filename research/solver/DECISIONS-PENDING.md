@@ -15,8 +15,8 @@ below this section says "the beta", read it as history. The order from here:
 guard and defaults and the three browser checks are edited with C and D's change of default, each named in its commit.
 `research/tests/run-all.mjs` is not edited: the hook opens it only on the words "unlock enforcement", so the new test (the
 horizon past 120) stays in the full tier, which CI runs on every push, until those words. Section 4's records of Step 1 and
-Step 2 (21 Oct) and section 5's record before batch 18 are moved word for word to `HISTORY-2026-11.md`. The entry as it was
-put to you:
+Step 2 (21 Oct) and section 5's record before batch 18 are moved word for word to `HISTORY-2026-11.md`. Then your "Unlock
+enforcement" (D153): `run-all.mjs` edited, the new test in the fast tier's joining list. The entry as it was put to you:
 - **The unlock.** To run every plan on the new planner (D150, `COUPLES-ANY.md` amendment 3), the tests that check which
   couples are kept off have to change with the code: today they check that a couple where nobody retires, and a plan past the
   older partner's 120th year, stay on the app's own rules; afterwards they check that both run. By D130 those edits need your

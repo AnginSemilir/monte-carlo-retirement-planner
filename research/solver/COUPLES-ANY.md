@@ -345,8 +345,9 @@ the app's rules, as below. The classic planner is not retired by this.
 - **What becomes unreachable.** Today's two-table route is then reached by no couple the app solves (E), so the client's
   fallback to it is reached by none. Its code stays, for the research arms.
 - **Built (26 Nov), as above but for these, each said to the reviewer on the change of default:**
-  - `research/tests/run-all.mjs` is not edited: the maintainer's word was "Yes", not the hook's "unlock enforcement" (D151),
-    so `couple-past120.test.mjs` stays in the full tier.
+  - `research/tests/run-all.mjs` is not edited under D151: the maintainer's word was "Yes", not the hook's "unlock
+    enforcement". Then the maintainer's "Unlock enforcement" (D153) opened it, and `couple-past120.test.mjs` joins the fast
+    tier's joining list.
   - The planner harness's (g) keeps the client's fallback, today's route, under test: it runs on a preview built with the cut
     before this change (the plant 'cutbeforeall', `src/solverCouple.js`, set from that build's `PLANNER_PLANT`), where the
     household plan refuses nobody retiring. So the plants 'couplehalf', 'coupleage' and 'workernotie', which act on today's

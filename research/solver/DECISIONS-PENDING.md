@@ -33,7 +33,8 @@ enforcement" (D153): `run-all.mjs` edited, the new test in the fast tier's joini
 **DECIDED (26 Nov, night): D150, "We need all options be able to be run".** Read as every plan and every option on the
 solver, none left on the app's rules: C opens by inference; D, a plan past the older partner's 120th year, is overruled, the
 solver's horizon running past it; the classic planner stays. The plan is `COUPLES-ANY.md` amendment 3. It answers the entry
-below of 24 Nov.
+below of 24 Nov. Done: C and D's change of default made (D152), the reviewer on it PASS with seven MINOR answered, B1's gate
+green in both modes, and merged to `main` with batch 19 (pull request 31, 1b15fe4e, 26 Nov).
 
 **DECIDED (25 Nov, night): D149, "Ship it as is, and leave them in".** (a) taken: D148 stands as given, the route as
 shipped with its pricing gap and M1's two shortfalls, and batch 18 merged to `main` on B1's gate (pull request 30,
@@ -114,8 +115,10 @@ stays). The entry as it was put to you:
     the merge rule in CLAUDE.md and `run-all.sh` follows.
   - **Your word needed:** the last two are protected, so they need "unlock enforcement".
 
-**OPEN (23 Nov, night), for your word only where you want it otherwise: every couple on the solver, the rest of the way
-(D145 (3), `COUPLES-ANY.md`).**
+**DONE (26 Nov): every couple on the solver, the rest of the way (D145 (3), `COUPLES-ANY.md`), on `main` with batch 19
+(pull request 31, 1b15fe4e): W, R, L and P by D148, C and D by D150 to D153. The card for a plan past the elder's 120th
+year, which this entry kept, was overruled by D150. Was OPEN (23 Nov, night), for your word only where you want it
+otherwise:**
 - **The plan,** written before any of it is built: the household plan takes the shapes it still refuses.
   - Different risks in one wrapper, and the partner's own limits: the wrapper held at the more cautious of the two, each
     person's tier mapped by name into their own ladder, so no one is moved riskier than they chose.

@@ -46,7 +46,10 @@
  *      so a couple with those shapes is taken, and a household plan without them is as before, couple-shape.test.mjs),
  *      6b2732dd0cb5 since that change's fix round (the reviewer, findings 1 and 6: the later retiree's contributions marked to
  *      land whole as the couple's do, and two people's dated schedules added year by year; a plan with neither the code
- *      before's but for that mark, research/tests/household-landing.test.mjs);
+ *      before's but for that mark, research/tests/household-landing.test.mjs), d91a642206b9 since COUPLES-ANY's A, B and C
+ *      (24 Nov: the ladders and the salary schedule, off in code), 3fb20e2156f8 since D150's horizon past the elder's 120th year
+ *      (26 Nov: the engine keeps the years of a plan the solver derives past 120, src/App.jsx buildContext; no plan within the
+ *      ceiling moves, research/tests/couple-past120.test.mjs check 4);
  *   8. THE TWIN (PRESCRIPTIVE-PLAN.md step 3): on check 3's six units, the couple made of the first person twice (built as the
  *      review's scripts/twin-trace.mjs builds it), under arm A's policy, 100 paths of seed 99001, the household plan
  *      (through householdContext) against the couple, year by year: (1) on S205, S061-dbpart, S327F, S227-90 and S023-db
@@ -313,7 +316,7 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   // move by name in household.js, off in code for a couple whose risks are alike, so the code moves again: re-pinned
   // 24 Nov, again: COUPLES-ANY.md B and C (the engine's dated salary schedule, the forward run's plant, the household plan's
   // shapes 'salaries' and 'noretire'), off in code: re-pinned
-  check('(7d) the solver\'s code id d91a642206b9 (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work, then the pricing form, then step 4\'s shapes, then their change of default and its fix round, then COUPLES-ANY A, then B and C)', !!cid && cid.hash === 'd91a642206b9', cid ? cid.hash : 'none');
+  check('(7d) the solver\'s code id 3fb20e2156f8 (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work, then the pricing form, then step 4\'s shapes, then their change of default and its fix round, then COUPLES-ANY A, then B and C, then D150\'s horizon past 120)', !!cid && cid.hash === '3fb20e2156f8', cid ? cid.hash : 'none');
 }
 
 // 8. the twin (PRESCRIPTIVE-PLAN.md step 3)

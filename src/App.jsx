@@ -1717,7 +1717,10 @@ function buildContext(rawPlan) {
   const agePart0 = isCouple ? req('Current age (Partner)', d.currentAgePart, ageSelf0, 0, 120) : 0;
   const retireSelf = req('Retirement age (Myself)', d.retireAgeSelf, 60, 0, 120);
   const retirePart = isCouple ? req('Retirement age (Partner)', d.retireAgePart, 60, 0, 120) : 999;
-  let terminalAge = clamp(num(d.terminalAge, 100), 1, 120);
+  // D150 (research/solver/COUPLES-ANY.md amendment 3, D): a plan the solver derives from a couple's plan as entered (the
+  // mirror, src/coupleOrder.js otherOrder, and the household and single plans cut from it, which carry its demographics)
+  // keeps the plan's own years where its end age passes 120, marked `derivedEnd`; a plan as entered stops at 120 as before
+  let terminalAge = clamp(num(d.terminalAge, 100), 1, d.derivedEnd === true ? 240 : 120);
   if (terminalAge <= ageSelf0) { warnings.push(`Terminal age (${terminalAge}) must exceed current age; using ${ageSelf0 + 1}.`); terminalAge = ageSelf0 + 1; }
   const nmpa = clamp(num(d.privatePensionAge, 58), 0, 120);
   const spa = clamp(num(d.statePensionAge, 68), 0, 120);

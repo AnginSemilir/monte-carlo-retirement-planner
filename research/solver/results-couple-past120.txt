@@ -1,0 +1,13 @@
+research/tests/couple-past120.test.mjs on the build (D150, COUPLES-ANY.md amendment 3, D; built off in code: the guard still keeps such a couple on the app's rules), 26 Nov 01:17 UTC, code id 3fb20e2156f8
+
+couple-past120: a plan past the elder's 120th year, its mirror and the household solved
+PASS  1  the mirror's years: over 420 variants of the library's couples, the partner the elder past 120 at the plan's end, the mirror runs the plan's years, marked  -- every one
+PASS  2  each person's year: on 3 built couples whose partner passes 120, the plan as entered and its mirror, read by the engine, give each person the same year, plan year by plan year  -- every plan year
+PASS  3  the household solved: on 3 variants, its cut and the plan it solves run the plan's years, its table is solved inside the bands and the household assembled and run by the engine over them  -- the partner 95, 122 at the end; the partner 82, 122 at the end; the partner 82, 127 at the end
+PASS  4  the identity: the library's 210 couples, every one within the ceiling, mirrored as by the code before, and a plan as entered with an end age of 130 still stopping at 120  -- 2766e95e797d46d8 against the code before's 2766e95e797d46d8; the end age 130 read as 120
+PASS  5  twice is itself: the variants with whole ages, mirrored twice, the plan as entered, the mark gone  -- 420 plans
+couple-past120: 5 passed, 0 failed
+
+--planted:
+plant nomark fails checks 1, 2, 3, 5 (expected 1, 2, 3, 5): exact
+plant markall fails checks 4, 5 (expected 4, 5): exact

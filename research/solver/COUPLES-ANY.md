@@ -317,6 +317,12 @@ the app's rules, as below. The classic planner is not retired by this.
   - **Its plants:** the ceiling kept for a derived plan (the solve fails), and the mark dropped from the cut (the plans part).
 - **By inference only.** No couple past 120 is tested against the app's rules. It takes the household route's outcomes as
   any couple does.
+- **Built off in code (26 Nov).** The mirror is marked `derivedEnd` where its end age passes 120 (`src/coupleOrder.js`), and
+  `buildContext` keeps such a plan's years (`src/App.jsx`). The guard still keeps such a couple on the app's rules.
+  - **Its test:** `research/tests/couple-past120.test.mjs` (the full tier until the unlock), ALL PASS. Its plants 'nomark'
+    and 'markall' each fail exactly their checks (`results-couple-past120.txt`).
+  - **The solver's code id** moves to 3fb20e2156f8 (`household.test.mjs` (7d)). The e3pcls pin is unchanged: no file
+    under `src/solver` moved.
 
 ### The change of default (one commit, for C and D together)
 

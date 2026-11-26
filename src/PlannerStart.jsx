@@ -82,10 +82,12 @@ export function QuickStart({ onStart, onFillAll, onClassic, isPhone, regions, st
       <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
         <button type="button" data-quick-all onClick={onFillAll} className={`font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : ''}`}>Or fill in everything now</button>
       </div>
-      {/* Part D, D5 and D6: with couples on (src/couplesSwitch.js, on since D99) a couple fills in You for both of them */}
+      {/* Part D, D5 and D6: with couples on (src/couplesSwitch.js, on since D99) a couple fills in You for both of them; since D150
+          every couple's plan is worked out for the two of them, so the line no longer says some keep the app's own rules (the
+          reviewer on D150's change of default, MINOR 3; the agent's draft and the maintainer's to change) */}
       {COUPLES ? (
       <div className="text-xs text-slate-600 border-t border-slate-100 pt-3" data-quick-couple="on">
-        <span className="font-semibold text-slate-800">Planning for two?</span> Fill in everything now, choosing a plan for two people under You. The new planner works out most couples&apos; plans for the two of you together, and says so where yours still follows the app&apos;s own rules.{' '}
+        <span className="font-semibold text-slate-800">Planning for two?</span> Fill in everything now, choosing a plan for two people under You. The new planner works out a couple&apos;s plan for the two of you together.{' '}
         <button type="button" onClick={onFillAll} className={`font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : ''}`}>Fill in a plan for two</button>
       </div>
       ) : (

@@ -79,7 +79,9 @@
  *   6. the age cap: since D150 (COUPLES-ANY.md amendment 3, D) a couple whose partner would pass 120 before the plan ends runs
  *      on its mirror, which keeps the plan's years (src/coupleOrder.js `derivedEnd`), the guard's answer whole as check 2
  *      derives it, the cap read only where the couple is not solved on its mirror, the reviewer's two cases run, each cut to
- *      the couple's whole horizon; before D150 (the plant 'beforeall', the rollback), as follows, such a couple kept the app's
+ *      the couple's whole horizon (a couple inside the guard cut as one household, the page's default, and on today's route, its
+ *      fallback: the reviewer on D150's change of default, MINOR 5); before D150 (the plant 'beforeall', the rollback), as
+ *      follows, such a couple kept the app's
  *      rules (the reviewer on D99, second round,
  *      MINOR 1: a person's table cannot run past 120, so the cut would give that partner a shorter horizon and the figures
  *      fail): over 30 of the library's couples, each end age from 95 to 120 and the partner from their own age to 35 years
@@ -514,7 +516,7 @@ let closedRuns = null;   // check 9, below: the client on a couple the household
     const a = JSON.parse(JSON.stringify(s1.plan)); Object.assign(a.demographics, { currentAgeSelf: 49, currentAgePart: 70, terminalAge: 100 }); cases.push(['the reviewer\'s 49 and 70 ending at 100', a]);
     const b = JSON.parse(JSON.stringify(s1.plan)); Object.assign(b.demographics, { currentAgeSelf: '', currentAgePart: 66, terminalAge: 95 }); cases.push(['the reviewer\'s blank and 66 ending at 95', b]); }
   const sweep = before => {
-    let n = 0, wrongWhy = 0, shortOn = 0, capped = 0, ran = 0, ranPast = 0, capShape = 0, ranHouse = 0, fitDiffer = 0, cutRefused = 0; const first = [];
+    let n = 0, wrongWhy = 0, shortOn = 0, capped = 0, ran = 0, ranPast = 0, capShape = 0, ranHouse = 0, insideHouse = 0, fitDiffer = 0, cutRefused = 0; const first = [];
     for (const [name, p] of cases) {
       const h = E.buildContext(E.resolveMpaa(E.normalizePlan(p))), fits = h.agePart0 + (h.terminalAge - h.ageSelf0) <= 120 + 1e-9;
       const g = coupleSolverOn(p, true), w = wantOf(h, p, shareOf(p), false, before);
@@ -526,29 +528,34 @@ let closedRuns = null;   // check 9, below: the client on a couple the household
       if (!fits && g.why === 'shape') capShape++;
       if (g.on) {
         ran++; if (!fits) ranPast++;
-        // the cut the page makes, on the plan or its mirror where swapped: the household's on the household route, each person's on
-        // today's (a couple inside the guard, the route the page falls back to where the household plan refuses its shape)
+        // the cut the page makes, on the plan or its mirror where swapped: the household's on the household route; for a couple
+        // inside the guard (no route named) the household's too, the page's default (D135), and each person's, today's route, which
+        // the page falls back to where the household plan refuses its shape (the reviewer on D150's change of default, MINOR 5)
         const handed = g.swap ? otherOrder(E, p) : p;
-        let short;
+        let hc = null, why = null;
+        try { hc = householdCut(E, M, handed, APP_COUPLE.household); } catch (e) { if (!/^householdPlanFor: (?!opts\.|no group)/.test(e.message)) throw e; why = e.message; }
+        let short = !!hc && E.buildContext(hc.hplan).totalYears !== h.totalYears;
         if (g.route === 'household') {
-          ranHouse++; let hc = null;
-          try { hc = householdCut(E, M, handed, APP_COUPLE.household); } catch (e) { if (!/^householdPlanFor: (?!opts\.|no group)/.test(e.message)) throw e; cutRefused++; if (first.length < 3) first.push(`${name}: run on the household route, which the household plan refuses (${e.message.slice(0, 80)})`); }
-          short = !hc || E.buildContext(hc.hplan).totalYears !== h.totalYears;
+          ranHouse++;
+          if (why) { cutRefused++; short = true; if (first.length < 3) first.push(`${name}: run on the household route, which the household plan refuses (${why.slice(0, 80)})`); }
         }
-        else { const cut = couplePlans(E, handed); short = ['self', 'part'].some(k => E.buildContext(cut.plans[k]).totalYears !== h.totalYears); }
+        else {
+          if (!why) insideHouse++;
+          const cut = couplePlans(E, handed); short = short || ['self', 'part'].some(k => E.buildContext(cut.plans[k]).totalYears !== h.totalYears);
+        }
         if (short) { shortOn++; if (first.length < 3) first.push(`${name}: run${g.route ? ` on the ${g.route} route` : ''}, its cut short of the couple's ${h.totalYears} years`); }
       }
     }
     // the reviewer's two cases (each partner past 120 by the end, entered second)
     const named = cases.slice(-2).map(([, p]) => coupleSolverOn(p, true));
-    return { n, wrongWhy, shortOn, capped, ran, ranPast, capShape, ranHouse, fitDiffer, cutRefused, first, named };
+    return { n, wrongWhy, shortOn, capped, ran, ranPast, capShape, ranHouse, insideHouse, fitDiffer, cutRefused, first, named };
   };
   const now = sweep(false), was = withSwitch('beforeall', () => sweep(true));
-  const said = x => `${x.n} plans, ${x.capped} past 120 by the end (${x.capShape} of them 'shape'), ${x.ran} run (${x.ranPast} of them past 120; ${x.ranHouse} on the household route, its cut refused on ${x.cutRefused}); the reason wrong on ${x.wrongWhy}, the age cap against the engine's ages wrong on ${x.fitDiffer}, a run couple cut short on ${x.shortOn}; the reviewer's two ${x.named.map(g => g.on ? `on${g.swap ? ', swapped' : ''}` : g.why).join(' and ')}${x.first.length ? `: ${x.first.join('; ')}` : ''}`;
+  const said = x => `${x.n} plans, ${x.capped} past 120 by the end (${x.capShape} of them 'shape'), ${x.ran} run (${x.ranPast} of them past 120; ${x.ranHouse} on the household route, its cut refused on ${x.cutRefused}; ${x.insideHouse} inside the guard cut as one household, the rest on today's route, both cuts held); the reason wrong on ${x.wrongWhy}, the age cap against the engine's ages wrong on ${x.fitDiffer}, a run couple cut short on ${x.shortOn}; the reviewer's two ${x.named.map(g => g.on ? `on${g.swap ? ', swapped' : ''}` : g.why).join(' and ')}${x.first.length ? `: ${x.first.join('; ')}` : ''}`;
   ok('6. since D150 a couple whose partner would pass 120 before the plan ends is run on its mirror, the guard\'s answer whole as check 2 derives it (the reviewer\'s two cases among them); before D150 (the plant \'beforeall\', the rollback) it keeps the app\'s rules (\'ages\', or \'shape\' for a couple only the household route opens whose shape the household plan refuses), exactly where the engine\'s ages put them past it, the reviewer\'s two cases kept off; every couple run, either way, cut to its whole horizon, the household\'s on the household route',
     now.wrongWhy === 0 && now.fitDiffer === 0 && now.shortOn === 0 && now.cutRefused === 0 && now.capped > 0 && now.ranPast === now.capped && now.capShape === 0 && now.named.every(g => g.on && g.swap)
       && was.wrongWhy === 0 && was.fitDiffer === 0 && was.shortOn === 0 && was.cutRefused === 0 && was.capped > 0 && was.ran > 0 && was.ranPast === 0 && was.named.every(g => g.why === 'ages')
-      && (!allOpen || (now.ranHouse > 0 && was.ranHouse > 0 && was.capShape > 0)),
+      && (!allOpen || (now.ranHouse > 0 && now.insideHouse > 0 && was.ranHouse > 0 && was.capShape > 0)),
     `since D150 ${said(now)}; before it ${said(was)}`); }
 
 // 7. the client reads back each assembly's joint move (the reviewer on D109's change, MINOR 1): a couple assembled without the

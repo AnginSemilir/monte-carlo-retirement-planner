@@ -1,0 +1,68 @@
+the config and strategy harnesses on D152's change of default, each on its own served build of the working tree (node research/ui-harnesses/solver-<name>-ui.cjs 4573, the base build at the harnesses' light settings as run-all.sh --new makes it; each harness's own preview built with PLANNER_PLANT 'beforeall', the guard before D150): solver-config-ui on 26 Nov after its check 3 was given the 'shape' card's reason, refusal and words (the reviewer on D150's change of default, MINOR 2), and solver-strategy-ui on 26 Nov; every check ok in each
+
+=== solver-config-ui
+  ok    the classic planner: the Config tab keeps its policy search, policy, drawdown, lookahead, harvest and playbook   {"search":true,"policy":true,"drawdown":true,"lookahead":true,"harvest":true,"playbook":true,"priorities":true,"guardrails":true,"guardOwn":false,"aims":false,"locks":false,"couple":false,"note":false,"approach":false}
+  ok    the classic planner: neither solver card nor the solver's line, the guardrails unmarked
+  ok    the classic planner: no solver code fetched   12 requests
+  ok    the classic planner: no page errors
+  ok    the preview build (the switch on) is served   port 4580
+  ok    switch on, opted in, a single household: the levers on Your plan, no policy search or priorities there   {"search":false,"policy":false,"drawdown":false,"lookahead":false,"harvest":false,"playbook":false,"priorities":false,"guardrails":false,"guardOwn":false,"aims":true,"locks":false,"couple":false,"note":false,"approach":false}
+  ok    switch on: the limits in You, and the app's rules in You's current approach (the policy, drawdown, lookahead, harvest and guardrails; no policy search)   {"search":false,"policy":true,"drawdown":true,"lookahead":true,"harvest":true,"playbook":false,"priorities":false,"guardrails":true,"guardOwn":false,"aims":false,"locks":true,"couple":false,"note":false,"approach":true}
+  ok    switch on: the floor the solver plans with is stated, 80% of the target (step L1, B2)   In a bad year the plan may spend as little as 80% of your target; it never plans below that.
+  ok    the plan on screen solves, under Node's key for the saved plan   8d68222f3db61762 against 8d68222f3db61762
+  ok    the dial at 3: the saved plan carries it, and the solve's key moves to Node's for it   740192207d5743ad against 740192207d5743ad
+  ok    the estate lower: the saved plan carries it, and the solve's key moves to Node's for it   7f0fe08787dd43ba against 7f0fe08787dd43ba
+  ok    raises blocked: the saved plan carries it, and the solve's key moves to Node's for it   1a50fe5083ed0d07 against 1a50fe5083ed0d07
+  ok    consent withdrawn: the saved plan carries it, and the solve's key moves to Node's for it   0ca127cfe8fcd511 against 0ca127cfe8fcd511
+  ok    the minimum pot at 40,000: the saved plan carries it, and the solve's key moves to Node's for it   f14dec5a01eaea00 against f14dec5a01eaea00
+  ok    no pension before 63: the saved plan carries it, and the solve's key moves to Node's for it   821e6be0e7b8279c against 821e6be0e7b8279c
+  ok    the pension's tier at most Medium/Low: the saved plan carries it, and the solve's key moves to Node's for it   2f7cfac008d92894 against 2f7cfac008d92894
+  ok    the lump sum never: the saved plan carries it, and the solve's key moves to Node's for it   b22f0c1ea1d6e6fc against b22f0c1ea1d6e6fc
+  ok    after the last change the plan re-solves to solved, under the last key   b22f0c1ea1d6e6fc
+  ok    the dial at 3: the store holds its base and the position, and nothing else (step L2)   3fc03f2691b7, b22f0c1ea1d6; the base 3fc03f2691b7
+  ok    the policy fields are unchanged in the saved plan by the levers and limits   ["Bracket Fill Basic","Phased Drawdown",["survive","downside","bequest","bridge","pot","tax"],5,true,"pa",false,null]
+  ok    the saved plan keeps the household's own floor, the solver's 80% never written back (step L1)   undefined / undefined against undefined
+  ok    switch on: no page errors
+  ok    switch on: the solver cards came as their own chunk
+  ok    a phone: the solver waits for its request (no solver worker started, a "Solve my plan" button)   0 solver workers; button true
+  ok    a phone: asked, the plan solves
+  ok    a phone: no page errors
+  ok    switch on, opted in, a couple the solver does not run (S001, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card and no solver card   {"search":false,"policy":false,"drawdown":false,"lookahead":false,"harvest":false,"playbook":false,"priorities":false,"guardrails":false,"guardOwn":false,"aims":false,"locks":false,"couple":true,"note":false,"approach":false}
+  ok    a couple kept off for its shape: the couples card's reason 'shape', its refusal 'noretire' and its words   'shape', 'noretire': "The new planner cannot work out a plan shaped like yours yetNeither of you retires within the plan. For a couple, the new planner works out one plan for the money you hold between you, and it cannot t"
+  ok    a couple: nothing solved, no solver code fetched   none
+  ok    a couple: no page errors
+
+all ok
+exit 0
+
+=== solver-strategy-ui
+  ok    not opted in (the classic planner): the Strategy tab is the tournament, without the solver's view   {"tournament":true,"strategy":false,"couple":false,"state":null}
+  ok    not opted in: no solver code fetched   12 requests
+  ok    not opted in: no page errors
+  ok    the preview build (the switch on) is served   port 4581
+  ok    switch on, opted in, S126: Your plan is the solved plan, not the tournament   {"tournament":false,"strategy":true,"couple":false,"state":"solving"}
+  ok    S126: all 500 paths in, every figure the reference's bit for bit (headline, comparison, raise, both arms' money bands)   short, start 80%, survival 99.0%, yours 94.8%; every figure the same
+  ok    S126: the solved plan's survival and your plan's are Node's   99 and 94.8 against Node's 99 and 94.8
+  ok    S126: Your plan came as its own chunk
+  ok    S126: this year's actions in, and the rule of thumb hidden at a cost of 1.67 points (shown only under 0.5)   actions done
+  ok    S126: reads short, the wording table's words on the card, the explanation short   £23,200 a year / In half the markets you are back at your full target by 2027 (1 year in).
+  ok    S126: no page errors
+  ok    the case 'atTarget' (S000): reads atTarget, the wording table's words on the card, the explanation none   £5,500 a year, above your £5,000 target
+  ok    S000: no page errors
+  ok    the case 'short' (S162): reads short, the wording table's words on the card, the explanation short   £23,200 a year / In half the markets you are back at your full target by 2027 (1 year in).
+  ok    S162: no page errors
+  ok    the case 'long' (S054): reads long, the wording table's words on the card, the explanation full   £22,800 a year / In half the markets you are back at your full target by 2035 (9 years in).
+  ok    S054: no page errors
+  ok    the case 'never' (S364): reads never, the wording table's words on the card, the explanation full   £14,800 a year / In more than half the markets you stay below your target; see why below.
+  ok    S364: no page errors
+  ok    S064: this year's skip costs in, the page's the reference's (300 paired paths)   level 0.00; harvest 0.67; tierPen 0.67; tierIsa 0.67
+  ok    S064: the re-wrap (the pension drawn to the personal allowance in a bridge year) costs above 0 to skip, and the costs are not all 0   the re-wrap 0.67 points (lost 2, saved 0)
+  ok    S064: the year's move forced to spend 110% (a planted dominated action) costs at least 0   1.00 points (lost 3, saved 0)
+  ok    S064: no page errors
+  ok    planted, the solver failing: Your plan says so, offers "try again" and the classic planner (the app's rules)
+  ok    planted: no page errors
+  ok    switch on, opted in, a couple the solver does not run (S001, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card, and nothing solved   {"tournament":false,"strategy":false,"couple":true,"state":null}
+  ok    a couple: no page errors
+
+all ok
+exit 0

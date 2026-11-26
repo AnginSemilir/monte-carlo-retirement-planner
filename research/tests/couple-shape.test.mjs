@@ -13,7 +13,10 @@
  *      refuses no shape and the guard reads none refused, so the refusals are read under the guard and the cut before D150
  *      (the plants 'beforeall' and 'cutbeforeall', the rollback), where nobody retiring is refused, none missed;
  *   2. the over-reach counted, by its reason (a refusal said where householdCut takes the plan: the guard errs towards the
- *      app's rules there), and none on the library's couples as entered;
+ *      app's rules there), and none on the library's couples as entered, at the defaults and under the guard and the cut
+ *      before D150 (the reviewer on D150's change of default, MINOR 1: at the defaults the guard refuses nothing, so there
+ *      the check could not fail; under the rollback it holds the guard's reading of nobody retiring, a year short of the
+ *      engine's, to the cut);
  *   3. each check shown failing on its plant: with one reason's check skipped ('skip<reason>'), a refusal of that kind is
  *      missed on some shape (CHECKLIST 5), for each of the seven, under the guard and the cut before the change of default
  *      that took its shape, where it is still refused (step 4's three, D145, under 'notake' and 'cutnotake'; COUPLES-ANY's
@@ -118,7 +121,9 @@ const missed = [...B.misses, ...BM.misses, ...BR.misses, ...BRM.misses];
 ok('1. no refusal missed: wherever the page\'s household cut refuses a plan\'s shape, the guard reads it refused, on the couples as entered and entered the other way (their mirror); since D150 none refused at the defaults, and under the guard and the cut before D150 (\'beforeall\', \'cutbeforeall\') nobody retiring refused, none missed',
   missed.length === 0 && B.real === 0 && BM.real === 0 && BR.real > 0 && BRM.real > 0 && BRM.mirrored > 0,
   missed.length ? `${missed.length} missed: ${missed.slice(0, 5).join('; ')}` : `at the defaults ${B.real} refusals as entered and ${BM.real} entered the other way; before D150 ${BR.real} as entered and ${BRM.real} the other way (${BRM.mirrored} on the mirror; ${Object.entries(BR.refusedBy).map(([k, v]) => `${k.replace('householdPlanFor: ', '')} ${v}`).join('; ')}), none missed`);
-ok('2. the over-reach counted by its reason, none on the library\'s couples as entered, either way round', B.asEntered === 0 && BM.asEntered === 0, `the guard reads refused where the page takes the plan: ${Object.entries(B.over).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}; entered the other way ${Object.entries(BM.over).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}; of them as entered ${B.asEntered} and ${BM.asEntered}`);
+const overOf = o => Object.entries(o).map(([k, v]) => `${k} ${v}`).join(', ') || 'none';
+ok('2. the over-reach counted by its reason, none on the library\'s couples as entered, either way round, at the defaults and under the guard and the cut before D150', B.asEntered === 0 && BM.asEntered === 0 && BR.asEntered === 0 && BRM.asEntered === 0,
+  `the guard reads refused where the page takes the plan: ${overOf(B.over)}; entered the other way ${overOf(BM.over)}; of them as entered ${B.asEntered} and ${BM.asEntered}; before D150 ${overOf(BR.over)}, the other way ${overOf(BRM.over)}, of them as entered ${BR.asEntered} and ${BRM.asEntered}`);
 // 3. each check's plant: with it skipped, a refusal of its kind is missed on some shape (40 couples, every fifth), each read under
 // the guard and the cut before the change of default that took its shape, where it is still refused (since D150 the household
 // plan refuses none at the defaults)

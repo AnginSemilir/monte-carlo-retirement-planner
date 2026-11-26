@@ -17,7 +17,7 @@
  * 2b. The preview build on a phone (the launch plan's B10): the solve waits for "Solve my plan", then solves.
  * 3. The preview build, a couple the solver does not run (D42; since couples are on, D99, one outside src/couplesSwitch.js's
  *    guard, its younger partner holding 75%; since D150 under the guard before D150, the preview's build plant 'beforeall'):
- *    the couples card, no solver card, and nothing solved.
+ *    the couples card, its reason 'shape', its refusal 'noretire' and its words, no solver card, and nothing solved.
  *
  *   node research/ui-harnesses/solver-config-ui.cjs [port]      (the preview build is served on port + 7)
  */
@@ -194,6 +194,12 @@ const POLICY = ['search', 'policy', 'drawdown', 'lookahead', 'harvest', 'playboo
     else {
       const c = await open(b, PREVIEW_PORT, unevenOf(couple.plan), 'new'), cs = await tabState(c.p);
       ok(`switch on, opted in, a couple the solver does not run (${couple.id}, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card and no solver card`, cs.couple && !cs.aims && !cs.locks, JSON.stringify(cs));
+      // the card's reason, its refusal and its words (D143's 'shape' card, src/PlannerCards.jsx SHAPE_WORDS: since D150 shown for
+      // no couple at the defaults, so read here, on the build with the guard before D150; the reviewer on D150's change of
+      // default, MINOR 2)
+      const card = await c.p.evaluate(() => { const el = document.querySelector('[data-place="plan"] [data-planner-couple]'); return el ? { why: el.dataset.plannerCouple, shape: el.dataset.coupleShape || null, text: el.textContent } : null; });
+      ok('a couple kept off for its shape: the couples card\'s reason \'shape\', its refusal \'noretire\' and its words', !!card && card.why === 'shape' && card.shape === 'noretire' && /Neither of you retires within the plan\./.test(card.text) && /cannot take a plan like that yet/.test(card.text),
+        card ? `'${card.why}', '${card.shape}': "${card.text.slice(0, 200)}"` : 'no card');
       await c.p.waitForTimeout(3000);
       const got = c.urls.filter(u => /solverClient|solverWorker/.test(u));
       ok('a couple: nothing solved, no solver code fetched', got.length === 0, got.join(', ') || 'none');

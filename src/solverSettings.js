@@ -133,10 +133,12 @@ export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.sol
  * at different risks ('risks', R: the wrapper held at the more cautious of the two, each person's tier named into their own
  * ladder, the riskier person's first move a switch the table does not see; not exact) and the partner's own limits ('limits',
  * L, opening only with R, whose way its units carry), and two salaries growing at different rates ('salaries', P: the
- * household's salary a dated schedule, the two added year by year, exact). 'noretire' (C, nobody retiring within the plan)
- * is the maintainer's. The guard reads the same as taken (HOUSEHOLD_TAKES), as for step 4's.
+ * household's salary a dated schedule, the two added year by year, exact). Since D150 (the maintainer: "We need all options be
+ * able to be run"; COUPLES-ANY.md amendment 3) it takes 'noretire' too (C, nobody retiring within the plan, the household
+ * working to the plan's end, which the single solver solves; by inference from its exactness, no test against the app's rules
+ * able to read it), so it refuses no shape. The guard reads the same as taken (HOUSEHOLD_TAKES), as for step 4's.
  */
-export const APP_COUPLE = Object.freeze({ shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2, household: 'pensionsPA', takeShapes: Object.freeze(['growth', 'cashisa', 'year0', 'risks', 'limits', 'salaries']) });
+export const APP_COUPLE = Object.freeze({ shareRule: 'pots', tieJoint: 1e-4, tieLook: true, holdPast: 2, household: 'pensionsPA', takeShapes: Object.freeze(['growth', 'cashisa', 'year0', 'risks', 'limits', 'salaries', 'noretire']) });
 /* the joint move's options of the couples' default, as assembleCouple takes them */
 export const appJoint = () => ({ tieJoint: APP_COUPLE.tieJoint, tieLook: APP_COUPLE.tieLook, holdPast: APP_COUPLE.holdPast });
 /* the joint move's options as a couple's record names them (src/solverCouple.js coupleMeta), and one key for comparing what a

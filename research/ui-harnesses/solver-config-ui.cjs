@@ -16,16 +16,19 @@
  *      - the hidden policy fields are unchanged in the saved plan.
  * 2b. The preview build on a phone (the launch plan's B10): the solve waits for "Solve my plan", then solves.
  * 3. The preview build, a couple the solver does not run (D42; since couples are on, D99, one outside src/couplesSwitch.js's
- *    guard, its younger partner holding 75%): the couples card, no solver card, and nothing solved.
+ *    guard, its younger partner holding 75%; since D150 under the guard before D150, the preview's build plant 'beforeall'):
+ *    the couples card, no solver card, and nothing solved.
  *
  *   node research/ui-harnesses/solver-config-ui.cjs [port]      (the preview build is served on port + 7)
  */
 const { chromium } = require('/tmp/node_modules/playwright');
 // a couple the solver does not run (src/couplesSwitch.js: its younger partner holding 75% of every wrapper, outside the guard
-// before D143, and since COUPLES-ANY's change of default, D148, neither of them retiring within the plan, the one shape the
-// household plan still refuses, so the household route's classes do not open it: before D148 its partner's pension was held at
-// another risk than the first person's, which the household plan now takes; the reviewer on D148's change of default, finding
-// 1), so it keeps the app's rules and the couples card under the switch, as every couple did before couples were on
+// before D143, and neither of them retiring within the plan, which the household plan refused from COUPLES-ANY's change of
+// default, D148, until D150: before D148 its partner's pension was held at another risk than the first person's, which the
+// household plan took then; the reviewer on D148's change of default, finding 1), so it keeps the app's rules and the couples
+// card under the switch, as every couple did before couples were on. Since D150 the solver runs every couple, so the preview is
+// built with the guard before D150 (PLANNER_PLANT 'beforeall', the rollback, src/plannerPlant.js: nobody retiring within the
+// plan refused, set from the build's plant by src/App.jsx), the couple here its one reader: no other check here is a couple
 const unevenOf = plan => { const re = JSON.parse(JSON.stringify(plan)), tot = {}; for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); tot[k] = (tot[k] || 0) + (Number(a.balance) || 0); } for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); if (/_self$/.test(a.id)) a.balance = tot[k] * 0.25; else if (/_part$/.test(a.id)) a.balance = tot[k] * 0.75; } Object.assign(re.demographics, { retireAgeSelf: 120, retireAgePart: 120, salarySelf: 30000, salaryPart: 30000, salaryGrowthSelf: 0, salaryGrowthPart: 0 }); return re; };
 
 const { execFileSync, spawn } = require('node:child_process');
@@ -99,7 +102,7 @@ const POLICY = ['search', 'policy', 'drawdown', 'lookahead', 'harvest', 'playboo
   const OUT = mkdtempSync(join(tmpdir(), 'solver-preview-'));
   let server = null;
   try {
-    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT) } });
+    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), PLANNER_PLANT: 'beforeall' } });
     // vite itself, not through npx, so the one child is the server and stopping it stops the server
     server = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT, '--port', PREVIEW_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
     let up = false;
@@ -190,7 +193,7 @@ const POLICY = ['search', 'policy', 'drawdown', 'lookahead', 'harvest', 'playboo
     if (!couple) ok('a couple in the library to test with', false);
     else {
       const c = await open(b, PREVIEW_PORT, unevenOf(couple.plan), 'new'), cs = await tabState(c.p);
-      ok(`switch on, opted in, a couple the solver does not run (${couple.id}, its younger partner holding 75% and neither of them retiring within the plan, the one shape the household plan refuses since D148): the couples card and no solver card`, cs.couple && !cs.aims && !cs.locks, JSON.stringify(cs));
+      ok(`switch on, opted in, a couple the solver does not run (${couple.id}, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card and no solver card`, cs.couple && !cs.aims && !cs.locks, JSON.stringify(cs));
       await c.p.waitForTimeout(3000);
       const got = c.urls.filter(u => /solverClient|solverWorker/.test(u));
       ok('a couple: nothing solved, no solver code fetched', got.length === 0, got.join(', ') || 'none');

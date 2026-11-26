@@ -59,6 +59,12 @@ export const SWAP_ELDER = true;
 // that the guard handed to it, each 8 or 12 years apart with a £15,000 a year DB pension (one person's, entered as other taxable
 // income), and above them on the four couples as far apart without one. Infinity lifts it (the rollback)
 export const DB_GAP_UP_TO = 3;
+// D150 (COUPLES-ANY.md amendment 3, D): whether a couple whose partner would pass 120 before the plan ends keeps the app's rules.
+// Since D150 the household route solves such a couple on its mirror, which keeps the plan's years past 120 (src/coupleOrder.js
+// otherOrder `derivedEnd`, App.jsx buildContext; research/tests/couple-past120.test.mjs), so the cap is off. It still holds
+// where the couple is not solved on its mirror (the swap off: the elder's own table, cut from the plan as entered, would stop
+// at 120), and under the plant 'beforeall', the guard before D150. True is the guard before D150 (the rollback)
+export const AGE_CAP = false;
 // D143 (the registered couples test, registrations/couples-open.md, read once on the household route, Y, E, S and G each
 // OPEN; D141): the classes the read opened, each lifting its reason for a couple the household plan takes (householdShapeOf
 // not refused): Y the younger partner holding more than 60%, E the elder holding more than ELDER_UP_TO, S the two the same age
@@ -75,18 +81,20 @@ export const HOUSEHOLD_OPEN = Object.freeze({ Y: true, E: true, S: true, G: true
 // year). The same three as src/solverSettings.js APP_COUPLE.takeShapes, which the page's cut and assembly pass the household
 // plan (this module having no imports; research/tests/couple-shape.test.mjs holds the two alike). All false is the guard before
 // step 4 (the rollback), as is the plant 'notake'.
-export const HOUSEHOLD_TAKES = Object.freeze({ growth: true, cashisa: true, year0: true, risks: true, limits: true, salaries: true });
+export const HOUSEHOLD_TAKES = Object.freeze({ growth: true, cashisa: true, year0: true, risks: true, limits: true, salaries: true, noretire: true });
 // D148 (COUPLES-ANY.md; its registered test, registrations/couples-any.md, read once on seed 7027, every class passing; the
 // maintainer's go, under its unlock): the shapes the household plan takes since COUPLES-ANY's change of default, each opened by
 // its class's read: 'risks' and 'limits' by R's (L opening only with R: its units carry R's way, so 'limits' counts as taken only
-// where 'risks' is), 'salaries' by P's. 'noretire' (C) is the maintainer's: whether it opens by inference from its exactness or
-// not at all (COUPLES-ANY.md amendment 2). The plant 'beforeany' reads them as refused, step 4's three alone taken: the guard
-// before COUPLES-ANY's change of default (the rollback)
+// where 'risks' is), 'salaries' by P's. The plant 'beforeany' reads them as refused, step 4's three alone taken: the guard
+// before COUPLES-ANY's change of default (the rollback). D150 (the maintainer: "We need all options be able to be run";
+// COUPLES-ANY.md amendment 3): 'noretire' (C, nobody retiring within the plan) taken by inference from its exactness, no test
+// against the app's rules able to read it; the plant 'beforeall' reads it as refused and keeps the age cap, the guard before
+// D150 (the rollback)
 const STEP4_TAKES = Object.freeze(['growth', 'cashisa', 'year0']);
 /* whether the guard reads a shape as taken (HOUSEHOLD_TAKES, under the plants 'notake' and 'beforeany'), and whether it takes the
    partner's own limits, which it does only with 'risks' (src/limitsCard.js reads it: a per-person edit then switches no couple
    off) */
-const takenShape = w => !!HOUSEHOLD_TAKES[w] && !planted('notake') && (!planted('beforeany') || STEP4_TAKES.includes(w));
+const takenShape = w => !!HOUSEHOLD_TAKES[w] && !planted('notake') && (!planted('beforeany') || STEP4_TAKES.includes(w)) && !(planted('beforeall') && w === 'noretire');
 export const limitsTaken = () => takenShape('limits') && takenShape('risks');
 // research/tests/couple-default.test.mjs only: 'firstnotelder' takes the first person for the elder, whatever the ages;
 // 'eldereither' lifts the guard for an elder entered second without the swap, solving the couple in the order entered, as the
@@ -248,7 +256,9 @@ export function coupleSolverOn(plan, on = COUPLES) {
   // whose card says that ending the plan earlier brings it within reach, wherever that holds: an opened couple whose shape the
   // household plan refuses is told 'shape' (ending earlier would not bring it in), and under the guard before D143 the gap with
   // other taxable income keeps its own reason (the reviewer on D128, MINOR 2)
-  if (!planted('noagecap') && !horizonFits(capPlan)) {
+  // the age cap (D150: off where the couple is solved on its mirror, which keeps the plan's years past 120)
+  const capped = AGE_CAP || planted('beforeall') || !swap;
+  if (!planted('noagecap') && capped && !horizonFits(capPlan)) {
     if (open) return sh.refused ? { on: false, share, why: 'shape', shape: sh.why } : { on: false, share, why: 'ages' };
     return { on: false, share, why: gapIncome ? 'gapincome' : 'ages' };
   }

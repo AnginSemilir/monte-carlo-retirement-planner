@@ -344,3 +344,18 @@ the app's rules, as below. The classic planner is not retired by this.
 - **Then** the reviewer on the change of default, B1's gate and the nineteenth batch.
 - **What becomes unreachable.** Today's two-table route is then reached by no couple the app solves (E), so the client's
   fallback to it is reached by none. Its code stays, for the research arms.
+- **Built (26 Nov), as above but for these, each said to the reviewer on the change of default:**
+  - `research/tests/run-all.mjs` is not edited: the maintainer's word was "Yes", not the hook's "unlock enforcement" (D151),
+    so `couple-past120.test.mjs` stays in the full tier.
+  - The planner harness's (g) keeps the client's fallback, today's route, under test: it runs on a preview built with the cut
+    before this change (the plant 'cutbeforeall', `src/solverCouple.js`, set from that build's `PLANNER_PLANT`), where the
+    household plan refuses nobody retiring. So the plants 'couplehalf', 'coupleage' and 'workernotie', which act on today's
+    route alone, still fail check 19. The two couples with nobody retiring that check 19 showed the 'shape' card (re-held
+    25/75, and 12 years apart with other taxable income) are solved on the household route instead.
+  - Check 19 gains (h): a couple whose elder would pass 120 before the plan ends, solved on its mirror. Its plant
+    'beforeall' (the guard before this change) shows the cards again.
+  - The harness's plant 'nogapguard' is retired: with no shape refused, its couple is solved the same way with the plant or
+    without it. `couple-default.test.mjs` checks 8 and 9 still hold the guard's own answer.
+  - `household-client.test.mjs` check 9 passes unchanged; check 7 takes the cut's plant 'cutbeforeall'.
+  - The tests that read the refused shape read it under the rollback, the plants 'beforeall' (the guard) and 'cutbeforeall'
+    (the cut), so the guard's refusal code stays held to the cut's for the rollback.

@@ -8,8 +8,10 @@
  *      digest taken on 1dc3afea, when the swap was built off in code)
  *   2. the guard with the swap on, as shipped: a couple whose elder is entered second and holds 75% or 90% (stage C's
  *      re-held units, mirrored) is on and swapped, where today it keeps the app's rules; a library couple entered younger
- *      first (inside the band) on and swapped; a couple of one age not swapped; and the age cap read on the plan as entered:
- *      a couple entered at 50 and 80 with its plan to 95 keeps the app's rules (its mirror's end age would pass 120)
+ *      first (inside the band) on and swapped; a couple of one age not swapped; and a couple entered at 50 and 80 with its plan
+ *      to 95 on and swapped since D150 (COUPLES-ANY.md amendment 3, D: its mirror keeps the plan's years past 120,
+ *      couple-past120.test.mjs), where under the guard before D150 (the plant 'beforeall', the rollback) the age cap, read on
+ *      the plan as entered, keeps it on the app's rules
  *   3. the identity: a couple written younger first by hand (S007's people put in each other's places field by field, with
  *      a band), cut through its mirror by the page's route (solverCouple.js couplePlans), is cut exactly as the same couple
  *      entered elder first: each person's plan, the share, the household and the ages each table is solved with, to the bit
@@ -22,7 +24,8 @@
  *   5. the Strategy tab's figures put back (the reviewer on the change of default, BLOCKING 1): the summary worked out on the
  *      mirror's solve against the couple written younger first, put back, has the raise's age and every outlook year's age
  *      the entered first person's, where the mirror's are the elder's, and every other figure the mirror's as it was
- * Plants: 'capafter' (couplesSwitch.js PLANT: the age cap read on the mirror) fails check 2; coupleOrder.js PLANT's 'noback'
+ * Plants: 'capafter' (couplesSwitch.js PLANT: the age cap read on the mirror, so under the guard before D150 the couple at 50 and
+ * 80 runs) fails check 2; coupleOrder.js PLANT's 'noback'
  * (every answer left as the mirror's) fails checks 4 and 5, 'noaheadparts', 'norowsparts' and 'noverdict' (each one put-back
  * left out) fail check 4, 'nostrategy' check 5.
  *   node research/tests/couple-swap.test.mjs [--planted]
@@ -95,17 +98,23 @@ const pick = o => ({ on: o.on, share: o.share, why: o.why });
   }
   const inBand = library.map(s => SW.coupleSolverOn(ORD.otherOrder(E, E.normalizePlan(s.plan)), true)).filter(g => g.on && g.swap).length;
   const sameAge = (() => { const p = JSON.parse(JSON.stringify(E.normalizePlan(library[0].plan))); p.demographics.currentAgePart = ctxOf(p).ageSelf0; return SW.swapOf(E.normalizePlan(p)); })();
-  // the age cap: S015-90 (stage C) entered younger first at 50 and 80, its plan to 95
+  // the age cap: S015-90 (stage C) entered younger first at 50 and 80, its plan to 95: since D150 on and swapped, its mirror
+  // keeping the plan's years past 120; under the guard before D150 (the plant 'beforeall') the cap, read on the plan as entered,
+  // keeps it off ('capafter' with it: read on the mirror, whose end age the cap's reading stops at 120, so it runs)
   const s015 = units.find(u => u.id === 'S015-90'), young = ORD.otherOrder(E, E.normalizePlan(s015.plan));
   const wide = E.normalizePlan({ ...young, demographics: { ...young.demographics, currentAgeSelf: 50, currentAgePart: 80, terminalAge: 95 } }), gw = SW.coupleSolverOn(wide, true);
-  if (gw.on || gw.why !== 'ages') bad.push(`the couple entered at 50 and 80 to 95: ${gw.on ? 'on' : `off (${gw.why})`}`);
+  if (!(gw.on && gw.swap)) bad.push(`the couple entered at 50 and 80 to 95: ${gw.on ? 'on' : `off (${gw.why})`}${gw.swap ? ', swapped' : ', not swapped'}`);
+  const was = SW.PLANT.rule; SW.PLANT.rule = [was, 'beforeall'].filter(Boolean).join(',');
+  const gb = SW.coupleSolverOn(wide, true);
+  SW.PLANT.rule = was;
+  if (gb.on || gb.why !== 'ages') bad.push(`the couple entered at 50 and 80 to 95, under the guard before D150: ${gb.on ? 'on' : `off (${gb.why})`}`);
   if (sameAge) bad.push('a couple of one age swapped');
   if (inBand !== library.length) bad.push(`${inBand} of ${library.length} library couples entered younger first on and swapped`);
   // the same couples without the swap (the rollback, as the code before it): each keeps the app's rules
   SW.PLANT.rule = 'swapoff';
   const today = units.filter(u => SW.coupleSolverOn(ORD.otherOrder(E, E.normalizePlan(u.plan)), true).on).length;
   SW.PLANT.rule = '';
-  ok(2, `the guard with the swap on: stage C's ${units.length} re-held couples entered younger first on and swapped (${elderSecond}; today ${today} on); the library's couples entered younger first on and swapped (${inBand}); one age not swapped; the age cap on the plan as entered`,
+  ok(2, `the guard with the swap on: stage C's ${units.length} re-held couples entered younger first on and swapped (${elderSecond}; today ${today} on); the library's couples entered younger first on and swapped (${inBand}); one age not swapped; a couple whose mirror passes 120 on and swapped since D150, kept off by the age cap on the plan as entered before it`,
     !bad.length && today === 0, bad.slice(0, 3).join('; ') || 'every case');
 }
 

@@ -19,6 +19,7 @@ import { prepareForSolve, JOINT_KEYS, partCeilingsDiffer, APP_COUPLE } from './s
 import { appPlan } from './solverApp.js';
 import { householdForm, householdFromTable, SCALES, mergedState, heldOf, perOwnerOf } from './solver/household.js';
 import { TIER_ORDER } from './solver/fast.js';
+import { PLANNER_PLANT } from './plannerPlant.js';
 
 /* research/tests/couple-solve-client.test.mjs only: 'swap' hands each person the other's table; 'noage' cuts the plans with no
    partner's age (each solved as a single would be); research/tests/couple-default.test.mjs only: 'rawages' leaves a blank age
@@ -28,13 +29,18 @@ import { TIER_ORDER } from './solver/fast.js';
    research/tests/couple-shown.test.mjs only: 'noshown' reads the couple's policy as it is in the views, not through
    wholeMenu, as before the fix of 20 Nov; research/tests/couple-shape.test.mjs and couple-default.test.mjs only: 'cutnotake'
    cuts and assembles the household without the shapes step 4 takes (APP_COUPLE.takeShapes), as before its change of default;
-   'cutbeforeany' with step 4's three alone, as before COUPLES-ANY's (D148) */
+   'cutbeforeany' with step 4's three alone, as before COUPLES-ANY's (D148); and couple-limits-card.test.mjs and household-client.test.mjs
+   too: 'cutbeforeall' without 'noretire' (nobody retiring within the plan), as before D150, which a harness build's PLANNER_PLANT
+   sets too (research/ui-harnesses/solver-planner-ui.cjs check 19 (g): the page's fallback, today's route, on a preview built
+   with the cut before D150, since at the defaults the household plan refuses no shape) */
 export const PLANT = { rule: '' };
 /* the shapes the household plan takes in the page's cut and assembly alike (step 4's change of default, D145: src/solverSettings.js
    APP_COUPLE.takeShapes; src/solver/household.js householdPlanFor), the same in both so the assembly's plan is the cut's */
 const STEP4_TAKES = Object.freeze(['growth', 'cashisa', 'year0']);
-const appTakes = () => (PLANT.rule === 'cutbeforeany' ? (APP_COUPLE.takeShapes || []).filter(w => STEP4_TAKES.includes(w)) : APP_COUPLE.takeShapes || []);
-const takeShapesOpt = () => (PLANT.rule === 'cutnotake' || !appTakes().length ? {} : { takeShapes: appTakes() });
+const cutRule = () => PLANT.rule || (PLANNER_PLANT.has('cutbeforeall') ? 'cutbeforeall' : '');
+const appTakes = () => (cutRule() === 'cutbeforeany' ? (APP_COUPLE.takeShapes || []).filter(w => STEP4_TAKES.includes(w))
+  : cutRule() === 'cutbeforeall' ? (APP_COUPLE.takeShapes || []).filter(w => w !== 'noretire') : APP_COUPLE.takeShapes || []);
+const takeShapesOpt = () => (cutRule() === 'cutnotake' || !appTakes().length ? {} : { takeShapes: appTakes() });
 /* the shapes a cut and its assembly take: the app's (takeShapesOpt), or, where a research caller names them, those (COUPLES-ANY.md
    A's 'risks' and 'limits' before their change of default; research/tests/household-risks.test.mjs) */
 const shapesOf = (takeShapes) => (takeShapes ? { takeShapes } : takeShapesOpt());

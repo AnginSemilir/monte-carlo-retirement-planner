@@ -4,7 +4,9 @@
  * runs as entered to its end. The household route solves such a couple elder first, on its mirror (src/coupleOrder.js
  * otherOrder), whose end age then passes 120: the mirror is marked as derived from the plan as entered (`derivedEnd`) and the
  * engine keeps its years (App.jsx buildContext), where before it stopped them at 120, the mirror ran short and the solve
- * failed. The guard (src/couplesSwitch.js horizonFits) keeps such a couple on the app's rules until the change of default.
+ * failed. Since D150's change of default the guard runs such a couple (src/couplesSwitch.js AGE_CAP off: the age cap,
+ * horizonFits, read only where the couple is not solved on its mirror; research/tests/couple-default.test.mjs check 6); the
+ * guard before it kept it on the app's rules (the plant 'beforeall', the rollback).
  *   1. the mirror's years: over the variants (each of the library's 210 couples with the partner made the elder, entered
  *      second, their age at the plan's end 122 and 127), the mirror runs the plan's whole years, marked, its end age past 120;
  *   2. each person's year: on S007 built with bands, incomes, deposits, a one-off cost and a ceiling each, the partner the

@@ -39,7 +39,9 @@
  * ceilings alone; 'tierindex' gives both people the household's tier index; 'nofirstswitch' leaves the riskier person at their
  * own tier in the plan's first year. research/tests/household-salaries.test.mjs's (COUPLES-ANY.md B and C): 'salsched1' builds
  * the household's salary schedule from the first person's salary alone; 'noretireend' puts the household's retirement in the
- * plan's last year where nobody retires within the plan.
+ * plan's last year where nobody retires within the plan. research/tests/pension-route.test.mjs's (D154 (3)): 'houseroute'
+ * prices the later retiree's take-home and the partner's own pay in the form 'pensionsPAown' by the NIC class, not by how
+ * they pay into their pension.
  */
 import { rankFor, tiePick, layerOf, ratesAt, SPLITS } from './couple.js';
 import { NODES, WEIGHTS, chooseAction } from './solve.js';
@@ -250,7 +252,7 @@ export function householdPlanFor(E, plan, opts = {}) {
     if (t === 0 && (pay > 0 || penContrib > 0 || others > 0) && !takes.has('year0')) throw new Error('householdPlanFor: a later retiree paid or saving in plan year 0');
     if (pay > 0 && !planted('notakehome')) {
       // priced by how the later retiree pays into their pension (D154 (3)), as the engine prices their take-home
-      const takeHome = pay - E.calculateUKTaxAndNIC(pay, P, o.selfEmployed) - E.netCostOfPensionContrib(penContrib, pay, P, o.reliefTaxOnly);
+      const takeHome = pay - E.calculateUKTaxAndNIC(pay, P, o.selfEmployed) - E.netCostOfPensionContrib(penContrib, pay, P, planted('houseroute') ? o.selfEmployed : o.reliefTaxOnly);
       const net = Math.max(0, takeHome - others);
       if (net > 0) incomes.push({ id: `inc_house_takehome_${k}_${t}`, name: 'The later retiree\'s take-home (the household plan)', owner: 'Myself', startAge: ageA + t, endAge: ageA + t, amount: net, incomeType: 'taxFree', notes: '' });
     }
@@ -290,7 +292,7 @@ export function householdPlanFor(E, plan, opts = {}) {
       for (const inc of ctx.otherIncomes) if (inc.owner === 'part' && !inc.taxFree && age >= inc.startAge && age <= inc.endAge) { if (inc.isEarnings) earn += inc.amount; else F += inc.amount; }
       if (!(F > 0)) continue;
       const frac = t === 0 ? ctx.yf : 1;
-      const pay = ((working('part', t) ? E.taxablePayOf(E.salaryAtYear(own.part, t), penPart ? E.contribAtYear(penPart, t) : 0, P, own.part.reliefTaxOnly) : 0) + earn) * frac;
+      const pay = ((working('part', t) ? E.taxablePayOf(E.salaryAtYear(own.part, t), penPart ? E.contribAtYear(penPart, t) : 0, P, planted('houseroute') ? own.part.selfEmployed : own.part.reliefTaxOnly) : 0) + earn) * frac;
       const tax = E.incomeTax(pay + F * frac, P) - E.incomeTax(pay, P), net = frac > 0 ? (F * frac - tax) / frac : 0;
       incomes.push({ id: `inc_house_partown_${t}`, name: 'The partner\'s own income net of their own tax (the household plan)', owner: 'Myself', startAge: ageA + t, endAge: ageA + t, amount: net, incomeType: 'taxFree', notes: '' });
     }
@@ -331,6 +333,11 @@ export function householdPlanFor(E, plan, opts = {}) {
     salarySelf: tR > 0 ? E.num(d.salarySelf, 0) + E.num(d.salaryPart, 0) : 0,
     salaryGrowthSelf: E.num(d.salarySelf, 0) > 0 ? d.salaryGrowthSelf : d.salaryGrowthPart,
     ...(salSched ? { salaryByYearSelf: salSched } : {}),
+    // the household person carries the first person's employment (D154 (3); the reviewer on it, MINOR 5): it prices the
+    // household's own contributions in the years both work, their two salaries as one, so where Config's employer NIC
+    // pass-through is set and the two people pay into their pensions by different routes, the partner's contributions in
+    // those years take the first person's pass-through factor (an approximation; at nought, the default, either route gives
+    // the same taxable pay, and the later retiree's take-home after the first retirement is priced by their own route, above)
     employmentSelf: d.employmentSelf, statePensionSelf: E.num(d.statePensionSelf, 0),
     cgtGainsUsedSelf: E.num(d.cgtGainsUsedSelf, 0) + E.num(d.cgtGainsUsedPart, 0), cfBroughtForwardSelf: E.num(d.cfBroughtForwardSelf, 0) + E.num(d.cfBroughtForwardPart, 0),
     mpaaAgeSelf: d.mpaaAgeSelf

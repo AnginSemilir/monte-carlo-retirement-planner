@@ -79,7 +79,8 @@ const payOf = (ctx, key, t) => {
   const o = ctx.owners.find(x => x.key === key), age = (key === 'self' ? ctx.ageSelf0 : ctx.agePart0) + t;
   if (!(age < o.retireAge)) return 0;
   const pen = ctx.accounts.find(a => a.owner === key && a.cat === 'pen');
-  return E.taxablePayOf(E.salaryAtYear(o, t), pen ? E.contribAtYear(pen, t) : 0, ctx.P, o.selfEmployed) * fracOf(ctx, t);
+  // priced by how they pay into their pension (D154 (3)), as the engine takes it
+  return E.taxablePayOf(E.salaryAtYear(o, t), pen ? E.contribAtYear(pen, t) : 0, ctx.P, o.reliefTaxOnly) * fracOf(ctx, t);
 };
 const reheld = (plan, f) => { const re = structuredClone(plan), tot = {};
   for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); tot[k] = (tot[k] || 0) + (Number(a.balance) || 0); }

@@ -51,7 +51,8 @@
  *      (26 Nov: the engine keeps the years of a plan the solver derives past 120, src/App.jsx buildContext; no plan within the
  *      ceiling moves, research/tests/couple-past120.test.mjs check 4), 2721e4bb5022 since D154 (3)'s employee's pension question
  *      (27 Nov: how an employee pays into their pension priced in the engine, the exact model, the forward run and the household
- *      plan; every plan as entered the same to the bit, research/tests/pension-route.test.mjs check 1);
+ *      plan; every plan as entered the same to the bit, research/tests/pension-route.test.mjs check 1), d3d5295b01b1 since its fix round
+ *      (27 Nov: the test's plants in the engine and the household plan, the classic strategies through one helper);
  *   8. THE TWIN (PRESCRIPTIVE-PLAN.md step 3): on check 3's six units, the couple made of the first person twice (built as the
  *      review's scripts/twin-trace.mjs builds it), under arm A's policy, 100 paths of seed 99001, the household plan
  *      (through householdContext) against the couple, year by year: (1) on S205, S061-dbpart, S327F, S227-90 and S023-db
@@ -136,7 +137,8 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   const years = hp.otherIncomes.filter(i => /^inc_house_takehome_/.test(i.id)).map(i => i.startAge - ctx.ageSelf0);
   const o = ctx.owners.find(x => x.key === 'part'), t = 16, pay = E.salaryAtYear(o, t), accts = ctx.accounts.filter(a => a.owner === 'part');
   const pen = accts.find(a => a.cat === 'pen'), pc = E.contribAtYear(pen, t), others = accts.filter(a => a !== pen).reduce((s, a) => s + E.contribAtYear(a, t), 0);
-  const want = pay - E.calculateUKTaxAndNIC(pay, ctx.P, o.selfEmployed) - E.netCostOfPensionContrib(pc, pay, ctx.P, o.selfEmployed) - others;
+  // the engine's own sum: the NIC class charged on the pay, the contribution priced by how they pay in (D154 (3))
+  const want = pay - E.calculateUKTaxAndNIC(pay, ctx.P, o.selfEmployed) - E.netCostOfPensionContrib(pc, pay, ctx.P, o.reliefTaxOnly) - others;
   const got = hp.otherIncomes.find(i => i.id === `inc_house_takehome_part_${t}`);
   check('the later retiree\'s take-home as tax-free income in plan years 15 to 17 alone, the engine\'s own sum', years.join(',') === '15,16,17' && !!got && near(got.amount, want) && got.incomeType === 'taxFree', `years ${years.join(',')}; year 16 ${got ? Math.round(got.amount) : '-'} against ${Math.round(want)}`);
   const deps = hp.oneOffContributions.filter(c => /^dep_house_/.test(c.id)), penDeps = deps.filter(c => c.category === 'Pensions').map(c => c.year - ctx.baseYear);
@@ -319,7 +321,8 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   // 24 Nov, again: COUPLES-ANY.md B and C (the engine's dated salary schedule, the forward run's plant, the household plan's
   // shapes 'salaries' and 'noretire'), off in code: re-pinned
   // 27 Nov: D154 (3), how an employee pays into their pension (every plan as entered the same to the bit): re-pinned
-  check('(7d) the solver\'s code id 2721e4bb5022 (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work, then the pricing form, then step 4\'s shapes, then their change of default and its fix round, then COUPLES-ANY A, then B and C, then D150\'s horizon past 120, then D154 (3)\'s pension question)', !!cid && cid.hash === '2721e4bb5022', cid ? cid.hash : 'none');
+  // 27 Nov, again: its fix round (the reviewer on it, finding 1: the test's plants, the classic strategies' helper): re-pinned
+  check('(7d) the solver\'s code id d3d5295b01b1 (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work, then the pricing form, then step 4\'s shapes, then their change of default and its fix round, then COUPLES-ANY A, then B and C, then D150\'s horizon past 120, then D154 (3)\'s pension question and its fix round)', !!cid && cid.hash === 'd3d5295b01b1', cid ? cid.hash : 'none');
 }
 
 // 8. the twin (PRESCRIPTIVE-PLAN.md step 3)

@@ -11,6 +11,15 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**DECIDED (27 Nov, night): D155, "We don't need the classic anymore, just the new one".** Read as follows, said to you:
+- The classic planner is retired, D154's line on it below so amended: the new planner is the only one the app offers; the
+  "Classic planner" links, the choice between the two and the rollback that gives everyone the classic planner go, and the
+  classic planner's own pages and code with them. The engine, and everything the new planner and the research use, stay.
+- B1's gate and the readiness checklist run on the new planner alone; their classic mode, and the harnesses that test only
+  the classic planner, are retired.
+- Built as its own change after the employee pension question's fix round, with the reviewer on it, then B1's gate and the
+  next batch. The couples' rollback switches (the guard and the cut) stay.
+
 **DECIDED (27 Nov): D154, "Ignore 2029 changes for now, do the rest".** Read as follows, said to you:
 - The 2029 cap on salary sacrifice's NIC relief for a plan's own contributions (D134 (3)) is not built for now. The employer's
   NIC passed to the pension stays stated as it is, way (A) below; its fix waits with that change.

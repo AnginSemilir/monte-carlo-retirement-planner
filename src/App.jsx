@@ -170,9 +170,30 @@ const RISK_EQUITY_WEIGHTS = {
 const LADDER_PLANT = { rule: '' };
 /*
  * HOW AN EMPLOYEE PAYS INTO THEIR PENSION (D154 (3)): research/tests/pension-route.test.mjs's plants, never set by the page:
- * 'ignored' every employee priced as a sacrificer (the code before), 'unsure' not sure priced as salary sacrifice.
+ * 'ignored' every employee priced as a sacrificer (the code before), 'unsure' not sure priced as salary sacrifice, 'allnet'
+ * salary sacrifice priced as net pay, 'nowarn' the pass-through's warning for a net-pay employee dropped, 'enginepay' the
+ * engine's taxable pay priced by the NIC class, 'classic' the classic planner's contribution strategies priced by it.
  */
 const ROUTE_PLANT = { rule: '' };
+/*
+ * How a person pays into their pension, from the employment type's answer (D154 (3)): the self-employed, and an employee
+ * paying from net pay or by relief at source ('employed-net') or not sure how ('employed-unsure', the cautious reading), are
+ * relieved of income tax alone with no employer NIC passed through (true); an employee by salary sacrifice ('employed', the
+ * default and the app's assumption until now, and any answer the app does not know) of income tax and NIC (false).
+ * Relief at source is priced as net pay: the pension is credited the gross contribution and the take-home pays it less the
+ * income tax it saves. Where the pay less the contribution falls below the personal allowance, relief at source still gives
+ * its basic-rate relief, which this does not (net pay gives none there): cautious for a low earner. Under either route the
+ * pension figure, entered gross with the employer's part included, is priced as the employee's own contribution.
+ */
+function reliefTaxOnlyOf(emp) {
+  if (emp === 'self-employed') return true;
+  if (ROUTE_PLANT.rule === 'ignored') return false;
+  if (emp === 'employed-net') return true;
+  if (emp === 'employed-unsure') return ROUTE_PLANT.rule !== 'unsure';
+  return ROUTE_PLANT.rule === 'allnet';
+}
+/* the classic planner's contribution strategies read the route as the engine does (ROUTE_PLANT 'classic': the NIC class) */
+const strategyRelief = o => (ROUTE_PLANT.rule === 'classic' ? o.selfEmployed : o.reliefTaxOnly);
 /* the employment type's answers and each one's line (D154 (3); the agent's draft, the maintainer's to change) */
 const EMPLOYMENT_KINDS = ['employed', 'employed-net', 'employed-unsure', 'self-employed'];
 const PASS_WORDS = ', and the employer NIC pass-through in Config does not apply';
@@ -1807,7 +1828,7 @@ function buildContext(rawPlan) {
     // paying from net pay or by relief at source ('employed-net') or not sure how ('employed-unsure', the cautious reading), are
     // relieved of income tax alone with no employer NIC passed through; an employee by salary sacrifice ('employed', the
     // default, the app's assumption until now) of income tax and NIC. The NIC charged on the pay is the employment's, above
-    reliefTaxOnly: (emp => emp === 'self-employed' || (ROUTE_PLANT.rule !== 'ignored' && (emp === 'employed-net' || (emp === 'employed-unsure' && ROUTE_PLANT.rule !== 'unsure'))))(o === 'self' ? d.employmentSelf : d.employmentPart),
+    reliefTaxOnly: reliefTaxOnlyOf(o === 'self' ? d.employmentSelf : d.employmentPart),
     cgtGainsUsed: Math.max(0, num(o === 'self' ? d.cgtGainsUsedSelf : d.cgtGainsUsedPart, 0)),
     // unused annual allowance from the three tax years before the projection starts
     cfBroughtForward: Math.max(0, num(o === 'self' ? d.cfBroughtForwardSelf : d.cfBroughtForwardPart, 0)),
@@ -1828,7 +1849,7 @@ function buildContext(rawPlan) {
     // the pass-through only exists because an employer saves NIC on sacrificed salary; a sole trader has neither
     if (o.selfEmployed && P.erPass > 0) warnings.push(`${o.label}: employer NIC pass-through is set to ${Math.round(P.erPass * 100)}% in Config, but the self-employed have no employer, so it is ignored for this person.`)
     // an employer saves NIC only on salary sacrifice, so a net-pay contribution has none to pass through (D154 (3))
-    else if (o.reliefTaxOnly && P.erPass > 0) warnings.push(`${o.label}: employer NIC pass-through is set to ${Math.round(P.erPass * 100)}% in Config, but it applies only to salary sacrifice, so it is ignored for this person.`);
+    else if (o.reliefTaxOnly && P.erPass > 0 && ROUTE_PLANT.rule !== 'nowarn') warnings.push(`${o.label}: employer NIC pass-through is set to ${Math.round(P.erPass * 100)}% in Config, but it applies only to salary sacrifice, so it is ignored for this person.`);
     const gia = acc[o.ids.other];
     if (P.cgtEnabled && gia && gia.balance > 0 && isBlank(plan.accounts.find(a => a.id === o.ids.other)?.unrealisedGain)) {
       // One line. Three sentences of explanation in a banner that lists five of these is a paragraph
@@ -2393,7 +2414,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     if (!working[o.key] || !(o.salary > 0)) return;
     const pen = acc[o.ids.pen];
     const penContrib = pen ? (sv && pen.id in sv ? sv[pen.id] : contribAtYear(pen, t)) : 0;
-    taxablePay[o.key] = taxablePayOf(salaryAtYear(o, t), penContrib, P, o.reliefTaxOnly) * frac;
+    taxablePay[o.key] = taxablePayOf(salaryAtYear(o, t), penContrib, P, ROUTE_PLANT.rule === 'enginepay' ? o.selfEmployed : o.reliefTaxOnly) * frac;
   });
   /*
    * 4a. Tax on the year's savings interest. Cash Savings grows at its real rate in step 8 as it always
@@ -3754,7 +3775,7 @@ function allocateBudget(ctx, netBudget, isaShare, { isaMin = 0, balance = 'propo
   // the self-employed have no employer, so no pass-through can inflate the earnings cap for them
   const capOf = (o) => Math.min(
     mpaaAppliesAtYear(P, o, 0) ? P.mpaaLimit : P.aaAt(o.salary),
-    o.salary > 0 ? o.salary * passThroughFactor(P, o.reliefTaxOnly) : P.pensionAllowance
+    o.salary > 0 ? o.salary * passThroughFactor(P, strategyRelief(o)) : P.pensionAllowance
   );
   let penNetRemaining = penNet;
   const order = owners.map((o, i) => i).sort((a, b) => penW[b] - penW[a]);
@@ -3764,10 +3785,10 @@ function allocateBudget(ctx, netBudget, isaShare, { isaMin = 0, balance = 'propo
     const o = owners[i];
     const cap = Math.max(0, capOf(o) - penGross[i]);
     if (cap <= 0) return 0;
-    const credit = grossUpNetIncremental(netAmt, o.salary, P, penGross[i], cap, o.reliefTaxOnly);
+    const credit = grossUpNetIncremental(netAmt, o.salary, P, penGross[i], cap, strategyRelief(o));
     if (credit <= 0) return 0;
     penGross[i] += credit;
-    const total = netCostOfPensionContrib(penGross[i], o.salary, P, o.reliefTaxOnly);
+    const total = netCostOfPensionContrib(penGross[i], o.salary, P, strategyRelief(o));
     const delta = total - penNetUsed[i];
     penNetUsed[i] = total;
     return delta;
@@ -3778,7 +3799,7 @@ function allocateBudget(ctx, netBudget, isaShare, { isaMin = 0, balance = 'propo
   if (penFloorGross) {
     owners.forEach((o, i) => {
       if (penGross[i] > penFloorGross[i]) {
-        const excessNet = penNetUsed[i] - netCostOfPensionContrib(penFloorGross[i], o.salary, P, o.reliefTaxOnly);
+        const excessNet = penNetUsed[i] - netCostOfPensionContrib(penFloorGross[i], o.salary, P, strategyRelief(o));
         penGross[i] = penFloorGross[i]; penNetUsed[i] -= excessNet; penNetRemaining += excessNet;
       }
     });
@@ -3850,7 +3871,7 @@ function accumulationOutlay(rawPlan, rateOverride = null) {
           c = stripped * Math.pow(1 + rateOverride, t);
         }
         if (!(c > 0)) continue;
-        net += cat === 'pen' ? netCostOfPensionContrib(c, salaryAtYear(o, t), cfg, o.reliefTaxOnly) : c;
+        net += cat === 'pen' ? netCostOfPensionContrib(c, salaryAtYear(o, t), cfg, strategyRelief(o)) : c;
       }
     });
   });
@@ -4049,7 +4070,7 @@ function accumulationEnv(ctx, { emergencyFloor = 25000, scope = 'contributions',
   const currentIsa = owners.map(o => contribNow(acc[o.ids.isa]));
   const currentGia = owners.map(o => contribNow(acc[o.ids.other]));
   const currentCash = owners.map(o => contribNow(acc[o.ids.cash]));
-  const currentPenNet = owners.reduce((s, o, i) => s + netCostOfPensionContrib(currentPen[i], o.salary, cfg, o.reliefTaxOnly), 0);
+  const currentPenNet = owners.reduce((s, o, i) => s + netCostOfPensionContrib(currentPen[i], o.salary, cfg, strategyRelief(o)), 0);
   const currentIsaNet = currentIsa.reduce((a, b) => a + b, 0);
   const sweptGia = currentGia.reduce((a, b) => a + b, 0);
   const sweptCash = currentCash.reduce((a, b) => a + b, 0);
@@ -4238,7 +4259,7 @@ function buildTournament(rawPlan, { emergencyFloor = 25000, scope = 'contributio
     const transfer = bs ? bs.transfer : null;
     const reliefExtra = bs ? bs.reliefExtra : 0;
     strategies.push(mk('relief', 'Relief-First' + (transfer ? ' + Bed & SIPP' : ''),
-      `Routes the budget to pension first (subject to the pre-SIPP access bridge minimum) to capture maximum upfront ${owners.every(o => o.reliefTaxOnly) ? 'tax relief' : 'tax and NIC relief'}` + (transfer ? '; also moves spare ISA capital into the pension.' : '.'),
+      `Routes the budget to pension first (subject to the pre-SIPP access bridge minimum) to capture maximum upfront ${owners.every(strategyRelief) ? 'tax relief' : 'tax and NIC relief'}` + (transfer ? '; also moves spare ISA capital into the pension.' : '.'),
       alloc, { transferNet: transfer ? Math.round(transfer.net) : 0, transferGross: transfer ? Math.round(transfer.gross) : 0, taxReliefSaved: alloc.taxReliefSaved + reliefExtra, planOpts: { transfer } }));
   }
   // 5 bracket-smoothed pension sizing
@@ -8366,8 +8387,9 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
     setPlanBlocked(!openActionPlan(html));
   };
   // A sandbox run is scored against the frozen sandbox plan rather than the saved inputs.
-  // income tax relief alone for every person (the self-employed and net-pay employees, D154 (3)): the words say tax relief
-  const selfEmployedOnly = ctx.owners.length > 0 && ctx.owners.every(o => o.reliefTaxOnly);
+  // income tax relief alone for every person (the self-employed and net-pay employees, D154 (3)): the words say tax relief,
+  // read as the strategies price it (strategyRelief)
+  const selfEmployedOnly = ctx.owners.length > 0 && ctx.owners.every(strategyRelief);
   const usingSandbox = !!state.basePlan;
   const basePlan = state.basePlan || plan;
 
@@ -13403,9 +13425,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <div key={`emp_${o.key}`}>
                           <label className="text-slate-600 font-semibold block mb-1">Employment type ({o.label})</label>
                           <select aria-label="Employment type" value={emp} onChange={(e) => updateDemographics(field, e.target.value)} className={`${inputCls} cursor-pointer`}>
-                            <option value="employed">Employed, paying into my pension by salary sacrifice</option>
-                            <option value="employed-net">Employed, paying in from net pay or by relief at source</option>
-                            <option value="employed-unsure">Employed, not sure how I pay in</option>
+                            <option value="employed">Employed, pension paid by salary sacrifice</option>
+                            <option value="employed-net">Employed, pension paid from net pay or by relief at source</option>
+                            <option value="employed-unsure">Employed, not sure how the pension is paid</option>
                             <option value="self-employed">Self-employed (Class 4 NIC, relief at source)</option>
                           </select>
                           <span className="text-[10px] text-slate-400 mt-1 block" data-employment-words={emp}>{EMPLOYMENT_WORDS[emp](P.erPass > 0)}</span>

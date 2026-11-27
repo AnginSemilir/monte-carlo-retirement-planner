@@ -18,10 +18,30 @@
  *   5. the savings split's routes for a net-pay employee those of the same plan with the person self-employed (income tax relief
  *      alone in both);
  *   6. not sure priced as net pay; a couple entered younger first keeps each person's answer on the mirror;
- *   7. the words: the employment type's four answers and each one's line.
- * The plants: 'ignored' (src/App.jsx ROUTE_PLANT: every employee priced as a sacrificer, the code before) fails 2, 3, 5 and 6;
- * 'unsure' (not sure priced as a sacrificer) fails 6; 'modelignored' (src/solver/model.js MODEL: the exact model pricing every
- * employee as a sacrificer) fails 4.
+ *   7. the words: the employment type's four answers and each one's line, and the pass-through's warning for a net-pay employee;
+ *   8. the household plan prices the later retiree's take-home by their own route, as the engine does: on the couple of check 3,
+ *      each year's take-home in the household plan the engine's working take-home that year, under net pay and under salary
+ *      sacrifice, the two apart; and in the form 'pensionsPAown', with Config's pass-through set and the partner working past
+ *      the state pension age, the partner's own income net of their own tax the same plan's with the partner self-employed
+ *      (their taxable pay the salary less the whole contribution) and apart from salary sacrifice's;
+ *   9. the classic planner's contribution strategies for a net-pay employee the same plan's with the person self-employed, and
+ *      apart from salary sacrifice's, with Config's pass-through set: allocateBudget (the earnings cap binding, a small budget
+ *      and a pension floor), accumulationOutlay, accumulationEnv, and the tournament's budget, its baseline outlay and
+ *      Relief-First's relief and words; and the strategy panel's words read as the strategies price it (the source);
+ *  10. with Config's pass-through set, a net-pay employee's taxable pay the salary less the whole contribution: the engine's
+ *      (by hand, and the sacrificer's the salary less the contribution over the pass-through factor), the solver's exact
+ *      model in step with the engine on a plan whose interest the band reaches, and the forward run's taxable pay, its
+ *      savings split copies' included (src/solver/fast.js), the same.
+ * The plants: 'ignored' (src/App.jsx ROUTE_PLANT: every employee priced as a sacrificer, the code before) fails 2, 3, 5, 6, 7,
+ * 8, 9 and 10; 'unsure' (not sure priced as a sacrificer) fails 6 and 7; 'allnet' (salary sacrifice priced as net pay) fails
+ * 1, 2, 3, 5, 7, 8, 9 and 10 (the warning follows the route, so a plant that moves the route moves it); 'nowarn' (the warning
+ * dropped) fails 7 alone; 'classic' (the classic strategies priced by the NIC class) fails 9;
+ * 'enginepay' (the engine's taxable pay priced by the NIC class) fails 10; 'modelignored' (src/solver/model.js MODEL: the exact
+ * model pricing every employee as a sacrificer) fails 4 and 10; 'houseroute' (src/solver/household.js HOUSE: the household
+ * plan's take-home and the partner's own pay priced by the NIC class) fails 8. Every place that reads the route was also put
+ * back to the NIC class alone, one at a time (the reviewer's pattern search, its finding 1), and each fails a check but the
+ * earnings cap in allocateBudget, an equivalent change: grossUpNet and grossUpNetIncremental cap the credit at the salary
+ * times their own pass-through factor, so the cap's factor moves no figure under any route (research/solver/results-pension-route.txt).
  *   node research/tests/pension-route.test.mjs [--plant <name>]       node research/tests/pension-route.test.mjs --plants
  *   node research/tests/pension-route.test.mjs --digest               the digests of check 1 on this code
  */
@@ -31,7 +51,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const args = process.argv.slice(2), self = fileURLToPath(import.meta.url);
-const PLANTS = { ignored: [2, 3, 5, 6], unsure: [6], modelignored: [4] };
+const PLANTS = { ignored: [2, 3, 5, 6, 7, 8, 9, 10], unsure: [6, 7], allnet: [1, 2, 3, 5, 7, 8, 9, 10], nowarn: [7], classic: [9], enginepay: [10], modelignored: [4, 10], houseroute: [8] };
 if (args[0] === '--plants') {
   let bad = 0;
   for (const [name, want] of Object.entries(PLANTS)) {
@@ -53,11 +73,14 @@ const M = await import('../../src/solver/model.js');
 const { solveForApp, appPlan: appSolverPlan, prepareForSolve } = await import('../../src/solverApp.js');
 const { tablesOf } = await import('../../src/solverDigest.js');
 const { householdPlan } = await import('../../src/solverCouple.js');
-const { householdPlanFor, TAKE_SHAPES, RISK_SHAPES, SALARY_SHAPES } = await import('../../src/solver/household.js');
+const { householdPlanFor, TAKE_SHAPES, RISK_SHAPES, SALARY_SHAPES, HOUSE } = await import('../../src/solver/household.js');
+const F = await import('../../src/solver/fast.js');
+const { buildActions } = await import('../../src/solver/solve.js');
 const { buildScenarios } = await import('../policy-study/scenarios.mjs');
 const { laterWorking } = await import('../solver/couples-open-panel.mjs');
-if (PLANT_NAME && PLANT_NAME !== 'modelignored' && E.ROUTE_PLANT) E.ROUTE_PLANT.rule = PLANT_NAME;
+if (PLANT_NAME && !['modelignored', 'houseroute'].includes(PLANT_NAME) && E.ROUTE_PLANT) E.ROUTE_PLANT.rule = PLANT_NAME;
 if (PLANT_NAME === 'modelignored') M.MODEL.plant = 'routeignored';
+if (PLANT_NAME === 'houseroute') HOUSE.plant = 'houseroute';
 
 let passed = 0, failed = 0;
 const ok = (n, label, c, detail = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'} ${n}. ${label}${detail ? '   ' + detail : ''}`); if (c) passed++; else failed++; };
@@ -217,7 +240,104 @@ const coupleWorking = (() => {
   if (!/income tax relief only/.test(W['employed-net'](false)) || !W['employed-net'](true).includes(pass) || W['employed-net'](false).includes(pass)) bad.push('net pay\'s line');
   if (!/^Priced as net pay, the more cautious/.test(W['employed-unsure'](false)) || !W['employed-unsure'](true).includes(pass)) bad.push('not sure\'s line');
   if (!/trading profit/.test(W['self-employed'](false))) bad.push('the self-employed\'s line');
-  ok(7, 'the words: the employment type\'s four answers, each with its line, the pass-through said where it does not apply', bad.length === 0, bad.join('; '));
+  // the warning (buildContext): with Config's pass-through set, a net-pay employee told it is ignored for them, a sacrificer not
+  const withPass = p => { const q = JSON.parse(JSON.stringify(p)); q.config = { ...q.config, employerNicPassThrough: 50 }; return E.normalizePlan(q); };
+  const warned = emp => ctxOf(at(withPass(singleSaver), emp)).warnings.some(w => /applies only to salary sacrifice/.test(w));
+  if (!warned('employed-net') || !warned('employed-unsure') || warned('employed') || warned('self-employed')) bad.push(`the pass-through's warning: net pay ${warned('employed-net')}, not sure ${warned('employed-unsure')}, salary sacrifice ${warned('employed')}, self-employed ${warned('self-employed')}`);
+  ok(7, 'the words: the employment type\'s four answers, each with its line, the pass-through said where it does not apply, and its warning for a net-pay employee', bad.length === 0, bad.join('; '));
+}
+const takes = [...TAKE_SHAPES, ...RISK_SHAPES, ...SALARY_SHAPES];
+const hpOf = (p, scale = 'pensionsPA') => householdPlanFor(E, householdPlan(E, appSolverPlan(E, prepareForSolve(E, p))), { scale, takeShapes: takes });
+const yearOf = id => Number(/_(\d+)$/.exec(id)[1]);
+{
+  const bad = [];
+  if (!coupleWorking) bad.push('no library couple with a working partner paying in');
+  else {
+    // the later retiree's take-home: each year's in the household plan (a tax-free income, scaled by the year's fraction in plan
+    // year 0 as the engine scales one) against the engine's working take-home in the couple's own run
+    const takeHome = {};
+    for (const emp of ['employed-net', 'employed']) {
+      const p = at(coupleWorking, emp, 'Part'), ctx = ctxOf(p), rows = E.simulateDeterministic(E.resolveMpaa(p), 'expected');
+      const th = hpOf(p).otherIncomes.filter(i => /^inc_house_takehome_/.test(i.id));
+      takeHome[emp] = th;
+      if (!th.length) { bad.push(`${emp}: no take-home in the household plan`); continue; }
+      const engYears = rows.filter(r => r.workingTakeHome > 0).length;
+      if (engYears !== th.length) bad.push(`${emp}: ${th.length} take-home years in the household plan, the engine ${engYears}`);
+      for (const i of th) { const t = yearOf(i.id), got = i.amount * (t === 0 ? ctx.yf : 1), want = rows[t].workingTakeHome; if (!(Math.abs(got - want) <= 1e-6)) { bad.push(`${emp} plan year ${t}: £${got.toFixed(2)} against the engine's £${want.toFixed(2)}`); break; } }
+    }
+    const apart = (takeHome['employed-net'] || []).filter((i, k) => takeHome.employed[k] && Math.abs(i.amount - takeHome.employed[k].amount) > 1e-6).length;
+    if (!apart) bad.push('net pay\'s take-home the sacrificer\'s in every year: the route not read');
+    // the form 'pensionsPAown': the partner working three years past the state pension age on £48,000, Config's pass-through at 50%
+    const pastSpa = emp => { const q = JSON.parse(JSON.stringify(at(coupleWorking, emp, 'Part'))), d = q.demographics; d.retireAgePart = E.num(d.statePensionAge, 67) + 3; d.salaryPart = 48000; q.config = { ...q.config, employerNicPassThrough: 50 }; return E.normalizePlan(q); };
+    const own = {};
+    for (const emp of ['employed-net', 'self-employed', 'employed']) own[emp] = Object.fromEntries(hpOf(pastSpa(emp), 'pensionsPAown').otherIncomes.filter(i => /^inc_house_partown_/.test(i.id)).map(i => [yearOf(i.id), i.amount]));
+    const ys = Object.keys(own['employed-net']);
+    if (!ys.length) bad.push('no own income in the form \'pensionsPAown\'');
+    else if (JSON.stringify(own['employed-net']) !== JSON.stringify(own['self-employed'])) bad.push('the partner\'s own income under net pay not the self-employed\'s');
+    const ownApart = ys.filter(t => Math.abs(own['employed-net'][t] - own.employed[t]) > 1e-6).length;
+    if (!ownApart) bad.push('the partner\'s own income under net pay the sacrificer\'s in every year: the route not read');
+    if (!bad.length) bad.push(`${takeHome['employed-net'].length} take-home years each the engine's under both routes, ${apart} apart; the partner's own income in ${ys.length} years the self-employed's, ${ownApart} apart from salary sacrifice's`);
+  }
+  ok(8, 'the household plan prices the later retiree\'s take-home by their own route, the engine\'s year by year, and in the form \'pensionsPAown\' the partner\'s own pay the salary less the whole contribution under net pay', bad.length === 1 && /^\d+ take-home years/.test(bad[0]), bad.join('; '));
+}
+{
+  const bad = [];
+  const pass = emp => { const q = JSON.parse(JSON.stringify(at(singleSaver, emp))); q.config = { ...q.config, employerNicPassThrough: 50 }; return E.normalizePlan(q); };
+  const record = emp => {
+    const plan = pass(emp), ctx = ctxOf(plan), t = E.buildTournament(plan, {}), relief = t.strategies.find(x => x.id === 'relief');
+    return {
+      capBinds: E.allocateBudget(ctx, 4 * ctx.owners[0].salary, 0), small: E.allocateBudget(ctx, 10000, 0.3), floor: E.allocateBudget(ctx, 10000, 0.3, { penFloorGross: [4000] }),
+      outlay: E.accumulationOutlay(ctx), env: (({ currentPenNet, derivedBudget }) => ({ currentPenNet, derivedBudget }))(E.accumulationEnv(ctx, {})),
+      tournament: { derivedBudget: t.meta.derivedBudget, baselineOutlay: t.meta.baselineOutlay, reliefSaved: relief.taxReliefSaved, reliefWords: /upfront tax relief/.test(relief.description) ? 'tax relief' : /upfront tax and NIC relief/.test(relief.description) ? 'tax and NIC relief' : relief.description }
+    };
+  };
+  const net = record('employed-net'), se = record('self-employed'), sac = record('employed');
+  for (const k of Object.keys(net)) {
+    if (JSON.stringify(net[k]) !== JSON.stringify(se[k])) bad.push(`${k}: net pay's not the self-employed's (${JSON.stringify(net[k]).slice(0, 120)} against ${JSON.stringify(se[k]).slice(0, 120)})`);
+    if (JSON.stringify(net[k]) === JSON.stringify(sac[k])) bad.push(`${k}: net pay's the sacrificer's`);
+  }
+  if (net.tournament.reliefWords !== 'tax relief' || sac.tournament.reliefWords !== 'tax and NIC relief') bad.push(`Relief-First's words: net pay '${net.tournament.reliefWords}', salary sacrifice '${sac.tournament.reliefWords}'`);
+  if (!(net.capBinds.penContrib === ctxOf(pass('employed-net')).owners[0].salary)) bad.push(`the earnings cap for net pay £${net.capBinds.penContrib.toFixed(2)}, not the salary`);
+  // the strategy panel's words (a page, outside the engine): read as the strategies price it, from the source
+  const src = readFileSync(new URL('../../src/App.jsx', import.meta.url), 'utf8');
+  if (!src.includes('const selfEmployedOnly = ctx.owners.length > 0 && ctx.owners.every(strategyRelief);') || /every\(o => o\.selfEmployed\)/.test(src)) bad.push('the strategy panel\'s words not read as the strategies price it');
+  ok(9, 'the classic strategies for a net-pay employee the self-employed\'s and apart from salary sacrifice\'s, the pass-through set: the allocation (the cap binding, a small budget, a floor), the outlay, the budget, the tournament and Relief-First\'s words', bad.length === 0, bad.length ? bad.join('; ') : `outlay £${net.outlay.toFixed(2)} against salary sacrifice's £${sac.outlay.toFixed(2)}; the cap binding at £${net.capBinds.penContrib.toFixed(2)} against £${sac.capBinds.penContrib.toFixed(2)}`);
+}
+{
+  const bad = [];
+  // a working single on £60,000 paying £10,000 into their pension, £150,000 in cash (its interest taxed where the pay sets the
+  // band), Config's pass-through at 50%
+  const passPlan = emp => { const q = JSON.parse(JSON.stringify(at(singleSaver, emp))); q.demographics.salarySelf = 60000; const pen = q.accounts.find(a => a.id === 'pen_self'); pen.contrib = 10000; delete pen.contribByYear; const cash = q.accounts.find(a => a.category === 'Cash Savings' && a.owner === 'Myself'); if (cash) cash.balance = 150000; q.config = { ...q.config, employerNicPassThrough: 50, guardrails: false, lookaheadYears: 0 }; return E.normalizePlan(q); };
+  const rowsOf = p => E.simulateDeterministic(E.resolveMpaa(p), 'expected');
+  const netPlan = passPlan('employed-net'), net = rowsOf(netPlan), sac = rowsOf(passPlan('employed')), ctx = ctxOf(netPlan), P = ctx.P;
+  const o = ctx.owners[0], pen = ctx.accounts.find(a => a.owner === 'self' && a.cat === 'pen'), pf = 1 + P.erNic * P.erPass;
+  let years = 0;
+  for (let t = 0; t < net.length; t++) {
+    if (!(net[t].taxablePaySelf > 0)) continue;
+    years++;
+    const frac = t === 0 ? ctx.yf : 1, pay = E.salaryAtYear(o, t), c = E.contribAtYear(pen, t);
+    if (!(Math.abs(net[t].taxablePaySelf - (pay - c) * frac) <= 1e-6)) { bad.push(`the engine's taxable pay in plan year ${t}: £${net[t].taxablePaySelf.toFixed(2)} against the salary less the whole contribution £${((pay - c) * frac).toFixed(2)}`); break; }
+    if (!(Math.abs(sac[t].taxablePaySelf - (pay - c / pf) * frac) <= 1e-6)) { bad.push(`the sacrificer's taxable pay in plan year ${t}: £${sac[t].taxablePaySelf.toFixed(2)} against £${((pay - c / pf) * frac).toFixed(2)}`); break; }
+  }
+  if (!years) bad.push('no working year');
+  // the exact model in step with the engine, every wrapper and flow year by year (check 4's fields)
+  const FIELDS = ['pensions', 'isas', 'other', 'cash', 'totalCombined', 'taxPaid', 'cgtPaid', 'drawdownPensions', 'harvested', 'targetSpend', 'netDrawdown', 'unmetDemand'];
+  const m = M.prepare(E, E.resolveMpaa(netPlan)), red = M.runFixed(m, M.actionFromContext(m.ctx));
+  let worst = 0, where = '';
+  if (red.length !== net.length) { worst = Infinity; where = 'row count'; }
+  else for (let t = 0; t < net.length; t++) for (const k of FIELDS) { const d = Math.abs(E.num(net[t][k], 0) - E.num(red[t][k], 0)); if (d > worst) { worst = d; where = `${k} in plan year ${t}`; } }
+  if (!(worst <= 1.0)) bad.push(`the exact model £${worst.toFixed(2)} from the engine (${where})`);
+  // the forward run's taxable pay, and its savings split copies' (the menu with both saves, as the candidate's solve compiles it)
+  const acts = buildActions(), c = F.compile(m, [...acts, ...acts.map(a => ({ ...a, save: 1 })), ...acts.map(a => ({ ...a, save: 2 }))]);
+  let fwd = 0, saves = 0;
+  for (let t = 0; t < net.length; t++) {
+    if (!(c.yr.pay[t] > 0)) continue;
+    fwd++;
+    if (!(Math.abs(c.yr.pay[t] - net[t].taxablePaySelf) <= 1e-6)) { bad.push(`the forward run's taxable pay in plan year ${t}: £${c.yr.pay[t].toFixed(2)} against the engine's £${net[t].taxablePaySelf.toFixed(2)}`); break; }
+    if (c.yr.saveYear[t]) for (let v = 1; v <= 2; v++) { saves++; const want = (E.salaryAtYear(o, t) - c.yr.saveCon[v][0][t]) * c.yr.frac[t]; if (!(Math.abs(c.yr.paySave[v][t] - want) <= 1e-6)) { bad.push(`the forward run's save ${v} in plan year ${t}: £${c.yr.paySave[v][t].toFixed(2)} against £${want.toFixed(2)}`); break; } }
+  }
+  if (fwd !== years || !saves) bad.push(`the forward run's working years ${fwd} (the engine's ${years}), its savings split years ${saves / 2}`);
+  ok(10, 'with the pass-through set, a net-pay employee\'s taxable pay the salary less the whole contribution: the engine\'s by hand, the exact model in step, the forward run\'s and its savings split copies\' the same', bad.length === 0, bad.length ? bad.join('; ') : `${years} working years; the exact model within £${worst.toExponential(2)}; ${saves / 2} savings split years`);
 }
 console.log(`${failed ? 'FAILED' : 'ALL PASS'}: ${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

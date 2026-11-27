@@ -39,6 +39,10 @@
  * (`contribByYear`) the merged account keeps the first account's alone. research/tests/household-landing.test.mjs holds the
  * app's route; research/solver/household-landing-scan.mjs sizes the first on every panel; research/tests/household-route.test.mjs
  * holds the app's route to this arm on units neither reaches.
+ * 27 Nov (D154 (3); the reviewer on it, MINOR 4): the app prices the later retiree's take-home by how they pay into their
+ * pension (each owner's reliefTaxOnly) where this arm prices it by the NIC class (selfEmployed). The two are the same for
+ * every plan this arm has run (no library plan or panel unit pays in from net pay or is not sure how), and would part on a
+ * later retiree who pays in from net pay; the arm is left as read.
  */
 import { rankFor, tiePick, layerOf, ratesAt, SPLITS } from '../../src/solver/couple.js';
 import { NODES, WEIGHTS, chooseAction } from '../../src/solver/solve.js';

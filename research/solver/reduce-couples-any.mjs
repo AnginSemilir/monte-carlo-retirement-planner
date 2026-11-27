@@ -43,7 +43,7 @@ import { cells } from './reduce-household.mjs';
 import { requireFairLogs } from './fair-gate.mjs';
 import { loadDir, compareClass, m1ByUnit, allSpendOf } from './reduce-couples-open.mjs';
 import { ARMS, KEYS, SEED, W, N_DEFAULT, ROUTE_CTX, configOf, stampFilesHash, HELD, PILOT_N, REGISTRATION, PATHS_FILE } from './audit-couples-any.mjs';
-import { READ_CLASSES, VARIANTS, R_KINDS, unitProblems as panelProblems } from './couples-any-panel.mjs';
+import { READ_CLASSES, VARIANTS, R_KINDS, APART, unitProblems as panelProblems } from './couples-any-panel.mjs';
 import { APP_POINTS } from '../../src/solverSettings.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -122,7 +122,8 @@ export function rule(units, identity = { ok: true, why: null }) {
 }
 export const CLASS_NAMES = Object.freeze({
   W: 'step 4\'s shapes (contributions to one wrapper growing at different rates, a cash ISA paid into, a later retiree paid and saving in plan year 0), taken by default since D146',
-  R: 'the pension or the ISA held by the two at different risks, one to three profiles apart, each way (A\'s \'risks\')',
+  R: APART ? 'the pension or the ISA held by the two at different risks, four and five profiles apart on the six levels, each way (COUPLES-APART.md)'
+    : 'the pension or the ISA held by the two at different risks, one to three profiles apart, each way (A\'s \'risks\')',
   L: 'the partner\'s own limits differing from the first person\'s (A\'s \'limits\')',
   P: 'two salaries growing at different rates (B\'s \'salaries\')',
   N: 'nobody retiring within the plan (C\'s \'noretire\')'
@@ -138,7 +139,7 @@ export function rParts(units) {
   const kindOf = u => R_KINDS[u.kind];
   const groups = [
     ...['pen', 'isa'].map(w => [`the ${w === 'pen' ? 'pension' : 'ISA'} apart`, u => kindOf(u).wrap === w]),
-    ...[1, 2, 3].map(n => [`${n} profile${n > 1 ? 's' : ''} apart`, u => kindOf(u).apart === n]),
+    ...(APART ? [4, 5] : [1, 2, 3]).map(n => [`${n} profile${n > 1 ? 's' : ''} apart`, u => kindOf(u).apart === n]),
     ['the first person the safer', u => kindOf(u).safer === 'self'], ['the partner the safer', u => kindOf(u).safer === 'part'],
     ['the elder holding 60%', u => u.hold === 'own'], ['the younger holding 75%', u => u.hold === 'Y75']
   ];
@@ -307,12 +308,15 @@ function planted() {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
-  if (args.includes('--planted')) process.exit(planted() ? 1 : 0);
+  // the gate and the rule are one code under APART; its planted checks build the rehearsal's units, so run them without it (the
+  // panel's own APART checks are couples-any-panel.mjs --planted with APART=1)
+  if (args.includes('--planted')) { if (APART) { console.error('reduce-couples-any: --planted runs without APART=1'); process.exit(2); } process.exit(planted() ? 1 : 0); }
   const PILOT = args.includes('--pilot'), REGISTERED = args.includes('--registered');
   // the pilot and the registered read take the registered panel (REG=1, so the stamp's data files are its)
   if ((PILOT || REGISTERED) !== (process.env.REG === '1')) { console.error(`reduce-couples-any: ${PILOT ? '--pilot' : REGISTERED ? '--registered' : 'the dress rehearsal'} reads ${PILOT || REGISTERED ? 'with' : 'without'} REG=1`); process.exit(2); }
   const seed = REGISTERED ? HELD : SEED;
-  const DIR = args.find(a => !a.startsWith('--')) || join(HERE, 'results', REGISTERED ? 'couples-any-run' : PILOT ? 'couples-any-pilot' : `couples-any-${SEED}`);
+  // APART=1: COUPLES-APART.md's test (EXPLORATORY), the rehearsal's read on its own panel and folder
+  const DIR = args.find(a => !a.startsWith('--')) || join(HERE, 'results', REGISTERED ? 'couples-any-run' : PILOT ? 'couples-any-pilot' : APART ? `couples-apart-${SEED}` : `couples-any-${SEED}`);
   if (!existsSync(DIR)) { console.error(`reduce-couples-any: no ${DIR}`); process.exit(2); }
   const { readAnyPanel } = await import('./couples-any-panel.mjs');
   const panel = readAnyPanel().map(u => ({ id: u.id, cls: u.cls, variant: u.variant, kind: u.kind, hold: u.hold }));
@@ -320,7 +324,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const want = smoke ? panel.filter(w => units.some(u => u.id === w.id)) : panel;
   const logs = Object.fromEntries(readdirSync(DIR).filter(x => /^case\d+\.txt$/.test(x)).map(x => [x, readFileSync(join(DIR, x), 'utf8')]));
   const n = REGISTERED ? JSON.parse(readFileSync(PATHS_FILE, 'utf8')).N : PILOT ? PILOT_N : N_DEFAULT;
-  console.log(`EVERY COUPLE ON THE SOLVER, ${REGISTERED ? `THE REGISTERED TEST (${REGISTRATION})` : PILOT ? 'THE REGISTERED TEST\'S PILOT (EXPLORATORY; its gate alone)' : 'THE DRESS REHEARSAL (EXPLORATORY; COUPLES-ANY.md amendment 2)'}: ${units.length} units from ${DIR.replace(/.*research\/solver\//, '')}, seed ${seed}${smoke ? ', a smoke' : ''}`);
+  console.log(`${APART ? 'COUPLES FOUR AND FIVE RISK LEVELS APART (EXPLORATORY; COUPLES-APART.md, D154 (5))' : `EVERY COUPLE ON THE SOLVER, ${REGISTERED ? `THE REGISTERED TEST (${REGISTRATION})` : PILOT ? 'THE REGISTERED TEST\'S PILOT (EXPLORATORY; its gate alone)' : 'THE DRESS REHEARSAL (EXPLORATORY; COUPLES-ANY.md amendment 2)'}`}: ${units.length} units from ${DIR.replace(/.*research\/solver\//, '')}, seed ${seed}${smoke ? ', a smoke' : ''}`);
   if (smoke && units.some(u => u.N === n && u.pts === APP_POINTS)) { console.log('a smoke at the read\'s own count of paths and points: refused (read it without --smoke)'); process.exit(1); }
   // the fair-test gate on the launch logs (CHECKLIST 3): under the registration every log stamped by the launcher with the
   // registration's git blob; the dress rehearsal's with PREDICTION none; a smoke, not launched, has none; the pilot runs directly

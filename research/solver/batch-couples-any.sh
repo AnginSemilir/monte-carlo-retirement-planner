@@ -5,6 +5,9 @@
 #   PREDICTION="none:every couple on the solver, a dress rehearsal (COUPLES-ANY.md amendment 2)" research/solver/run-from-snapshot.sh bash research/solver/batch-couples-any.sh
 # Read by reduce-couples-any.mjs, after couples-any-port-identity.mjs has held the app's route to it on W's units. MODE:
 #   rehearsal   the dress rehearsal above, its own panel;
+#   apart       COUPLES-APART.md's test (EXPLORATORY, D154 (5)): R four and five profiles apart, the rehearsal's audit on its own
+#               panel (APART=1, couples-apart-panel.json), seed 7002, its own folder, through the launcher:
+#               MODE=apart PREDICTION="none:couples four and five risk levels apart (COUPLES-APART.md)" research/solver/run-from-snapshot.sh bash research/solver/batch-couples-any.sh
 #   pilot       the registered test's pilot (EXPLORATORY, seed 7002, 1,000 paths, every unit of the registered panel; run
 #               directly, as couples-open's was, its sizing by size-couples-any.mjs): MODE=pilot bash research/solver/batch-couples-any.sh
 #   registered  the registered test (registrations/couples-any.md): seed HELD, couples-any-paths.json's paths, only under the
@@ -18,9 +21,10 @@ MODE=${MODE:-rehearsal}
 HELD_SEED=7027
 case "$MODE" in
   rehearsal) OUT=research/solver/results/couples-any-7002; unset REG ;;
+  apart) OUT=research/solver/results/couples-apart-7002; export APART=1 CA_OUT="$PWD/research/solver/results/couples-apart-7002"; unset REG ;;
   pilot) OUT=research/solver/results/couples-any-pilot; export REG=1 ;;
   registered) OUT=research/solver/results/couples-any-run; export REG=1 ;;
-  *) echo "$0: MODE rehearsal, pilot or registered"; exit 2 ;;
+  *) echo "$0: MODE rehearsal, apart, pilot or registered"; exit 2 ;;
 esac
 # A launch needs an empty folder; RESUME=1 (after a restart) keeps a unit only when its log's stamp names this code, these
 # files, this prediction and its hash, and the log holds the unit's done line (a unit not done resumes from its saved parts).
@@ -35,6 +39,8 @@ TODO=$(seq 0 $((NU - 1)) | while read -r k; do f="$OUT/case$k.txt"
 if [ "${TODO_ONLY:-0}" = 1 ]; then echo "stamp: code $CODE audit $AUDIT"; echo "todo: $(echo $TODO)"; exit 0; fi
 case "$MODE" in registered) ON="the registered seed $HELD_SEED" ;; *) ON="seed 7002, EXPLORATORY; the registered run's is $HELD_SEED" ;; esac
 echo "EVERY COUPLE ON THE SOLVER ($MODE, $ON): $NU units (code $CODE, audit $AUDIT), $(printf '%s\n' $TODO | grep -c .) to run, ${JOBS:-4} at a time, from $(TZ=Europe/London date '+%d %b %H:%M') UK"
+# apart runs the rehearsal's audit on its own panel (APART=1, exported above)
+AMODE=$MODE; [ "$MODE" = apart ] && AMODE=rehearsal
 printf '%s\n' $TODO | grep . | xargs -P "${JOBS:-4}" -I{} sh -c \
-  "research/solver/run-unit.sh node research/solver/audit-couples-any.mjs $MODE part {}/$NU > $OUT/case{}.txt 2>&1 || echo \"unit {} exited \$?\""
+  "research/solver/run-unit.sh node research/solver/audit-couples-any.mjs $AMODE part {}/$NU > $OUT/case{}.txt 2>&1 || echo \"unit {} exited \$?\""
 echo "EVERY COUPLE ON THE SOLVER ($MODE): runs done $(TZ=Europe/London date '+%d %b %H:%M') UK"

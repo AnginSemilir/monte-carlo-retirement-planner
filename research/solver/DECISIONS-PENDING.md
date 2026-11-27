@@ -11,6 +11,21 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**DECIDED (27 Nov): D154, "Ignore 2029 changes for now, do the rest".** Read as follows, said to you:
+- The 2029 cap on salary sacrifice's NIC relief for a plan's own contributions (D134 (3)) is not built for now. The employer's
+  NIC passed to the pension stays stated as it is, way (A) below; its fix waits with that change.
+- The speed mode's couples warning keeps its words (below, 20 Nov).
+- The app asks how an employee pays into their pension, way (A) below: the employment type offers salary sacrifice (the
+  default, the app's assumption until now), net pay or relief at source (income tax relief alone, no employer NIC passed
+  through) and not sure (priced as net pay, the cautious reading; the agent's choice, yours to change). Built with its test
+  of the class, every plan as entered the same to the bit, to `main` with the next batch.
+- The rollback switches stay as built, and the classic planner with them (D150 (3)); removing them is yours.
+- The three looks, EXPLORATORY, deciding nothing: why S227's two nobody-retiring units leave about half the mean pot; why
+  PA2's extra lost paths fail almost all in the plan's last year; R at four and five profiles apart against the app's rules
+  by D141's rule.
+- Then the readiness checklist on the release commit, to you before sharing publicly. The cash buffer, the 2027 savings
+  rates and LOOKHOLD's speed work stay as ruled.
+
 **DECIDED (26 Nov, night): D151, "Yes".** Read as the go on both asks below: the five fast-tier tests of the couples'
 guard and defaults and the three browser checks are edited with C and D's change of default, each named in its commit.
 `research/tests/run-all.mjs` is not edited: the hook opens it only on the words "unlock enforcement", so the new test (the
@@ -317,7 +332,7 @@ the classes that pass, is the guard reading the household plan's refusal (its sh
 reason lifted on its class's route alone; `couple-default.test.mjs` pins it. A class the rehearsal's addendum (the new units,
 EXPLORATORY, running now) shows harmed is left out of the registration and comes to you with its units.
 
-**OPEN (22 Nov, early), from the reviewer on D138's change of default (second look, finding 3,
+**DECIDED (27 Nov) by D154: (A), stated as now, its fix waiting with the 2029 change. Was OPEN (22 Nov, early), from the reviewer on D138's change of default (second look, finding 3,
 `reviews/2026-11-21-default-save-split-2.md`), for your word: the employer's NIC passed to the pension, a part of D137
 (4)'s price the split's routes do not carry.**
 - **What.** D137 (4) sent the change with "the law's price in the split's two routes". The deep review set that price for
@@ -378,7 +393,7 @@ for your word: two unlocks, by name, for what D138 adds that no protected file r
 - **The agent recommends both**, in one unlock, each protected file named in the commit that edits it. Until then D138's
   D-line says each is missing and why.
 
-**OPEN (21 Nov, night), from test K's read (D137 (4)), for your word: does the app ask how an employee pays into their
+**DECIDED (27 Nov) by D154: (A), the question asked in the employment type, built. Was OPEN (21 Nov, night), from test K's read (D137 (4)), for your word: does the app ask how an employee pays into their
 pension?**
 - **Where it comes from.** Test K (EXPLORATORY; `results-save-k.txt`, `reports/2026-11-21-save-k-read.md`) read THE CAUSE
   HOLDS IN SIZE. By D137 (4), the change of default prices the split's routes at the law's price for a salary sacrificer:
@@ -513,7 +528,7 @@ as they were put, kept as history:
      - What the stale flows reached was the other worlds' scores and tax for those copies, which the share check (a test
        mode) compares, and work wasted on them. Check 6's count of copies picked is a guard its plant cannot fail.
 
-**OPEN (20 Nov, evening), found while porting step 8; nothing decided, for your word:**
+**DECIDED (27 Nov) by D154: item 1's words kept as they stand. Was OPEN (20 Nov, evening), found while porting step 8; nothing decided, for your word:**
 1. **The speed mode reaches the household plan's table, unmeasured.** The opt-in "Beta - speed mode" (D97 (3)) hands a
    solve the chooser's shortlist, and since the household default (D135) a couple's one table takes it as a single's does.
    Its couples' warning ("usually only a little faster, spent a little less, ... about 5 in 1,000") was measured on

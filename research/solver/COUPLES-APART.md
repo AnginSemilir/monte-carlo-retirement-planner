@@ -32,7 +32,7 @@ risks'), and the app's guard puts it on the household route (since D148).
 
 The rehearsal's two arms, on the same `4,000` paths of seed 7002, at estate weight `0.02` and the app's points
 (`audit-couples-any.mjs`): APP, the app's own rules on the plan as entered; ROUTE, the household route as the app runs it for
-such a couple. Launched through the launcher with `PREDICTION=none` (`batch-couples-any.sh`, `MODE=apart`), from a snapshot.
+such a couple. Launched through the launcher with `PREDICTION=none` (`batch-couples-apart.sh`, the rehearsal's audit with `APART=1`), from a snapshot.
 
 ## The rule (D141's, as the rehearsal read R; `reduce-couples-any.mjs`, `APART=1`)
 

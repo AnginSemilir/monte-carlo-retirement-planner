@@ -168,6 +168,20 @@ const RISK_EQUITY_WEIGHTS = {
 // research/tests/household-risks.test.mjs only (buildContext's ladders): 'noladderadd' adds none of the household's tiers;
 // 'ladderinsert' puts them among a person's own tiers, before their riskier ones, so the person's own indices move
 const LADDER_PLANT = { rule: '' };
+/*
+ * HOW AN EMPLOYEE PAYS INTO THEIR PENSION (D154 (3)): research/tests/pension-route.test.mjs's plants, never set by the page:
+ * 'ignored' every employee priced as a sacrificer (the code before), 'unsure' not sure priced as salary sacrifice.
+ */
+const ROUTE_PLANT = { rule: '' };
+/* the employment type's answers and each one's line (D154 (3); the agent's draft, the maintainer's to change) */
+const EMPLOYMENT_KINDS = ['employed', 'employed-net', 'employed-unsure', 'self-employed'];
+const PASS_WORDS = ', and the employer NIC pass-through in Config does not apply';
+const EMPLOYMENT_WORDS = {
+  employed: () => 'Pension contributions are priced as salary sacrifice: income tax and employee NIC relief.',
+  'employed-net': pass => `Pension contributions get income tax relief only: National Insurance is paid on the whole salary${pass ? PASS_WORDS : ''}.`,
+  'employed-unsure': pass => `Priced as net pay, the more cautious: income tax relief only, with no National Insurance saving${pass ? PASS_WORDS : ''}. Your payslip or your pension provider can tell you which applies.`,
+  'self-employed': pass => `The salary box above is read as annual trading profit. Pension contributions get income tax relief only, with no NIC saving${pass ? PASS_WORDS : ''}.`
+};
 
 /*
  * `real` is the median (geometric) annual real return; `volatility` is the annual σ of the log return.
@@ -1789,6 +1803,11 @@ function buildContext(rawPlan) {
     salaryGrowth: clamp(num(o === 'self' ? d.salaryGrowthSelf : d.salaryGrowthPart, 0), -100, 100) / 100,
     // trading profit rather than salary: Class 4 NIC, and pension relief at the income tax rate only
     selfEmployed: (o === 'self' ? d.employmentSelf : d.employmentPart) === 'self-employed',
+    // how they pay into their pension (D154 (3)), which every price of a contribution reads: the self-employed, and an employee
+    // paying from net pay or by relief at source ('employed-net') or not sure how ('employed-unsure', the cautious reading), are
+    // relieved of income tax alone with no employer NIC passed through; an employee by salary sacrifice ('employed', the
+    // default, the app's assumption until now) of income tax and NIC. The NIC charged on the pay is the employment's, above
+    reliefTaxOnly: (emp => emp === 'self-employed' || (ROUTE_PLANT.rule !== 'ignored' && (emp === 'employed-net' || (emp === 'employed-unsure' && ROUTE_PLANT.rule !== 'unsure'))))(o === 'self' ? d.employmentSelf : d.employmentPart),
     cgtGainsUsed: Math.max(0, num(o === 'self' ? d.cgtGainsUsedSelf : d.cgtGainsUsedPart, 0)),
     // unused annual allowance from the three tax years before the projection starts
     cfBroughtForward: Math.max(0, num(o === 'self' ? d.cfBroughtForwardSelf : d.cfBroughtForwardPart, 0)),
@@ -1807,7 +1826,9 @@ function buildContext(rawPlan) {
     if (isa && isa.contrib > P.isaAllowance) warnings.push(`${o.label}: ISA contribution £${fmtNum(Math.round(isa.contrib))} exceeds the ISA allowance £${fmtNum(P.isaAllowance)}.`);
     if (o.salary > 0 && pen && pen.contrib > o.salary) warnings.push(`${o.label}: pension contribution exceeds ${o.selfEmployed ? 'trading profit' : 'salary'}.`);
     // the pass-through only exists because an employer saves NIC on sacrificed salary; a sole trader has neither
-    if (o.selfEmployed && P.erPass > 0) warnings.push(`${o.label}: employer NIC pass-through is set to ${Math.round(P.erPass * 100)}% in Config, but the self-employed have no employer, so it is ignored for this person.`);
+    if (o.selfEmployed && P.erPass > 0) warnings.push(`${o.label}: employer NIC pass-through is set to ${Math.round(P.erPass * 100)}% in Config, but the self-employed have no employer, so it is ignored for this person.`)
+    // an employer saves NIC only on salary sacrifice, so a net-pay contribution has none to pass through (D154 (3))
+    else if (o.reliefTaxOnly && P.erPass > 0) warnings.push(`${o.label}: employer NIC pass-through is set to ${Math.round(P.erPass * 100)}% in Config, but it applies only to salary sacrifice, so it is ignored for this person.`);
     const gia = acc[o.ids.other];
     if (P.cgtEnabled && gia && gia.balance > 0 && isBlank(plan.accounts.find(a => a.id === o.ids.other)?.unrealisedGain)) {
       // One line. Three sentences of explanation in a banner that lists five of these is a paragraph
@@ -2372,7 +2393,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     if (!working[o.key] || !(o.salary > 0)) return;
     const pen = acc[o.ids.pen];
     const penContrib = pen ? (sv && pen.id in sv ? sv[pen.id] : contribAtYear(pen, t)) : 0;
-    taxablePay[o.key] = taxablePayOf(salaryAtYear(o, t), penContrib, P, o.selfEmployed) * frac;
+    taxablePay[o.key] = taxablePayOf(salaryAtYear(o, t), penContrib, P, o.reliefTaxOnly) * frac;
   });
   /*
    * 4a. Tax on the year's savings interest. Cash Savings grows at its real rate in step 8 as it always
@@ -2433,7 +2454,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
       const pay = salaryAtYear(o, t);
       // pay less tax, NIC and the net cost of the pension contribution — which prices sacrifice for an
       // employee and relief at source for the self-employed, whose NIC is charged on the whole profit
-      const takeHome = pay - calculateUKTaxAndNIC(pay, P, o.selfEmployed) - netCostOfPensionContrib(penContrib, pay, P, o.selfEmployed);
+      const takeHome = pay - calculateUKTaxAndNIC(pay, P, o.selfEmployed) - netCostOfPensionContrib(penContrib, pay, P, o.reliefTaxOnly);
       const nonPensionContribs = (contribThisYear[o.key] / frac) - penContrib;
       workingTakeHome += Math.max(0, takeHome - nonPensionContribs) * frac;
     });
@@ -3636,7 +3657,8 @@ function saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, tota
       const P0 = pa ? contribAtYear(pa, t) : 0, I0 = ia ? contribAtYear(ia, t) : 0, G0 = ga ? contribAtYear(ga, t) : 0, C0 = ca ? contribAtYear(ca, t) : 0;
       const plan = { [ids.pen]: P0, [ids.isa]: I0, [ids.other]: G0, [ids.cash]: C0 };
       const put = (v, amts) => { for (const id of Object.keys(amts)) if (acc[id]) v[id] = amts[id]; };
-      const salary = salaryAtYear(o, t), se = !!o.selfEmployed;
+      // priced by how they pay in (D154 (3)): income tax relief alone for the self-employed and a net-pay employee
+      const salary = salaryAtYear(o, t), se = !!o.reliefTaxOnly;
       // D138: from April 2029 an employee's sacrifice is relieved of NIC on its first £2,000 a year alone (SAVE_NIC_CAP)
       const nicCap = !se && SAVE_NIC_CAP.on && baseYear + t >= SAVE_NIC_CAP.from ? SAVE_NIC_CAP.amount : Infinity;
       const netOf = g => (g > 0 ? netCostOfPensionContrib(g, salary, P, se, nicCap) : 0);
@@ -3732,7 +3754,7 @@ function allocateBudget(ctx, netBudget, isaShare, { isaMin = 0, balance = 'propo
   // the self-employed have no employer, so no pass-through can inflate the earnings cap for them
   const capOf = (o) => Math.min(
     mpaaAppliesAtYear(P, o, 0) ? P.mpaaLimit : P.aaAt(o.salary),
-    o.salary > 0 ? o.salary * passThroughFactor(P, o.selfEmployed) : P.pensionAllowance
+    o.salary > 0 ? o.salary * passThroughFactor(P, o.reliefTaxOnly) : P.pensionAllowance
   );
   let penNetRemaining = penNet;
   const order = owners.map((o, i) => i).sort((a, b) => penW[b] - penW[a]);
@@ -3742,10 +3764,10 @@ function allocateBudget(ctx, netBudget, isaShare, { isaMin = 0, balance = 'propo
     const o = owners[i];
     const cap = Math.max(0, capOf(o) - penGross[i]);
     if (cap <= 0) return 0;
-    const credit = grossUpNetIncremental(netAmt, o.salary, P, penGross[i], cap, o.selfEmployed);
+    const credit = grossUpNetIncremental(netAmt, o.salary, P, penGross[i], cap, o.reliefTaxOnly);
     if (credit <= 0) return 0;
     penGross[i] += credit;
-    const total = netCostOfPensionContrib(penGross[i], o.salary, P, o.selfEmployed);
+    const total = netCostOfPensionContrib(penGross[i], o.salary, P, o.reliefTaxOnly);
     const delta = total - penNetUsed[i];
     penNetUsed[i] = total;
     return delta;
@@ -3756,7 +3778,7 @@ function allocateBudget(ctx, netBudget, isaShare, { isaMin = 0, balance = 'propo
   if (penFloorGross) {
     owners.forEach((o, i) => {
       if (penGross[i] > penFloorGross[i]) {
-        const excessNet = penNetUsed[i] - netCostOfPensionContrib(penFloorGross[i], o.salary, P, o.selfEmployed);
+        const excessNet = penNetUsed[i] - netCostOfPensionContrib(penFloorGross[i], o.salary, P, o.reliefTaxOnly);
         penGross[i] = penFloorGross[i]; penNetUsed[i] -= excessNet; penNetRemaining += excessNet;
       }
     });
@@ -3828,7 +3850,7 @@ function accumulationOutlay(rawPlan, rateOverride = null) {
           c = stripped * Math.pow(1 + rateOverride, t);
         }
         if (!(c > 0)) continue;
-        net += cat === 'pen' ? netCostOfPensionContrib(c, salaryAtYear(o, t), cfg, o.selfEmployed) : c;
+        net += cat === 'pen' ? netCostOfPensionContrib(c, salaryAtYear(o, t), cfg, o.reliefTaxOnly) : c;
       }
     });
   });
@@ -4027,7 +4049,7 @@ function accumulationEnv(ctx, { emergencyFloor = 25000, scope = 'contributions',
   const currentIsa = owners.map(o => contribNow(acc[o.ids.isa]));
   const currentGia = owners.map(o => contribNow(acc[o.ids.other]));
   const currentCash = owners.map(o => contribNow(acc[o.ids.cash]));
-  const currentPenNet = owners.reduce((s, o, i) => s + netCostOfPensionContrib(currentPen[i], o.salary, cfg, o.selfEmployed), 0);
+  const currentPenNet = owners.reduce((s, o, i) => s + netCostOfPensionContrib(currentPen[i], o.salary, cfg, o.reliefTaxOnly), 0);
   const currentIsaNet = currentIsa.reduce((a, b) => a + b, 0);
   const sweptGia = currentGia.reduce((a, b) => a + b, 0);
   const sweptCash = currentCash.reduce((a, b) => a + b, 0);
@@ -4216,7 +4238,7 @@ function buildTournament(rawPlan, { emergencyFloor = 25000, scope = 'contributio
     const transfer = bs ? bs.transfer : null;
     const reliefExtra = bs ? bs.reliefExtra : 0;
     strategies.push(mk('relief', 'Relief-First' + (transfer ? ' + Bed & SIPP' : ''),
-      `Routes the budget to pension first (subject to the pre-SIPP access bridge minimum) to capture maximum upfront ${owners.every(o => o.selfEmployed) ? 'tax relief' : 'tax and NIC relief'}` + (transfer ? '; also moves spare ISA capital into the pension.' : '.'),
+      `Routes the budget to pension first (subject to the pre-SIPP access bridge minimum) to capture maximum upfront ${owners.every(o => o.reliefTaxOnly) ? 'tax relief' : 'tax and NIC relief'}` + (transfer ? '; also moves spare ISA capital into the pension.' : '.'),
       alloc, { transferNet: transfer ? Math.round(transfer.net) : 0, transferGross: transfer ? Math.round(transfer.gross) : 0, taxReliefSaved: alloc.taxReliefSaved + reliefExtra, planOpts: { transfer } }));
   }
   // 5 bracket-smoothed pension sizing
@@ -7235,7 +7257,7 @@ function frontierSpend(row, targetRate = 90) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { LADDER_PLANT, pensionCeiling, niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, planHasKnownCost, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, taxablePayOf, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
+const E = { LADDER_PLANT, ROUTE_PLANT, EMPLOYMENT_KINDS, EMPLOYMENT_WORDS, pensionCeiling, niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, planHasKnownCost, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, taxablePayOf, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
 /*
  * The engine's public surface. Simple.jsx consumes it from here rather than from a module of its own,
  * which is a deliberate and temporary coupling: with one entrance both pages ship in the same bundle
@@ -8344,7 +8366,8 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
     setPlanBlocked(!openActionPlan(html));
   };
   // A sandbox run is scored against the frozen sandbox plan rather than the saved inputs.
-  const selfEmployedOnly = ctx.owners.length > 0 && ctx.owners.every(o => o.selfEmployed);
+  // income tax relief alone for every person (the self-employed and net-pay employees, D154 (3)): the words say tax relief
+  const selfEmployedOnly = ctx.owners.length > 0 && ctx.owners.every(o => o.reliefTaxOnly);
   const usingSandbox = !!state.basePlan;
   const basePlan = state.basePlan || plan;
 
@@ -13373,19 +13396,19 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     </div>
                     {ctx.owners.map(o => {
                       const field = o.key === 'self' ? 'employmentSelf' : 'employmentPart';
-                      const isSE = plan?.demographics?.[field] === 'self-employed';
+                      // how an employee pays into their pension, asked here (D154 (3)); the words the agent's draft and the
+                      // maintainer's to change. A value the app does not know shows as salary sacrifice, as the engine reads it
+                      const emp = EMPLOYMENT_KINDS.includes(plan?.demographics?.[field]) ? plan.demographics[field] : 'employed';
                       return (
                         <div key={`emp_${o.key}`}>
                           <label className="text-slate-600 font-semibold block mb-1">Employment type ({o.label})</label>
-                          <select aria-label="Employment type" value={isSE ? 'self-employed' : 'employed'} onChange={(e) => updateDemographics(field, e.target.value)} className={`${inputCls} cursor-pointer`}>
-                            <option value="employed">Employed (Class 1 NIC, salary sacrifice)</option>
+                          <select aria-label="Employment type" value={emp} onChange={(e) => updateDemographics(field, e.target.value)} className={`${inputCls} cursor-pointer`}>
+                            <option value="employed">Employed, paying into my pension by salary sacrifice</option>
+                            <option value="employed-net">Employed, paying in from net pay or by relief at source</option>
+                            <option value="employed-unsure">Employed, not sure how I pay in</option>
                             <option value="self-employed">Self-employed (Class 4 NIC, relief at source)</option>
                           </select>
-                          <span className="text-[10px] text-slate-400 mt-1 block">
-                            {isSE
-                              ? `The salary box above is read as annual trading profit. Pension contributions get income tax relief only, with no NIC saving${P.erPass > 0 ? ', and the employer NIC pass-through in Config does not apply' : ''}.`
-                              : 'Pension contributions are priced as salary sacrifice: income tax and employee NIC relief.'}
-                          </span>
+                          <span className="text-[10px] text-slate-400 mt-1 block" data-employment-words={emp}>{EMPLOYMENT_WORDS[emp](P.erPass > 0)}</span>
                         </div>
                       );
                     })}

@@ -249,7 +249,8 @@ export function householdPlanFor(E, plan, opts = {}) {
     const others = accts.filter(a => a !== pen).reduce((s, a) => s + E.contribAtYear(a, t), 0);
     if (t === 0 && (pay > 0 || penContrib > 0 || others > 0) && !takes.has('year0')) throw new Error('householdPlanFor: a later retiree paid or saving in plan year 0');
     if (pay > 0 && !planted('notakehome')) {
-      const takeHome = pay - E.calculateUKTaxAndNIC(pay, P, o.selfEmployed) - E.netCostOfPensionContrib(penContrib, pay, P, o.selfEmployed);
+      // priced by how the later retiree pays into their pension (D154 (3)), as the engine prices their take-home
+      const takeHome = pay - E.calculateUKTaxAndNIC(pay, P, o.selfEmployed) - E.netCostOfPensionContrib(penContrib, pay, P, o.reliefTaxOnly);
       const net = Math.max(0, takeHome - others);
       if (net > 0) incomes.push({ id: `inc_house_takehome_${k}_${t}`, name: 'The later retiree\'s take-home (the household plan)', owner: 'Myself', startAge: ageA + t, endAge: ageA + t, amount: net, incomeType: 'taxFree', notes: '' });
     }
@@ -289,7 +290,7 @@ export function householdPlanFor(E, plan, opts = {}) {
       for (const inc of ctx.otherIncomes) if (inc.owner === 'part' && !inc.taxFree && age >= inc.startAge && age <= inc.endAge) { if (inc.isEarnings) earn += inc.amount; else F += inc.amount; }
       if (!(F > 0)) continue;
       const frac = t === 0 ? ctx.yf : 1;
-      const pay = ((working('part', t) ? E.taxablePayOf(E.salaryAtYear(own.part, t), penPart ? E.contribAtYear(penPart, t) : 0, P, own.part.selfEmployed) : 0) + earn) * frac;
+      const pay = ((working('part', t) ? E.taxablePayOf(E.salaryAtYear(own.part, t), penPart ? E.contribAtYear(penPart, t) : 0, P, own.part.reliefTaxOnly) : 0) + earn) * frac;
       const tax = E.incomeTax(pay + F * frac, P) - E.incomeTax(pay, P), net = frac > 0 ? (F * frac - tax) / frac : 0;
       incomes.push({ id: `inc_house_partown_${t}`, name: 'The partner\'s own income net of their own tax (the household plan)', owner: 'Myself', startAge: ageA + t, endAge: ageA + t, amount: net, incomeType: 'taxFree', notes: '' });
     }

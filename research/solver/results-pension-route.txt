@@ -1,0 +1,14 @@
+pension-route.test.mjs
+  ok   1. every plan as entered the same to the bit: the library through the engine, three working savers' tables, 210 household plans   {"engine":"eff3f291c4944916","savers":"1ece139e903a41a2","saverCount":3,"households":"b799121b3014df54","householdCount":210}
+  ok   2. a net-pay employee's relief income tax alone with no employer NIC passed through, salary sacrifice's income tax and NIC with it, by hand at £40,000 and £80,000
+  ok   3. a working partner's take-home in the engine priced by their own route: under net pay lower by the NIC relief on the contribution alone, year by year   8 years
+  ok   4. the engine and the solver's exact model in step for net-pay employees, every wrapper and flow year by year   the working single £0.00e+0; the couple, the partner working £2.33e-10 (totalCombined in plan year 39); the couple, both net pay £2.33e-10 (totalCombined in plan year 39)
+  ok   5. the savings split's routes for a net-pay employee the same plan's with the person self-employed (income tax relief alone), and apart from salary sacrifice's   5 working years, 5 apart from salary sacrifice's
+  ok   6. not sure priced as net pay; a couple entered younger first keeps each person's answer on the mirror
+  ok   7. the words: the employment type's four answers, each with its line, the pass-through said where it does not apply
+ALL PASS: 7 passed, 0 failed
+
+plant 'ignored': checks failing 2, 3, 5, 6 (its own: 2, 3, 5, 6) ok
+plant 'unsure': checks failing 6 (its own: 6) ok
+plant 'modelignored': checks failing 4 (its own: 4) ok
+PLANTS: all 3 fail exactly their own checks

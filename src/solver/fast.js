@@ -261,8 +261,9 @@ export function compile(m, actions) {
     if (sv) { yr.saveYear[t] = 1; for (let v = 1; v <= 2; v++) CATS.forEach((c, i) => { const id = idOf[c]; yr.saveCon[v][i][t] = acc[id] ? (id in sv.variants[v] ? sv.variants[v][id] : yr.con[i][t]) : 0; }); }
     if (yr.working[t] && o.salary > 0) {
       const salary = E.salaryAtYear(SALARY.plant === 'nosched' ? { ...o, salaryByYear: null } : o, t);
-      yr.pay[t] = E.taxablePayOf(salary, yr.con[0][t], P, o.selfEmployed) * yr.frac[t];
-      if (yr.saveYear[t]) for (let v = 1; v <= 2; v++) yr.paySave[v][t] = E.taxablePayOf(salary, yr.saveCon[v][0][t], P, o.selfEmployed) * yr.frac[t];
+      // priced by how they pay into their pension (D154 (3)), as the engine's taxable pay
+      yr.pay[t] = E.taxablePayOf(salary, yr.con[0][t], P, o.reliefTaxOnly) * yr.frac[t];
+      if (yr.saveYear[t]) for (let v = 1; v <= 2; v++) yr.paySave[v][t] = E.taxablePayOf(salary, yr.saveCon[v][0][t], P, o.reliefTaxOnly) * yr.frac[t];
     }
     yr.cgtExempt[t] = Math.max(0, P.cgtAnnualExempt - (t === 0 ? o.cgtGainsUsed : 0));
     yr.cashIsaCap[t] = P.cashIsaCapAt(age, year);

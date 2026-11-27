@@ -1,0 +1,70 @@
+COUPLES FOUR AND FIVE RISK LEVELS APART, THE PANEL (EXPLORATORY; COUPLES-APART.md, D154 (5)): couples-apart-panel.json, built 2026-11-27T21:16:52.125Z, code 3fb20e2156f8
+S025 (lib):
+    S025-Rp4s-own  class R; target 22500, arm A 85.2% (ISA First, lump sum); the first person holds 60%; the guard on
+    S025-Rp4s-Y75  class R; target 22400, arm A 85.9% (ISA First, lump sum); the first person holds 25%; the guard on
+    S025-Rp4t-own  class R; target 22600, arm A 84.2% (ISA First); the first person holds 60%; the guard on
+    S025-Rp4t-Y75  class R; target 22500, arm A 85.8% (ISA First (harvest off)); the first person holds 25%; the guard on
+    S025-Rp5s-own  class R; target 22500, arm A 84.6% (ISA First, lump sum); the first person holds 60%; the guard on
+    S025-Rp5s-Y75  class R; target 22400, arm A 85.7% (ISA First, lump sum); the first person holds 25%; the guard on
+    S025-Rp5t-own  class R; target 22600, arm A 84.3% (ISA First); the first person holds 60%; the guard on
+    S025-Rp5t-Y75  class R; target 22500, arm A 84.8% (ISA First (harvest off)); the first person holds 25%; the guard on
+    S025-Ri4s-own  class R; target 22400, arm A 85.6% (ISA First); the first person holds 60%; the guard on
+    S025-Ri4s-Y75  class R; target 22600, arm A 84.6% (ISA First); the first person holds 25%; the guard on
+    S025-Ri4t-own  class R; target 22400, arm A 85.9% (ISA First, lump sum); the first person holds 60%; the guard on
+    S025-Ri4t-Y75  class R; target 22500, arm A 84.9% (ISA First); the first person holds 25%; the guard on
+    S025-Ri5s-own  class R; target 22400, arm A 85.6% (ISA First); the first person holds 60%; the guard on
+    S025-Ri5s-Y75  class R; target 22400, arm A 85.8% (ISA First, lump sum); the first person holds 25%; the guard on
+    S025-Ri5t-own  class R; target 22400, arm A 85.3% (ISA First, lump sum); the first person holds 60%; the guard on
+    S025-Ri5t-Y75  class R; target 22400, arm A 85.9% (ISA First, lump sum); the first person holds 25%; the guard on
+S273 (lib):
+    S273-Rp4s-own  class R; target 166100, arm A 85.3% (Bracket Fill Basic); the first person holds 60%; the guard on
+    S273-Rp4s-Y75  class R; target 161000, arm A 85.8% (Bracket Fill Basic, lump sum); the first person holds 25%; the guard on
+    S273-Rp4t-own  class R; target 166100, arm A 84.6% (Bracket Fill Basic); the first person holds 60%; the guard on
+    S273-Rp4t-Y75  class R; target 166100, arm A 85.2% (Bracket Fill Basic); the first person holds 25%; the guard on
+    S273-Rp5s-own  class R; target 161000, arm A 85.3% (Bracket Fill Basic, lump sum); the first person holds 60%; the guard on
+    S273-Rp5s-Y75  class R; target 161000, arm A 84.7% (Bracket Fill Basic, lump sum); the first person holds 25%; the guard on
+    S273-Rp5t-own  class R; target 161000, arm A 84.6% (Bracket Fill Basic); the first person holds 60%; the guard on
+    S273-Rp5t-Y75  class R; target 161000, arm A 84.1% (Bracket Fill Basic, lump sum); the first person holds 25%; the guard on
+    S273-Ri4s-own  class R; target 151000, arm A 85.2% (ISA First, lump sum); the first person holds 60%; the guard on
+    S273-Ri4s-Y75  class R; target 156000, arm A 84.3% (ISA First); the first person holds 25%; the guard on
+    S273-Ri4t-own  class R; target 156000, arm A 85.4% (Bracket Fill Basic); the first person holds 60%; the guard on
+    S273-Ri4t-Y75  class R; target 151000, arm A 84.6% (Sequential (harvest off)); the first person holds 25%; the guard on
+    S273-Ri5s-own  class R; target 151000, arm A 85.1% (ISA First, lump sum); the first person holds 60%; the guard on
+    S273-Ri5s-Y75  class R; target 151000, arm A 85.3% (ISA First); the first person holds 25%; the guard on
+    S273-Ri5t-own  class R; target 151000, arm A 86.0% (ISA First); the first person holds 60%; the guard on
+    S273-Ri5t-Y75  class R; target 151000, arm A 84.8% (ISA First, lump sum); the first person holds 25%; the guard on
+S351F (young):
+    S351F-Rp4s-own class R; target 43700, arm A 85.7% (Bracket Fill); the first person holds 60%; the guard on
+    S351F-Rp4s-Y75 class R; target 43700, arm A 85.5% (Bracket Fill, lump sum); the first person holds 25%; the guard on
+    S351F-Rp4t-own class R; target 43700, arm A 85.4% (Bracket Fill, lump sum); the first person holds 60%; the guard on
+    S351F-Rp4t-Y75 class R; target 43700, arm A 85.6% (Bracket Fill, lump sum); the first person holds 25%; the guard on
+    S351F-Rp5s-own class R; target 41500, arm A 85.7% (Bracket Fill, lump sum); the first person holds 60%; the guard on
+    S351F-Rp5s-Y75 class R; target 42600, arm A 84.8% (Bracket Fill); the first person holds 25%; the guard on
+    S351F-Rp5t-own class R; target 42600, arm A 85.2% (Bracket Fill, lump sum); the first person holds 60%; the guard on
+    S351F-Rp5t-Y75 class R; target 41500, arm A 85.0% (Bracket Fill); the first person holds 25%; the guard on
+    S351F-Ri4s-own class R; target 41500, arm A 85.1% (ISA First, lump sum); the first person holds 60%; the guard on
+    S351F-Ri4s-Y75 class R; target 42600, arm A 84.4% (Bracket Fill, lump sum); the first person holds 25%; the guard on
+    S351F-Ri4t-own class R; target 42600, arm A 84.3% (Bracket Fill); the first person holds 60%; the guard on
+    S351F-Ri4t-Y75 class R; target 41500, arm A 85.4% (ISA First, lump sum); the first person holds 25%; the guard on
+    S351F-Ri5s-own class R; target 41500, arm A 85.0% (ISA First, lump sum); the first person holds 60%; the guard on
+    S351F-Ri5s-Y75 class R; target 41500, arm A 85.7% (ISA First, lump sum); the first person holds 25%; the guard on
+    S351F-Ri5t-own class R; target 41500, arm A 85.2% (Bracket Fill); the first person holds 60%; the guard on
+    S351F-Ri5t-Y75 class R; target 41500, arm A 85.1% (ISA First, lump sum); the first person holds 25%; the guard on
+S357F (young):
+    S357F-Rp4s-own class R; target 119000, arm A 84.3% (Bracket Fill Basic); the first person holds 60%; the guard on
+    S357F-Rp4s-Y75 class R; target 114900, arm A 84.4% (Bracket Fill); the first person holds 25%; the guard on
+    S357F-Rp4t-own class R; target 114900, arm A 84.6% (Bracket Fill); the first person holds 60%; the guard on
+    S357F-Rp4t-Y75 class R; target 119000, arm A 84.6% (Bracket Fill Basic); the first person holds 25%; the guard on
+    S357F-Rp5s-own class R; target 110800, arm A 84.6% (Bracket Fill Basic); the first person holds 60%; the guard on
+    S357F-Rp5s-Y75 class R; target 110800, arm A 85.8% (Bracket Fill Basic); the first person holds 25%; the guard on
+    S357F-Rp5t-own class R; target 110800, arm A 85.2% (Bracket Fill Basic); the first person holds 60%; the guard on
+    S357F-Rp5t-Y75 class R; target 106700, arm A 85.9% (Bracket Fill Basic); the first person holds 25%; the guard on
+    S357F-Ri4s-own class R; target 106700, arm A 85.2% (Bracket Fill); the first person holds 60%; the guard on
+    S357F-Ri4s-Y75 class R; target 110800, arm A 84.5% (Bracket Fill Basic); the first person holds 25%; the guard on
+    S357F-Ri4t-own class R; target 110800, arm A 84.2% (Bracket Fill Basic); the first person holds 60%; the guard on
+    S357F-Ri4t-Y75 class R; target 106700, arm A 85.0% (Bracket Fill); the first person holds 25%; the guard on
+    S357F-Ri5s-own class R; target 106700, arm A 84.8% (Bracket Fill); the first person holds 60%; the guard on
+    S357F-Ri5s-Y75 class R; target 106700, arm A 85.2% (Bracket Fill); the first person holds 25%; the guard on
+    S357F-Ri5t-own class R; target 106700, arm A 85.3% (Bracket Fill); the first person holds 60%; the guard on
+    S357F-Ri5t-Y75 class R; target 106700, arm A 84.4% (Bracket Fill); the first person holds 25%; the guard on
+64 units: R 64

@@ -9,8 +9,11 @@
  * Every probe returns plain data, never a DOM node: page.evaluate has to serialise the result.
  */
 
-// WCAG contrast, measured against the background that is really behind the text
-const CONTRAST_PROBE = () => {
+// WCAG contrast, measured against the background that is really behind the text. `opts.layerAll` is a plant for the probe's
+// own check alone (restyle-regression-ui.cjs, the planted layers): every earlier positioned sibling over the text composited
+// under it, painted beneath it or not, as the D155 fix round's rule did
+const CONTRAST_PROBE = (opts) => {
+  const layerAll = !!(opts && opts.layerAll);
   const lum = (c) => {
     const [r, g, b] = c;
     const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
@@ -24,13 +27,23 @@ const CONTRAST_PROBE = () => {
    * own opacity. That is how a shaded bar under a label is drawn (Your plan's "In shares" strip: the shade is a layer beside
    * the label, not its parent), which the walk up the ancestors alone read as the card behind it: 1:1 for a label that is
    * really 5.65:1, and 3.85:1 for one it called the same (the D155 fix round, 28 Nov 2026).
+   *
+   * Only a layer painted beneath the text is composited under it (the reviewer's second look at D155, finding 5; CSS 2.1
+   * appendix E): one that is drawn (not visibility hidden, not display none), where the text's element at that level is
+   * itself positioned and the layer's z-index is not above its own (z-index auto counted as 0; at the same level the earlier
+   * in tree order paints first, so beneath). A positioned layer paints over a later sibling that is not positioned, and a
+   * layer with the higher z-index paints over the other: such a layer covers the text rather than backing it, and the walk
+   * reads what is behind the layer, as it did before the fix round, so text under a veil still fails. An ancestor's opacity
+   * is read by neither rule.
    */
+  const zOf = cs => { const z = parseInt(cs.zIndex, 10); return Number.isFinite(z) ? z : 0; };
   const bgOf = (el) => {
     const r0 = el.getBoundingClientRect(), cx = r0.left + r0.width / 2, cy = r0.top + r0.height / 2;
     let n = el, acc = [255, 255, 255];
     const stack = [];   // innermost first
     while (n && n.nodeType === 1) {
-      const c = parse(getComputedStyle(n).backgroundColor);
+      const ns = getComputedStyle(n);
+      const c = parse(ns.backgroundColor);
       if (c && c[3] > 0) stack.push(c);
       if (c && c[3] === 1) break;
       const P = n.parentElement;
@@ -39,6 +52,7 @@ const CONTRAST_PROBE = () => {
         for (let k = sibs.indexOf(n) - 1; k >= 0; k--) {
           const s = sibs[k], ss = getComputedStyle(s);
           if (ss.position !== 'absolute' && ss.position !== 'fixed') continue;
+          if (!layerAll && (ss.visibility === 'hidden' || ss.display === 'none' || ns.position === 'static' || zOf(ss) > zOf(ns))) continue;
           const sr = s.getBoundingClientRect();
           if (cx < sr.left || cx > sr.right || cy < sr.top || cy > sr.bottom) continue;
           const sc = parse(ss.backgroundColor);

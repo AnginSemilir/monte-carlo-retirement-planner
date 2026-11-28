@@ -14,7 +14,10 @@
  *    Node's year for year (rowsOf, src/solverStrategy.js) and each year's move Node's; "Your current approach" gives your
  *    plan's ledger, Node's, with no move column. The history check is the solved plan through real history, labelled the
  *    out-of-model check: its verdict and the pot left Node's for the start year shown, your current approach's verdict beside
- *    it Node's.
+ *    it Node's. The solve's worker answers the page's questions in turn, so Details is opened once Your plan's last ones are
+ *    in (this year's actions and the rule of thumb, on 1,000 paired paths each), and the ledger then has its two minutes to
+ *    itself (on the D155 fix round's gate, 28 Nov, with the machine loaded beside it, the ledger asked behind them had not
+ *    come within the two minutes); the time of each is printed.
  *    Planted once (PROJECTION_PLANT=histexp: the built page asks history for the expected path instead), the history check
  *    fails.
  * 4. Item 3, the same preview, beside the answer: "Compare the four settings" works the other three out in the background,
@@ -145,12 +148,22 @@ const place = async (p, label) => { await p.evaluate(l => { const x = [...docume
     // 3. item 7, in Details: the year by year ledger and the history check
     const yc = yourContext(E, saved);
     const x = rowsOf(E, r, 'expected');
+    // Your plan's last questions first: after its paths are all in it asks the solve for this year's actions and the rule of
+    // thumb on 1,000 paired paths each (src/PlannerPlan.jsx), and the solve's worker answers its questions in turn, so the
+    // ledger asked behind them waits for them. On the fix round's gate (28 Nov), with the machine loaded beside it, they took
+    // longer than the ledger's two minutes and the check read the ledger before it came; waiting for them here leaves the two
+    // minutes to the ledger itself, and the time each took is printed beside the check
+    const t0 = Date.now();
+    const extras = await p.waitForSelector('[data-place="plan"] [data-strategy-actions="done"]', { timeout: 900000 }).then(() => p.waitForSelector('[data-place="plan"] [data-strategy-rule]', { state: 'attached', timeout: 900000 })).then(() => true, () => false);
+    const tExtras = Math.round((Date.now() - t0) / 1000);
     await place(p, 'Details');
+    const t1 = Date.now();
     const solvedLedger = await p.waitForSelector('[data-place="details"] [data-audit-ledger="solved"]', { timeout: 120000 }).then(() => true, () => false);
+    const tLedger = Math.round((Date.now() - t1) / 1000);
     const page = await p.$$eval('[data-place="details"] [data-audit-total]', els => els.map(el => ({ total: Number(el.dataset.auditTotal), act: (el.querySelector('[data-audit-action]') || { dataset: {} }).dataset.auditAction })));
     const badTotal = page.filter((q, t) => !x.rows[t] || q.total !== x.rows[t].totalCombined).length, badAct = page.filter((q, t) => q.act !== (x.parts[t] ? JSON.stringify(x.parts[t]) : '')).length;
     ok('Details\' year by year is the solved plan\'s ledger: every year\'s total Node\'s, and every year\'s move Node\'s', solvedLedger && page.length === x.rows.length && badTotal === 0 && badAct === 0,
-      `solved ledger ${solvedLedger}, ${page.length} rows (Node ${x.rows.length}), totals differing ${badTotal}, moves differing ${badAct}`);
+      `solved ledger ${solvedLedger}, ${page.length} rows (Node ${x.rows.length}), totals differing ${badTotal}, moves differing ${badAct}; Your plan's actions and rule ${extras ? `in after ${tExtras}s` : `not in after ${tExtras}s`}, the ledger ${solvedLedger ? `in ${tLedger}s` : `not in after ${tLedger}s`} later`);
     await p.evaluate(() => { const x = [...document.querySelectorAll('[data-audit-view] button')].find(b => /Your current approach/.test(b.textContent)); if (x) x.click(); });
     const yoursLedger = await p.waitForSelector('[data-audit-ledger="yours"]', { timeout: 10000 }).then(() => true, () => false);
     const yrows = E.simulateDeterministic(yc, 'expected'), ytot = await p.$$eval('[data-audit-total]', els => els.map(el => Number(el.dataset.auditTotal))), yacts = await p.$$('[data-audit-action]');

@@ -161,8 +161,10 @@ function AnswerCard({ s, state, steps, fmt, isPhone, pctDone, failed, onRetry, o
         {/* the classic planner retired (D155): the plan under the app's own rules is shown here, under this line (the agent's
             words, the maintainer's to change) */}
         <p className="text-xs text-amber-800">Meanwhile, here is your plan under the app&apos;s own rules.</p>
-        {/* your current approach's figures under it: the projection's first stage, run once when the card shows */}
-        <div data-failed-current={failedFigures ? 'in' : 'pending'} className="pt-2 border-t border-amber-200 space-y-2 text-slate-700">
+        {/* your current approach's figures under it: the projection's first stage, run once when the card shows; the run's whole
+            figures on data-failed-figures (the chance unrounded and every year's band) for solver-strategy-ui.cjs section 4, which
+            holds the projection worker's run to the main thread's to the bit (the reviewer's second look at D155, finding 1) */}
+        <div data-failed-current={failedFigures ? 'in' : 'pending'} data-failed-figures={failedFigures ? JSON.stringify({ survival: failedFigures.survival, bands: failedFigures.bands || [] }) : undefined} className="pt-2 border-t border-amber-200 space-y-2 text-slate-700">
           {!failedFigures ? <p className="text-xs">Running your current approach through 5,000 markets…</p> : (<>
             <p className="text-sm">Your current approach: chance your money lasts <strong className="tabular-nums">{pct(failedFigures.survival)}</strong></p>
             {failedFigures.bands && failedFigures.bands.length > 1 && <WealthChart pts={failedFigures.bands.map(b => ({ ...b, at: (failedFigures.age0 || 0) + b.t }))} yours={PLANNER_PLANT.has('failboth') ? failedFigures.bands.map(b => ({ ...b, at: (failedFigures.age0 || 0) + b.t })) : null} minPot={0} fmt={fmt} isPhone={isPhone} />}

@@ -1,0 +1,1600 @@
+THE D155 SECOND FIX ROUND'S CHECKS (the reviewer's second look: reviews/2026-11-28-classic-retire-2.md; D156), 28 Nov 2026, on the
+second fix round's code: unless said, its light build (SOLVER_HARNESS=1 at the gate's LIGHT settings) served on :4320, each
+harness's output whole. The runs shared the machine with one another (two or three browsers at once on four cores).
+
+== 1. solver-strategy-ui.cjs, STRATEGY_CASES=none (sections 4 and 5 alone; finding 1): as built, then planted
+   STRATEGY_PLANT=mcfail (the projection worker started, then failing): exactly the worker check fails;
+   STRATEGY_PLANT=mcseed (the worker asked on the next seed): exactly the main thread's check fails, both pages at 95%
+=== STRATEGY_PLANT=none
+  ok    the preview build (the switch on) is served   port 4338
+  ok    planted, the solver failing: Your plan says so, offers "try again" and shows the plan under the app's own rules   failed true, retry true, the app's rules in true, said true
+  ok    ...its chance worked out in the projection's worker, which answered the page itself   95% (94.69999999999999); workers solverWorker-BwbeCHIZ.js, mcWorker-BjYUkgfl.js; the worker's own answers 1
+  ok    planted: no page errors
+  ok    ...and forced onto the main thread (?forceMain=1), no projection worker and the same figures to the bit: the chance unrounded and every year's band   main thread 95% (94.69999999999999), the worker 95% (94.69999999999999); 40 years, 0 apart; workers solverWorker-BwbeCHIZ.js
+  ok    forced onto the main thread: no page errors
+  ok    switch on, a couple the solver does not run (S001, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card, and nothing solved   {"tournament":false,"strategy":false,"couple":true,"state":null}
+  ok    a couple: no page errors
+
+all ok
+exit 0
+=== STRATEGY_PLANT=mcfail
+  ok    the preview build (the switch on) is served   port 4338
+  ok    planted, the solver failing: Your plan says so, offers "try again" and shows the plan under the app's own rules   failed true, retry true, the app's rules in true, said true
+  FAIL  ...its chance worked out in the projection's worker, which answered the page itself   95% (94.69999999999999); workers solverWorker-BwbeCHIZ.js, mcWorker-BjYUkgfl.js; the worker's own answers 0
+  ok    planted: no page errors
+  ok    ...and forced onto the main thread (?forceMain=1), no projection worker and the same figures to the bit: the chance unrounded and every year's band   main thread 95% (94.69999999999999), the worker 95% (94.69999999999999); 40 years, 0 apart; workers solverWorker-BwbeCHIZ.js
+  ok    forced onto the main thread: no page errors
+  ok    switch on, a couple the solver does not run (S001, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card, and nothing solved   {"tournament":false,"strategy":false,"couple":true,"state":null}
+  ok    a couple: no page errors
+
+1 FAILED
+exit 1
+=== STRATEGY_PLANT=mcseed
+  ok    the preview build (the switch on) is served   port 4338
+  ok    planted, the solver failing: Your plan says so, offers "try again" and shows the plan under the app's own rules   failed true, retry true, the app's rules in true, said true
+  ok    ...its chance worked out in the projection's worker, which answered the page itself   95% (94.96); workers solverWorker-BwbeCHIZ.js, mcWorker-BjYUkgfl.js; the worker's own answers 1
+  ok    planted: no page errors
+  FAIL  ...and forced onto the main thread (?forceMain=1), no projection worker and the same figures to the bit: the chance unrounded and every year's band   main thread 95% (94.69999999999999), the worker 95% (94.96); 40 years, 40 apart; workers solverWorker-BwbeCHIZ.js
+  ok    forced onto the main thread: no page errors
+  ok    switch on, a couple the solver does not run (S001, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card, and nothing solved   {"tournament":false,"strategy":false,"couple":true,"state":null}
+  ok    a couple: no page errors
+
+1 FAILED
+exit 1
+
+== 2. phone-ui.cjs (findings 2, 3 and 6), run before its plant variable took a list (PHONE_PLANT one plant or several,
+   comma-separated, for 2p); the checks the same
+
+iPhone 13 @ light (390x664)
+  ok    the pointer is coarse
+  ok    Your plan: reachable from the bottom bar
+  ok    Your plan: renders its own content
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: no control under 44px
+  ok    You: reachable from the bottom bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    You: no control under 44px
+  ok    You / Your money: no sideways scroll   0px
+  ok    You / Your money: no text below the WCAG bar
+  ok    You / Your money: no control under 44px
+  ok    You / Income: no sideways scroll   0px
+  ok    You / Income: no text below the WCAG bar
+  ok    You / Income: no control under 44px
+  ok    You / One-off deposits: no sideways scroll   0px
+  ok    You / One-off deposits: no text below the WCAG bar
+  ok    You / One-off deposits: no control under 44px
+  ok    You / One-off costs: no sideways scroll   0px
+  ok    You / One-off costs: no text below the WCAG bar
+  ok    You / One-off costs: no control under 44px
+  ok    You / Limits: no sideways scroll   0px
+  ok    You / Limits: no text below the WCAG bar
+  ok    You / Limits: no control under 44px
+  ok    You / Advanced: no sideways scroll   0px
+  ok    You / Advanced: no text below the WCAG bar
+  ok    You / Advanced: no control under 44px
+  ok    What if: reachable from the bottom bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    What if: no control under 44px
+  ok    Details: reachable from the bottom bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: no control under 44px
+  ok    Details / Year by year: the classic Audit Data Table tab's content within its 1.8 screens   645px of 1055px (the section 645px)
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / History check: no control under 44px
+  ok    Details / History check: the classic Historical Backtest tab's content within its 2.6 screens   1163px of 1586px (the section 1716px)
+  (reported) Details / History check: the strip of every start year (the planner's) adds 553px
+  ok    Details / History check: the chart uses the screen   388px of 390px
+  ok    Details / History check: the chart has an expand button
+  ok    Details / History check: expand opens the chart at full screen, the viewport's width   the chart 390px, the dialog 390px, of 390px
+  ok    Details / History check: ...and its height   664px of 664px
+  ok    Details / History check: ...and Escape closes it
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / Assumptions: no control under 44px
+  ok    Details / Assumptions: the classic Config & Assumptions tab's content within its 2 screens   843px of 1188px (the section 1555px)
+  (reported) Details / Assumptions: Tax rules, open (folded on a phone in the classic Config) adds 386px
+  (reported) Details / Assumptions: Display's heading with the theme adds 152px
+  (reported) Details / Assumptions: the solver's settings adds 174px
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details / How the solver decides: no control under 44px
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    Details / the full documentation: no control under 44px
+  ok    the full documentation folds on a phone   10 cards, 0 open
+  ok    ...with the text still in the DOM   10 cards over 400 chars
+  ok    ...and a scroll you can get to the end of   2766px
+  ok    Details / the full documentation: the classic Documentation tab's content within its 2.2 screens   1104px of 1321px, from the contents to the last card
+  ok    the bottom nav is there
+  ok    ...fixed to the bottom   fixed true, atBottom true
+  ok    ...tall enough to hit   57px
+  ok    ...and not covering the content   content ends 592, nav starts 607
+  ok    the top tab strip is hidden   0px
+  ok    the theme is one cycling button, not three   1 cycle, 0 of three
+  ok    You: inputs are at least 16px, so focusing does not zoom   0 of 7 under 16px
+  ok    You: its sections are tabs, one showing   You, Your money, Income, One-off deposits, One-off costs, Limits, Advanced; showing You
+  ok    You: a swipe left moves to the next section   Your money
+  ok    ...and a swipe right comes back   You
+  ok    You / You: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 840px of 1660, 0 long selects, 0px overflow; the page 1246px
+  ok    You / Your money: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 1407px of 1660, 0 long selects, 0px overflow; the page 1813px
+  ok    You / Income: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 236px of 1660, 0 long selects, 0px overflow; the page 664px
+  ok    You / One-off deposits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 396px of 1660, 0 long selects, 0px overflow; the page 790px
+  ok    You / One-off costs: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 182px of 1660, 0 long selects, 0px overflow; the page 664px
+  ok    You / Limits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 102px of 1660, 0 long selects, 0px overflow; the page 664px
+  (reported) You / Limits: the solver's limits as drop-downs: Riskiest tier for the pension (7), Riskiest tier for the ISA (7)
+  ok    You / Advanced: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 750px of 1660, 0 long selects, 0px overflow; the page 2380px
+  (reported) You / Advanced: Your current approach's controls add 1224px, the section 1974px, the page 2380px
+  ok    an income stream cannot start before the age you retire   min 62, retiring at 62
+  ok    ...and an earlier age typed in snaps back to it   shows 62, saved 62
+  ok    You is rows: label left, control right   7 of 7
+  ok    ...every control ending on one line, and the explanations one tap away   7 controls on 1 right edge(s), 0 steppers, 0 hints, 3 terms
+  ok    a new band opens as a row of three fields   {"open":"true","inputs":3}
+  ok    a folded explanation shows its first lines and names the rest   1249 chars, opens with "What counts as a contribution…"
+  ok    each wrapper is a card showing its tier, the Cash ISA borrowing Cash Savings'   5 cards, 4 tiers
+  ok    ...which opens into six chips, not a drop-down   6 chips
+  ok    ...and a chip sets the tier and folds away   {"saved":"Medium Risk","closed":true}
+  ok    a glossary term can be brought onto the screen   3 terms in You
+  ok    ...and it is the tap target itself, not a mark beside it   at the middle of it a finger hits the term
+  ok    ...marked as pressable by a shimmering underline   background gradient: true
+  ok    ...at the height of the text it sits in, not the 44px floor   16px tall
+  ok    ...tapping one opens its definition   280px, 400 chars
+  ok    ...and it closes again
+  ok    iPhone 13 @ light: no page errors
+
+iPhone 13 @ dark (390x664)
+  ok    the pointer is coarse
+  ok    Your plan: reachable from the bottom bar
+  ok    Your plan: renders its own content
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: no control under 44px
+  ok    You: reachable from the bottom bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    You: no control under 44px
+  ok    You / Your money: no sideways scroll   0px
+  ok    You / Your money: no text below the WCAG bar
+  ok    You / Your money: no control under 44px
+  ok    You / Income: no sideways scroll   0px
+  ok    You / Income: no text below the WCAG bar
+  ok    You / Income: no control under 44px
+  ok    You / One-off deposits: no sideways scroll   0px
+  ok    You / One-off deposits: no text below the WCAG bar
+  ok    You / One-off deposits: no control under 44px
+  ok    You / One-off costs: no sideways scroll   0px
+  ok    You / One-off costs: no text below the WCAG bar
+  ok    You / One-off costs: no control under 44px
+  ok    You / Limits: no sideways scroll   0px
+  ok    You / Limits: no text below the WCAG bar
+  ok    You / Limits: no control under 44px
+  ok    You / Advanced: no sideways scroll   0px
+  ok    You / Advanced: no text below the WCAG bar
+  ok    You / Advanced: no control under 44px
+  ok    What if: reachable from the bottom bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    What if: no control under 44px
+  ok    Details: reachable from the bottom bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: no control under 44px
+  ok    Details / Year by year: the classic Audit Data Table tab's content within its 1.8 screens   645px of 1055px (the section 645px)
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / History check: no control under 44px
+  ok    Details / History check: the classic Historical Backtest tab's content within its 2.6 screens   1163px of 1586px (the section 1716px)
+  (reported) Details / History check: the strip of every start year (the planner's) adds 553px
+  ok    Details / History check: the chart uses the screen   388px of 390px
+  ok    Details / History check: the chart has an expand button
+  ok    Details / History check: expand opens the chart at full screen, the viewport's width   the chart 390px, the dialog 390px, of 390px
+  ok    Details / History check: ...and its height   664px of 664px
+  ok    Details / History check: ...and Escape closes it
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / Assumptions: no control under 44px
+  ok    Details / Assumptions: the classic Config & Assumptions tab's content within its 2 screens   843px of 1188px (the section 1555px)
+  (reported) Details / Assumptions: Tax rules, open (folded on a phone in the classic Config) adds 386px
+  (reported) Details / Assumptions: Display's heading with the theme adds 152px
+  (reported) Details / Assumptions: the solver's settings adds 174px
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details / How the solver decides: no control under 44px
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    Details / the full documentation: no control under 44px
+  ok    the full documentation folds on a phone   10 cards, 0 open
+  ok    ...with the text still in the DOM   10 cards over 400 chars
+  ok    ...and a scroll you can get to the end of   2766px
+  ok    Details / the full documentation: the classic Documentation tab's content within its 2.2 screens   1104px of 1321px, from the contents to the last card
+  ok    the bottom nav is there
+  ok    ...fixed to the bottom   fixed true, atBottom true
+  ok    ...tall enough to hit   57px
+  ok    ...and not covering the content   content ends 592, nav starts 607
+  ok    the top tab strip is hidden   0px
+  ok    the theme is one cycling button, not three   1 cycle, 0 of three
+  ok    You: inputs are at least 16px, so focusing does not zoom   0 of 7 under 16px
+  ok    You: its sections are tabs, one showing   You, Your money, Income, One-off deposits, One-off costs, Limits, Advanced; showing You
+  ok    You: a swipe left moves to the next section   Your money
+  ok    ...and a swipe right comes back   You
+  ok    You / You: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 840px of 1660, 0 long selects, 0px overflow; the page 1246px
+  ok    You / Your money: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 1407px of 1660, 0 long selects, 0px overflow; the page 1813px
+  ok    You / Income: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 236px of 1660, 0 long selects, 0px overflow; the page 664px
+  ok    You / One-off deposits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 396px of 1660, 0 long selects, 0px overflow; the page 790px
+  ok    You / One-off costs: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 182px of 1660, 0 long selects, 0px overflow; the page 664px
+  ok    You / Limits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 102px of 1660, 0 long selects, 0px overflow; the page 664px
+  (reported) You / Limits: the solver's limits as drop-downs: Riskiest tier for the pension (7), Riskiest tier for the ISA (7)
+  ok    You / Advanced: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 750px of 1660, 0 long selects, 0px overflow; the page 2380px
+  (reported) You / Advanced: Your current approach's controls add 1224px, the section 1974px, the page 2380px
+  ok    an income stream cannot start before the age you retire   min 62, retiring at 62
+  ok    ...and an earlier age typed in snaps back to it   shows 62, saved 62
+  ok    You is rows: label left, control right   7 of 7
+  ok    ...every control ending on one line, and the explanations one tap away   7 controls on 1 right edge(s), 0 steppers, 0 hints, 3 terms
+  ok    a new band opens as a row of three fields   {"open":"true","inputs":3}
+  ok    a folded explanation shows its first lines and names the rest   1249 chars, opens with "What counts as a contribution…"
+  ok    each wrapper is a card showing its tier, the Cash ISA borrowing Cash Savings'   5 cards, 4 tiers
+  ok    ...which opens into six chips, not a drop-down   6 chips
+  ok    ...and a chip sets the tier and folds away   {"saved":"Medium Risk","closed":true}
+  ok    a glossary term can be brought onto the screen   3 terms in You
+  ok    ...and it is the tap target itself, not a mark beside it   at the middle of it a finger hits the term
+  ok    ...marked as pressable by a shimmering underline   background gradient: true
+  ok    ...at the height of the text it sits in, not the 44px floor   16px tall
+  ok    ...tapping one opens its definition   280px, 400 chars
+  ok    ...and it closes again
+  ok    iPhone 13 @ dark: no page errors
+
+Pixel 7 @ light (412x839)
+  ok    the pointer is coarse
+  ok    Your plan: reachable from the bottom bar
+  ok    Your plan: renders its own content
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: no control under 44px
+  ok    You: reachable from the bottom bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    You: no control under 44px
+  ok    You / Your money: no sideways scroll   0px
+  ok    You / Your money: no text below the WCAG bar
+  ok    You / Your money: no control under 44px
+  ok    You / Income: no sideways scroll   0px
+  ok    You / Income: no text below the WCAG bar
+  ok    You / Income: no control under 44px
+  ok    You / One-off deposits: no sideways scroll   0px
+  ok    You / One-off deposits: no text below the WCAG bar
+  ok    You / One-off deposits: no control under 44px
+  ok    You / One-off costs: no sideways scroll   0px
+  ok    You / One-off costs: no text below the WCAG bar
+  ok    You / One-off costs: no control under 44px
+  ok    You / Limits: no sideways scroll   0px
+  ok    You / Limits: no text below the WCAG bar
+  ok    You / Limits: no control under 44px
+  ok    You / Advanced: no sideways scroll   0px
+  ok    You / Advanced: no text below the WCAG bar
+  ok    You / Advanced: no control under 44px
+  ok    What if: reachable from the bottom bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    What if: no control under 44px
+  ok    Details: reachable from the bottom bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: no control under 44px
+  ok    Details / Year by year: the classic Audit Data Table tab's content within its 1.8 screens   750px of 1370px (the section 750px)
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / History check: no control under 44px
+  ok    Details / History check: the classic Historical Backtest tab's content within its 2.6 screens   1198px of 2041px (the section 1751px)
+  (reported) Details / History check: the strip of every start year (the planner's) adds 553px
+  ok    Details / History check: the chart uses the screen   410px of 412px
+  ok    Details / History check: the chart has an expand button
+  ok    Details / History check: expand opens the chart at full screen, the viewport's width   the chart 412px, the dialog 412px, of 412px
+  ok    Details / History check: ...and its height   839px of 839px
+  ok    Details / History check: ...and Escape closes it
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / Assumptions: no control under 44px
+  ok    Details / Assumptions: the classic Config & Assumptions tab's content within its 2 screens   823px of 1538px (the section 1535px)
+  (reported) Details / Assumptions: Tax rules, open (folded on a phone in the classic Config) adds 386px
+  (reported) Details / Assumptions: Display's heading with the theme adds 152px
+  (reported) Details / Assumptions: the solver's settings adds 174px
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details / How the solver decides: no control under 44px
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    Details / the full documentation: no control under 44px
+  ok    the full documentation folds on a phone   10 cards, 0 open
+  ok    ...with the text still in the DOM   10 cards over 400 chars
+  ok    ...and a scroll you can get to the end of   2714px
+  ok    Details / the full documentation: the classic Documentation tab's content within its 2.2 screens   1100px of 1706px, from the contents to the last card
+  ok    the bottom nav is there
+  ok    ...fixed to the bottom   fixed true, atBottom true
+  ok    ...tall enough to hit   57px
+  ok    ...and not covering the content   content ends 767, nav starts 782
+  ok    the top tab strip is hidden   0px
+  ok    the theme is one cycling button, not three   1 cycle, 0 of three
+  ok    You: inputs are at least 16px, so focusing does not zoom   0 of 7 under 16px
+  ok    You: its sections are tabs, one showing   You, Your money, Income, One-off deposits, One-off costs, Limits, Advanced; showing You
+  ok    You: a swipe left moves to the next section   Your money
+  ok    ...and a swipe right comes back   You
+  ok    You / You: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 840px of 1660, 0 long selects, 0px overflow; the page 1246px
+  ok    You / Your money: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 1407px of 1660, 0 long selects, 0px overflow; the page 1813px
+  ok    You / Income: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 236px of 1660, 0 long selects, 0px overflow; the page 839px
+  ok    You / One-off deposits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 376px of 1660, 0 long selects, 0px overflow; the page 839px
+  ok    You / One-off costs: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 182px of 1660, 0 long selects, 0px overflow; the page 839px
+  ok    You / Limits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 102px of 1660, 0 long selects, 0px overflow; the page 839px
+  (reported) You / Limits: the solver's limits as drop-downs: Riskiest tier for the pension (7), Riskiest tier for the ISA (7)
+  ok    You / Advanced: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 734px of 1660, 0 long selects, 0px overflow; the page 2252px
+  (reported) You / Advanced: Your current approach's controls add 1112px, the section 1846px, the page 2252px
+  ok    an income stream cannot start before the age you retire   min 62, retiring at 62
+  ok    ...and an earlier age typed in snaps back to it   shows 62, saved 62
+  ok    You is rows: label left, control right   7 of 7
+  ok    ...every control ending on one line, and the explanations one tap away   7 controls on 1 right edge(s), 0 steppers, 0 hints, 3 terms
+  ok    a new band opens as a row of three fields   {"open":"true","inputs":3}
+  ok    a folded explanation shows its first lines and names the rest   1249 chars, opens with "What counts as a contribution…"
+  ok    each wrapper is a card showing its tier, the Cash ISA borrowing Cash Savings'   5 cards, 4 tiers
+  ok    ...which opens into six chips, not a drop-down   6 chips
+  ok    ...and a chip sets the tier and folds away   {"saved":"Medium Risk","closed":true}
+  ok    a glossary term can be brought onto the screen   3 terms in You
+  ok    ...and it is the tap target itself, not a mark beside it   at the middle of it a finger hits the term
+  ok    ...marked as pressable by a shimmering underline   background gradient: true
+  ok    ...at the height of the text it sits in, not the 44px floor   16px tall
+  ok    ...tapping one opens its definition   280px, 400 chars
+  ok    ...and it closes again
+  ok    Pixel 7 @ light: no page errors
+
+Pixel 7 @ dark (412x839)
+  ok    the pointer is coarse
+  ok    Your plan: reachable from the bottom bar
+  ok    Your plan: renders its own content
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: no control under 44px
+  ok    You: reachable from the bottom bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    You: no control under 44px
+  ok    You / Your money: no sideways scroll   0px
+  ok    You / Your money: no text below the WCAG bar
+  ok    You / Your money: no control under 44px
+  ok    You / Income: no sideways scroll   0px
+  ok    You / Income: no text below the WCAG bar
+  ok    You / Income: no control under 44px
+  ok    You / One-off deposits: no sideways scroll   0px
+  ok    You / One-off deposits: no text below the WCAG bar
+  ok    You / One-off deposits: no control under 44px
+  ok    You / One-off costs: no sideways scroll   0px
+  ok    You / One-off costs: no text below the WCAG bar
+  ok    You / One-off costs: no control under 44px
+  ok    You / Limits: no sideways scroll   0px
+  ok    You / Limits: no text below the WCAG bar
+  ok    You / Limits: no control under 44px
+  ok    You / Advanced: no sideways scroll   0px
+  ok    You / Advanced: no text below the WCAG bar
+  ok    You / Advanced: no control under 44px
+  ok    What if: reachable from the bottom bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    What if: no control under 44px
+  ok    Details: reachable from the bottom bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: no control under 44px
+  ok    Details / Year by year: the classic Audit Data Table tab's content within its 1.8 screens   750px of 1370px (the section 750px)
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / History check: no control under 44px
+  ok    Details / History check: the classic Historical Backtest tab's content within its 2.6 screens   1198px of 2041px (the section 1751px)
+  (reported) Details / History check: the strip of every start year (the planner's) adds 553px
+  ok    Details / History check: the chart uses the screen   410px of 412px
+  ok    Details / History check: the chart has an expand button
+  ok    Details / History check: expand opens the chart at full screen, the viewport's width   the chart 412px, the dialog 412px, of 412px
+  ok    Details / History check: ...and its height   839px of 839px
+  ok    Details / History check: ...and Escape closes it
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / Assumptions: no control under 44px
+  ok    Details / Assumptions: the classic Config & Assumptions tab's content within its 2 screens   823px of 1538px (the section 1535px)
+  (reported) Details / Assumptions: Tax rules, open (folded on a phone in the classic Config) adds 386px
+  (reported) Details / Assumptions: Display's heading with the theme adds 152px
+  (reported) Details / Assumptions: the solver's settings adds 174px
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details / How the solver decides: no control under 44px
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    Details / the full documentation: no control under 44px
+  ok    the full documentation folds on a phone   10 cards, 0 open
+  ok    ...with the text still in the DOM   10 cards over 400 chars
+  ok    ...and a scroll you can get to the end of   2714px
+  ok    Details / the full documentation: the classic Documentation tab's content within its 2.2 screens   1100px of 1706px, from the contents to the last card
+  ok    the bottom nav is there
+  ok    ...fixed to the bottom   fixed true, atBottom true
+  ok    ...tall enough to hit   57px
+  ok    ...and not covering the content   content ends 767, nav starts 782
+  ok    the top tab strip is hidden   0px
+  ok    the theme is one cycling button, not three   1 cycle, 0 of three
+  ok    You: inputs are at least 16px, so focusing does not zoom   0 of 7 under 16px
+  ok    You: its sections are tabs, one showing   You, Your money, Income, One-off deposits, One-off costs, Limits, Advanced; showing You
+  ok    You: a swipe left moves to the next section   Your money
+  ok    ...and a swipe right comes back   You
+  ok    You / You: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 840px of 1660, 0 long selects, 0px overflow; the page 1246px
+  ok    You / Your money: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 1407px of 1660, 0 long selects, 0px overflow; the page 1813px
+  ok    You / Income: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 236px of 1660, 0 long selects, 0px overflow; the page 839px
+  ok    You / One-off deposits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 376px of 1660, 0 long selects, 0px overflow; the page 839px
+  ok    You / One-off costs: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 182px of 1660, 0 long selects, 0px overflow; the page 839px
+  ok    You / Limits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 102px of 1660, 0 long selects, 0px overflow; the page 839px
+  (reported) You / Limits: the solver's limits as drop-downs: Riskiest tier for the pension (7), Riskiest tier for the ISA (7)
+  ok    You / Advanced: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 734px of 1660, 0 long selects, 0px overflow; the page 2252px
+  (reported) You / Advanced: Your current approach's controls add 1112px, the section 1846px, the page 2252px
+  ok    an income stream cannot start before the age you retire   min 62, retiring at 62
+  ok    ...and an earlier age typed in snaps back to it   shows 62, saved 62
+  ok    You is rows: label left, control right   7 of 7
+  ok    ...every control ending on one line, and the explanations one tap away   7 controls on 1 right edge(s), 0 steppers, 0 hints, 3 terms
+  ok    a new band opens as a row of three fields   {"open":"true","inputs":3}
+  ok    a folded explanation shows its first lines and names the rest   1249 chars, opens with "What counts as a contribution…"
+  ok    each wrapper is a card showing its tier, the Cash ISA borrowing Cash Savings'   5 cards, 4 tiers
+  ok    ...which opens into six chips, not a drop-down   6 chips
+  ok    ...and a chip sets the tier and folds away   {"saved":"Medium Risk","closed":true}
+  ok    a glossary term can be brought onto the screen   3 terms in You
+  ok    ...and it is the tap target itself, not a mark beside it   at the middle of it a finger hits the term
+  ok    ...marked as pressable by a shimmering underline   background gradient: true
+  ok    ...at the height of the text it sits in, not the 44px floor   16px tall
+  ok    ...tapping one opens its definition   280px, 400 chars
+  ok    ...and it closes again
+  ok    Pixel 7 @ dark: no page errors
+
+all ok
+
+== 2p. planted, PHONE_PLANT=nolengthsub,halfchart: exactly the history check's and Assumptions' caps on the iPhone 13 in
+   both themes (nolengthsub: the planner's additions left in), and the full-screen chart's height on each phone and theme
+   (halfchart: the dialog at half the screen's height)
+
+iPhone 13 @ light (390x664)
+  ok    the pointer is coarse
+  ok    Your plan: reachable from the bottom bar
+  ok    Your plan: renders its own content
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: no control under 44px
+  ok    You: reachable from the bottom bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    You: no control under 44px
+  ok    You / Your money: no sideways scroll   0px
+  ok    You / Your money: no text below the WCAG bar
+  ok    You / Your money: no control under 44px
+  ok    You / Income: no sideways scroll   0px
+  ok    You / Income: no text below the WCAG bar
+  ok    You / Income: no control under 44px
+  ok    You / One-off deposits: no sideways scroll   0px
+  ok    You / One-off deposits: no text below the WCAG bar
+  ok    You / One-off deposits: no control under 44px
+  ok    You / One-off costs: no sideways scroll   0px
+  ok    You / One-off costs: no text below the WCAG bar
+  ok    You / One-off costs: no control under 44px
+  ok    You / Limits: no sideways scroll   0px
+  ok    You / Limits: no text below the WCAG bar
+  ok    You / Limits: no control under 44px
+  ok    You / Advanced: no sideways scroll   0px
+  ok    You / Advanced: no text below the WCAG bar
+  ok    You / Advanced: no control under 44px
+  ok    What if: reachable from the bottom bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    What if: no control under 44px
+  ok    Details: reachable from the bottom bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: no control under 44px
+  ok    Details / Year by year: the classic Audit Data Table tab's content within its 1.8 screens   645px of 1055px (the section 645px)
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / History check: no control under 44px
+  FAIL  Details / History check: the classic Historical Backtest tab's content within its 2.6 screens   1716px of 1586px (the section 1716px)
+  (reported) Details / History check: the strip of every start year (the planner's) adds 553px
+  ok    Details / History check: the chart uses the screen   388px of 390px
+  ok    Details / History check: the chart has an expand button
+  ok    Details / History check: expand opens the chart at full screen, the viewport's width   the chart 390px, the dialog 390px, of 390px
+  FAIL  Details / History check: ...and its height   332px of 664px
+  ok    Details / History check: ...and Escape closes it
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / Assumptions: no control under 44px
+  FAIL  Details / Assumptions: the classic Config & Assumptions tab's content within its 2 screens   1555px of 1188px (the section 1555px)
+  (reported) Details / Assumptions: Tax rules, open (folded on a phone in the classic Config) adds 386px
+  (reported) Details / Assumptions: Display's heading with the theme adds 152px
+  (reported) Details / Assumptions: the solver's settings adds 174px
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details / How the solver decides: no control under 44px
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    Details / the full documentation: no control under 44px
+  ok    the full documentation folds on a phone   10 cards, 0 open
+  ok    ...with the text still in the DOM   10 cards over 400 chars
+  ok    ...and a scroll you can get to the end of   2766px
+  ok    Details / the full documentation: the classic Documentation tab's content within its 2.2 screens   1104px of 1321px, from the contents to the last card
+  ok    the bottom nav is there
+  ok    ...fixed to the bottom   fixed true, atBottom true
+  ok    ...tall enough to hit   57px
+  ok    ...and not covering the content   content ends 592, nav starts 607
+  ok    the top tab strip is hidden   0px
+  ok    the theme is one cycling button, not three   1 cycle, 0 of three
+  ok    You: inputs are at least 16px, so focusing does not zoom   0 of 7 under 16px
+  ok    You: its sections are tabs, one showing   You, Your money, Income, One-off deposits, One-off costs, Limits, Advanced; showing You
+  ok    You: a swipe left moves to the next section   Your money
+  ok    ...and a swipe right comes back   You
+  ok    You / You: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 840px of 1660, 0 long selects, 0px overflow; the page 1246px
+  ok    You / Your money: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 1407px of 1660, 0 long selects, 0px overflow; the page 1813px
+  ok    You / Income: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 236px of 1660, 0 long selects, 0px overflow; the page 664px
+  ok    You / One-off deposits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 396px of 1660, 0 long selects, 0px overflow; the page 790px
+  ok    You / One-off costs: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 182px of 1660, 0 long selects, 0px overflow; the page 664px
+  ok    You / Limits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 102px of 1660, 0 long selects, 0px overflow; the page 664px
+  (reported) You / Limits: the solver's limits as drop-downs: Riskiest tier for the pension (7), Riskiest tier for the ISA (7)
+  ok    You / Advanced: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 750px of 1660, 0 long selects, 0px overflow; the page 2380px
+  (reported) You / Advanced: Your current approach's controls add 1224px, the section 1974px, the page 2380px
+  ok    an income stream cannot start before the age you retire   min 62, retiring at 62
+  ok    ...and an earlier age typed in snaps back to it   shows 62, saved 62
+  ok    You is rows: label left, control right   7 of 7
+  ok    ...every control ending on one line, and the explanations one tap away   7 controls on 1 right edge(s), 0 steppers, 0 hints, 3 terms
+  ok    a new band opens as a row of three fields   {"open":"true","inputs":3}
+  ok    a folded explanation shows its first lines and names the rest   1249 chars, opens with "What counts as a contribution…"
+  ok    each wrapper is a card showing its tier, the Cash ISA borrowing Cash Savings'   5 cards, 4 tiers
+  ok    ...which opens into six chips, not a drop-down   6 chips
+  ok    ...and a chip sets the tier and folds away   {"saved":"Medium Risk","closed":true}
+  ok    a glossary term can be brought onto the screen   3 terms in You
+  ok    ...and it is the tap target itself, not a mark beside it   at the middle of it a finger hits the term
+  ok    ...marked as pressable by a shimmering underline   background gradient: true
+  ok    ...at the height of the text it sits in, not the 44px floor   16px tall
+  ok    ...tapping one opens its definition   280px, 400 chars
+  ok    ...and it closes again
+  ok    iPhone 13 @ light: no page errors
+
+iPhone 13 @ dark (390x664)
+  ok    the pointer is coarse
+  ok    Your plan: reachable from the bottom bar
+  ok    Your plan: renders its own content
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: no control under 44px
+  ok    You: reachable from the bottom bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    You: no control under 44px
+  ok    You / Your money: no sideways scroll   0px
+  ok    You / Your money: no text below the WCAG bar
+  ok    You / Your money: no control under 44px
+  ok    You / Income: no sideways scroll   0px
+  ok    You / Income: no text below the WCAG bar
+  ok    You / Income: no control under 44px
+  ok    You / One-off deposits: no sideways scroll   0px
+  ok    You / One-off deposits: no text below the WCAG bar
+  ok    You / One-off deposits: no control under 44px
+  ok    You / One-off costs: no sideways scroll   0px
+  ok    You / One-off costs: no text below the WCAG bar
+  ok    You / One-off costs: no control under 44px
+  ok    You / Limits: no sideways scroll   0px
+  ok    You / Limits: no text below the WCAG bar
+  ok    You / Limits: no control under 44px
+  ok    You / Advanced: no sideways scroll   0px
+  ok    You / Advanced: no text below the WCAG bar
+  ok    You / Advanced: no control under 44px
+  ok    What if: reachable from the bottom bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    What if: no control under 44px
+  ok    Details: reachable from the bottom bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: no control under 44px
+  ok    Details / Year by year: the classic Audit Data Table tab's content within its 1.8 screens   645px of 1055px (the section 645px)
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / History check: no control under 44px
+  FAIL  Details / History check: the classic Historical Backtest tab's content within its 2.6 screens   1716px of 1586px (the section 1716px)
+  (reported) Details / History check: the strip of every start year (the planner's) adds 553px
+  ok    Details / History check: the chart uses the screen   388px of 390px
+  ok    Details / History check: the chart has an expand button
+  ok    Details / History check: expand opens the chart at full screen, the viewport's width   the chart 390px, the dialog 390px, of 390px
+  FAIL  Details / History check: ...and its height   332px of 664px
+  ok    Details / History check: ...and Escape closes it
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / Assumptions: no control under 44px
+  FAIL  Details / Assumptions: the classic Config & Assumptions tab's content within its 2 screens   1555px of 1188px (the section 1555px)
+  (reported) Details / Assumptions: Tax rules, open (folded on a phone in the classic Config) adds 386px
+  (reported) Details / Assumptions: Display's heading with the theme adds 152px
+  (reported) Details / Assumptions: the solver's settings adds 174px
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details / How the solver decides: no control under 44px
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    Details / the full documentation: no control under 44px
+  ok    the full documentation folds on a phone   10 cards, 0 open
+  ok    ...with the text still in the DOM   10 cards over 400 chars
+  ok    ...and a scroll you can get to the end of   2766px
+  ok    Details / the full documentation: the classic Documentation tab's content within its 2.2 screens   1104px of 1321px, from the contents to the last card
+  ok    the bottom nav is there
+  ok    ...fixed to the bottom   fixed true, atBottom true
+  ok    ...tall enough to hit   57px
+  ok    ...and not covering the content   content ends 592, nav starts 607
+  ok    the top tab strip is hidden   0px
+  ok    the theme is one cycling button, not three   1 cycle, 0 of three
+  ok    You: inputs are at least 16px, so focusing does not zoom   0 of 7 under 16px
+  ok    You: its sections are tabs, one showing   You, Your money, Income, One-off deposits, One-off costs, Limits, Advanced; showing You
+  ok    You: a swipe left moves to the next section   Your money
+  ok    ...and a swipe right comes back   You
+  ok    You / You: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 840px of 1660, 0 long selects, 0px overflow; the page 1246px
+  ok    You / Your money: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 1407px of 1660, 0 long selects, 0px overflow; the page 1813px
+  ok    You / Income: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 236px of 1660, 0 long selects, 0px overflow; the page 664px
+  ok    You / One-off deposits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 396px of 1660, 0 long selects, 0px overflow; the page 790px
+  ok    You / One-off costs: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 182px of 1660, 0 long selects, 0px overflow; the page 664px
+  ok    You / Limits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 102px of 1660, 0 long selects, 0px overflow; the page 664px
+  (reported) You / Limits: the solver's limits as drop-downs: Riskiest tier for the pension (7), Riskiest tier for the ISA (7)
+  ok    You / Advanced: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 750px of 1660, 0 long selects, 0px overflow; the page 2380px
+  (reported) You / Advanced: Your current approach's controls add 1224px, the section 1974px, the page 2380px
+  ok    an income stream cannot start before the age you retire   min 62, retiring at 62
+  ok    ...and an earlier age typed in snaps back to it   shows 62, saved 62
+  ok    You is rows: label left, control right   7 of 7
+  ok    ...every control ending on one line, and the explanations one tap away   7 controls on 1 right edge(s), 0 steppers, 0 hints, 3 terms
+  ok    a new band opens as a row of three fields   {"open":"true","inputs":3}
+  ok    a folded explanation shows its first lines and names the rest   1249 chars, opens with "What counts as a contribution…"
+  ok    each wrapper is a card showing its tier, the Cash ISA borrowing Cash Savings'   5 cards, 4 tiers
+  ok    ...which opens into six chips, not a drop-down   6 chips
+  ok    ...and a chip sets the tier and folds away   {"saved":"Medium Risk","closed":true}
+  ok    a glossary term can be brought onto the screen   3 terms in You
+  ok    ...and it is the tap target itself, not a mark beside it   at the middle of it a finger hits the term
+  ok    ...marked as pressable by a shimmering underline   background gradient: true
+  ok    ...at the height of the text it sits in, not the 44px floor   16px tall
+  ok    ...tapping one opens its definition   280px, 400 chars
+  ok    ...and it closes again
+  ok    iPhone 13 @ dark: no page errors
+
+Pixel 7 @ light (412x839)
+  ok    the pointer is coarse
+  ok    Your plan: reachable from the bottom bar
+  ok    Your plan: renders its own content
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: no control under 44px
+  ok    You: reachable from the bottom bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    You: no control under 44px
+  ok    You / Your money: no sideways scroll   0px
+  ok    You / Your money: no text below the WCAG bar
+  ok    You / Your money: no control under 44px
+  ok    You / Income: no sideways scroll   0px
+  ok    You / Income: no text below the WCAG bar
+  ok    You / Income: no control under 44px
+  ok    You / One-off deposits: no sideways scroll   0px
+  ok    You / One-off deposits: no text below the WCAG bar
+  ok    You / One-off deposits: no control under 44px
+  ok    You / One-off costs: no sideways scroll   0px
+  ok    You / One-off costs: no text below the WCAG bar
+  ok    You / One-off costs: no control under 44px
+  ok    You / Limits: no sideways scroll   0px
+  ok    You / Limits: no text below the WCAG bar
+  ok    You / Limits: no control under 44px
+  ok    You / Advanced: no sideways scroll   0px
+  ok    You / Advanced: no text below the WCAG bar
+  ok    You / Advanced: no control under 44px
+  ok    What if: reachable from the bottom bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    What if: no control under 44px
+  ok    Details: reachable from the bottom bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: no control under 44px
+  ok    Details / Year by year: the classic Audit Data Table tab's content within its 1.8 screens   750px of 1370px (the section 750px)
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / History check: no control under 44px
+  ok    Details / History check: the classic Historical Backtest tab's content within its 2.6 screens   1751px of 2041px (the section 1751px)
+  (reported) Details / History check: the strip of every start year (the planner's) adds 553px
+  ok    Details / History check: the chart uses the screen   410px of 412px
+  ok    Details / History check: the chart has an expand button
+  ok    Details / History check: expand opens the chart at full screen, the viewport's width   the chart 412px, the dialog 412px, of 412px
+  FAIL  Details / History check: ...and its height   420px of 839px
+  ok    Details / History check: ...and Escape closes it
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / Assumptions: no control under 44px
+  ok    Details / Assumptions: the classic Config & Assumptions tab's content within its 2 screens   1535px of 1538px (the section 1535px)
+  (reported) Details / Assumptions: Tax rules, open (folded on a phone in the classic Config) adds 386px
+  (reported) Details / Assumptions: Display's heading with the theme adds 152px
+  (reported) Details / Assumptions: the solver's settings adds 174px
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details / How the solver decides: no control under 44px
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    Details / the full documentation: no control under 44px
+  ok    the full documentation folds on a phone   10 cards, 0 open
+  ok    ...with the text still in the DOM   10 cards over 400 chars
+  ok    ...and a scroll you can get to the end of   2714px
+  ok    Details / the full documentation: the classic Documentation tab's content within its 2.2 screens   1100px of 1706px, from the contents to the last card
+  ok    the bottom nav is there
+  ok    ...fixed to the bottom   fixed true, atBottom true
+  ok    ...tall enough to hit   57px
+  ok    ...and not covering the content   content ends 767, nav starts 782
+  ok    the top tab strip is hidden   0px
+  ok    the theme is one cycling button, not three   1 cycle, 0 of three
+  ok    You: inputs are at least 16px, so focusing does not zoom   0 of 7 under 16px
+  ok    You: its sections are tabs, one showing   You, Your money, Income, One-off deposits, One-off costs, Limits, Advanced; showing You
+  ok    You: a swipe left moves to the next section   Your money
+  ok    ...and a swipe right comes back   You
+  ok    You / You: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 840px of 1660, 0 long selects, 0px overflow; the page 1246px
+  ok    You / Your money: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 1407px of 1660, 0 long selects, 0px overflow; the page 1813px
+  ok    You / Income: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 236px of 1660, 0 long selects, 0px overflow; the page 839px
+  ok    You / One-off deposits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 376px of 1660, 0 long selects, 0px overflow; the page 839px
+  ok    You / One-off costs: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 182px of 1660, 0 long selects, 0px overflow; the page 839px
+  ok    You / Limits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 102px of 1660, 0 long selects, 0px overflow; the page 839px
+  (reported) You / Limits: the solver's limits as drop-downs: Riskiest tier for the pension (7), Riskiest tier for the ISA (7)
+  ok    You / Advanced: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 734px of 1660, 0 long selects, 0px overflow; the page 2252px
+  (reported) You / Advanced: Your current approach's controls add 1112px, the section 1846px, the page 2252px
+  ok    an income stream cannot start before the age you retire   min 62, retiring at 62
+  ok    ...and an earlier age typed in snaps back to it   shows 62, saved 62
+  ok    You is rows: label left, control right   7 of 7
+  ok    ...every control ending on one line, and the explanations one tap away   7 controls on 1 right edge(s), 0 steppers, 0 hints, 3 terms
+  ok    a new band opens as a row of three fields   {"open":"true","inputs":3}
+  ok    a folded explanation shows its first lines and names the rest   1249 chars, opens with "What counts as a contribution…"
+  ok    each wrapper is a card showing its tier, the Cash ISA borrowing Cash Savings'   5 cards, 4 tiers
+  ok    ...which opens into six chips, not a drop-down   6 chips
+  ok    ...and a chip sets the tier and folds away   {"saved":"Medium Risk","closed":true}
+  ok    a glossary term can be brought onto the screen   3 terms in You
+  ok    ...and it is the tap target itself, not a mark beside it   at the middle of it a finger hits the term
+  ok    ...marked as pressable by a shimmering underline   background gradient: true
+  ok    ...at the height of the text it sits in, not the 44px floor   16px tall
+  ok    ...tapping one opens its definition   280px, 400 chars
+  ok    ...and it closes again
+  ok    Pixel 7 @ light: no page errors
+
+Pixel 7 @ dark (412x839)
+  ok    the pointer is coarse
+  ok    Your plan: reachable from the bottom bar
+  ok    Your plan: renders its own content
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: no control under 44px
+  ok    You: reachable from the bottom bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    You: no control under 44px
+  ok    You / Your money: no sideways scroll   0px
+  ok    You / Your money: no text below the WCAG bar
+  ok    You / Your money: no control under 44px
+  ok    You / Income: no sideways scroll   0px
+  ok    You / Income: no text below the WCAG bar
+  ok    You / Income: no control under 44px
+  ok    You / One-off deposits: no sideways scroll   0px
+  ok    You / One-off deposits: no text below the WCAG bar
+  ok    You / One-off deposits: no control under 44px
+  ok    You / One-off costs: no sideways scroll   0px
+  ok    You / One-off costs: no text below the WCAG bar
+  ok    You / One-off costs: no control under 44px
+  ok    You / Limits: no sideways scroll   0px
+  ok    You / Limits: no text below the WCAG bar
+  ok    You / Limits: no control under 44px
+  ok    You / Advanced: no sideways scroll   0px
+  ok    You / Advanced: no text below the WCAG bar
+  ok    You / Advanced: no control under 44px
+  ok    What if: reachable from the bottom bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    What if: no control under 44px
+  ok    Details: reachable from the bottom bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: no control under 44px
+  ok    Details / Year by year: the classic Audit Data Table tab's content within its 1.8 screens   750px of 1370px (the section 750px)
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / History check: no control under 44px
+  ok    Details / History check: the classic Historical Backtest tab's content within its 2.6 screens   1751px of 2041px (the section 1751px)
+  (reported) Details / History check: the strip of every start year (the planner's) adds 553px
+  ok    Details / History check: the chart uses the screen   410px of 412px
+  ok    Details / History check: the chart has an expand button
+  ok    Details / History check: expand opens the chart at full screen, the viewport's width   the chart 412px, the dialog 412px, of 412px
+  FAIL  Details / History check: ...and its height   420px of 839px
+  ok    Details / History check: ...and Escape closes it
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / Assumptions: no control under 44px
+  ok    Details / Assumptions: the classic Config & Assumptions tab's content within its 2 screens   1535px of 1538px (the section 1535px)
+  (reported) Details / Assumptions: Tax rules, open (folded on a phone in the classic Config) adds 386px
+  (reported) Details / Assumptions: Display's heading with the theme adds 152px
+  (reported) Details / Assumptions: the solver's settings adds 174px
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details / How the solver decides: no control under 44px
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    Details / the full documentation: no control under 44px
+  ok    the full documentation folds on a phone   10 cards, 0 open
+  ok    ...with the text still in the DOM   10 cards over 400 chars
+  ok    ...and a scroll you can get to the end of   2714px
+  ok    Details / the full documentation: the classic Documentation tab's content within its 2.2 screens   1100px of 1706px, from the contents to the last card
+  ok    the bottom nav is there
+  ok    ...fixed to the bottom   fixed true, atBottom true
+  ok    ...tall enough to hit   57px
+  ok    ...and not covering the content   content ends 767, nav starts 782
+  ok    the top tab strip is hidden   0px
+  ok    the theme is one cycling button, not three   1 cycle, 0 of three
+  ok    You: inputs are at least 16px, so focusing does not zoom   0 of 7 under 16px
+  ok    You: its sections are tabs, one showing   You, Your money, Income, One-off deposits, One-off costs, Limits, Advanced; showing You
+  ok    You: a swipe left moves to the next section   Your money
+  ok    ...and a swipe right comes back   You
+  ok    You / You: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 840px of 1660, 0 long selects, 0px overflow; the page 1246px
+  ok    You / Your money: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 1407px of 1660, 0 long selects, 0px overflow; the page 1813px
+  ok    You / Income: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 236px of 1660, 0 long selects, 0px overflow; the page 839px
+  ok    You / One-off deposits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 376px of 1660, 0 long selects, 0px overflow; the page 839px
+  ok    You / One-off costs: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 182px of 1660, 0 long selects, 0px overflow; the page 839px
+  ok    You / Limits: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 102px of 1660, 0 long selects, 0px overflow; the page 839px
+  (reported) You / Limits: the solver's limits as drop-downs: Riskiest tier for the pension (7), Riskiest tier for the ISA (7)
+  ok    You / Advanced: one section, the form's own content under the classic bar, nothing sideways, no long drop-down   the form 734px of 1660, 0 long selects, 0px overflow; the page 2252px
+  (reported) You / Advanced: Your current approach's controls add 1112px, the section 1846px, the page 2252px
+  ok    an income stream cannot start before the age you retire   min 62, retiring at 62
+  ok    ...and an earlier age typed in snaps back to it   shows 62, saved 62
+  ok    You is rows: label left, control right   7 of 7
+  ok    ...every control ending on one line, and the explanations one tap away   7 controls on 1 right edge(s), 0 steppers, 0 hints, 3 terms
+  ok    a new band opens as a row of three fields   {"open":"true","inputs":3}
+  ok    a folded explanation shows its first lines and names the rest   1249 chars, opens with "What counts as a contribution…"
+  ok    each wrapper is a card showing its tier, the Cash ISA borrowing Cash Savings'   5 cards, 4 tiers
+  ok    ...which opens into six chips, not a drop-down   6 chips
+  ok    ...and a chip sets the tier and folds away   {"saved":"Medium Risk","closed":true}
+  ok    a glossary term can be brought onto the screen   3 terms in You
+  ok    ...and it is the tap target itself, not a mark beside it   at the middle of it a finger hits the term
+  ok    ...marked as pressable by a shimmering underline   background gradient: true
+  ok    ...at the height of the text it sits in, not the 44px floor   16px tall
+  ok    ...tapping one opens its definition   280px, 400 chars
+  ok    ...and it closes again
+  ok    Pixel 7 @ dark: no page errors
+
+8 FAILED
+
+== 3. restyle-regression-ui.cjs (findings 4 and 5)
+
+the contrast probe on planted layers
+  ok    a layer painted beneath the text is composited under it, and a veil over it or a hidden layer is not   flagged "veiled static" 1.37:1, "veiled above" 1.37:1, "hidden layer" 1.37:1, "no layer" 1.37:1
+
+light @ 1400px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: the typical run's cards drawn (the next ten years, the "In shares" strip, the run pot by pot)
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    light @ 1400: no bottom nav on desktop
+  ok    light @ 1400: the top tab strip is showing   48px
+  ok    light @ 1400: no page errors
+
+light @ 390px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: a phone's deck of slides   7 slides
+  ok    Your plan / slide 2: shown, with its own content   slide true, [data-outlook="spend"] true
+  ok    Your plan / slide 2: no sideways scroll   0px
+  ok    Your plan / slide 2: no text below the WCAG bar
+  ok    Your plan / slide 3: shown, with its own content   slide true, [data-outlook="wealth"] true
+  ok    Your plan / slide 3: no sideways scroll   0px
+  ok    Your plan / slide 3: no text below the WCAG bar
+  ok    Your plan / slide 4: shown, with its own content   slide true, [data-invest-strip] true
+  ok    Your plan / slide 4: no sideways scroll   0px
+  ok    Your plan / slide 4: no text below the WCAG bar
+  ok    Your plan / slide 5: shown, with its own content   slide true, [data-strategy-ahead] true
+  ok    Your plan / slide 5: no sideways scroll   0px
+  ok    Your plan / slide 5: no text below the WCAG bar
+  ok    Your plan / slide 6: shown, with its own content   slide true, [data-more="life"] true
+  ok    Your plan / slide 6: no sideways scroll   0px
+  ok    Your plan / slide 6: no text below the WCAG bar
+  ok    Your plan / slide 7: shown, with its own content   slide true, [data-strategy-compare] true
+  ok    Your plan / slide 7: no sideways scroll   0px
+  ok    Your plan / slide 7: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: its sections, a phone's tabs   Year by year, History check, Assumptions, How the solver decides
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    light @ 390: bottom nav present
+  ok    light @ 390: the top tab strip is hidden   0px
+  ok    light @ 390: no page errors
+
+dark @ 1400px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: the typical run's cards drawn (the next ten years, the "In shares" strip, the run pot by pot)
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    dark @ 1400: no bottom nav on desktop
+  ok    dark @ 1400: the top tab strip is showing   48px
+  ok    dark @ 1400: no page errors
+
+dark @ 390px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: a phone's deck of slides   7 slides
+  ok    Your plan / slide 2: shown, with its own content   slide true, [data-outlook="spend"] true
+  ok    Your plan / slide 2: no sideways scroll   0px
+  ok    Your plan / slide 2: no text below the WCAG bar
+  ok    Your plan / slide 3: shown, with its own content   slide true, [data-outlook="wealth"] true
+  ok    Your plan / slide 3: no sideways scroll   0px
+  ok    Your plan / slide 3: no text below the WCAG bar
+  ok    Your plan / slide 4: shown, with its own content   slide true, [data-invest-strip] true
+  ok    Your plan / slide 4: no sideways scroll   0px
+  ok    Your plan / slide 4: no text below the WCAG bar
+  ok    Your plan / slide 5: shown, with its own content   slide true, [data-strategy-ahead] true
+  ok    Your plan / slide 5: no sideways scroll   0px
+  ok    Your plan / slide 5: no text below the WCAG bar
+  ok    Your plan / slide 6: shown, with its own content   slide true, [data-more="life"] true
+  ok    Your plan / slide 6: no sideways scroll   0px
+  ok    Your plan / slide 6: no text below the WCAG bar
+  ok    Your plan / slide 7: shown, with its own content   slide true, [data-strategy-compare] true
+  ok    Your plan / slide 7: no sideways scroll   0px
+  ok    Your plan / slide 7: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: its sections, a phone's tabs   Year by year, History check, Assumptions, How the solver decides
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    dark @ 390: bottom nav present
+  ok    dark @ 390: the top tab strip is hidden   0px
+  ok    dark @ 390: no page errors
+
+sepia @ 1400px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: the typical run's cards drawn (the next ten years, the "In shares" strip, the run pot by pot)
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    sepia @ 1400: no bottom nav on desktop
+  ok    sepia @ 1400: the top tab strip is showing   48px
+  ok    sepia @ 1400: no page errors
+
+sepia @ 390px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: a phone's deck of slides   7 slides
+  ok    Your plan / slide 2: shown, with its own content   slide true, [data-outlook="spend"] true
+  ok    Your plan / slide 2: no sideways scroll   0px
+  ok    Your plan / slide 2: no text below the WCAG bar
+  ok    Your plan / slide 3: shown, with its own content   slide true, [data-outlook="wealth"] true
+  ok    Your plan / slide 3: no sideways scroll   0px
+  ok    Your plan / slide 3: no text below the WCAG bar
+  ok    Your plan / slide 4: shown, with its own content   slide true, [data-invest-strip] true
+  ok    Your plan / slide 4: no sideways scroll   0px
+  ok    Your plan / slide 4: no text below the WCAG bar
+  ok    Your plan / slide 5: shown, with its own content   slide true, [data-strategy-ahead] true
+  ok    Your plan / slide 5: no sideways scroll   0px
+  ok    Your plan / slide 5: no text below the WCAG bar
+  ok    Your plan / slide 6: shown, with its own content   slide true, [data-more="life"] true
+  ok    Your plan / slide 6: no sideways scroll   0px
+  ok    Your plan / slide 6: no text below the WCAG bar
+  ok    Your plan / slide 7: shown, with its own content   slide true, [data-strategy-compare] true
+  ok    Your plan / slide 7: no sideways scroll   0px
+  ok    Your plan / slide 7: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: its sections, a phone's tabs   Year by year, History check, Assumptions, How the solver decides
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    sepia @ 390: bottom nav present
+  ok    sepia @ 390: the top tab strip is hidden   0px
+  ok    sepia @ 390: no page errors
+
+theme control
+  ok    light and dark paint different grounds   rgb(245, 246, 248) vs rgb(15, 18, 22)
+  ok    dark stamps the document
+  ok    the choice survives a reload   rgb(15, 18, 22)
+  ok    sepia is its own ground, not a repaint of either   rgb(240, 231, 211)
+  ok    ...and stamps the document as sepia
+  ok    ...without claiming to be dark
+  ok    ...and survives a reload without a flash of light   rgb(240, 231, 211)
+  ok    a first visit still follows the device
+  ok    ...and stores that it is following, not what it resolved to
+
+all ok
+
+== 3a. the same harness on b612be65's light build (:4321), where the strip's 70% label is under the bar: it is caught on the
+   desktop's Your plan and on a phone's slide 4
+
+the contrast probe on planted layers
+  ok    a layer painted beneath the text is composited under it, and a veil over it or a hidden layer is not   flagged "veiled static" 1.37:1, "veiled above" 1.37:1, "hidden layer" 1.37:1, "no layer" 1.37:1
+
+light @ 1400px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: the typical run's cards drawn (the next ten years, the "In shares" strip, the run pot by pot)
+  ok    Your plan: no sideways scroll   0px
+  FAIL  Your plan: no text below the WCAG bar   "70" 3.85:1 rgb(255, 255, 255)
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    light @ 1400: no bottom nav on desktop
+  ok    light @ 1400: the top tab strip is showing   48px
+  ok    light @ 1400: no page errors
+
+light @ 390px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: a phone's deck of slides   7 slides
+  ok    Your plan / slide 2: shown, with its own content   slide true, [data-outlook="spend"] true
+  ok    Your plan / slide 2: no sideways scroll   0px
+  ok    Your plan / slide 2: no text below the WCAG bar
+  ok    Your plan / slide 3: shown, with its own content   slide true, [data-outlook="wealth"] true
+  ok    Your plan / slide 3: no sideways scroll   0px
+  ok    Your plan / slide 3: no text below the WCAG bar
+  ok    Your plan / slide 4: shown, with its own content   slide true, [data-invest-strip] true
+  ok    Your plan / slide 4: no sideways scroll   0px
+  FAIL  Your plan / slide 4: no text below the WCAG bar   "70" 3.85:1 rgb(255, 255, 255)
+  ok    Your plan / slide 5: shown, with its own content   slide true, [data-strategy-ahead] true
+  ok    Your plan / slide 5: no sideways scroll   0px
+  ok    Your plan / slide 5: no text below the WCAG bar
+  ok    Your plan / slide 6: shown, with its own content   slide true, [data-more="life"] true
+  ok    Your plan / slide 6: no sideways scroll   0px
+  ok    Your plan / slide 6: no text below the WCAG bar
+  ok    Your plan / slide 7: shown, with its own content   slide true, [data-strategy-compare] true
+  ok    Your plan / slide 7: no sideways scroll   0px
+  ok    Your plan / slide 7: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: its sections, a phone's tabs   Year by year, History check, Assumptions, How the solver decides
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    light @ 390: bottom nav present
+  ok    light @ 390: the top tab strip is hidden   0px
+  ok    light @ 390: no page errors
+
+dark @ 1400px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: the typical run's cards drawn (the next ten years, the "In shares" strip, the run pot by pot)
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    dark @ 1400: no bottom nav on desktop
+  ok    dark @ 1400: the top tab strip is showing   48px
+  ok    dark @ 1400: no page errors
+
+dark @ 390px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: a phone's deck of slides   7 slides
+  ok    Your plan / slide 2: shown, with its own content   slide true, [data-outlook="spend"] true
+  ok    Your plan / slide 2: no sideways scroll   0px
+  ok    Your plan / slide 2: no text below the WCAG bar
+  ok    Your plan / slide 3: shown, with its own content   slide true, [data-outlook="wealth"] true
+  ok    Your plan / slide 3: no sideways scroll   0px
+  ok    Your plan / slide 3: no text below the WCAG bar
+  ok    Your plan / slide 4: shown, with its own content   slide true, [data-invest-strip] true
+  ok    Your plan / slide 4: no sideways scroll   0px
+  ok    Your plan / slide 4: no text below the WCAG bar
+  ok    Your plan / slide 5: shown, with its own content   slide true, [data-strategy-ahead] true
+  ok    Your plan / slide 5: no sideways scroll   0px
+  ok    Your plan / slide 5: no text below the WCAG bar
+  ok    Your plan / slide 6: shown, with its own content   slide true, [data-more="life"] true
+  ok    Your plan / slide 6: no sideways scroll   0px
+  ok    Your plan / slide 6: no text below the WCAG bar
+  ok    Your plan / slide 7: shown, with its own content   slide true, [data-strategy-compare] true
+  ok    Your plan / slide 7: no sideways scroll   0px
+  ok    Your plan / slide 7: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: its sections, a phone's tabs   Year by year, History check, Assumptions, How the solver decides
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    dark @ 390: bottom nav present
+  ok    dark @ 390: the top tab strip is hidden   0px
+  ok    dark @ 390: no page errors
+
+sepia @ 1400px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: the typical run's cards drawn (the next ten years, the "In shares" strip, the run pot by pot)
+  ok    Your plan: no sideways scroll   0px
+  FAIL  Your plan: no text below the WCAG bar   "70" 3.93:1 rgb(250, 244, 231)
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    sepia @ 1400: no bottom nav on desktop
+  ok    sepia @ 1400: the top tab strip is showing   48px
+  ok    sepia @ 1400: no page errors
+
+sepia @ 390px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: a phone's deck of slides   7 slides
+  ok    Your plan / slide 2: shown, with its own content   slide true, [data-outlook="spend"] true
+  ok    Your plan / slide 2: no sideways scroll   0px
+  ok    Your plan / slide 2: no text below the WCAG bar
+  ok    Your plan / slide 3: shown, with its own content   slide true, [data-outlook="wealth"] true
+  ok    Your plan / slide 3: no sideways scroll   0px
+  ok    Your plan / slide 3: no text below the WCAG bar
+  ok    Your plan / slide 4: shown, with its own content   slide true, [data-invest-strip] true
+  ok    Your plan / slide 4: no sideways scroll   0px
+  FAIL  Your plan / slide 4: no text below the WCAG bar   "70" 3.93:1 rgb(250, 244, 231)
+  ok    Your plan / slide 5: shown, with its own content   slide true, [data-strategy-ahead] true
+  ok    Your plan / slide 5: no sideways scroll   0px
+  ok    Your plan / slide 5: no text below the WCAG bar
+  ok    Your plan / slide 6: shown, with its own content   slide true, [data-more="life"] true
+  ok    Your plan / slide 6: no sideways scroll   0px
+  ok    Your plan / slide 6: no text below the WCAG bar
+  ok    Your plan / slide 7: shown, with its own content   slide true, [data-strategy-compare] true
+  ok    Your plan / slide 7: no sideways scroll   0px
+  ok    Your plan / slide 7: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: its sections, a phone's tabs   Year by year, History check, Assumptions, How the solver decides
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    sepia @ 390: bottom nav present
+  ok    sepia @ 390: the top tab strip is hidden   0px
+  ok    sepia @ 390: no page errors
+
+theme control
+  ok    light and dark paint different grounds   rgb(245, 246, 248) vs rgb(15, 18, 22)
+  ok    dark stamps the document
+  ok    the choice survives a reload   rgb(15, 18, 22)
+  ok    sepia is its own ground, not a repaint of either   rgb(240, 231, 211)
+  ok    ...and stamps the document as sepia
+  ok    ...without claiming to be dark
+  ok    ...and survives a reload without a flash of light   rgb(240, 231, 211)
+  ok    a first visit still follows the device
+  ok    ...and stores that it is following, not what it resolved to
+
+4 FAILED
+
+== 3b. research/solver/d155-fixround-2/strip-desktop.cjs: the desktop's strip when the card first reads 'filling' and at 'done'
+under load, on b612be65's light build, with two restyle-regression runs and a solver-projection run solving beside it (the
+probe from the scratchpad before it was committed: the same code but its paths):
+filling (the card filling): strip labels none; probe flags none
+done (the card done): strip labels 90%@591,1781 shown, 30%@663,1781 shown, 70%@591,1809 shown, 10%@663,1809 shown; probe flags "70" 3.85
+on a quiet machine, the committed probe:
+b612be65's light build (:4321):
+filling (the card filling): strip labels 90%@591,1781 shown, 30%@663,1781 shown, 70%@591,1809 shown, 10%@663,1809 shown; probe flags "70" 3.85
+done (the card done): strip labels 90%@591,1781 shown, 30%@663,1781 shown, 70%@591,1809 shown, 10%@663,1809 shown; probe flags "70" 3.85
+this round's light build (:4320):
+filling (the card filling): strip labels 90%@593,1784 shown, 30%@665,1784 shown, 70%@593,1812 shown, 10%@665,1812 shown; probe flags none
+done (the card done): strip labels 90%@593,1784 shown, 30%@665,1784 shown, 70%@593,1812 shown, 10%@665,1812 shown; probe flags none
+
+== 3p. planted, RESTYLE_PLANT=layerall (the first fix round's layer rule, every earlier positioned sibling composited):
+   exactly the planted layers' check fails
+
+the contrast probe on planted layers
+  FAIL  a layer painted beneath the text is composited under it, and a veil over it or a hidden layer is not   wrong: veiled static passed, veiled above passed, hidden layer passed; flagged "no layer" 1.37:1 (planted: layerall)
+
+light @ 1400px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: the typical run's cards drawn (the next ten years, the "In shares" strip, the run pot by pot)
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    light @ 1400: no bottom nav on desktop
+  ok    light @ 1400: the top tab strip is showing   48px
+  ok    light @ 1400: no page errors
+
+light @ 390px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: a phone's deck of slides   7 slides
+  ok    Your plan / slide 2: shown, with its own content   slide true, [data-outlook="spend"] true
+  ok    Your plan / slide 2: no sideways scroll   0px
+  ok    Your plan / slide 2: no text below the WCAG bar
+  ok    Your plan / slide 3: shown, with its own content   slide true, [data-outlook="wealth"] true
+  ok    Your plan / slide 3: no sideways scroll   0px
+  ok    Your plan / slide 3: no text below the WCAG bar
+  ok    Your plan / slide 4: shown, with its own content   slide true, [data-invest-strip] true
+  ok    Your plan / slide 4: no sideways scroll   0px
+  ok    Your plan / slide 4: no text below the WCAG bar
+  ok    Your plan / slide 5: shown, with its own content   slide true, [data-strategy-ahead] true
+  ok    Your plan / slide 5: no sideways scroll   0px
+  ok    Your plan / slide 5: no text below the WCAG bar
+  ok    Your plan / slide 6: shown, with its own content   slide true, [data-more="life"] true
+  ok    Your plan / slide 6: no sideways scroll   0px
+  ok    Your plan / slide 6: no text below the WCAG bar
+  ok    Your plan / slide 7: shown, with its own content   slide true, [data-strategy-compare] true
+  ok    Your plan / slide 7: no sideways scroll   0px
+  ok    Your plan / slide 7: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: its sections, a phone's tabs   Year by year, History check, Assumptions, How the solver decides
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    light @ 390: bottom nav present
+  ok    light @ 390: the top tab strip is hidden   0px
+  ok    light @ 390: no page errors
+
+dark @ 1400px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: the typical run's cards drawn (the next ten years, the "In shares" strip, the run pot by pot)
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    dark @ 1400: no bottom nav on desktop
+  ok    dark @ 1400: the top tab strip is showing   48px
+  ok    dark @ 1400: no page errors
+
+dark @ 390px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: a phone's deck of slides   7 slides
+  ok    Your plan / slide 2: shown, with its own content   slide true, [data-outlook="spend"] true
+  ok    Your plan / slide 2: no sideways scroll   0px
+  ok    Your plan / slide 2: no text below the WCAG bar
+  ok    Your plan / slide 3: shown, with its own content   slide true, [data-outlook="wealth"] true
+  ok    Your plan / slide 3: no sideways scroll   0px
+  ok    Your plan / slide 3: no text below the WCAG bar
+  ok    Your plan / slide 4: shown, with its own content   slide true, [data-invest-strip] true
+  ok    Your plan / slide 4: no sideways scroll   0px
+  ok    Your plan / slide 4: no text below the WCAG bar
+  ok    Your plan / slide 5: shown, with its own content   slide true, [data-strategy-ahead] true
+  ok    Your plan / slide 5: no sideways scroll   0px
+  ok    Your plan / slide 5: no text below the WCAG bar
+  ok    Your plan / slide 6: shown, with its own content   slide true, [data-more="life"] true
+  ok    Your plan / slide 6: no sideways scroll   0px
+  ok    Your plan / slide 6: no text below the WCAG bar
+  ok    Your plan / slide 7: shown, with its own content   slide true, [data-strategy-compare] true
+  ok    Your plan / slide 7: no sideways scroll   0px
+  ok    Your plan / slide 7: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: its sections, a phone's tabs   Year by year, History check, Assumptions, How the solver decides
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    dark @ 390: bottom nav present
+  ok    dark @ 390: the top tab strip is hidden   0px
+  ok    dark @ 390: no page errors
+
+sepia @ 1400px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: the typical run's cards drawn (the next ten years, the "In shares" strip, the run pot by pot)
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    sepia @ 1400: no bottom nav on desktop
+  ok    sepia @ 1400: the top tab strip is showing   48px
+  ok    sepia @ 1400: no page errors
+
+sepia @ 390px
+  ok    Your plan: renders its own content
+  ok    Your plan: measured on its answer, not its progress   the card filling
+  ok    Your plan: no sideways scroll   0px
+  ok    Your plan: no text below the WCAG bar
+  ok    Your plan: a phone's deck of slides   7 slides
+  ok    Your plan / slide 2: shown, with its own content   slide true, [data-outlook="spend"] true
+  ok    Your plan / slide 2: no sideways scroll   0px
+  ok    Your plan / slide 2: no text below the WCAG bar
+  ok    Your plan / slide 3: shown, with its own content   slide true, [data-outlook="wealth"] true
+  ok    Your plan / slide 3: no sideways scroll   0px
+  ok    Your plan / slide 3: no text below the WCAG bar
+  ok    Your plan / slide 4: shown, with its own content   slide true, [data-invest-strip] true
+  ok    Your plan / slide 4: no sideways scroll   0px
+  ok    Your plan / slide 4: no text below the WCAG bar
+  ok    Your plan / slide 5: shown, with its own content   slide true, [data-strategy-ahead] true
+  ok    Your plan / slide 5: no sideways scroll   0px
+  ok    Your plan / slide 5: no text below the WCAG bar
+  ok    Your plan / slide 6: shown, with its own content   slide true, [data-more="life"] true
+  ok    Your plan / slide 6: no sideways scroll   0px
+  ok    Your plan / slide 6: no text below the WCAG bar
+  ok    Your plan / slide 7: shown, with its own content   slide true, [data-strategy-compare] true
+  ok    Your plan / slide 7: no sideways scroll   0px
+  ok    Your plan / slide 7: no text below the WCAG bar
+  ok    You: renders its own content
+  ok    You: no sideways scroll   0px
+  ok    You: no text below the WCAG bar
+  ok    What if: renders its own content
+  ok    What if: no sideways scroll   0px
+  ok    What if: no text below the WCAG bar
+  ok    Details: renders its own content
+  ok    Details: no sideways scroll   0px
+  ok    Details: no text below the WCAG bar
+  ok    Details: its sections, a phone's tabs   Year by year, History check, Assumptions, How the solver decides
+  ok    Details / History check: no sideways scroll   0px
+  ok    Details / History check: no text below the WCAG bar
+  ok    Details / Assumptions: no sideways scroll   0px
+  ok    Details / Assumptions: no text below the WCAG bar
+  ok    Details / How the solver decides: no sideways scroll   0px
+  ok    Details / How the solver decides: no text below the WCAG bar
+  ok    Details: the full documentation opens   10 cards
+  ok    Details / the full documentation: no sideways scroll   0px
+  ok    Details / the full documentation: no text below the WCAG bar
+  ok    sepia @ 390: bottom nav present
+  ok    sepia @ 390: the top tab strip is hidden   0px
+  ok    sepia @ 390: no page errors
+
+theme control
+  ok    light and dark paint different grounds   rgb(245, 246, 248) vs rgb(15, 18, 22)
+  ok    dark stamps the document
+  ok    the choice survives a reload   rgb(15, 18, 22)
+  ok    sepia is its own ground, not a repaint of either   rgb(240, 231, 211)
+  ok    ...and stamps the document as sepia
+  ok    ...without claiming to be dark
+  ok    ...and survives a reload without a flash of light   rgb(240, 231, 211)
+  ok    a first visit still follows the device
+  ok    ...and stores that it is following, not what it resolved to
+
+1 FAILED
+
+== 4. solver-projection-ui.cjs, PROJECTION_SECTIONS=3 (the gate's one failure on 1ce99382: Details' ledger)
+4a. 1ce99382's code and harness, on a quiet machine (phone-ui beside it, which solves nothing): the ledger check passes
+  ok    the preview build (the switch on) is served   port 4310
+  ok    Your plan's outlook: the money bands the engine's monteCarlo bands for each arm within 1e-12, the spending bands Node's   40 years; the median at the end 2295478 (the engine 2295478); the solved plan's within 1.8e-15, yours within 1.3e-15
+  ok    Details' year by year is the solved plan's ledger: every year's total Node's, and every year's move Node's   solved ledger true, 40 rows (Node 40), totals differing 0, moves differing 0
+  ok    "Your current approach" gives your plan's ledger, Node's, with no move column   your ledger true, 40 rows, move cells 0
+  ok    the history check is the solved plan through real history, labelled the out-of-model check: its verdict and pot left Node's, your current approach's verdict beside it Node's   from 1965: the solved plan survived, the pot left 2611098 (Node 2611098); yours survived (Node survived)
+  ok    S126, retired, has no age card on What if
+  ok    switch on: no page errors
+
+all ok
+
+4b. this round's harness (Details opened once Your plan's actions and rule of thumb are in, each time printed), with two
+   restyle-regression runs solving beside it
+  ok    the preview build (the switch on) is served   port 4310
+  ok    Your plan's outlook: the money bands the engine's monteCarlo bands for each arm within 1e-12, the spending bands Node's   40 years; the median at the end 2295478 (the engine 2295478); the solved plan's within 1.8e-15, yours within 1.3e-15
+  ok    Details' year by year is the solved plan's ledger: every year's total Node's, and every year's move Node's   solved ledger true, 40 rows (Node 40), totals differing 0, moves differing 0; Your plan's actions and rule in after 150s, the ledger in 0s later
+  ok    "Your current approach" gives your plan's ledger, Node's, with no move column   your ledger true, 40 rows, move cells 0
+  ok    the history check is the solved plan through real history, labelled the out-of-model check: its verdict and pot left Node's, your current approach's verdict beside it Node's   from 1965: the solved plan survived, the pot left 2611098 (Node 2611098); yours survived (Node survived)
+  ok    S126, retired, has no age card on What if
+  ok    switch on: no page errors
+
+all ok

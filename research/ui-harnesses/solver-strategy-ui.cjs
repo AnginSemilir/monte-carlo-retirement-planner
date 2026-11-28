@@ -22,9 +22,14 @@
  *    0, and a planted dominated action at least 0.
  * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; Your plan says so, offers "try again",
  *    and shows the plan under the app's own rules under it, its current approach's chance worked out in the projection's
- *    worker (the classic planner's link until D155): the projection's worker ran, and the same page forced onto the main
- *    thread (?forceMain=1) starts none and gives the same chance to the digit (the classic planner's phone-perf sections 2
- *    and 3 until D155, on the job the worker still runs: the reviewer on D155, finding 1 (e)).
+ *    worker (the classic planner's link until D155): the projection's worker answered the page's question itself (its own
+ *    message with the run's figures, counted by the harness's Worker wrapper; a worker that starts and then fails sends none,
+ *    the page finishing on the main thread), and the same page forced onto the main thread (?forceMain=1) starts none and
+ *    gives the same figures to the bit, the chance unrounded and every year's band (the card's data-failed-figures), not
+ *    only the same whole percentage (the classic planner's phone-perf sections 2 and 3 until D155, on the job the worker still
+ *    runs: the reviewer on D155, finding 1 (e), and its second look, finding 1). Planted once each (STRATEGY_PLANT): 'mcfail',
+ *    the projection's worker started and then failing, fails the first alone; 'mcseed', the worker asked on the next seed,
+ *    fails the second alone.
  * 5. A couple the solver does not run under the switch (D42; since couples are on, D99, one outside src/couplesSwitch.js's
  *    guard, its younger partner holding 75%; since D150 under the guard before D150, the preview's build plant 'beforeall'):
  *    the couples card, nothing solved.
@@ -69,21 +74,40 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
 const VITE = join(ROOT, 'node_modules/vite/bin/vite.js');
 
+// STRATEGY_PLANT (section 4's own plants, the reviewer's second look at D155, finding 1): 'mcfail', the projection's worker
+// started and then failing, as one whose script cannot load does, so the page finishes on the main thread (the check that the
+// worker answered must FAIL, and that one alone); 'mcseed', the worker asked on the seed after the page's, so its figures part
+// from the main thread's in a way a whole percentage need not show (the check of the same figures must FAIL, and that one alone)
+const STRATEGY_PLANT = process.env.STRATEGY_PLANT || '';
 async function open(b, port, plan, { plantFail = false, query = '' } = {}) {
   // the planted failure: the page's solver worker answers every question with an error (no change to the app's code: the
   // page's Worker constructor is wrapped for the solver's script; a route on the worker's own request is not honoured). The
-  // wrapper records each worker the page starts, by its script's name
+  // wrapper records each worker the page starts, by its script's name, and counts the projection worker's own answers: each
+  // message from it carrying a run's figures (src/mcWorker.js posts { key, stats }), which a worker that starts and then
+  // fails never sends, though the page falls back to the main thread and shows a chance all the same (src/App.jsx
+  // runMonteCarloAsync)
   const ctx = await b.newContext({ viewport: { width: 1400, height: 1100 } });
-  if (plantFail) await ctx.addInitScript(() => {
+  if (plantFail) await ctx.addInitScript(plant => {
     const Real = window.Worker;
     window.__workers = [];
+    window.__mcAnswers = 0;
     window.Worker = function (url, o) {
       window.__workers.push(String(url).split('/').pop());
+      if (/mcWorker/.test(String(url))) {
+        if (plant === 'mcfail') {
+          const w = { onmessage: null, onerror: null, terminate() {}, addEventListener() {}, postMessage() { setTimeout(() => w.onerror && w.onerror({ message: 'planted: the projection worker failed' }), 0); } };
+          return w;
+        }
+        const real = new Real(url, o);
+        real.addEventListener('message', e => { if (e.data && e.data.stats) window.__mcAnswers++; });
+        if (plant === 'mcseed') { const post = real.postMessage.bind(real); real.postMessage = m => post(m && m.kind === 'stats' ? { ...m, seed: m.seed + 1 } : m); }
+        return real;
+      }
       if (!/solverWorker/.test(String(url))) return new Real(url, o);
       const w = { onmessage: null, onerror: null, terminate() {}, postMessage(m) { setTimeout(() => w.onmessage && w.onmessage({ data: { id: (m && m.id) || 0, error: 'planted: the solver failed' } }), 0); } };
       return w;
     };
-  });
+  }, STRATEGY_PLANT);
   const p = await ctx.newPage();
   const errs = [], urls = [];
   p.on('pageerror', e => errs.push(e.message));
@@ -222,20 +246,29 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
       try { await p.waitForSelector('[data-plan-answer="failed"] [data-failed-current="in"]', { timeout: 180000 }); } catch (e) { rules = false; }
       const said = await p.evaluate(() => { const el = document.querySelector('[data-plan-answer="failed"]'); return el ? /under the app.s own rules/.test(el.textContent) && /Your current approach: chance your money lasts/.test(el.textContent) : false; });
       ok('planted, the solver failing: Your plan says so, offers "try again" and shows the plan under the app\'s own rules', failed && !!retry && rules && said, `failed ${failed}, retry ${!!retry}, the app's rules in ${rules}, said ${said}`);
-      // the chance itself, and the workers the page started: the projection's worker ran (a silent fall back to the main thread
-      // would leave the figure standing and this at nought)
-      const figure = pg => pg.evaluate(() => { const el = document.querySelector('[data-failed-current]'); const m = el && /chance your money lasts\s*([\d.]+%)/.exec(el.textContent); return { chance: m ? m[1] : null, workers: window.__workers || [] }; });
+      // the chance itself, the workers the page started and the projection worker's own answers: the worker answered the page's
+      // question itself (a fall back to the main thread, silent or warned, would leave the chance standing and no answer from
+      // the worker: the plant 'mcfail'), and its figures are the run's whole figures (the card's data-failed-figures: the
+      // chance unrounded and every year's band), not only the card's whole percentage
+      const figure = pg => pg.evaluate(() => { const el = document.querySelector('[data-failed-current]'); const m = el && /chance your money lasts\s*([\d.]+%)/.exec(el.textContent);
+        return { chance: m ? m[1] : null, figures: el ? el.getAttribute('data-failed-figures') : null, workers: window.__workers || [], answers: window.__mcAnswers || 0 }; });
       const viaWorker = await figure(p);
-      ok('...its chance worked out in the projection\'s worker', !!viaWorker.chance && viaWorker.workers.some(w => /^mcWorker/.test(w)), `${viaWorker.chance}; workers ${viaWorker.workers.join(', ')}`);
+      const whole = f => { try { const x = JSON.parse(f.figures); return x && typeof x.survival === 'number' && Array.isArray(x.bands) && x.bands.length > 1 ? x : null; } catch (e) { return null; } };
+      const wx = whole(viaWorker);
+      ok('...its chance worked out in the projection\'s worker, which answered the page itself', !!viaWorker.chance && viaWorker.workers.some(w => /^mcWorker/.test(w)) && viaWorker.answers >= 1 && !!wx,
+        `${viaWorker.chance} (${wx ? wx.survival : 'no figures'}); workers ${viaWorker.workers.join(', ')}; the worker's own answers ${viaWorker.answers}`);
       ok('planted: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close();
-      // the same, forced onto the main thread: no projection worker, the same chance
+      // the same, forced onto the main thread: no projection worker, and the same figures to the bit, the chance unrounded and
+      // every year's band (the same engine on the same paths in the same browser), so a difference a whole percentage hides
+      // fails it (the plant 'mcseed')
       const m = await open(b, PREVIEW_PORT, planOf(CASES.main), { plantFail: true, query: '?forceMain=1' });
       let mainIn = true;
       try { await m.p.waitForSelector('[data-plan-answer="failed"] [data-failed-current="in"]', { timeout: 180000 }); } catch (e) { mainIn = false; }
-      const onMain = await figure(m.p);
-      ok('...and forced onto the main thread (?forceMain=1), no projection worker and the same chance', mainIn && !onMain.workers.some(w => /^mcWorker/.test(w)) && !!onMain.chance && onMain.chance === viaWorker.chance,
-        `main thread ${onMain.chance}, the worker ${viaWorker.chance}; workers ${onMain.workers.join(', ') || 'none'}`);
+      const onMain = await figure(m.p), mx = whole(onMain);
+      const bandsApart = wx && mx ? mx.bands.filter((bd, t) => JSON.stringify(bd) !== JSON.stringify(wx.bands[t])).length + Math.abs(mx.bands.length - wx.bands.length) : null;
+      ok('...and forced onto the main thread (?forceMain=1), no projection worker and the same figures to the bit: the chance unrounded and every year\'s band', mainIn && !onMain.workers.some(w => /^mcWorker/.test(w)) && !!onMain.chance && onMain.chance === viaWorker.chance && !!mx && !!wx && mx.survival === wx.survival && bandsApart === 0,
+        `main thread ${onMain.chance} (${mx ? mx.survival : 'no figures'}), the worker ${viaWorker.chance} (${wx ? wx.survival : 'no figures'}); ${mx && wx ? `${mx.bands.length} years, ${bandsApart} apart` : 'no bands'}; workers ${onMain.workers.join(', ') || 'none'}`);
       ok('forced onto the main thread: no page errors', m.errs.length === 0, m.errs.slice(0, 2).join(' | '));
       await m.p.context().close(); }
 

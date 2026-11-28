@@ -15,14 +15,27 @@
  *     hides the Start year controls and the history check's 44px check fails);
  *   - the full documentation, opened in Details: the same three, and its cards folded, the text still there, a scroll you
  *     can reach the end of;
+ *   - each section of Details no longer than the classic planner's tab that held it allowed (its screen cap, SCREEN_CAP
+ *     there: Audit Data Table 1.8 screens, Historical Backtest 2.6, Config & Assumptions 2.0, Documentation 2.2), converted
+ *     as You's form is below: the classic page drew 140px of its own around a tab's content, so a cap of c screens is c times
+ *     the screen's height less 140px of content; the content the classic tab carried is held to it, and what the planner adds
+ *     to the section or unfolds in it is measured and reported, not held to the classic bar (the history check's strip of
+ *     every start year; in Assumptions, Tax rules open, which the classic Config folded on a phone, Display's heading with
+ *     the theme, and the solver's settings): the reviewer's second look at D155, finding 2. Planted (PHONE_PLANT=nolengthsub,
+ *     the planner's additions left in), the history check and Assumptions fail on the iPhone 13;
+ *   - the history check's chart on a phone: it uses the screen (92% of its width), and its expand button opens it at full
+ *     screen, the dialog the viewport's width and height, Escape closing it (the classic planner's projection chart was
+ *     checked so until D155; the reviewer's second look, finding 6). Planted (PHONE_PLANT=halfchart, the dialog at half the
+ *     screen's height), the height check fails;
  *   - the bottom bar is present, fixed, tall enough to hit and not on top of the page's last content; the top strip hidden;
  *   - the theme is one cycling button, not three;
- * and once, on the Pixel 7: You's inputs are at least 16px (so focusing one does not zoom), its sections show one at a time,
- * each under two screens and a half with no long drop-down, and a swipe moves between them; its rows are a label left and a
- * control right, every control on one edge, the explanations a tap away; a new band opens as a row of three fields; an
- * income stream cannot start before its owner retires and snaps back; a folded explanation shows its first lines; each
- * wrapper is a card with its tier, opening into six chips that set the tier and fold away; and a glossary term is its own tap
- * target, opening its definition and closing again.
+ *   - You's phone form, on each phone in both themes as the classic planner's Plan Inputs was until D155 (the reviewer's
+ *     second look, finding 3): its inputs are at least 16px (so focusing one does not zoom), its sections show one at a
+ *     time, the form's own content under the classic bar with no long drop-down, and a swipe moves between them; its rows are
+ *     a label left and a control right, every control on one edge, the explanations a tap away; a new band opens as a row
+ *     of three fields; an income stream cannot start before its owner retires and snaps back; a folded explanation shows its
+ *     first lines; each wrapper is a card with its tier, opening into six chips that set the tier and fold away; and a
+ *     glossary term is its own tap target, opening its definition and closing again.
  *
  * Until D155 (28 Nov 2026) this harness walked the classic planner's eight tabs and its Simple page; those retired with them,
  * and the checks here are the ones of features the planner keeps (CLASSIC-RETIRE.md, the gate; the sections, the
@@ -35,10 +48,11 @@
  * Run: node phone-ui.cjs [port] [shotDir]
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
-const { CONTRAST_PROBE, OVERFLOW_PROBE, TOUCH_PROBE, NAV_PROBE, INPUT_SIZE_PROBE } = require('./lib/probes.cjs');
+const { CONTRAST_PROBE, OVERFLOW_PROBE, TOUCH_PROBE, NAV_PROBE, INPUT_SIZE_PROBE, CHART_WIDTH_PROBE } = require('./lib/probes.cjs');
 const PORT = process.argv[2] || '5173';
 const SHOT = process.argv[3];
-const PLANT = process.env.PHONE_PLANT || '';
+// PHONE_PLANT: one plant or several, comma-separated (each breaks a different check)
+const PLANTS = new Set((process.env.PHONE_PLANT || '').split(',').filter(Boolean));
 const GIA = 'Other Investments (e.g. GIA)';
 
 const plan = {
@@ -82,7 +96,7 @@ const toSection = async (page, place, name) => {
   await page.evaluate(() => window.scrollTo(0, 0));
 };
 // planted: the Start year controls off the page, so the history check's start years have no equivalent at 44px
-const plantEquivalent = page => (PLANT === 'noequivalent' ? page.evaluate(() => document.querySelectorAll('input[aria-label="Start year"]').forEach(x => { x.style.display = 'none'; })) : null);
+const plantEquivalent = page => (PLANTS.has('noequivalent') ? page.evaluate(() => document.querySelectorAll('input[aria-label="Start year"]').forEach(x => { x.style.display = 'none'; })) : null);
 // overflow, contrast and the 44px floor of what is on screen, under a label
 const measure = async (page, label) => {
   await plantEquivalent(page);
@@ -92,6 +106,74 @@ const measure = async (page, label) => {
   ok(`${label}: no text below the WCAG bar`, bad.length === 0, bad.slice(0, 2).map(x => `"${x.text}" ${x.ratio}:1`).join(' | '));
   const small = await page.evaluate(TOUCH_PROBE, 44);
   ok(`${label}: no control under 44px`, small.length === 0, `${small.length ? `${small.length}: ` : ''}${small.slice(0, 3).map(x => `${x.tag} "${x.text}" ${x.w}x${x.h}`).join(' | ')}`);
+};
+
+/*
+ * EACH SECTION OF DETAILS NO LONGER THAN ITS CLASSIC TAB ALLOWED (the reviewer's second look at D155, finding 2). The classic
+ * planner's phone check held each tab's page to a screen cap (SCREEN_CAP); the page drew 56px above a tab's content and 84px
+ * below it (CLASSIC-RETIRE.md's record, results-d155-fixround.txt section 3), so a cap of c screens is c x the screen's
+ * height less 140px of content. The content the classic tab carried is held to that; what the planner adds to the section,
+ * or shows open where the classic folded it on a phone, is measured and reported beside it, not held to the classic bar, as
+ * You's form is below (DECISIONS-PENDING.md).
+ */
+const CLASSIC_CHROME = 140;
+const DETAILS_CAP = { ledger: ['Audit Data Table', 1.8], history: ['Historical Backtest', 2.6], assumptions: ['Config & Assumptions', 2.0] };
+const DETAILS_ADDED = {
+  // the strip of every start year: the planner's (at 9d04859a it rendered only under the solver's switch, which the classic
+  // planner never had)
+  history: [['[data-history-strip]', 'the strip of every start year (the planner\'s)']],
+  // Tax rules sat in the classic Config's policy panel, folded on a phone; Display's heading card carries the theme, which
+  // the classic Config did not (its number format card, below it, is the classic's and stays in); the solver's settings
+  assumptions: [['[data-tax-rules]', 'Tax rules, open (folded on a phone in the classic Config)'], ['[data-display-theme]', 'Display\'s heading with the theme'], ['[data-solver-settings]', 'the solver\'s settings']],
+};
+const detailsLength = async (page, label, vh) => {
+  const m = await page.evaluate(added => {
+    const s = document.querySelector('[data-place="details"] section[data-details]');
+    if (!s) return null;
+    const id = s.getAttribute('data-details');
+    return { id, own: s.getBoundingClientRect().height, parts: (added[id] || []).map(([q, what]) => ({ what, h: [...s.querySelectorAll(q)].reduce((a, x) => a + x.getBoundingClientRect().height, 0) })) };
+  }, DETAILS_ADDED);
+  const capOf = m && DETAILS_CAP[m.id];
+  if (!capOf) { ok(`${label}: a section of Details with a classic tab's cap`, false, m ? `section ${m.id}` : 'no section'); return; }
+  const [tab, cap] = capOf, allowed = Math.round(cap * vh - CLASSIC_CHROME);
+  const added = PLANTS.has('nolengthsub') ? 0 : m.parts.reduce((a, x) => a + x.h, 0), content = Math.round(m.own - added);
+  ok(`${label}: the classic ${tab} tab's content within its ${cap} screens`, content <= allowed, `${content}px of ${allowed}px (the section ${Math.round(m.own)}px)`);
+  for (const x of m.parts) if (x.h) console.log(`  (reported) ${label}: ${x.what} adds ${Math.round(x.h)}px`);
+};
+// the full documentation, from its contents to its last card: the classic Documentation tab's content (its cap 2.2 screens)
+const docsLength = async (page, label, vh) => {
+  const d = await page.evaluate(() => {
+    const c = document.querySelector('[data-place="details"] [data-doc-contents]'), cards = [...document.querySelectorAll('[data-place="details"] [id^="doc-"]')];
+    if (!cards.length) return null;
+    return { own: cards[cards.length - 1].getBoundingClientRect().bottom - (c || cards[0]).getBoundingClientRect().top };
+  });
+  const allowed = Math.round(2.2 * vh - CLASSIC_CHROME);
+  ok(`${label}: the classic Documentation tab's content within its 2.2 screens`, !!d && d.own <= allowed, d ? `${Math.round(d.own)}px of ${allowed}px, from the contents to the last card` : 'no documentation');
+};
+/*
+ * THE HISTORY CHECK'S CHART AT FULL SCREEN (the reviewer's second look at D155, finding 6): the classic planner's phone check
+ * held its projection chart to the screen's width and its full screen to the viewport, and Escape to closing it; the planner
+ * keeps the same overlay for the history check's chart on a phone (src/App.jsx renderHistoricalChart and ChartFullscreen).
+ */
+const fullScreenChart = async (page, label, vw) => {
+  const w = await page.evaluate(CHART_WIDTH_PROBE);
+  ok(`${label}: the chart uses the screen`, w >= vw * 0.92, `${w}px of ${vw}px`);
+  const opened = await page.evaluate(() => { const b = document.querySelector('[data-place="details"] [data-chart-expand]'); if (!b) return false; b.click(); return true; });
+  ok(`${label}: the chart has an expand button`, opened);
+  if (!opened) return;
+  await page.waitForTimeout(700);
+  if (PLANTS.has('halfchart')) await page.evaluate(() => { const d = document.querySelector('[role="dialog"][aria-modal="true"]'); if (d) { d.style.height = '50vh'; d.style.bottom = 'auto'; } });
+  const fs = await page.evaluate(() => {
+    const d = document.querySelector('[role="dialog"][aria-modal="true"]');
+    if (!d) return null;
+    const svg = [...d.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+    return { w: svg ? Math.round(svg.getBoundingClientRect().width) : 0, vw: window.innerWidth, dw: Math.round(d.getBoundingClientRect().width), h: Math.round(d.getBoundingClientRect().height), vh: window.innerHeight };
+  });
+  ok(`${label}: expand opens the chart at full screen, the viewport's width`, !!fs && fs.w >= fs.vw - 4 && Math.abs(fs.dw - fs.vw) <= 2, fs ? `the chart ${fs.w}px, the dialog ${fs.dw}px, of ${fs.vw}px` : 'no dialog');
+  ok(`${label}: ...and its height`, !!fs && Math.abs(fs.h - fs.vh) <= 2, fs ? `${fs.h}px of ${fs.vh}px` : '');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(500);
+  ok(`${label}: ...and Escape closes it`, await page.evaluate(() => !document.querySelector('[role="dialog"][aria-modal="true"]')));
 };
 
 (async () => {
@@ -131,11 +213,14 @@ const measure = async (page, label) => {
          */
         if (place === 'you' || place === 'details') {
           const tabs = await sectionsOf(p, place);
+          if (place === 'details' && tabs.length) await detailsLength(p, `${label} / ${tabs[0]}`, desc.viewport.height);
           for (const t of tabs.slice(1)) {
             await toSection(p, place, t);
             // the history check's strip comes when every start year is run: wait for its cells, or the floor reads nothing
             if (/History/.test(t)) await p.waitForSelector('[data-place="details"] [data-history-cell]', { timeout: 20000 }).catch(() => {});
             await measure(p, `${label} / ${t}`);
+            if (place === 'details' && !/solver decides/.test(t)) await detailsLength(p, `${label} / ${t}`, desc.viewport.height);
+            if (/History/.test(t)) { await fullScreenChart(p, `${label} / ${t}`, desc.viewport.width); await p.evaluate(() => window.scrollTo(0, 0)); }
             if (/solver decides/.test(t)) {
               // the full documentation, opened where it lives
               await p.click('[data-place="details"] [data-docs-open]').catch(() => {});
@@ -155,6 +240,7 @@ const measure = async (page, label) => {
               ok('the full documentation folds on a phone', d.n >= 8 && d.open === 0, `${d.n} cards, ${d.open} open`);
               ok('...with the text still in the DOM', d.body >= 6, `${d.body} cards over 400 chars`);
               ok('...and a scroll you can get to the end of', d.pageH < 4000, `${d.pageH}px`);
+              await docsLength(p, `${label} / the full documentation`, desc.viewport.height);
             }
           }
           if (tabs.length) await toSection(p, place, tabs[0]);
@@ -176,8 +262,9 @@ const measure = async (page, label) => {
       }));
       ok('the theme is one cycling button, not three', themeCtl.cycle === 1 && themeCtl.group === 0, `${themeCtl.cycle} cycle, ${themeCtl.group} of three`);
 
-      if (devName === 'Pixel 7' && theme === 'light') {
-        // ---- You on a phone: its inputs, its sections, the swipe between them ----
+      {
+        // ---- You on a phone, on each phone in both themes (the reviewer's second look at D155, finding 3): its inputs, its
+        // sections, the swipe between them ----
         await fromBar(p, 'You');
         await waitPlace(p, 'you', '[data-you-rows]');
         await p.waitForTimeout(400);

@@ -19,13 +19,29 @@
  *                            renders empty cannot pass by being silently blank: an element its own card
  *                            draws, not the place's heading, which the page draws before the card arrives
  *                            (the reviewer on D155, finding 4); and Your plan is measured on its answer,
- *                            not its progress: the solved plan's figures, strip and outlook on the card, its
- *                            first paths in (on a phone the solve is asked for). Its last paths add no part
- *                            to the card, and wait four minutes and more a page at these settings.
+ *                            not its progress: the solved plan's figures and outlook on the card, its first
+ *                            paths in (on a phone the solve is asked for), and the typical run's cards that
+ *                            come just after them (the next ten years, the "In shares" strip, the run pot by
+ *                            pot), waited for by their own marks: the card can read 'filling' before it carries
+ *                            them, since they come with the next question to the solve (on b612be65's build,
+ *                            with other pages solving beside it, the strip and its 70% label, under the bar,
+ *                            were not yet on the page when the card first read 'filling'). Its last paths change the same
+ *                            cards' figures and draw nothing new, and wait four minutes and more a page at
+ *                            these settings; this year's actions and the rule of thumb come after them and
+ *                            are not measured here (their words and figures are solver-strategy's checks).
+ *                            At 390, where a phone shows Your plan as a deck of slides, one mounted at a
+ *                            time, every slide is measured, each with its own content drawn where it has
+ *                            figures: the reviewer's second look at D155, finding 4.
  *
  * And, at 390, every section of Details, which a phone shows one at a time (the classic planner's Config, Historical
  * Backtest and Documentation tabs held them until D155, each measured so); and at both widths the full documentation, opened
  * where it lives in Details (the reviewer on D155, finding 1).
+ *
+ * First, the contrast probe itself on a page of planted layers (the reviewer's second look at D155, finding 5): a layer
+ * painted beneath a label is composited under it (the strip's shape, and a label above its layer by z-index), and a veil
+ * painted over the text (after it in paint order, or above it by z-index) or a hidden layer is not, so pale text under them
+ * still fails. Planted (RESTYLE_PLANT=layerall: the probe composites every earlier positioned sibling over the text, the D155
+ * fix round's rule), that check fails.
  *
  * Run: node restyle-regression-ui.cjs [port] [shotDir]
  */
@@ -59,9 +75,38 @@ let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
 
 const PHONE_MAX = 767;                 // in step with src/viewport.js
+const RPLANT = process.env.RESTYLE_PLANT || '';
+// the planted layers: each card a label over or under a layer, the case named on the label (lib/probes.cjs CONTRAST_PROBE)
+const LAYERS = `<!doctype html><html><head><meta charset="utf-8"><style>
+  body { margin: 0; font: 14px sans-serif; background: #fff; }
+  .card { position: relative; width: 300px; height: 40px; margin: 8px; background: #fff; overflow: hidden; }
+  .layer { position: absolute; inset: 0; }
+  .t { padding: 10px; display: inline-block; }
+</style></head><body>
+<div class="card"><div class="layer" style="background: rgb(49,46,129); opacity: 0.9"></div><span class="t" style="position: relative; color: rgb(255,255,255)">beneath one</span></div>
+<div class="card"><div class="layer" style="background: rgb(49,46,129); z-index: 1"></div><span class="t" style="position: relative; z-index: 2; color: rgb(255,255,255)">beneath two</span></div>
+<div class="card"><div class="layer" style="background: rgba(0,0,0,0.7)"></div><span class="t" style="color: rgb(220,220,220)">veiled static</span></div>
+<div class="card"><div class="layer" style="background: rgba(0,0,0,0.7); z-index: 10"></div><span class="t" style="position: relative; color: rgb(220,220,220)">veiled above</span></div>
+<div class="card"><div class="layer" style="background: rgb(0,0,0); visibility: hidden"></div><span class="t" style="position: relative; color: rgb(220,220,220)">hidden layer</span></div>
+<div class="card"><span class="t" style="color: rgb(220,220,220)">no layer</span></div>
+</body></html>`;
 
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  {
+    // the probe on planted layers: beneath one and two composited (white on the indigo shade passes), the rest not (pale text
+    // on the white card, as a reader sees it: the veils cover it, the hidden layer is not painted, the last has no layer)
+    const p = await b.newPage({ viewport: { width: 400, height: 600 } });
+    await p.setContent(LAYERS);
+    const flagged = await p.evaluate(CONTRAST_PROBE, { layerAll: RPLANT === 'layerall' });
+    const hit = t => flagged.some(x => x.text === t);
+    const want = { 'beneath one': false, 'beneath two': false, 'veiled static': true, 'veiled above': true, 'hidden layer': true, 'no layer': true };
+    const wrong = Object.entries(want).filter(([t, w]) => hit(t) !== w).map(([t, w]) => `${t} ${w ? 'passed' : 'flagged'}`);
+    console.log('\nthe contrast probe on planted layers');
+    ok('a layer painted beneath the text is composited under it, and a veil over it or a hidden layer is not', wrong.length === 0,
+      `${wrong.length ? `wrong: ${wrong.join(', ')}; ` : ''}flagged ${flagged.map(x => `"${x.text}" ${x.ratio}:1`).join(', ') || 'none'}${RPLANT ? ` (planted: ${RPLANT})` : ''}`);
+    await p.close();
+  }
   for (const theme of ['light', 'dark', 'sepia']) {
     for (const width of [1400, 390]) {
       /*
@@ -101,9 +146,16 @@ const PHONE_MAX = 767;                 // in step with src/viewport.js
         // a place's cards load lazily: wait for an element its own card draws
         await p.waitForFunction(([pl, q]) => !!document.querySelector(`[data-place="${pl}"] ${q}`), [place, sel], { timeout: 15000 }).catch(() => {});
         if (place === 'plan') {
-          // the answer, not the progress: on a phone the solve is asked for; at the light settings it is in within seconds
+          // the answer, not the progress: on a phone the solve is asked for; at the light settings it is in within seconds on a
+          // quiet machine, and the wait is a ceiling: with other pages solving beside it (the D155 second fix round's own runs,
+          // three at once on four cores) the sepia desktop's took over three minutes, so it waits up to ten
           await p.evaluate(() => document.querySelector('[data-plan-answer="ask"] [data-solve-request]')?.click());
-          await p.waitForSelector('[data-plan-answer="filling"], [data-plan-answer="done"]', { timeout: 180000 }).catch(() => {});
+          await p.waitForSelector('[data-plan-answer="filling"], [data-plan-answer="done"]', { timeout: 600000 }).catch(() => {});
+        }
+        const RUN = ['[data-strategy-ahead]', '[data-invest-strip]', '[data-more="life"]'];
+        if (place === 'plan' && width > PHONE_MAX) {
+          // the typical run's cards, asked for once the first paths are in: wait for each by its own mark
+          for (const q of RUN) await p.waitForSelector(`[data-place="plan"] ${q}`, { timeout: 600000 }).catch(() => {});
         }
         await p.waitForTimeout(400);
         const own = await p.evaluate(([pl, q]) => !!document.querySelector(`[data-place="${pl}"] ${q}`), [place, sel]);
@@ -111,8 +163,30 @@ const PHONE_MAX = 767;                 // in step with src/viewport.js
         if (place === 'plan') {
           const state = await p.evaluate(() => document.querySelector('[data-plan-answer]')?.getAttribute('data-plan-answer'));
           ok(`${tab}: measured on its answer, not its progress`, state === 'filling' || state === 'done', `the card ${state}`);
+          if (width > PHONE_MAX) {
+            const run = await p.evaluate(qs => qs.filter(q => !document.querySelector(`[data-place="plan"] ${q}`)), RUN);
+            ok(`${tab}: the typical run's cards drawn (the next ten years, the "In shares" strip, the run pot by pot)`, run.length === 0, run.length ? `missing ${run.join(', ')}` : '');
+          }
         }
         await measure(tab);
+        if (place === 'plan' && width <= PHONE_MAX) {
+          // a phone's deck mounts one slide at a time (src/PlannerPlan.jsx Deck): every slide, each with its own content (slide 2
+          // the spending's chart, 3 the money's, 4 the "In shares" strip, 5 the next ten years, 6 the run pot by pot, 7 the
+          // comparison with your current approach), measured as the first was
+          const steps = await p.evaluate(() => [...document.querySelectorAll('[data-place="plan"] [data-deck-step]')].map(x => x.getAttribute('data-deck-step')));
+          ok(`${tab}: a phone's deck of slides`, steps.length >= 7, `${steps.length} slides`);
+          const OWN = { 2: '[data-outlook="spend"]', 3: '[data-outlook="wealth"]', 4: '[data-invest-strip]', 5: '[data-strategy-ahead]', 6: '[data-more="life"]', 7: '[data-strategy-compare]' };
+          for (const n of steps.slice(1)) {
+            await p.evaluate(k => document.querySelector(`[data-place="plan"] [data-deck-step="${k}"]`)?.click(), n);
+            await p.waitForSelector(`[data-place="plan"] [data-deck-slide="${n}"]`, { timeout: 10000 }).catch(() => {});
+            if (OWN[n]) await p.waitForSelector(`[data-place="plan"] [data-deck-slide="${n}"] ${OWN[n]}`, { timeout: 60000 }).catch(() => {});
+            await p.waitForTimeout(400);
+            const shown = await p.evaluate(([k, q]) => ({ slide: !!document.querySelector(`[data-place="plan"] [data-deck-slide="${k}"]`), own: !q || !!document.querySelector(`[data-place="plan"] [data-deck-slide="${k}"] ${q}`) }), [n, OWN[n] || '']);
+            ok(`${tab} / slide ${n}: shown, with its own content`, shown.slide && shown.own, `slide ${shown.slide}${OWN[n] ? `, ${OWN[n]} ${shown.own}` : ''}`);
+            await measure(`${tab} / slide ${n}`);
+          }
+          if (steps.length) await p.evaluate(() => document.querySelector('[data-place="plan"] [data-deck-step="1"]')?.click());
+        }
         if (SHOT && width === 1400) await p.screenshot({ path: `${SHOT}/reg-${theme}-${tab.replace(/[^a-z]/gi, '')}.png` });
       }
       // Details: on a phone a section at a time, each measured; at both widths the full documentation, opened

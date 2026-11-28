@@ -21,6 +21,8 @@ below this section says "the beta", read it as history. The order from here:
   next batch. The couples' rollback switches (the guard and the cut) stay.
 - **Built (28 Nov):** b612be65, then one fix round on the reviewer's FAIL (`CLASSIC-RETIRE.md`, the fix round; 1ce99382).
 
+**ANSWERED by D156 (28 Nov): "Second fix round, all six (Recommended)".** The entry as it stood:
+
 **OPEN (28 Nov), yours (D81 (F)): the reviewer's second look at D155 is FAIL, standing after one fix round.**
 (`reviews/2026-11-28-classic-retire-2.md`: two BLOCKING, four MINOR.) Batch 20 waits on it. The reviewer found that the fix
 round answered the first look's findings except two gaps in the ported checks, and gave a way to answer each:
@@ -43,22 +45,31 @@ The agent's recommendation is a second fix round on all six, as the reviewer set
 sections were: the classic content held to its converted cap, and what the planner adds measured and reported to you. Then the
 reviewer's third look and B1's gate, then batch 20.
 
-**OPEN (28 Nov), yours, deciding nothing until you rule: You on a phone, against the classic form's rules.** Porting the
-classic planner's phone checks onto the planner's You (the reviewer on D155, finding 1 (d)) found the form itself within them.
-Two things the planner added are not, and the gate reports them rather than failing on them (`results-d155-fixround.txt`,
-section 3):
-- **Advanced is long.** Your current approach's five controls (the classic planner's Config until D155) add about `1112`px
-  to Advanced, so its page on a Pixel 7 is `2252`px, over the classic rule of two screens and a half (`1800`px). The classic
-  form's own part of it is `718`px.
+**OPEN (28 Nov), yours, deciding nothing until you rule: You and Details on a phone, against the classic planner's rules.**
+Porting the classic planner's phone checks onto the planner (the reviewer on D155, finding 1 (d), and its second look,
+findings 2 and 3) found what the classic tabs carried within their rules, on both phones in both themes. What the planner
+added or shows open is not always, and the gate reports it rather than failing on it (`results-d155-fixround-2.txt`,
+section 2):
+- **Advanced is long.** Your current approach's five controls (the classic planner's Config until D155) add `1224`px to
+  Advanced on an iPhone 13 and `1112`px on a Pixel 7, so its page is `2380`px and `2252`px, over the classic rule of two
+  screens and a half (`1800`px). The classic form's own part of it is `750`px and `734`px.
 - **Limits uses drop-downs.** The solver's limits give the riskiest tier for the pension and for the ISA as drop-downs of
   seven, where the classic form put tiers on chips.
-- The planner's You heading also starts every section `266`px lower than the classic page did, which is why the bar is now
-  held on the form's own content (`1660`px).
+- **Details' history check and Assumptions are long on an iPhone 13.** Each section is held to the screen cap of the classic
+  tab that carried it, converted as You's form is (the classic page drew `140`px around a tab's content). On the iPhone 13
+  the history check is `1716`px against the Historical Backtest's `1586`, through the strip of every start year (`553`px,
+  the planner's); its classic part is `1163`px. Assumptions is `1555`px against Config & Assumptions' `1188`, through Tax
+  rules shown open (`386`px; the classic Config folded it on a phone), Display's heading with the theme (`152`px) and the
+  solver's settings (`174`px); its classic part is `843`px. On the Pixel 7 both sections are within the caps whole.
+- The planner's You heading also starts every section `266`px lower than the classic page did, which is why the bar is held
+  on the form's own content (`1660`px), and on the section's own height in Details.
 
-The agent's recommendation is to leave both as they are, since they are your UI pass's design. If you want them held to the
+The agent's recommendation is to leave them as they are, since they are your UI pass's design. If you want them held to the
 classic rules, the change would be:
 - fold Your current approach on a phone, behind its heading;
-- give Limits' tiers the chips the wrapper cards use.
+- give Limits' tiers the chips the wrapper cards use;
+- on a phone, fold the strip of every start year and Tax rules behind their headings, as the classic Config folded Tax
+  rules.
 
 Either is a change to the planner's look, so it is yours to ask for.
 

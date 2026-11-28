@@ -109,7 +109,9 @@ Where the build differs from the plan above, and why:
 The reviewer on the change (`reviews/2026-11-28-classic-retire.md`): FAIL, one BLOCKING and five MINOR, answered in one round
 (D81 (F)). The checks' record is `results-d155-fixround.txt`; the first load's is `results-first-load-d155.txt`.
 
-1. **BLOCKING: the classic mode's checks of kept features, ported.** Each is now made on the planner, and each passes:
+1. **BLOCKING: the classic mode's checks of kept features, ported.** Each is now made on the planner, and each passes
+   (the second look found two not so, below: (e)'s checks could not fail on a worker that fails, and the classic tabs'
+   screen caps, the fourth thing (a)'s loop measured, were not ported; the second fix round answers both):
    - (a) every section of You and Details, on the two phones in both themes (overflow, contrast, 44px: phone-ui) and at
      390px in three themes (overflow, contrast: restyle-regression). The history check's start-year cells are under 44px
      across on a phone (`24` by `44` on an iPhone 13, `27` by `44` on a Pixel 7); the Start year box above them is their
@@ -155,3 +157,69 @@ The reviewer on the change (`reviews/2026-11-28-classic-retire.md`): FAIL, one B
 6. **MINOR 6:** the plan and the build are one commit, b612be65, so "written before any of it is built" has no record in
    git. The plan's "built in steps, each committed" did not happen. solver-strategy, solver-projection and solver-planner
    had not run on b612be65's code when it was committed; the gate runs them on the fix round's.
+
+## The second fix round (28 Nov), on the reviewer's second look (D156)
+
+The reviewer's second look (`reviews/2026-11-28-classic-retire-2.md`): FAIL, two BLOCKING and four MINOR, standing after one
+fix round, so the maintainer's (D81 (F)): "Second fix round, all six (Recommended)" (D156), each answered as the reviewer set
+it out. The checks' record is `results-d155-fixround-2.txt`, on this round's light build.
+
+1. **BLOCKING 1: the projection worker's checks fail on a worker that fails.** solver-strategy section 4's Worker wrapper now
+   counts the projection worker's own answers, each message from it carrying a run's figures, and the failure card carries
+   the run's whole figures (`data-failed-figures`: the chance unrounded and every year's band; `src/PlannerPlan.jsx`). The
+   first check passes only when the worker answered the page itself; the second holds the page forced onto the main thread
+   (`?forceMain=1`) to the worker's run to the bit, not to the card's whole percentage. On this code the worker answered once,
+   and the main thread's chance and its `40` years of bands are the worker's exactly. Planted, each fails its check alone:
+   'mcfail' (the worker started, then failing, the page finishing on the main thread) the first, its answers `0` with the
+   chance still shown; 'mcseed' (the worker asked on the next seed) the second, where both pages show `95`% (the whole
+   percentage the old check compared) but the unrounded chances are `94.70` and `94.96` and all `40` years' bands differ.
+2. **BLOCKING 2: the classic tabs' screen caps.** phone-ui holds each section of Details to the cap of the classic tab that
+   carried it, converted as You's form is (a cap of c screens is c times the screen's height less the `140`px the classic page
+   drew around a tab's content): Year by year to the Audit Data Table's `1.8` screens, the history check to the Historical
+   Backtest's `2.6`, Assumptions to Config & Assumptions' `2.0`, and the full documentation, from its contents to its last
+   card, to the Documentation tab's `2.2`. The content the classic tab carried is held to the cap; what the planner adds or
+   shows open is measured and reported beside it, not gated: the history check's strip of every start year (`553`px), and in
+   Assumptions Tax rules open (`386`px; the classic Config folded it on a phone), Display's heading with the theme (`152`px)
+   and the solver's settings (`174`px). Every section passes on both phones in both themes. On the iPhone 13 the history
+   check's classic part is `1163` of `1586`px and Assumptions' `843` of `1188`px; whole, they are `1716` and `1555`px, over the
+   caps. Planted ('nolengthsub', the additions left in), exactly those two checks fail on the iPhone 13 in both themes. The
+   additions go to the maintainer with You's (`DECISIONS-PENDING.md`).
+3. **MINOR 3:** You's phone form is checked on both phones in both themes, as the classic Plan Inputs was. Every check passes.
+   Advanced's report on the iPhone 13: Your current approach's controls add `1224`px, the section `1974`px, the page `2380`px.
+   On the Pixel 7: `1112`, `1846` and `2252`px.
+4. **MINOR 4:** at 390, restyle-regression measures every slide of Your plan's deck, each shown with its own content (slide 2
+   the spending's chart, 3 the money's, 4 the "In shares" strip, 5 the next ten years, 6 the run pot by pot, 7 the comparison
+   with your current approach). Answering it found the desktop's check short as well. The card reads 'filling' once its first
+   paths are in; the typical run's cards (the next ten years, the strip, the run pot by pot) come with the next question to
+   the solve, within a second on a quiet machine and later under load. So the desktop's measurement on 'filling', the first
+   fix round's, could come before them: on b612be65's build, where the strip's `70`% label is under the bar, this round's
+   first desktop runs, with other pages solving beside them, passed, the strip not yet on the page (section 3b: the strip
+   absent at 'filling' under load, there on a quiet machine). Now the desktop's Your plan waits for those three cards by
+   their own marks, with a check that they are drawn.
+   On b612be65's build the harness catches the label on the desktop and on slide 4, in the light theme at `3.85`:1 and in
+   sepia at `3.93`:1, and nothing else (section 3a). This year's actions and the rule of thumb come after the last paths,
+   minutes later at these settings, and are not measured here; the header says so.
+   The answer's wait is ten minutes, not three: with three of this round's runs solving at once on four cores, one page's
+   solve took longer than three.
+5. **MINOR 5:** the contrast probe composites only a layer painted beneath the text. The layer must be drawn (not visibility
+   hidden, not display none), the text's element at that level positioned, and the layer's z-index not above that element's.
+   A veil over the text is read through, as before the first fix round, so pale text under it still fails. restyle-regression
+   first runs the probe on a page of planted layers. Two backing layers, the strip's shape and a label above its layer by
+   z-index, are composited: white on the indigo shade passes. Two veils and a hidden layer are not composited, so their pale
+   labels are flagged at `1.37`:1, as is the same label under no layer. Planted ('layerall', the first fix round's rule),
+   that check fails. An ancestor's opacity is still read by neither rule.
+6. **MINOR 6:** phone-ui holds the history check's chart on a phone to the screen: `388` of `390`px and `410` of `412`px. Its
+   expand button opens it at full screen, the dialog `390` by `664`px and `412` by `839`px, the viewport's, and Escape closes
+   it. Planted ('halfchart', the dialog at half the screen's height), the height check fails on each phone and theme.
+
+**The gate's one failure on the first fix round's code.** solver-projection's check that Details' year by year is the solved
+plan's ledger read your current approach's: the solved ledger had not come within its two minutes. Run alone on a quiet
+machine, the check passes (the ledger the solved plan's, every total and move Node's). The cause is the order of the solve's
+questions. Once its paths are all in, Your plan asks the solve's worker for this year's actions and the rule of thumb, `1,000`
+paired paths each (`src/PlannerPlan.jsx`), and the worker answers in turn. The ledger asked behind them waited for them, and
+with the machine loaded beside the gate (the reviewer's runs) that took longer than two minutes. The page says so while it
+waits: its heading reads "Your current approach, year by year, on the expected returns", under it "The solved plan's year by
+year is being worked out; your current approach's is shown until it is in." The harness now waits for Your plan's last two
+answers before opening Details, so the ledger has its two minutes to itself, and it prints how long each took: run with two
+restyle-regression runs solving beside it, the two answers came `150`s after the card's last paths and the ledger at once
+after them (section 4b).

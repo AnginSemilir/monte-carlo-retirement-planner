@@ -1,0 +1,32 @@
+the code: code-stamp:eb439806d689d08c; the gate, both passes
+== the shipped pass: build, the site as it ships ==
+   ok
+== serve on :4173 ==
+   ok
+== harnesses (the shipped pass) ==
+== the light pass: build, the harnesses' light settings (SOLVER_HARNESS=1, into dist-new) ==
+   ok
+== serve on :4173 ==
+   ok
+== harnesses (the light pass) ==
+
+HARNESS                KIND      PASS     RESULT
+production-build       required  shipped  pass
+load-perf              required  shipped  pass
+solver-progress        required  shipped  pass
+restyle-regression     required  light    pass
+numbers                required  light    pass
+phone                  required  light    pass
+desktop-reach          required  light    pass
+phone-perf             required  light    pass
+solver-config          required  light    pass
+solver-strategy        required  light    pass
+solver-isolation       required  light    pass
+solver-projection      required  light    pass
+solver-planner         required  light    pass
+
+== engine suites ==
+   not run here: CI runs every one of them on each push (Verify, Full); B1's gate reads them there, green on the
+   commit it merges (--engine runs them here too)
+
+ALL REQUIRED GREEN

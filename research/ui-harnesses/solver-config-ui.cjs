@@ -1,11 +1,10 @@
 /*
  * PART C PHASE 8: THE CONFIG TAB UNDER THE SOLVER'S SWITCH (research/solver/PHASE-8.md). REQUIRED.
  *
- * 1. The site as built, the classic planner (every visitor's unless they opt in; the app with the switch off bit for bit, Phase
- *    12): the Config tab as today, its policy search,
- *    policy, drawdown, lookahead, harvest and playbook all there, neither solver card, and no solver code fetched.
+ * 1. (Retired 28 Nov 2026 with the classic planner, D155: the site as built showed its Config tab, the policy search, policy,
+ *    drawdown, lookahead, harvest and playbook there, neither solver card, and no solver code fetched.)
  * 2. A harness's build beside it (vite.config.js solver-harness: SOLVER_HARNESS=1, this harness's light
- *    settings), opted in to the new planner (rp_planner 'new'; step U, LAYOUT.md section 11.2), a single household (S126 from
+ *    settings), the planner (step U, LAYOUT.md section 11.2; the only planner since D155), a single household (S126 from
  *    the research library, never anybody's own plan):
  *      - the levers on Your plan ("What matters to you"), the limits in You, and the app's rules for the plan in You's
  *        "Your current approach" (the policy, drawdown, lookahead and harvest there, not the policy search);
@@ -46,16 +45,14 @@ const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
 const SOLVER_URL = /SolverConfig|solverClient|solverWorker/;
 const VITE = join(ROOT, 'node_modules/vite/bin/vite.js');
 
-// the switch off: the Config tab; the switch on: opted in to the new planner, Your plan (where the levers are)
-// the classic planner chosen unless told otherwise (rp_planner 'classic': the new planner the default since 22 Nov 2026)
-async function open(b, port, plan, planner = 'classic') {
+// the planner, on Your plan (where the levers are)
+async function open(b, port, plan) {
   const p = await b.newPage({ viewport: { width: 1400, height: 1100 } });
   const errs = [], urls = [];
   p.on('pageerror', e => errs.push(e.message));
   p.on('request', q => urls.push(q.url()));
-  await p.addInitScript(([k, pl, pick]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); if (pick) localStorage.setItem('rp_planner', pick); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan, planner]);
+  await p.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan]);
   await p.goto(`http://localhost:${port}/`, { waitUntil: 'networkidle' });
-  if (planner !== 'new') await p.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.includes('Config & Assumptions')); if (x) x.click(); });
   await p.waitForTimeout(1200);
   return { p, errs, urls };
 }
@@ -78,7 +75,6 @@ const tabState = p => p.evaluate(() => ({
   note: !!document.querySelector('[data-solver-rules-note]'),
   approach: !!document.querySelector('[data-current-approach]')
 }));
-const POLICY = ['search', 'policy', 'drawdown', 'lookahead', 'harvest', 'playbook'];
 
 (async () => {
   execFileSync('python3', [join(ROOT, 'research/build-engine.py')], { stdio: 'ignore' });
@@ -88,15 +84,6 @@ const POLICY = ['search', 'policy', 'drawdown', 'lookahead', 'harvest', 'playboo
   const couple = all.find(s => E.normalizePlan(s.plan).demographics.planningMode === 'couple');
   const nodeKey = plan => solveKey(E, plan, LIGHT);
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
-
-  // 1. the site as built: the classic planner (the switch-off app, bit for bit)
-  { const { p, errs, urls } = await open(b, PORT, single), s = await tabState(p);
-    ok('the classic planner: the Config tab keeps its policy search, policy, drawdown, lookahead, harvest and playbook', POLICY.every(k => s[k]), JSON.stringify(s));
-    ok('the classic planner: neither solver card nor the solver\'s line, the guardrails unmarked', !s.aims && !s.locks && !s.couple && !s.note && s.guardrails && !s.guardOwn);
-    const got = urls.filter(u => SOLVER_URL.test(u));
-    ok('the classic planner: no solver code fetched', got.length === 0, got.join(', ') || `${urls.length} requests`);
-    ok('the classic planner: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
-    await p.close(); }
 
   // 2. the preview build, the switch on
   const OUT = mkdtempSync(join(tmpdir(), 'solver-preview-'));
@@ -109,8 +96,8 @@ const POLICY = ['search', 'policy', 'drawdown', 'lookahead', 'harvest', 'playboo
     for (let i = 0; i < 40 && !up; i++) { try { const r = await fetch(`http://localhost:${PREVIEW_PORT}/`); up = r.ok; } catch (e) { await new Promise(res => setTimeout(res, 500)); } }
     ok('the preview build (the switch on) is served', up, `port ${PREVIEW_PORT}`);
 
-    const { p, errs, urls } = await open(b, PREVIEW_PORT, single, 'new'), s = await tabState(p);
-    ok('switch on, opted in, a single household: the levers on Your plan, no policy search or priorities there', s.aims && !s.search && !s.priorities && !s.couple, JSON.stringify(s));
+    const { p, errs, urls } = await open(b, PREVIEW_PORT, single), s = await tabState(p);
+    ok('switch on, a single household: the levers on Your plan, no policy search or priorities there', s.aims && !s.search && !s.priorities && !s.couple, JSON.stringify(s));
     await goPlace(p, 'You');
     // the limits card is a lazy chunk (src/SolverConfig.jsx), drawn once it has loaded: about a quarter of a second on a quiet
     // machine, past goPlace's 600ms under the gate's load
@@ -175,7 +162,7 @@ const POLICY = ['search', 'policy', 'drawdown', 'lookahead', 'harvest', 'playboo
     { const { devices } = require('/tmp/node_modules/playwright');
       const ctx = await b.newContext({ ...devices['Pixel 7'] }), q = await ctx.newPage(), urls = [], errs = [];
       q.on('request', r => urls.push(r.url())); q.on('pageerror', e => errs.push(e.message));
-      await q.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); localStorage.setItem('rp_planner', 'new'); sessionStorage.setItem('seeded', '1'); } }, [STORE, single]);
+      await q.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); sessionStorage.setItem('seeded', '1'); } }, [STORE, single]);
       await q.goto(`http://localhost:${PREVIEW_PORT}/`, { waitUntil: 'networkidle' });
       await q.waitForTimeout(3000);
       const early = urls.filter(u => /solverWorker/.test(u)), btn = await q.$('[data-solve-request]');
@@ -192,8 +179,8 @@ const POLICY = ['search', 'policy', 'drawdown', 'lookahead', 'harvest', 'playboo
     // 3. a couple under the switch
     if (!couple) ok('a couple in the library to test with', false);
     else {
-      const c = await open(b, PREVIEW_PORT, unevenOf(couple.plan), 'new'), cs = await tabState(c.p);
-      ok(`switch on, opted in, a couple the solver does not run (${couple.id}, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card and no solver card`, cs.couple && !cs.aims && !cs.locks, JSON.stringify(cs));
+      const c = await open(b, PREVIEW_PORT, unevenOf(couple.plan)), cs = await tabState(c.p);
+      ok(`switch on, a couple the solver does not run (${couple.id}, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card and no solver card`, cs.couple && !cs.aims && !cs.locks, JSON.stringify(cs));
       // the card's reason, its refusal and its words (D143's 'shape' card, src/PlannerCards.jsx SHAPE_WORDS: since D150 shown for
       // no couple at the defaults, so read here, on the build with the guard before D150; the reviewer on D150's change of
       // default, MINOR 2)

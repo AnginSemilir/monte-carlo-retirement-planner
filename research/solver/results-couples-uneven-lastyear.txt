@@ -1,0 +1,28 @@
+WHY PA2'S EXTRA LOST PATHS FAIL IN THE PLAN'S LAST YEAR (post hoc, deciding nothing; COUPLES-UNEVEN's arrays, seed 7002, already read; 28 units, 4000 paths each; no unit solved or run)
+The minimum pot, the plan's own (config.solvencyFloor): £40,700, £39,200, £38,800, £39,600, £38,400, £38,600 over the 28 units; a path that meets every year's spending fails at its end when the pot left is below it.
+
+PA2 less ROUTE: 932 paths lost of 112000 (the 28 units' paths)
+  A. 22 with spending unmet; 910 with every year's spending met, failing at the end on the minimum pot alone
+  B. on those 910: the pot left under PA2 as a share of the minimum pot median 94.0%, quartiles 80.5% to 98.5%, from 0.5% to 100.0%; under ROUTE on the same paths median 110.8%, quartiles 105.6% to 119.0%, from 100.1% to 223.1%
+  C. on those 910, PA2 less ROUTE a path: spending delivered -£4,781 (-0.527% of ROUTE's), lifetime tax -£9,915 (-58.75%)
+     on the 108867 paths both keep, PA2 less ROUTE a path: spending delivered £11,980 (+1.132%), lifetime tax -£6,123 (-44.04%)
+  D. of those 910, the pot left at or above 99% of the minimum pot 164, 95% 428, 90% 545
+
+SPLIT less ROUTE: 104 paths lost of 112000 (the 28 units' paths)
+  A. 2 with spending unmet; 102 with every year's spending met, failing at the end on the minimum pot alone
+  B. on those 102: the pot left under SPLIT as a share of the minimum pot median 97.3%, quartiles 94.1% to 99.4%, from 33.8% to 100.0%; under ROUTE on the same paths median 104.4%, quartiles 102.7% to 108.2%, from 100.0% to 147.1%
+  C. on those 102, SPLIT less ROUTE a path: spending delivered -£594 (-0.067% of ROUTE's), lifetime tax -£252 (-1.53%)
+     on the 109695 paths both keep, SPLIT less ROUTE a path: spending delivered £146 (+0.014%), lifetime tax -£213 (-1.53%)
+  D. of those 102, the pot left at or above 99% of the minimum pot 33, 95% 70, 90% 88
+
+FIX less ROUTE: 1509 paths lost of 112000 (the 28 units' paths)
+  A. 64 with spending unmet; 1445 with every year's spending met, failing at the end on the minimum pot alone
+  B. on those 1445: the pot left under FIX as a share of the minimum pot median 96.0%, quartiles 85.4% to 98.6%, from 0.5% to 100.0%; under ROUTE on the same paths median 113.0%, quartiles 107.1% to 121.3%, from 100.1% to 253.4%
+  C. on those 1445, FIX less ROUTE a path: spending delivered £2,469 (+0.268% of ROUTE's), lifetime tax -£4,943 (-31.42%)
+     on the 108290 paths both keep, FIX less ROUTE a path: spending delivered £14,787 (+1.397%), lifetime tax -£2,714 (-19.52%)
+  D. of those 1445, the pot left at or above 99% of the minimum pot 279, 95% 812, 90% 965
+
+D (whole). Each arm's paths kept net against ROUTE, the end test at the plan's minimum pot and at 95% and 90% of it (both arms judged the same way; spending unmet still a failure):
+  PA2   at the minimum pot -585; at 95% -268; at 90% -230
+  SPLIT at the minimum pot 0; at 95% 24; at 90% 27
+  FIX   at the minimum pot -1156; at 95% -441; at 90% -381

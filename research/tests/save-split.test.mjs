@@ -161,7 +161,8 @@ try {
   // rules, and the variants' net cost (the pension at its net cost, the ISA and the overflow at face value)
   const handNet = (P, o, salary, g) => {
     if (!(g > 0)) return 0;
-    const se = !!o.selfEmployed, pass = se ? 1 : 1 + P.erNic * P.erPass;
+    // income tax relief alone for the self-employed and a net-pay employee (D154 (3): reliefTaxOnly), as the engine prices it
+    const se = !!o.reliefTaxOnly, pass = se ? 1 : 1 + P.erNic * P.erPass;
     if (!(salary > 0)) return (g / pass) * (1 - (se ? P.higherRate : P.higherRate + P.nicUpper));
     const s = Math.min(g / pass, salary), tax = x => (se ? E.incomeTax(x, P) : E.calculateUKTaxAndNIC(x, P));
     return s - (tax(salary) - tax(salary - s));

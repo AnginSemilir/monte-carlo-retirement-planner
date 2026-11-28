@@ -1,8 +1,9 @@
 /*
  * PART C PHASE 7: THE SOLVER'S PLUMBING IN THE BUILT SITE (research/solver/PHASE-7.md step 7a). REQUIRED.
  *
- * The classic planner (every visitor's unless they opt in; since Phase 12 the switch is on and the classic planner is the app
- * with it off, bit for bit) must be the app of today: its first load fetches no solver code and nothing on the page solves. The plumbing behind it is reached through the lazy chunk's one way in
+ * A fresh visitor's first load, before a plan is handed over, fetches no solver code and nothing on the page solves (the
+ * planner's quick start, D142's fix; the classic planner this read until D155 retired it, 28 Nov 2026). The plumbing behind it
+ * is reached through the lazy chunk's one way in
  * (window.__solverHarness, src/useSolver.js), and checked against a reference on the same household and settings: the
  * unbundled source run in this same Chromium (lib/reference.cjs, 13 Nov 2026: this container's Chromium and Node no longer
  * give the same double for exp and log, so a reference worked out in Node differs from the page in arithmetic alone;
@@ -22,7 +23,6 @@
  *   node research/ui-harnesses/solver-progress-ui.cjs [port]
  */
 const { chromium } = require('/tmp/node_modules/playwright');
-require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const { reference } = require('./lib/reference.cjs');
 const { execFileSync } = require('node:child_process');
 const { join } = require('node:path');
@@ -71,8 +71,8 @@ const progressOk = calls => {
   await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
   await p.waitForTimeout(1500);
   const solverUrls = urls.filter(u => /solver(Client|Worker)/.test(u));
-  ok('in the classic planner, the first load fetches no solver code', solverUrls.length === 0, solverUrls.join(', ') || `${urls.length} requests`);
-  ok('the full planner renders', await p.evaluate(() => /Plan Inputs/.test(document.body.innerText)));
+  ok('a fresh visit, before a plan is handed over, fetches no solver code', solverUrls.length === 0, solverUrls.join(', ') || `${urls.length} requests`);
+  ok('the planner renders its four places', await p.evaluate(() => JSON.stringify([...document.querySelectorAll('[data-tabbar] button')].map(b => b.textContent.trim())) === JSON.stringify(['Your plan', 'You', 'What if', 'Details'])));
 
   const whole = await p.evaluate(async ({ plan, opts, sim }) => {
     const c = await window.__solverHarness(), prog = [], t0 = performance.now(), key = await c.keyOf(window.__solverEngine, plan, opts);

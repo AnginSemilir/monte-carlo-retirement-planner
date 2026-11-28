@@ -2,9 +2,9 @@
  * PART C PHASE 10: THE PAGE'S ISOLATION WHERE THE HOST SENDS NO HEADERS (the launch plan's B5; public/coi-sw.js,
  * src/isolation.js). REQUIRED.
  *
- * 1. The site as built, the classic planner (the switch-off app bit for bit, Phase 12): no service worker registered, no
- *    isolation code fetched.
- * 2. A harness's build at light settings (vite.config.js solver-harness), opted in to the new planner (only it solves; step U), served the
+ * 1. A fresh visitor on that build (below), the quick start, before a plan is handed over: no service worker registered, no
+ *    isolation code fetched (D142's fix; until D155, 28 Nov 2026, this read the classic planner on the site as built).
+ * 2. A harness's build at light settings (vite.config.js solver-harness), the planner (step U; the only planner since D155), served the
  *    way GitHub Pages serves it, with no headers at all
  *    (this harness's own static server), a single household from the research library:
  *      - the first load registers the worker and reloads once; then the page is cross-origin isolated;
@@ -52,7 +52,7 @@ function bareServer(dir) {
   });
   return { server, state };
 }
-const seed = async (ctx, plan) => ctx.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); localStorage.setItem('rp_planner', 'new'); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan]);
+const seed = async (ctx, plan) => ctx.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan]);
 /* the page's isolation, read across the reload the worker asks for */
 async function isolatedWithin(p, ms) {
   const t0 = Date.now();
@@ -84,16 +84,6 @@ const solveIn = (p, plan, opts, parts) => p.evaluate(async ({ plan, opts, parts 
   }, { plan, opts: LIGHT });
   await ref.close();
 
-  // 1. the site as built: the classic planner
-  { const ctx = await b.newContext(), p = await ctx.newPage(), urls = [], errs = [];
-    p.on('request', q => urls.push(q.url())); p.on('pageerror', e => errs.push(e.message));
-    await seed(ctx, plan);
-    await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' }); await p.waitForTimeout(1500);
-    const s = await state(p), got = urls.filter(u => /isolation|coi-sw/.test(u));
-    ok('the classic planner: no service worker registered, no isolation code fetched', s.regs === 0 && got.length === 0, `${s.regs} registrations; ${got.join(', ') || 'none fetched'}`);
-    ok('the classic planner: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
-    await ctx.close(); }
-
   const OUT = mkdtempSync(join(tmpdir(), 'solver-isolation-'));
   const { server, state: srv } = bareServer(OUT);
   try {
@@ -103,6 +93,16 @@ const solveIn = (p, plan, opts, parts) => p.evaluate(async ({ plan, opts, parts 
     await new Promise(res => server.listen(BARE_PORT, res));
     const head = await fetch(`http://localhost:${BARE_PORT}/`);
     ok('the switch-on build served with no isolation headers, as GitHub Pages serves it', head.ok && !head.headers.get('cross-origin-embedder-policy') && !head.headers.get('cross-origin-opener-policy'), `port ${BARE_PORT}`);
+
+    // 1. a fresh visitor, the quick start: nothing isolates before a plan is handed over (D142's fix: on a host with no headers
+    // the isolation's reload would lose what the quick start holds)
+    { const ctx = await b.newContext(), p = await ctx.newPage(), urls = [], errs = [];
+      p.on('request', q => urls.push(q.url())); p.on('pageerror', e => errs.push(e.message));
+      await p.goto(`http://localhost:${BARE_PORT}/`, { waitUntil: 'networkidle' }); await p.waitForTimeout(1500);
+      const s = await state(p), got = urls.filter(u => /isolation|coi-sw/.test(u)), quick = await p.evaluate(() => !!document.querySelector('[data-quick-start]'));
+      ok('a fresh visitor, before a plan is handed over: the quick start, no service worker registered, no isolation code fetched', quick && s.regs === 0 && got.length === 0, `quick start ${quick}; ${s.regs} registrations; ${got.join(', ') || 'none fetched'}`);
+      ok('a fresh visitor: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+      await ctx.close(); }
 
     // 2. the first load, the worker, the reload
     { const ctx = await b.newContext(), p = await ctx.newPage(), errs = [], navs = [];

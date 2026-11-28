@@ -30,7 +30,7 @@ const POTS = [['pen', 'Pensions'], ['isa', 'ISAs'], ['gia', 'Other savings and i
 // the planted fault (solver-planner-ui.cjs check 13): the plan built without the contributions the quick start was given
 const noContribs = s => ({ ...s, ...Object.fromEntries(POTS.flatMap(([k]) => [[k + 'C', ''], [k + 'G', '']])) });
 
-export function QuickStart({ onStart, onFillAll, onClassic, isPhone, regions, statePensionFull, fmt }) {
+export function QuickStart({ onStart, onFillAll, isPhone, regions, statePensionFull, fmt }) {
   const [s, setS] = useState(() => ({ ...(saved() || SIMPLE_BLANK), couple: false }));
   const set = (k, v) => setS(p => ({ ...p, [k]: v }));
   const r = readiness(s);
@@ -92,8 +92,8 @@ export function QuickStart({ onStart, onFillAll, onClassic, isPhone, regions, st
       </div>
       ) : (
       <div className="text-xs text-slate-600 border-t border-slate-100 pt-3" data-quick-couple>
-        <span className="font-semibold text-slate-800">Planning for two?</span> The new planner works out plans for one person for now. A couple&apos;s plan uses the classic planner.{' '}
-        <button type="button" onClick={onClassic} className={`font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : ''}`}>Open the classic planner</button>
+        <span className="font-semibold text-slate-800">Planning for two?</span> The new planner works out plans for one person for now; a couple&apos;s plan follows the app&apos;s own rules, shown year by year in Details.{' '}
+        <button type="button" onClick={onFillAll} className={`font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : ''}`}>Fill in a plan for two</button>
       </div>
       )}
     </section>

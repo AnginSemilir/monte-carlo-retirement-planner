@@ -1,46 +1,15 @@
 /*
- * ONE PLAN, SCORED OFF THE MAIN THREAD.
+ * THE PLAN UNDER THE APP'S OWN RULES, OFF THE MAIN THREAD: the new planner's failure view (src/App.jsx runStageTest through
+ * runMonteCarloAsync), a full Monte Carlo of the plan as entered with its fan bands and sample paths, its progress posted every
+ * few hundred paths. The classic planner's other jobs (the pool's scoring for the policy search and the tournament, the
+ * safe-spend bisection, the retirement-age scan and the age-against-spend grid) retired with it (D155).
  *
- * The policy search and the tournament both score many plans on the same seed. Done on the main thread
- * in 250-path chunks with a yield between each, an 18-candidate sweep at 4,000 paths takes about 30
- * seconds in the browser against 7 seconds of actual arithmetic; the difference is the yields, the
- * progress re-renders and the fact that one thread does everything. A pool of these workers - one per
- * core, fed one plan at a time - does the arithmetic in parallel and leaves the page free to paint.
+ * The resolved plan, its context and its path draw are kept between messages and rebuilt only when one of them changes.
  *
- * Each job is self-contained: the plan, the path count, the seed, and whether the context still needs
- * its MPAA resolving (the policy search's candidates do, the tournament's players already are). The
- * seed is what keeps the comparison paired: every plan scored on the same seed sees the same market
- * paths whichever worker happens to run it, so common random numbers survive the split.
- *
- * FOUR KINDS OF QUESTION, NOT ONE.
- *
- * The Projection tab used to do all of its arithmetic on the main thread, and that was the worst thing
- * about the site on a phone: at 4x CPU throttle one run took 30.6 seconds and spent 28,398ms of that in
- * long tasks, so the page was unresponsive for most of half a minute. So this worker now answers the
- * projection's questions too, and `kind` says which:
- *
- *   score    (no kind)  the original pool job - one plan, one number, used by the search and tournament
- *   stats               a full Monte Carlo with progress frames, the fan bands and the sample paths
- *   rate                survival at one spend, which is one step of the safe-spend bisection
- *   safeAge             the retirement-age scan, which is twenty Monte Carlo runs of its own
- *   gridRow             one retirement age of the age-against-spend grid: the same plan run at each
- *                       spending level on one draw of paths. One job per row, so a pool runs as many
- *                       rows abreast as the machine has cores.
- *
- * `stats` reports progress every few hundred paths rather than only at the end, because the bar on the
- * page is the only thing telling somebody a five-second run has not hung.
- *
- * A bisection asks twenty questions about the SAME plan and seed, so the resolved plan, the context and
- * the path draw are kept between messages and rebuilt only when one of them actually changes. Without
- * that, every step of the search would pay to rebuild a context and redraw thousands of gaussian paths.
- *
- * Imports the engine from App.jsx, as simWorker.js does, with the same shim first for the same reason.
+ * Imports the engine from App.jsx with the shim first (src/workerShim.js says why).
  */
 import './workerShim.js';
-import {
-  buildContext, resolveMpaa, monteCarlo, postTaxInheritanceFor,
-  pathsForSeed, runTrial, summarizeTrials, safeRetirementAge, spendRow
-} from './App.jsx';
+import { buildContext, resolveMpaa, postTaxInheritanceFor, pathsForSeed, runTrial, summarizeTrials } from './App.jsx';
 
 let memo = null;
 /*
@@ -60,7 +29,7 @@ const prep = (plan, resolve, seed, trials) => {
 
 self.onmessage = (e) => {
   const d = e.data || {};
-  const { key, kind = 'score' } = d;
+  const { key, kind = 'stats' } = d;
   try {
     if (kind === 'stats') {
       const { plan, trials, seed, resolve = true, spendOverride = null,
@@ -78,41 +47,7 @@ self.onmessage = (e) => {
       self.postMessage({ key, stats });
       return;
     }
-    if (kind === 'rate') {
-      const { plan, trials, seed, resolve = true, spend } = d;
-      const m = prep(plan, resolve, seed, trials);
-      let survived = 0;
-      for (const zs of m.paths) if (runTrial(m.ctx, zs, spend).survived) survived++;
-      self.postMessage({ key, rate: (survived / trials) * 100 });
-      return;
-    }
-    if (kind === 'gridRow') {
-      const { plan, spends, trials, seed, resolve = true } = d;
-      // Not prep(): the row wants ONE context and ONE path draw for every cell in it, which is exactly
-      // what spendRow does, and the memo would be discarded on the next row anyway.
-      const row = spendRow(resolve ? resolveMpaa(plan) : plan, { spends, trials, seed });
-      self.postMessage({ key, row });
-      return;
-    }
-    if (kind === 'safeAge') {
-      const { plan, targetRate, searchTrials, finalTrials } = d;
-      // No seed passed on purpose: the solver's own default is what the main-thread call used, and the
-      // answer has to be the same number whichever thread produced it.
-      const result = safeRetirementAge(plan, {
-        targetRate, searchTrials, finalTrials,
-        onProgress: (pr) => self.postMessage({ key, progress: pr.value, label: pr.label })
-      });
-      self.postMessage({ key, result });
-      return;
-    }
-    // The original pool job, unchanged.
-    const { plan, trials, seed, resolve = true, inheritance = false } = d;
-    const p = resolve ? resolveMpaa(plan) : plan;
-    const ctx = buildContext(p);
-    const stats = monteCarlo(ctx, { trials, seed });
-    // the bequest priority ranks on this; null when nobody has been named as an heir
-    if (inheritance) stats.postTaxInheritance = postTaxInheritanceFor(p, ctx);
-    self.postMessage({ key, stats });
+    throw new Error(`mcWorker: no job '${kind}' (only 'stats', since D155)`);
   } catch (err) {
     self.postMessage({ key, error: String((err && err.message) || err) });
   }

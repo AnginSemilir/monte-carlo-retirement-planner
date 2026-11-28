@@ -6,19 +6,16 @@ import solverCode from './vite-plugin-solver-code.js';
 const ISOLATED = { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp' };
 
 /*
- * A HARNESS'S BUILD (research/solver/PHASE-12.md item 3). The solver's switch and B6's beta are on in src/App.jsx since Phase 12,
- * so the site's own build is the one the beta ships, and the preview plugin that turned them on for a preview retired with it
- * (the launch plan's F9: once the switch read true it would have stopped every build). What is left acts only in a harness's
- * build, with SOLVER_HARNESS=1:
+ * A HARNESS'S BUILD (research/solver/PHASE-12.md item 3). The solver's switch is on in src/App.jsx since Phase 12, and the new
+ * planner the app's only planner since D155 (the classic planner and its rollback, PLANNER_BETA_OFF, retired), so the site's own
+ * build is the one that ships. What is left acts only in a harness's build, with SOLVER_HARNESS=1:
  *   - SOLVER_HARNESS_OPTS (JSON): `const SOLVER_OPTS = null;` reads it, the harness's light settings, so its solves are quick;
  *     unset, the page solves at the app's own settings, as the site does;
- *   - PLANNER_BETA_OFF=1: `const PLANNER_BETA = true;` reads false, the rollback ("one deploy turns it off for everyone"), which
- *     solver-planner-ui check 16 builds to see it give everyone the classic planner;
  *   - COUPLES_OFF=1 (Part D, D6): src/couplesSwitch.js's `export const COUPLES = true;` reads false, the couples' rollback (one
  *     deploy turning couples off for everyone), which solver-planner-ui check 10 builds to see a couple's screens as before D5.
  * Either line moved stops the build, so a harness can never pass on a build that ignored what it asked for.
  */
-const OPTS = '\nconst SOLVER_OPTS = null;\n', BETA = '\nconst PLANNER_BETA = true;\n', COUPLES = '\nexport const COUPLES = true;\n';
+const OPTS = '\nconst SOLVER_OPTS = null;\n', COUPLES = '\nexport const COUPLES = true;\n';
 const solverHarness = () => ({
   name: 'solver-harness',
   enforce: 'pre',
@@ -30,19 +27,17 @@ const solverHarness = () => ({
       return process.env.COUPLES_OFF === '1' ? { code: code.replace(COUPLES, '\nexport const COUPLES = false;\n'), map: null } : null;
     }
     if (!/[\\/]src[\\/]App\.jsx$/.test(id)) return null;
-    if (!code.includes(OPTS) || !code.includes(BETA)) this.error('solver-harness: the settings or beta lines in src/App.jsx have moved');
+    if (!code.includes(OPTS)) this.error('solver-harness: the settings line in src/App.jsx has moved');
     const opts = process.env.SOLVER_HARNESS_OPTS || 'null';
     JSON.parse(opts);
-    let out = code.replace(OPTS, `\nconst SOLVER_OPTS = ${opts};\n`);
-    if (process.env.PLANNER_BETA_OFF === '1') out = out.replace(BETA, '\nconst PLANNER_BETA = false;\n');
-    return { code: out, map: null };
+    return { code: code.replace(OPTS, `\nconst SOLVER_OPTS = ${opts};\n`), map: null };
   }
 });
 
 /*
- * THE WORKERS READ THE SWITCH OFF (Phase 12). The engine's workers (src/simWorker.js, src/mcWorker.js) import src/App.jsx for
- * the engine, never for its screens. With the switch on in the source they would reach the solver's client and, through it,
- * the solver's worker, which imports the engine's: a circular worker import Vite refuses. Before Phase 12 every worker build
+ * THE WORKERS READ THE SWITCH OFF (Phase 12). The engine's worker (src/mcWorker.js; src/simWorker.js retired with the classic
+ * planner, D155) imports src/App.jsx for the engine, never for its screens. With the switch on in the source it would reach
+ * the solver's client and, through it, the solver's worker, which imports the engine's: a circular worker import Vite refuses. Before Phase 12 every worker build
  * read `const SOLVER = false;` (the preview plugin acted in the page's build only), so App.jsx's solver branches folded away
  * in them; this keeps that, the workers' bundles as they were. The page's own build reads the switch as the source has it.
  */
@@ -89,7 +84,7 @@ export default defineConfig({
   // edits back to source. A production build gets the manifest only — there is no server to write with.
   plugins: [solverHarness(), plannerPlant(), react(), inlineEdit()],
   /*
-   * The worker bundle needs the same plugins. src/simWorker.js imports the engine from App.jsx, which
+   * The worker bundle needs the same plugins. src/mcWorker.js imports the engine from App.jsx, which
    * reaches EditMode.jsx and its virtual:editable-copy module - so without this the worker build fails
    * to resolve an import the main build resolves fine.
    */

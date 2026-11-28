@@ -1,0 +1,41 @@
+THE FIRST LOAD BEFORE AND AFTER D155 (the reviewer on D155, finding 5): each commit's own load-perf-ui.cjs on its own shipped build
+(npm run build, served by vite preview), run one after the other on a quiet machine, 28 Nov 2026.
+
+== 9d04859a, the parent (its load-perf-ui.cjs, the new planner's ceiling then 240KB)
+Pixel 7, 4x CPU throttle, slow 4G, cold cache
+  run 1: content 2921ms, 238KB
+  run 2: content 2827ms, 238KB
+  run 3: content 2848ms, 238KB
+  median content on screen      2848ms (was 2203ms)
+  javascript over the wire      238KB (790KB decoded) over 3 script/style requests
+  ok    the page is usable promptly on a throttled phone   2848ms, ceiling 3800ms
+the new planner's first load, opted in (rp_planner new), Pixel 7
+  a saved plan: content 2711ms, 238KB
+  an empty plan: content 3023ms, 241KB
+  ok    ...and no more javascript than the ceiling allows   238KB over the wire, ceiling 239KB (a switch-on build, D58 (2) and D94 (2); 214KB before the loading work)
+  ok    ...and the streamlined page is not among it   3 script/style requests
+  FAIL  the new planner's first load: no more javascript than its own ceiling allows   a saved plan 238KB, an empty plan 241KB, ceiling 240KB
+every request the page makes, Pixel 7
+  ok    the page calls no host but its own   localhost:4303 only
+typing into a plan field, Pixel 7 at 4x throttle
+  ok    a typed character appears without waiting for the engine   26ms median, [26,32,20,23,16,26], ceiling 60ms
+
+1 FAILED
+
+== the D155 fix round's code (code-stamp:35c9453c26dcce51; load-perf-ui.cjs, the ceiling 176KB)
+Pixel 7, 4x CPU throttle, slow 4G, cold cache: a fresh visitor, the quick start
+  run 1: content 2108ms, 175KB
+  run 2: content 1998ms, 175KB
+  run 3: content 2027ms, 175KB
+  median content on screen      2027ms
+  javascript over the wire      175KB (549KB decoded) over 5 script/style requests
+  ok    the page is usable promptly on a throttled phone   2027ms, ceiling 3800ms
+the first load with a saved plan, Pixel 7
+  a saved plan: content 1740ms, 172KB
+  ok    the first load: no more javascript than its ceiling allows   an empty plan 175KB, a saved plan 172KB, ceiling 176KB
+every request the page makes, Pixel 7
+  ok    the page calls no host but its own   localhost:4304 only
+typing into a plan field, Pixel 7 at 4x throttle
+  ok    a typed character appears without waiting for the engine   16ms median, [30,25,14,15,16,15], ceiling 60ms
+
+all ok

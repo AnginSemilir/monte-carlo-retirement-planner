@@ -52,6 +52,10 @@ const CATS = ['pen', 'isa', 'other', 'cash'];
 // 'non4' draws and harvests a couple's year without N4's ceilings, as before D2; 'notier' leaves a couple's tiers where they
 // are whatever the move (couple-lockstep.test.mjs)
 export const MODEL = { plant: '' };
+/* how a person pays into their pension (D154 (3)): income tax relief alone where the owner says so (src/App.jsx buildContext
+   reliefTaxOnly), as the engine prices it. MODEL.plant 'routeignored' (research/tests/pension-route.test.mjs): every employee
+   priced as a sacrificer, the exact model apart from the engine */
+const reliefOf = o => (MODEL.plant === 'routeignored' ? o.selfEmployed : o.reliefTaxOnly);
 
 /*
  * The cash buffer for the household in projection year `t`, in full-year terms: months of the year's
@@ -308,7 +312,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     if (!working[o.key] || !(o.salary > 0)) return;
     const pen = ctx.acc[o.ids.pen];
     const penContrib = contrib ? Math.max(0, contrib[o.ids.pen] || 0) : (pen ? E.contribAtYear(pen, t) : 0);
-    taxablePay[o.key] = E.taxablePayOf(E.salaryAtYear(o, t), penContrib, P, o.selfEmployed) * frac;
+    taxablePay[o.key] = E.taxablePayOf(E.salaryAtYear(o, t), penContrib, P, reliefOf(o)) * frac;
   });
   // 4a, 4b. tax on the year's savings interest (taxable cash only) and on the GIA's dividends, as the engine charges them
   if (!state.cashIsa) state.cashIsa = { self: 0, part: 0 };   // a state built by hand carries no sheltered cash
@@ -336,7 +340,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       const pen = ctx.acc[o.ids.pen];
       const penContrib = contrib ? Math.max(0, contrib[o.ids.pen] || 0) : (pen ? E.contribAtYear(pen, t) : 0);
       const pay = E.salaryAtYear(o, t);
-      const takeHome = pay - E.calculateUKTaxAndNIC(pay, P, o.selfEmployed) - E.netCostOfPensionContrib(penContrib, pay, P, o.selfEmployed);
+      const takeHome = pay - E.calculateUKTaxAndNIC(pay, P, o.selfEmployed) - E.netCostOfPensionContrib(penContrib, pay, P, reliefOf(o));
       const nonPensionContribs = (contribThisYear[o.key] / frac) - penContrib;
       workingTakeHome += Math.max(0, takeHome - nonPensionContribs) * frac;
     });

@@ -1,11 +1,10 @@
 /*
  * PART C PHASE 9: THE STRATEGY TAB UNDER THE SOLVER'S SWITCH (the launch plan section 4; since step U, the new planner's Your plan, src/PlannerPlan.jsx). REQUIRED.
  *
- * 1. The served build, the classic planner chosen (rp_planner 'classic', since 22 Nov 2026 when the new planner became the
- *    default; unset before it; the switch-off app bit for bit since Phase 12): the
- *    Strategy tab is the tournament as today, and no solver code is fetched.
+ * 1. (Retired 28 Nov 2026 with the classic planner, D155: the served build's classic Strategy tab, the tournament, and no
+ *    solver code fetched.)
  * 2. A preview build with the switch on at this harness's light settings (vite.config.js solver-preview; the strategy's
- *    steps 200 then 500 paths), opted in to the new planner (rp_planner 'new': step U, LAYOUT.md section 11.2), a single
+ *    steps 200 then 500 paths), the planner (step U, LAYOUT.md section 11.2; the only planner since D155), a single
  *    household from the research library (never anybody's own plan):
  *      - Your plan is the solved plan, and comes as its own chunk;
  *      - its figures, once all its paths are in, are the reference's bit for bit, every one (src/solverStrategy.js strategyOf
@@ -21,11 +20,26 @@
  *    a short dip (the note), a long dip (the full text), never back at target (the full text).
  *    And the skip costs on their fixture (SKIP_FIXTURE): the page's the reference's, a known costly action above 0, the costs not all
  *    0, and a planted dominated action at least 0.
- * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; Your plan says so, offers "try again"
- *    and the classic planner (the app's rules).
+ * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; Your plan says so, offers "try again",
+ *    and shows the plan under the app's own rules under it, its current approach's chance worked out in the projection's
+ *    worker (the classic planner's link until D155): the projection's worker answered the page's question itself (its own
+ *    message with the run's figures, counted by the harness's Worker wrapper; a worker that starts and then fails sends none,
+ *    the page finishing on the main thread), and the same page forced onto the main thread (?forceMain=1) starts none and
+ *    gives the same figures to the bit, the chance unrounded and every year's band (the card's data-failed-figures), not
+ *    only the same whole percentage (the classic planner's phone-perf sections 2 and 3 until D155, on the job the worker still
+ *    runs: the reviewer on D155, finding 1 (e), and its second look, finding 1). Planted once each (STRATEGY_PLANT): 'mcfail',
+ *    the projection's worker started and then failing, fails the first alone; 'mcseed', the worker asked on the next seed,
+ *    fails the second alone.
  * 5. A couple the solver does not run under the switch (D42; since couples are on, D99, one outside src/couplesSwitch.js's
  *    guard, its younger partner holding 75%; since D150 under the guard before D150, the preview's build plant 'beforeall'):
  *    the couples card, nothing solved.
+ * 6. The solve's follow-up questions failing (the reviewer's third look at D155, finding 5): the solve's own worker planted to
+ *    answer this year's actions, the ledger's run ('rows'), history's start years and the figures lists' own line
+ *    ('strategy' asked exactly) with an error, the solve and Your plan's paths through. Each place says its figure could not
+ *    be worked out, and none is left saying it is being: Your plan's actions card; What if's own line of the target card's
+ *    figures and the scenarios' current plan; Details' ledger and the strip of every start year. Until then each caught the
+ *    failure and said nothing, so its waiting line stayed up. Planted (STRATEGY_PLANT=stuckwait: the app's plant restoring the
+ *    silent catches), the three checks fail.
  *
  *   node research/ui-harnesses/solver-strategy-ui.cjs [port]      (the preview build is served on port + 8)
  */
@@ -67,26 +81,66 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
 const VITE = join(ROOT, 'node_modules/vite/bin/vite.js');
 
-async function open(b, port, plan, { plantFail = false, planner = 'new' } = {}) {
+// STRATEGY_PLANT (section 4's own plants, the reviewer's second look at D155, finding 1): 'mcfail', the projection's worker
+// started and then failing, as one whose script cannot load does, so the page finishes on the main thread (the check that the
+// worker answered must FAIL, and that one alone); 'mcseed', the worker asked on the seed after the page's, so its figures part
+// from the main thread's in a way a whole percentage need not show (the check of the same figures must FAIL, and that one alone)
+const STRATEGY_PLANT = process.env.STRATEGY_PLANT || '';
+async function open(b, port, plan, { plantFail = false, query = '', failKinds = null, scenarios = null } = {}) {
   // the planted failure: the page's solver worker answers every question with an error (no change to the app's code: the
-  // page's Worker constructor is wrapped for the solver's script; a route on the worker's own request is not honoured)
+  // page's Worker constructor is wrapped for the solver's script; a route on the worker's own request is not honoured). The
+  // wrapper records each worker the page starts, by its script's name, and counts the projection worker's own answers: each
+  // message from it carrying a run's figures (src/mcWorker.js posts { key, stats }), which a worker that starts and then
+  // fails never sends, though the page falls back to the main thread and shows a chance all the same (src/App.jsx
+  // runMonteCarloAsync)
   const ctx = await b.newContext({ viewport: { width: 1400, height: 1100 } });
-  if (plantFail) await ctx.addInitScript(() => {
+  if (plantFail) await ctx.addInitScript(plant => {
     const Real = window.Worker;
+    window.__workers = [];
+    window.__mcAnswers = 0;
     window.Worker = function (url, o) {
+      window.__workers.push(String(url).split('/').pop());
+      if (/mcWorker/.test(String(url))) {
+        if (plant === 'mcfail') {
+          const w = { onmessage: null, onerror: null, terminate() {}, addEventListener() {}, postMessage() { setTimeout(() => w.onerror && w.onerror({ message: 'planted: the projection worker failed' }), 0); } };
+          return w;
+        }
+        const real = new Real(url, o);
+        real.addEventListener('message', e => { if (e.data && e.data.stats) window.__mcAnswers++; });
+        if (plant === 'mcseed') { const post = real.postMessage.bind(real); real.postMessage = m => post(m && m.kind === 'stats' ? { ...m, seed: m.seed + 1 } : m); }
+        return real;
+      }
       if (!/solverWorker/.test(String(url))) return new Real(url, o);
       const w = { onmessage: null, onerror: null, terminate() {}, postMessage(m) { setTimeout(() => w.onmessage && w.onmessage({ data: { id: (m && m.id) || 0, error: 'planted: the solver failed' } }), 0); } };
       return w;
     };
-  });
+  }, STRATEGY_PLANT);
+  // section 6: the solve's own worker answers the named follow-up questions with an error and passes every other through
+  // ('strategy:exact', the figures lists' own line and the scenarios' base row, apart from Your plan's 'strategy')
+  if (failKinds) await ctx.addInitScript(kinds => {
+    const Real = window.Worker;
+    window.__failed = [];
+    window.Worker = function (url, o) {
+      const real = new Real(url, o);
+      if (!/solverWorker/.test(String(url))) return real;
+      const post = real.postMessage.bind(real);
+      real.postMessage = (m, t) => {
+        const k = m && (m.kind === 'strategy' && m.exact ? 'strategy:exact' : m.kind);
+        if (k && kinds.includes(k)) { window.__failed.push(k); setTimeout(() => { if (real.onmessage) real.onmessage({ data: { id: m.id, error: 'planted: the question failed' } }); }, 0); return undefined; }
+        return t ? post(m, t) : post(m);
+      };
+      return real;
+    };
+  }, failKinds);
+  if (scenarios) await ctx.addInitScript(sc => { if (!sessionStorage.getItem('seededsc')) { localStorage.setItem('rp_saved_scenarios_v3', JSON.stringify(sc)); sessionStorage.setItem('seededsc', '1'); } }, scenarios);
   const p = await ctx.newPage();
   const errs = [], urls = [];
   p.on('pageerror', e => errs.push(e.message));
   p.on('request', q => urls.push(q.url()));
-  await p.addInitScript(([k, pl, pick]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); if (pick) localStorage.setItem('rp_planner', pick); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan, planner]);
-  await p.goto(`http://localhost:${port}/`, { waitUntil: 'networkidle' });
-  // not opted in: the classic Strategy tab; opted in: Your plan, where the new planner lands
-  await p.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => /^Strategy$|Your plan/.test(b.textContent.trim())); if (x) x.click(); });
+  await p.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan]);
+  await p.goto(`http://localhost:${port}/${query}`, { waitUntil: 'networkidle' });
+  // Your plan, where the planner lands
+  await p.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.trim() === 'Your plan'); if (x) x.click(); });
   await p.waitForTimeout(1200);
   return { p, errs, urls };
 }
@@ -128,19 +182,10 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     return JSON.stringify(actionsOf(E, solveForApp(E, M, pl, light), pl, { seed, n: light.strategyActionsN }).actions);
   }, { pl, light: LIGHT, seed: SEED }));
 
-  // 1. the classic planner, chosen (rp_planner 'classic': the new planner the default since 22 Nov 2026) (Phase 12: the switch is on in the source, so a visitor who has not opted in is the switch-off case; the
-  // gate's served build, either mode's)
-  { const { p, errs, urls } = await open(b, PORT, planOf(CASES.main), { planner: 'classic' }), s = await tab(p);
-    ok('not opted in (the classic planner): the Strategy tab is the tournament, without the solver\'s view', s.tournament && !s.strategy && !s.couple, JSON.stringify(s));
-    const got = urls.filter(u => /SolverStrategy|solverClient|solverWorker/.test(u));
-    ok('not opted in: no solver code fetched', got.length === 0, got.join(', ') || `${urls.length} requests`);
-    ok('not opted in: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
-    await p.context().close(); }
-
   const OUT = mkdtempSync(join(tmpdir(), 'solver-strategy-'));
   let server = null;
   try {
-    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), PLANNER_PLANT: 'beforeall' } });
+    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), PLANNER_PLANT: STRATEGY_PLANT === 'stuckwait' ? 'beforeall,stuckwait' : 'beforeall' } });
     server = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT, '--port', PREVIEW_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
     let up = false;
     for (let i = 0; i < 40 && !up; i++) { try { const r = await fetch(`http://localhost:${PREVIEW_PORT}/`); up = r.ok; } catch (e) { await new Promise(res => setTimeout(res, 500)); } }
@@ -151,7 +196,7 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     const only = process.env.STRATEGY_CASES ? process.env.STRATEGY_CASES.split(',') : null;
     for (const [which, id] of Object.entries(CASES).filter(([w]) => !only || only.includes(w))) {
       const { p, errs, urls } = await open(b, PREVIEW_PORT, planOf(id)), s = await tab(p);
-      if (which === 'main') ok(`switch on, opted in, ${id}: Your plan is the solved plan, not the tournament`, s.strategy && !s.tournament && !s.couple, JSON.stringify(s));
+      if (which === 'main') ok(`switch on, ${id}: Your plan is the solved plan, not the tournament`, s.strategy && !s.tournament && !s.couple, JSON.stringify(s));
       let done = true;
       try { await waitDone(p); } catch (e) { done = false; }
       const figs = done ? JSON.parse(await p.getAttribute('[data-solver-strategy]', 'data-strategy-figures')) : null;
@@ -220,17 +265,73 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     { const { p, errs } = await open(b, PREVIEW_PORT, planOf(CASES.main), { plantFail: true });
       let failed = true;
       try { await p.waitForSelector('[data-solver-strategy][data-strategy-state="failed"]', { timeout: 60000 }); } catch (e) { failed = false; }
-      const retry = await p.$('[data-strategy-retry]'), classic = await p.$('[data-plan-answer="failed"] [data-open-classic]');
-      ok('planted, the solver failing: Your plan says so, offers "try again" and the classic planner (the app\'s rules)', failed && !!retry && !!classic);
+      const retry = await p.$('[data-strategy-retry]');
+      // the plan under the app's own rules under the card: its current approach's chance, from the projection's worker
+      let rules = true;
+      try { await p.waitForSelector('[data-plan-answer="failed"] [data-failed-current="in"]', { timeout: 180000 }); } catch (e) { rules = false; }
+      const said = await p.evaluate(() => { const el = document.querySelector('[data-plan-answer="failed"]'); return el ? /under the app.s own rules/.test(el.textContent) && /Your current approach: chance your money lasts/.test(el.textContent) : false; });
+      ok('planted, the solver failing: Your plan says so, offers "try again" and shows the plan under the app\'s own rules', failed && !!retry && rules && said, `failed ${failed}, retry ${!!retry}, the app's rules in ${rules}, said ${said}`);
+      // the chance itself, the workers the page started and the projection worker's own answers: the worker answered the page's
+      // question itself (a fall back to the main thread, silent or warned, would leave the chance standing and no answer from
+      // the worker: the plant 'mcfail'), and its figures are the run's whole figures (the card's data-failed-figures: the
+      // chance unrounded and every year's band), not only the card's whole percentage
+      const figure = pg => pg.evaluate(() => { const el = document.querySelector('[data-failed-current]'); const m = el && /chance your money lasts\s*([\d.]+%)/.exec(el.textContent);
+        return { chance: m ? m[1] : null, figures: el ? el.getAttribute('data-failed-figures') : null, workers: window.__workers || [], answers: window.__mcAnswers || 0 }; });
+      const viaWorker = await figure(p);
+      const whole = f => { try { const x = JSON.parse(f.figures); return x && typeof x.survival === 'number' && Array.isArray(x.bands) && x.bands.length > 1 ? x : null; } catch (e) { return null; } };
+      const wx = whole(viaWorker);
+      ok('...its chance worked out in the projection\'s worker, which answered the page itself', !!viaWorker.chance && viaWorker.workers.some(w => /^mcWorker/.test(w)) && viaWorker.answers >= 1 && !!wx,
+        `${viaWorker.chance} (${wx ? wx.survival : 'no figures'}); workers ${viaWorker.workers.join(', ')}; the worker's own answers ${viaWorker.answers}`);
       ok('planted: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
-      await p.context().close(); }
+      await p.context().close();
+      // the same, forced onto the main thread: no projection worker, and the same figures to the bit, the chance unrounded and
+      // every year's band (the same engine on the same paths in the same browser), so a difference a whole percentage hides
+      // fails it (the plant 'mcseed')
+      const m = await open(b, PREVIEW_PORT, planOf(CASES.main), { plantFail: true, query: '?forceMain=1' });
+      let mainIn = true;
+      try { await m.p.waitForSelector('[data-plan-answer="failed"] [data-failed-current="in"]', { timeout: 180000 }); } catch (e) { mainIn = false; }
+      const onMain = await figure(m.p), mx = whole(onMain);
+      const bandsApart = wx && mx ? mx.bands.filter((bd, t) => JSON.stringify(bd) !== JSON.stringify(wx.bands[t])).length + Math.abs(mx.bands.length - wx.bands.length) : null;
+      ok('...and forced onto the main thread (?forceMain=1), no projection worker and the same figures to the bit: the chance unrounded and every year\'s band', mainIn && !onMain.workers.some(w => /^mcWorker/.test(w)) && !!onMain.chance && onMain.chance === viaWorker.chance && !!mx && !!wx && mx.survival === wx.survival && bandsApart === 0,
+        `main thread ${onMain.chance} (${mx ? mx.survival : 'no figures'}), the worker ${viaWorker.chance} (${wx ? wx.survival : 'no figures'}); ${mx && wx ? `${mx.bands.length} years, ${bandsApart} apart` : 'no bands'}; workers ${onMain.workers.join(', ') || 'none'}`);
+      ok('forced onto the main thread: no page errors', m.errs.length === 0, m.errs.slice(0, 2).join(' | '));
+      await m.p.context().close(); }
 
     // 5. a couple
     if (!couple) ok('a couple in the library to test with', false);
     else { const { p, errs, urls } = await open(b, PREVIEW_PORT, unevenOf(couple.plan)), s = await tab(p);
       await p.waitForTimeout(2000);
-      ok(`switch on, opted in, a couple the solver does not run (${couple.id}, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card, and nothing solved`, s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
+      ok(`switch on, a couple the solver does not run (${couple.id}, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card, and nothing solved`, s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
       ok('a couple: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+      await p.context().close(); }
+
+    // 6. the solve's follow-up questions failing (the reviewer's third look at D155, finding 5): the solve and Your plan's paths
+    // come in, and this year's actions, the ledger's run, history's start years and the figures lists' own line fail; each place
+    // says its figure could not be worked out, and none is left saying it is being worked out
+    { const main = planOf(CASES.main), more = JSON.parse(JSON.stringify(main));
+      more.spending.targetSpend = Number(more.spending.targetSpend) + 2000;
+      const { p, errs } = await open(b, PREVIEW_PORT, main, { failKinds: ['actions', 'rows', 'history', 'strategy:exact'],
+        scenarios: [{ id: 's1', name: 'Scenario 1', data: main }, { id: 's2', name: 'Spend 2000 more', data: more }] });
+      const WAITING = /Working out what each of this year|being worked out; your current approach|Working out the solved plan|Working out your plan.s own figures first|working it out…/;
+      const placeTo = async label => { await p.evaluate(l => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(t => t.textContent.trim() === l); if (x) x.click(); }, label); await p.waitForTimeout(800); };
+      const still = () => p.evaluate(src => { const m = new RegExp(src).exec(document.querySelector('main') ? document.querySelector('main').innerText : ''); return m ? m[0] : null; }, WAITING.source);
+      let done = true;
+      try { await waitDone(p); } catch (e) { done = false; }
+      const acts = await p.waitForSelector('[data-place="plan"] [data-strategy-actions="failed"]', { timeout: 120000 }).then(() => true, () => false);
+      const planLeft = await still();
+      ok('the follow-up questions failing: Your plan says this year\'s steps could not be worked out, nothing left being worked out', done && acts && !planLeft, `paths in ${done}, the actions card failed ${acts}${planLeft ? `; still "${planLeft}"` : ''}`);
+      await placeTo('What if');
+      const own = await p.waitForSelector('[data-place="whatif"] [data-figures-own-wait="failed"]', { timeout: 120000 }).then(() => true, () => false);
+      const base = await p.waitForFunction(() => { const r = document.querySelector('[data-solver-scenario="__current__"]'); return !!r && /could not be worked out/.test(r.textContent); }, null, { timeout: 120000 }).then(() => true, () => false);
+      const whatLeft = await still();
+      ok('...What if: the figures list\'s own line and the scenarios\' current plan could not be worked out, nothing left being worked out', own && base && !whatLeft, `the own line failed ${own}, the current plan's row failed ${base}${whatLeft ? `; still "${whatLeft}"` : ''}`);
+      await placeTo('Details');
+      const ledger = await p.waitForSelector('[data-place="details"] [data-audit-wait="failed"]', { timeout: 120000 }).then(() => true, () => false);
+      const strip = await p.waitForSelector('[data-place="details"] [data-history-strip="failed"]', { timeout: 120000 }).then(() => true, () => false);
+      const detLeft = await still();
+      const failed = await p.evaluate(() => [...new Set(window.__failed || [])].sort().join(', '));
+      ok('...Details: the ledger\'s solved run and history\'s start years could not be worked out, nothing left being worked out', ledger && strip && !detLeft, `the ledger failed ${ledger}, the strip failed ${strip}${detLeft ? `; still "${detLeft}"` : ''}; the questions failed ${failed}`);
+      ok('the follow-up questions failing: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
   } finally {
     if (server) server.kill();

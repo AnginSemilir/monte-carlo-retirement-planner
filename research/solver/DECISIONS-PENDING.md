@@ -11,6 +11,88 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**DECIDED (27 Nov, night): D155, "We don't need the classic anymore, just the new one".** Read as follows, said to you:
+- The classic planner is retired, D154's line on it below so amended: the new planner is the only one the app offers; the
+  "Classic planner" links, the choice between the two and the rollback that gives everyone the classic planner go, and the
+  classic planner's own pages and code with them. The engine, and everything the new planner and the research use, stay.
+- B1's gate and the readiness checklist run on the new planner alone; their classic mode, and the harnesses that test only
+  the classic planner, are retired.
+- Built as its own change after the employee pension question's fix round, with the reviewer on it, then B1's gate and the
+  next batch. The couples' rollback switches (the guard and the cut) stay.
+- **Built (28 Nov):** b612be65, then one fix round on the reviewer's FAIL (`CLASSIC-RETIRE.md`, the fix round; 1ce99382).
+
+**ANSWERED by D156 (28 Nov): "Second fix round, all six (Recommended)".** The entry as it stood:
+
+**OPEN (28 Nov), yours (D81 (F)): the reviewer's second look at D155 is FAIL, standing after one fix round.**
+(`reviews/2026-11-28-classic-retire-2.md`: two BLOCKING, four MINOR.) Batch 20 waits on it. The reviewer found that the fix
+round answered the first look's findings except two gaps in the ported checks, and gave a way to answer each:
+- **BLOCKING 1.** solver-strategy's new projection-worker check counts a worker *started*. A worker that starts and then fails,
+  the page finishing on the main thread, passes it, and the main-thread run agrees with it only to a whole percent. To answer:
+  count the worker's own answers, and compare a figure finer than a whole percent.
+- **BLOCKING 2.** The classic phone harness held each tab to a screen cap. Four of those tabs' content now lives in Details,
+  and no ported check measures length. On the iPhone 13, two sections are over the caps (converted as You's were) through
+  what the planner adds or unfolds: History check `1716` of `1586`px, Assumptions `1555` of `1188`px. No record said the caps
+  had gone. To answer: port the caps as You's were, or retire them by your word and say so.
+- **MINOR:**
+  - the phone form's checks run on one phone and theme;
+  - on a phone, Your plan is measured on its first slide only;
+  - the new layer rule doesn't ask paint order or visibility;
+  - the full-screen chart's check is gone.
+
+  All pass today on the reviewer's runs.
+
+The agent's recommendation is a second fix round on all six, as the reviewer sets out. BLOCKING 2 would be answered as You's
+sections were: the classic content held to its converted cap, and what the planner adds measured and reported to you. Then the
+reviewer's third look and B1's gate, then batch 20.
+
+**OPEN (28 Nov), yours, deciding nothing until you rule: You and Details on a phone, against the classic planner's rules.**
+Porting the classic planner's phone checks onto the planner (the reviewer on D155, finding 1 (d), and its second look,
+findings 2 and 3) found what the classic tabs carried within their rules, on both phones in both themes. What the planner
+added or shows open is not always, and the gate reports it rather than failing on it (`results-d155-fixround-2.txt`,
+section 2):
+- **Advanced is long.** Your current approach's five controls (the classic planner's Config until D155) add `1224`px to
+  Advanced on an iPhone 13 and `1112`px on a Pixel 7, so its page is `2380`px and `2252`px, over the classic rule of two
+  screens and a half (`1800`px). The classic form's own part of it is `750`px and `734`px.
+- **Limits uses drop-downs.** The solver's limits give the riskiest tier for the pension and for the ISA as drop-downs of
+  seven, where the classic form put tiers on chips.
+- **Details' history check and Assumptions are long on an iPhone 13.** Each section is held to the screen cap of the classic
+  tab that carried it, converted as You's form is (the classic page drew `100`px around those tabs' content, measured on
+  9d04859a's build). On the iPhone 13 the history check is `1716`px against the Historical Backtest's `1626`, through the
+  strip of every start year (`553`px, the planner's); its classic part is `1163`px. Assumptions is `1555`px against
+  Config & Assumptions' `1228`, through Tax rules shown open (`386`px; the classic Config folded it on a phone), Display's
+  heading with the theme (`152`px) and the solver's settings (`174`px); its classic part is `843`px. On the Pixel 7 both
+  sections are within the caps whole.
+- The planner's You heading also starts every section `266`px lower than the classic page did, which is why the bar is held
+  on the form's own content (`1660`px), and on the section's own height in Details.
+
+The agent's recommendation is to leave them as they are, since they are your UI pass's design. If you want them held to the
+classic rules, the change would be:
+- fold Your current approach on a phone, behind its heading;
+- give Limits' tiers the chips the wrapper cards use;
+- on a phone, fold the strip of every start year and Tax rules behind their headings, as the classic Config folded Tax
+  rules.
+
+Either is a change to the planner's look, so it is yours to ask for.
+
+Also yours to change: the label backing on Your plan's "In shares" strip. Each share now sits on a quarter of the colour
+opposite its own text, so it clears WCAG's `4.5`:1 at every share in every theme. Before it, a `70`% label was `3.85`:1 in the
+light theme. This is the agent's choice, in `src/PlannerMore.jsx`.
+
+**DECIDED (27 Nov): D154, "Ignore 2029 changes for now, do the rest".** Read as follows, said to you:
+- The 2029 cap on salary sacrifice's NIC relief for a plan's own contributions (D134 (3)) is not built for now. The employer's
+  NIC passed to the pension stays stated as it is, way (A) below; its fix waits with that change.
+- The speed mode's couples warning keeps its words (below, 20 Nov).
+- The app asks how an employee pays into their pension, way (A) below: the employment type offers salary sacrifice (the
+  default, the app's assumption until now), net pay or relief at source (income tax relief alone, no employer NIC passed
+  through) and not sure (priced as net pay, the cautious reading; the agent's choice, yours to change). Built with its test
+  of the class, every plan as entered the same to the bit, to `main` with the next batch.
+- The rollback switches stay as built, and the classic planner with them (D150 (3)); removing them is yours.
+- The three looks, EXPLORATORY, deciding nothing: why S227's two nobody-retiring units leave about half the mean pot; why
+  PA2's extra lost paths fail almost all in the plan's last year; R at four and five profiles apart against the app's rules
+  by D141's rule.
+- Then the readiness checklist on the release commit, to you before sharing publicly. The cash buffer, the 2027 savings
+  rates and LOOKHOLD's speed work stay as ruled.
+
 **DECIDED (26 Nov, night): D151, "Yes".** Read as the go on both asks below: the five fast-tier tests of the couples'
 guard and defaults and the three browser checks are edited with C and D's change of default, each named in its commit.
 `research/tests/run-all.mjs` is not edited: the hook opens it only on the words "unlock enforcement", so the new test (the
@@ -33,7 +115,8 @@ enforcement" (D153): `run-all.mjs` edited, the new test in the fast tier's joini
 **DECIDED (26 Nov, night): D150, "We need all options be able to be run".** Read as every plan and every option on the
 solver, none left on the app's rules: C opens by inference; D, a plan past the older partner's 120th year, is overruled, the
 solver's horizon running past it; the classic planner stays. The plan is `COUPLES-ANY.md` amendment 3. It answers the entry
-below of 24 Nov.
+below of 24 Nov. Done: C and D's change of default made (D152), the reviewer on it PASS with seven MINOR answered, B1's gate
+green in both modes, and merged to `main` with batch 19 (pull request 31, 1b15fe4e, 26 Nov).
 
 **DECIDED (25 Nov, night): D149, "Ship it as is, and leave them in".** (a) taken: D148 stands as given, the route as
 shipped with its pricing gap and M1's two shortfalls, and batch 18 merged to `main` on B1's gate (pull request 30,
@@ -114,8 +197,10 @@ stays). The entry as it was put to you:
     the merge rule in CLAUDE.md and `run-all.sh` follows.
   - **Your word needed:** the last two are protected, so they need "unlock enforcement".
 
-**OPEN (23 Nov, night), for your word only where you want it otherwise: every couple on the solver, the rest of the way
-(D145 (3), `COUPLES-ANY.md`).**
+**DONE (26 Nov): every couple on the solver, the rest of the way (D145 (3), `COUPLES-ANY.md`), on `main` with batch 19
+(pull request 31, 1b15fe4e): W, R, L and P by D148, C and D by D150 to D153. The card for a plan past the elder's 120th
+year, which this entry kept, was overruled by D150. Was OPEN (23 Nov, night), for your word only where you want it
+otherwise:**
 - **The plan,** written before any of it is built: the household plan takes the shapes it still refuses.
   - Different risks in one wrapper, and the partner's own limits: the wrapper held at the more cautious of the two, each
     person's tier mapped by name into their own ladder, so no one is moved riskier than they chose.
@@ -314,7 +399,7 @@ the classes that pass, is the guard reading the household plan's refusal (its sh
 reason lifted on its class's route alone; `couple-default.test.mjs` pins it. A class the rehearsal's addendum (the new units,
 EXPLORATORY, running now) shows harmed is left out of the registration and comes to you with its units.
 
-**OPEN (22 Nov, early), from the reviewer on D138's change of default (second look, finding 3,
+**DECIDED (27 Nov) by D154: (A), stated as now, its fix waiting with the 2029 change. Was OPEN (22 Nov, early), from the reviewer on D138's change of default (second look, finding 3,
 `reviews/2026-11-21-default-save-split-2.md`), for your word: the employer's NIC passed to the pension, a part of D137
 (4)'s price the split's routes do not carry.**
 - **What.** D137 (4) sent the change with "the law's price in the split's two routes". The deep review set that price for
@@ -375,7 +460,7 @@ for your word: two unlocks, by name, for what D138 adds that no protected file r
 - **The agent recommends both**, in one unlock, each protected file named in the commit that edits it. Until then D138's
   D-line says each is missing and why.
 
-**OPEN (21 Nov, night), from test K's read (D137 (4)), for your word: does the app ask how an employee pays into their
+**DECIDED (27 Nov) by D154: (A), the question asked in the employment type, built. Was OPEN (21 Nov, night), from test K's read (D137 (4)), for your word: does the app ask how an employee pays into their
 pension?**
 - **Where it comes from.** Test K (EXPLORATORY; `results-save-k.txt`, `reports/2026-11-21-save-k-read.md`) read THE CAUSE
   HOLDS IN SIZE. By D137 (4), the change of default prices the split's routes at the law's price for a salary sacrificer:
@@ -510,7 +595,7 @@ as they were put, kept as history:
      - What the stale flows reached was the other worlds' scores and tax for those copies, which the share check (a test
        mode) compares, and work wasted on them. Check 6's count of copies picked is a guard its plant cannot fail.
 
-**OPEN (20 Nov, evening), found while porting step 8; nothing decided, for your word:**
+**DECIDED (27 Nov) by D154: item 1's words kept as they stand. Was OPEN (20 Nov, evening), found while porting step 8; nothing decided, for your word:**
 1. **The speed mode reaches the household plan's table, unmeasured.** The opt-in "Beta - speed mode" (D97 (3)) hands a
    solve the chooser's shortlist, and since the household default (D135) a couple's one table takes it as a single's does.
    Its couples' warning ("usually only a little faster, spent a little less, ... about 5 in 1,000") was measured on

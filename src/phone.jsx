@@ -205,74 +205,6 @@ export function PhoneCollapse({ isPhone, children }) {
   );
 }
 
-/*
- * A PANEL THAT LIVES AT THE BOTTOM OF THE SCREEN.
- *
- * The sandbox is a set of dials whose whole purpose is to move a line on a chart. Side by side that is
- * obvious; stacked on a phone the chart scrolls away the moment you reach the controls, so you are
- * editing blind - which is the thing the sandbox exists to avoid.
- *
- * Three modes rather than open/closed. `collapsed` is a single line of summary, for when the chart is
- * what you want. `quick` is the dials that matter, capped at 45% of the screen so the chart stays
- * visible above it. `full` is the entire original panel, unchanged, for everything else. Nothing is
- * removed from the phone build - it is one tap further away.
- *
- * In collapsed and quick the sheet sits ABOVE the navigation bar, so you can still change tab while
- * adjusting. Only `full` covers it, which is the one mode where the sheet is the whole task.
- */
-export function SheetPanel({ mode, onMode, summary, quick, full, onHeight, above = 0 }) {
-  const ref = useRef(null);
-  const [drag, setDrag] = useState(null);
-
-  useEffect(() => {
-    if (!ref.current || !onHeight) return undefined;
-    const el = ref.current;
-    const report = () => onHeight(Math.round(el.getBoundingClientRect().height));
-    report();
-    if (typeof ResizeObserver === 'undefined') return undefined;
-    const ro = new ResizeObserver(report);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [onHeight, mode]);
-
-  const cycle = () => onMode(mode === 'collapsed' ? 'quick' : mode === 'quick' ? 'full' : 'quick');
-  const onDown = (e) => setDrag(e.clientY);
-  const onUp = (e) => {
-    if (drag === null) return;
-    const dy = e.clientY - drag;
-    setDrag(null);
-    if (Math.abs(dy) < 40) return;          // a tap, not a drag - the handle's onClick deals with it
-    if (dy < 0) onMode(mode === 'collapsed' ? 'quick' : 'full');
-    else onMode(mode === 'full' ? 'quick' : 'collapsed');
-  };
-
-  const full_ = mode === 'full';
-  return createPortal(
-    <div data-no-swipe ref={ref} data-sandbox-sheet data-mode={mode}
-      className={`fixed inset-x-0 bg-surface border-t border-slate-200 rounded-t-2xl shadow-lg md:hidden ${full_ ? 'z-50 top-[8dvh] bottom-0 flex flex-col' : 'z-[45]'}`}
-      /* `above` is whatever else is pinned over the navigation - the projection deck's own step bar is
-         44px of it - so the two stack rather than one covering the other. */
-      style={full_ ? { paddingBottom: 'env(safe-area-inset-bottom)' } : { bottom: `calc(3.5rem + ${above}px + env(safe-area-inset-bottom))` }}>
-      <button type="button" onClick={cycle} onPointerDown={onDown} onPointerUp={onUp}
-        aria-expanded={mode !== 'collapsed'} aria-label={mode === 'collapsed' ? 'Open the sandbox controls' : 'Close the sandbox controls'}
-        className="w-full min-h-11 flex flex-col items-center justify-center gap-1 cursor-pointer shrink-0 touch-none">
-        <span className="h-1 w-10 rounded-full bg-slate-300" />
-        {/* `summary` may be a node, not a string: the sandbox puts a spinner in it, and truncate on the
-            wrapper would clip that off rather than the text. The node does its own truncating. */}
-        {mode === 'collapsed' && <span className="text-[11px] text-slate-600 px-3 min-w-0 max-w-full">{summary}</span>}
-      </button>
-      {/*
-        * 28dvh, not 45. The sheet exists so the chart stays visible while you adjust, and on a 664px
-        * phone a 45% sheet plus its handle plus the nav bar reached far enough up to cover the bottom of
-        * the chart - which defeats the whole arrangement. The dials scroll inside this, so a shorter cap
-        * costs nothing; `full` is there for anyone who wants the screen.
-        */}
-      {mode === 'quick' && <div className="max-h-[28dvh] overflow-y-auto overscroll-contain px-3 pb-3">{quick}</div>}
-      {full_ && <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 pb-3">{full}</div>}
-    </div>,
-    document.body
-  );
-}
 
 /*
  * ONE FIELD, ONE ROW: LABEL LEADING, CONTROL TRAILING.
@@ -439,23 +371,3 @@ export function CollapsedRow({ summary, sub, open, onToggle, onDelete, deleteLab
  */
 const CLAMP = { 2: 'line-clamp-2', 3: 'line-clamp-3', 4: 'line-clamp-4' };
 
-/*
- * The markup is spans, not divs, because every one of these paragraphs is a <p>: the clamp has to go on
- * an element whose children are text, or -webkit-line-clamp has nothing to count, and a <div> inside a
- * <p> is invalid HTML that the browser silently closes the paragraph around.
- */
-export function Clamp({ isPhone, lines = 2, label = 'Read more', children }) {
-  const [open, setOpen] = useState(false);
-  if (!isPhone) return children;
-  return (
-    <>
-      {/* no `block` alongside the clamp: `line-clamp-*` sets `display:-webkit-box`, and a display
-          utility next to it wins the cascade and quietly turns the clamp off */}
-      <span className={open ? 'block' : (CLAMP[lines] || CLAMP[2])}>{children}</span>
-      <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open}
-        className="min-h-11 flex items-center text-xs font-bold text-blue-700 cursor-pointer">
-        {open ? 'Show less' : label}
-      </button>
-    </>
-  );
-}

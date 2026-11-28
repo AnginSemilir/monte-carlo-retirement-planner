@@ -236,6 +236,9 @@ export function fromFullPlan(plan, base = SIMPLE_BLANK) {
     dropped.push('per-year contribution schedules — the simple page takes one figure and a yearly increase');
   if (d.salaryGrowthSelf || d.salaryGrowthPart) dropped.push('real salary growth');
   if (d.employmentSelf === 'self-employed' || d.employmentPart === 'self-employed') dropped.push('self-employed status, which changes National Insurance');
+  // how an employee pays into their pension (D154 (3)): the simple page assumes salary sacrifice; said beside the line above,
+  // as one person may be self-employed and the other pay in from net pay (the reviewer on D154 (3), MINOR 7 (d))
+  if (['employed-net', 'employed-unsure'].includes(d.employmentSelf) || ['employed-net', 'employed-unsure'].includes(d.employmentPart)) dropped.push('how you pay into your pension, which changes the tax relief: the simple page assumes salary sacrifice');
   // An edited return matrix is what CLEARS riskSource; `riskProfiles` is always present, so testing it
   // reported an edit on every plan ever made.
   if (!p.riskSource) dropped.push('your edits to the return matrix');

@@ -19,6 +19,10 @@ import { dialLineWords } from './solverWords.js';
 import { ageOptions, atAge, targetOptions, atSpend } from './solverSettings.js';
 import { moreJob, costWords } from './solveStatus.js';
 import { coupleSolverOn } from './couplesSwitch.js';
+import { PLANNER_PLANT } from './plannerPlant.js';
+// a question to the solve that failed, as against one let go with its solve ('closed', 'cancelled'): the line that waited on it
+// says it could not be worked out, not that it is being (the reviewer's third look at D155, finding 5; until then it stayed up)
+const failedAsk = e => !PLANNER_PLANT.has('stuckwait') && !(e && (e.message === 'closed' || e.message === 'cancelled'));
 
 /*
  * Step U (LAYOUT.md sections 3.1, 3.3 and 8): a row waiting its turn says so, not "working it out…" (L11); `cost` is said under
@@ -40,7 +44,7 @@ export function FiguresList({ plan, solve, own, options, order, sig, seed, upto,
       try {
         const { strategy } = solve.strategy ? await solve.strategy(plan, seed, upto, { exact: true }) : await solve.ask('strategy', { plan, seed, upto, exact: true });
         if (live) put(own, { h: strategy.headline, key: solve.key });
-      } catch (e) { /* the line waits for the next solve */ }
+      } catch (e) { if (live && failedAsk(e)) put(own, { error: e.message, key: solve.key }); }
     })();
     return () => { live = false; };
   }, [solved, solve && solve.key, sig, own, seed, upto]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -70,7 +74,9 @@ export function FiguresList({ plan, solve, own, options, order, sig, seed, upto,
     return () => { live = false; if (job) job.cancel(); };
   }, [solved, sig, own, mine.asked]);   // eslint-disable-line react-hooks/exhaustive-deps
   const here = mine.at[own] && mine.at[own].h && mine.at[own].key === (solve && solve.key) ? mine.at[own].h : null;
+  const ownFailed = !here && !!mine.at[own] && !!mine.at[own].error && mine.at[own].key === (solve && solve.key);
   if (!solved) return null;
+  if (ownFailed) return <p data-figures-own-wait="failed" className="text-xs text-slate-500">Your plan&apos;s own figures could not be worked out, so the others are not either.</p>;
   // the plan's own line comes first (its figures from the solve in hand, queued behind Your plan's): until then, say so
   if (!here) return <><p data-figures-own-wait className="text-xs text-slate-500">Working out your plan&apos;s own figures first&hellip;</p>{cost && <p data-figures-cost className="text-[11px] text-slate-500">{cost}</p>}</>;
   const line = lineOf || (h => dialLineWords(h, fmt));
@@ -175,7 +181,7 @@ export function SolverScenarios({ rows, plan, solve, seed, upto, engine, opts, f
       try {
         const { strategy } = solve.strategy ? await solve.strategy(plan, seed, upto, { exact: true }) : await solve.ask('strategy', { plan, seed, upto, exact: true });
         if (live) setHere({ key: solve.key, h: strategy.headline });
-      } catch (e) { /* waits for the next solve */ }
+      } catch (e) { if (live && failedAsk(e)) setHere({ key: solve.key, error: e.message }); }
     })();
     return () => { live = false; };
   }, [solved, solve && solve.key, seed, upto]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -203,7 +209,7 @@ export function SolverScenarios({ rows, plan, solve, seed, upto, engine, opts, f
           // household plan takes, whatever its holdings or its gap, the guard read on each scenario's own plan (a scenario that
           // moves an age can move the plan's shape: 'shape')
           const cs = r.plan && r.plan.demographics && r.plan.demographics.planningMode === 'couple' ? coupleSolverOn(r.plan) : null, couple = !!(cs && !cs.on);
-          const f = r.isBase ? (here.key === solve.key && here.h ? { h: here.h } : null) : scenarioFigs.get(JSON.stringify(r.plan)) || null;
+          const f = r.isBase ? (here.key === solve.key && here.h ? { h: here.h } : here.key === solve.key && here.error ? { error: here.error } : null) : scenarioFigs.get(JSON.stringify(r.plan)) || null;
           return (
             <li key={r.id} data-solver-scenario={r.id} data-solver-scenario-survival={f && f.h ? f.h.survival : ''} className="flex flex-wrap items-center gap-x-2">
               <span className="font-semibold text-slate-800">{r.name}:</span>

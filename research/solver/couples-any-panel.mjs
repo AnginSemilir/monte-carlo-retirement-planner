@@ -74,17 +74,26 @@ export const FORM = 'pensionsPA';
 /* every shape the household plan takes: the app's three (step 4's), A's, B's and C's */
 export const TAKES = Object.freeze([...TAKE_SHAPES, ...RISK_SHAPES, ...SALARY_SHAPES]);
 /* R's kinds, the pension and the ISA one, two and three profiles apart, each way (COUPLES-ANY.md, the test's class R) */
-export const R_KINDS = Object.freeze(Object.fromEntries(['p', 'i'].flatMap(w => [1, 2, 3].flatMap(n => ['s', 't'].map(who =>
+const R_BASE = Object.freeze(Object.fromEntries(['p', 'i'].flatMap(w => [1, 2, 3].flatMap(n => ['s', 't'].map(who =>
   [`R${w}${n}${who}`, { cls: 'R', shape: 'risks', wrap: w === 'p' ? 'pen' : 'isa', apart: n, safer: who === 's' ? 'self' : 'part' }])))));
-export const KINDS = Object.freeze({
+/* COUPLES-APART.md (D154 (5), EXPLORATORY), with APART=1: R two profiles further than the registered test's, four and five apart
+   on the app's six risk levels (PROFILES and Cash Equivalents), on the dress rehearsal's four couples, each way; the other's
+   account the library's, but for the ISA five apart, which the library's ISAs (Medium/High Risk) cannot reach: its other raised
+   to High Risk. Its own panel (couples-apart-panel.json) and landing (results/couples-apart-land); unset, every export as before */
+export const APART = process.env.APART === '1';
+export const LADDER6 = Object.freeze([...PROFILES, 'Cash Equivalents']);
+export const APART_KINDS = Object.freeze(Object.fromEntries(['p', 'i'].flatMap(w => [4, 5].flatMap(n => ['s', 't'].map(who =>
+  [`R${w}${n}${who}`, { cls: 'R', shape: 'risks', wrap: w === 'p' ? 'pen' : 'isa', apart: n, safer: who === 's' ? 'self' : 'part', ladder: 6, ...(w === 'i' && n === 5 ? { raiseOther: 'High Risk' } : {}) }])))));
+export const R_KINDS = APART ? APART_KINDS : R_BASE;
+export const KINDS = Object.freeze(APART ? { ...APART_KINDS } : {
   Wg: { cls: 'W', shape: 'growth', work: 3 }, Wc: { cls: 'W', shape: 'cashisa', work: 3 }, W0: { cls: 'W', shape: 'year0' },
-  ...R_KINDS, L: { cls: 'L', shape: 'limits' },
+  ...R_BASE, L: { cls: 'L', shape: 'limits' },
   P: { cls: 'P', shape: 'salaries', work: 5 }, N: { cls: 'N', shape: 'noretire', work: true }
 });
 export const HOLDS = Object.freeze(['own', 'Y75']);
-export const CLASSES = Object.freeze(['W', 'R', 'L', 'P', 'N']);
+export const CLASSES = Object.freeze(APART ? ['R'] : ['W', 'R', 'L', 'P', 'N']);
 /* the classes the rule reads (N is reported, amendment 2) */
-export const READ_CLASSES = Object.freeze(['W', 'R', 'L', 'P']);
+export const READ_CLASSES = Object.freeze(APART ? ['R'] : ['W', 'R', 'L', 'P']);
 export const COUPLES_FIXED = Object.freeze([['S025', 'lib'], ['S273', 'lib'], ['S351F', 'young'], ['S357F', 'young']]);
 export const COUPLES_WORK = Object.freeze([['S227', 'lib'], ['S273', 'lib'], ['S351F', 'young'], ['S357F', 'young']]);
 export const ALL_COUPLES = Object.freeze([['S025', 'lib'], ['S227', 'lib'], ['S273', 'lib'], ['S351F', 'young'], ['S357F', 'young']]);
@@ -92,9 +101,10 @@ export const kindsOf = cid => Object.keys(KINDS).filter(k => (KINDS[k].work ? CO
 export const VARIANTS = Object.freeze(Object.fromEntries(Object.keys(KINDS).flatMap(k => HOLDS.map(h => [`${k}-${h}`, { kind: k, hold: h, ...KINDS[k] }]))));
 export const variantsOf = cid => kindsOf(cid).flatMap(k => HOLDS.map(h => `${k}-${h}`));
 export const REG = process.env.REG === '1', N_REG = 4;
+if (APART && REG) throw new Error('couples-any-panel: APART=1 is the four-and-five test on the rehearsal\'s couples, not the registered panel (REG=1)');
 export const ORDERS = join(HERE, 'couples-any-orders.json');
-export const PANEL = process.env.COUPLES_ANY_PANEL || join(HERE, REG ? 'couples-any-registered-panel.json' : 'couples-any-panel.json');
-const OUT = process.env.COUPLES_ANY_LAND_OUT || join(HERE, 'results', REG ? 'couples-any-land-reg' : 'couples-any-land');
+export const PANEL = process.env.COUPLES_ANY_PANEL || join(HERE, APART ? 'couples-apart-panel.json' : REG ? 'couples-any-registered-panel.json' : 'couples-any-panel.json');
+const OUT = process.env.COUPLES_ANY_LAND_OUT || join(HERE, 'results', APART ? 'couples-apart-land' : REG ? 'couples-any-land-reg' : 'couples-any-land');
 /* the registered test's kinds: those on any couple, and those where both work (N left out: no rule reads it) */
 export const MAIN_KINDS = Object.freeze(['W0', ...Object.keys(R_KINDS), 'L']);
 export const WORK_KINDS = Object.freeze(['Wg', 'Wc', 'P']);
@@ -162,9 +172,12 @@ export function unitPlan(h, cohort, v, target) {
   if (V.kind === 'Wc') { working(p, V.work); for (const id of ['cashIsa_self', 'cashIsa_part']) Object.assign(acct(p, id), { contrib: 2000 }); }
   if (V.kind === 'W0') p = JSON.parse(JSON.stringify(laterWorking(p)));
   if (V.cls === 'R') {   // the safer person's account V.apart profiles safer than the other's, which keeps the library's
-    const other = acct(p, `${V.wrap}_${V.safer === 'self' ? 'part' : 'self'}`), i = PROFILES.indexOf(other.risk) + V.apart;
-    if (!(PROFILES.indexOf(other.risk) >= 0 && i < PROFILES.length)) throw new Error(`couples-any-panel: ${v}: no profile ${V.apart} safer than ${other.risk}`);
-    acct(p, `${V.wrap}_${V.safer}`).risk = PROFILES[i];
+    // (APART's kinds on the six levels, the ISA five apart's other raised to High Risk first: COUPLES-APART.md)
+    const L = V.ladder === 6 ? LADDER6 : PROFILES, other = acct(p, `${V.wrap}_${V.safer === 'self' ? 'part' : 'self'}`);
+    if (V.raiseOther) other.risk = V.raiseOther;
+    const i = L.indexOf(other.risk) + V.apart;
+    if (!(L.indexOf(other.risk) >= 0 && i < L.length)) throw new Error(`couples-any-panel: ${v}: no profile ${V.apart} safer than ${other.risk}`);
+    acct(p, `${V.wrap}_${V.safer}`).risk = L[i];
   }
   if (V.kind === 'L') p.solver = { ...(p.solver || {}), locks: { ...((p.solver && p.solver.locks) || {}), tierCeiling: { pen: 'Medium/High Risk', isa: null }, tierCeilingPart: { pen: 'Medium Risk', isa: null } } };
   if (V.kind === 'P') { working(p, V.work); p.demographics.salaryGrowthSelf = 2; p.demographics.salaryGrowthPart = -1; }
@@ -203,7 +216,10 @@ export function unitProblems(v, x) {
   if (!x.shape.without) out.push('taken without its own shape');
   else if (!SHAPE_WORDS[V.shape].test(x.shape.without)) out.push(`refused without its shape for another reason: ${x.shape.without}`);
   const g = x.shape.guard;
-  if (V.cls === 'W' ? !g.on : (g.on ? g.route === 'household' : g.why !== 'shape')) out.push(`the guard ${g.on ? `on${g.route ? ` (${g.route})` : ''}` : `off (${g.why})`}`);
+  // APART's R (COUPLES-APART.md) read on the app as it is since D148: on, on the household route alone outside the guard before
+  // D143 ('household') or, inside it, by the page's own cut, which takes 'risks' since D148 (no route named; taken with every
+  // shape, above)
+  if (V.ladder === 6 ? !(g.on && (g.route === 'household' || !g.route)) : V.cls === 'W' ? !g.on : (g.on ? g.route === 'household' : g.why !== 'shape')) out.push(`the guard ${g.on ? `on${g.route ? ` (${g.route})` : ''}` : `off (${g.why})`}`);
   return out;
 }
 /* the panel's units, each with its plan at its target */
@@ -212,7 +228,36 @@ export function readAnyPanel(file = PANEL) {
   return j.couples.flatMap(c => c.units.map(u => ({ ...u, couple: c.couple, cohort: c.cohort, plan: unitPlan(byId[baseOf(c.couple)], c.cohort, u.variant, u.target) })));
 }
 
+/* APART's checks (COUPLES-APART.md): its kinds on the six levels as it says, each joining on S273, and the checks it adds failing on
+   planted inputs */
+function plantedApart() {
+  const byId = Object.fromEntries(couplesOf().map(h => [h.id, h])), cases = [];
+  for (const v of Object.keys(VARIANTS).filter(x => x.endsWith('-own'))) {
+    const x = { landed: true, shape: shapeOfUnit(unitPlan(byId.S273, 'lib', v, 40000), v) };
+    cases.push([`${v} on S273 joins, on the household route`, unitProblems(v, x).length === 0, unitProblems(v, x).join('; ')]);
+  }
+  { const lib = planOf(byId.S273, 'lib', 40000), other = V => `${V.wrap}_${V.safer === 'self' ? 'part' : 'self'}`;
+    const bad = Object.keys(APART_KINDS).filter(k => { const V = KINDS[k], p = unitPlan(byId.S273, 'lib', `${k}-own`, 40000), own = acct(p, `${V.wrap}_${V.safer}`).risk, oth = acct(p, other(V)).risk;
+      return LADDER6.indexOf(own) - LADDER6.indexOf(oth) !== V.apart || oth !== (V.raiseOther || acct(lib, other(V)).risk); });
+    const ends = ['Rp4s', 'Rp5s', 'Ri4s', 'Ri5s'].map(k => { const V = KINDS[k], p = unitPlan(byId.S273, 'lib', `${k}-own`, 40000); return `${acct(p, `${V.wrap}_self`).risk}/${acct(p, `${V.wrap}_part`).risk}`; }).join(', ');
+    cases.push([`each of the ${Object.keys(APART_KINDS).length} kinds its wrapper's two accounts apart by its levels on six, the safer its person's, the other the library's but the ISA five apart's (${ends})`,
+      bad.length === 0 && Object.keys(APART_KINDS).length === 8 && ends === 'Low Risk/High Risk, Cash Equivalents/High Risk, Cash Equivalents/Medium/High Risk, Cash Equivalents/High Risk', bad.join(', ')]); }
+  { const same = [];
+    for (const [cid, co] of [['S273', 'lib'], ['S025', 'lib']]) for (const v of variantsOf(cid)) { const p = unitPlan(byId[cid], co, v, 40000); if (JSON.stringify(anySolverPlanOf(p).hp) !== JSON.stringify(solverPlanOf(p, 'own').hp)) same.push(`${cid} ${v}`); }
+    cases.push(['the solvers\' plan on every unit of S273 and S025 solverPlanOf\'s byte for byte', same.length === 0, same.join(', ')]); }
+  const base = shapeOfUnit(unitPlan(byId.S273, 'lib', 'Rp4t-own', 40000), 'Rp4t-own'), plain = { landed: true, shape: shapeOfUnit(planOf(byId.S273, 'lib', 40000), 'Rp4t-own') };
+  cases.push(['planted: a unit without its shape is refused', unitProblems('Rp4t-own', plain).length > 0, unitProblems('Rp4t-own', plain).join('; ')]);
+  const offRoute = [{ on: false, why: 'shape', route: null }, { on: true, why: null, route: 'today' }].map(g => unitProblems('Rp4t-own', { landed: true, shape: { ...base, guard: g } }));
+  cases.push(['planted: a unit the guard keeps off, or names another route for, is refused', offRoute.every(p => p.length > 0), offRoute.map(p => p.join('; ')).join(' | ')]);
+  cases.push(['planted: an unlanded unit is refused', unitProblems('Rp4t-own', { landed: false, shape: base }).includes('not landed'), '']);
+  let bad = 0;
+  for (const [name, c, why] of cases) { console.log(`${c ? 'ok  ' : 'FAIL'} ${name}${why ? `  -- ${why}` : ''}`); if (!c) bad++; }
+  console.log(bad ? `PLANTED: ${bad} failed` : `PLANTED: ALL ${cases.length} PASS`);
+  return bad;
+}
+
 function planted() {
+  if (APART) return plantedApart();
   const byId = Object.fromEntries(couplesOf().map(h => [h.id, h])), cases = [];
   // each kind's shape on S273 at a target: taken with every shape, refused without its own
   for (const v of Object.keys(VARIANTS).filter(x => x.endsWith('-own'))) {
@@ -310,7 +355,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   if (mode === 'combine' && !REG) {
     const codes = new Set(), couples = [], bad = [];
-    for (const [cid, cohort] of ALL_COUPLES) {
+    for (const [cid, cohort] of ALL_COUPLES.filter(([c]) => variantsOf(c).length)) {   // every couple has kinds, but under APART S227
       const f = join(OUT, `${cid}.json`);
       if (!existsSync(f)) { bad.push(`${cid}: not landed`); continue; }
       const L = JSON.parse(readFileSync(f, 'utf8'));
@@ -327,6 +372,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (mode === 'summary') {
     const j = JSON.parse(readFileSync(PANEL, 'utf8')), units = readAnyPanel();
     console.log(REG ? `EVERY COUPLE ON THE SOLVER, THE REGISTERED TEST'S PANEL (COUPLES-ANY.md, the test): couples-any-registered-panel.json, built ${j.built}, code ${j.code}; the four ${j.main.join(', ')}; the kinds where both work on ${j.work.map(x => x.id === x.for ? x.id : `${x.id} (in ${x.for}'s place, ${x.for} retired)`).join(', ')}; passed over: ${j.passed.length ? j.passed.map(x => `${x.id} for ${x.for} (${x.not.join('; ')})`).join('; ') : 'none'}`
+      : APART ? `COUPLES FOUR AND FIVE RISK LEVELS APART, THE PANEL (EXPLORATORY; COUPLES-APART.md, D154 (5)): couples-apart-panel.json, built ${j.built}, code ${j.code}`
       : `EVERY COUPLE ON THE SOLVER, THE DRESS REHEARSAL'S PANEL (EXPLORATORY; COUPLES-ANY.md amendment 2): couples-any-panel.json, built ${j.built}, code ${j.code}`);
     for (const c of j.couples) {
       console.log(`${c.couple} (${c.cohort}${c.role ? `, ${c.role}` : ''}):`);

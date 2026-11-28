@@ -18,10 +18,35 @@ const CONTRAST_PROBE = () => {
   };
   const parse = (s) => { const m = (s || '').match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/); return m ? [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]] : null; };
   const over = (fg, bg) => fg.slice(0, 3).map((v, i) => v * fg[3] + bg[i] * (1 - fg[3]));
+  /*
+   * What is behind the text: each ancestor's own background, from the text outward to the first opaque one, AND the positioned
+   * layers painted beneath it inside the same parent - an earlier sibling, absolutely placed over the text, its colour at its
+   * own opacity. That is how a shaded bar under a label is drawn (Your plan's "In shares" strip: the shade is a layer beside
+   * the label, not its parent), which the walk up the ancestors alone read as the card behind it: 1:1 for a label that is
+   * really 5.65:1, and 3.85:1 for one it called the same (the D155 fix round, 28 Nov 2026).
+   */
   const bgOf = (el) => {
+    const r0 = el.getBoundingClientRect(), cx = r0.left + r0.width / 2, cy = r0.top + r0.height / 2;
     let n = el, acc = [255, 255, 255];
-    const stack = [];
-    while (n && n.nodeType === 1) { const c = parse(getComputedStyle(n).backgroundColor); if (c && c[3] > 0) stack.push(c); if (c && c[3] === 1) break; n = n.parentElement; }
+    const stack = [];   // innermost first
+    while (n && n.nodeType === 1) {
+      const c = parse(getComputedStyle(n).backgroundColor);
+      if (c && c[3] > 0) stack.push(c);
+      if (c && c[3] === 1) break;
+      const P = n.parentElement;
+      if (P) {
+        const sibs = [...P.children];
+        for (let k = sibs.indexOf(n) - 1; k >= 0; k--) {
+          const s = sibs[k], ss = getComputedStyle(s);
+          if (ss.position !== 'absolute' && ss.position !== 'fixed') continue;
+          const sr = s.getBoundingClientRect();
+          if (cx < sr.left || cx > sr.right || cy < sr.top || cy > sr.bottom) continue;
+          const sc = parse(ss.backgroundColor);
+          if (sc && sc[3] > 0) stack.push([sc[0], sc[1], sc[2], sc[3] * (+ss.opacity)]);
+        }
+      }
+      n = P;
+    }
     for (let i = stack.length - 1; i >= 0; i--) acc = over(stack[i], acc);
     return acc;
   };
@@ -95,13 +120,36 @@ const CHART_WIDTH_PROBE = () => {
  * check for them is stronger: phone-ui and desktop-reach both ask what a finger actually hits at the
  * middle of the mark, which is the question this probe never asked.
  *
- * Skips: dev-only chrome, anything explicitly marked data-hit-ok, inline-control, and anything not laid out.
+ * A fourth case the standard states (28 Nov 2026, the reviewer on D155): the EQUIVALENT exception, in 2.5.5 as in 2.5.8. A
+ * target under the bar passes where its function is "available through an equivalent link or control on the same page" at
+ * the bar. Details' history strip is that case: a start year a cell, under 44px across on a phone (a decade of them to a
+ * row), where the Start year box above it picks the same year. The target itself declares it, naming its equivalent by a
+ * selector (`data-target-equivalent` on the target, not on a container, so nothing else placed beside it is exempt), and the
+ * exemption holds only while a control that selector matches is on the page at the bar in both dimensions: with no such
+ * control the target is held to the bar as any other (desktop-reach's and phone-ui's plant 'noequivalent' takes the
+ * controls off the page and shows the cells caught).
+ *
+ * Skips: dev-only chrome, anything explicitly marked data-hit-ok, inline-control, a target whose declared equivalent is on the
+ * page at the bar, and anything not laid out.
  * An element also passes if it carries an invisible absolutely-positioned ::before that clears the bar,
  * which is the standard way to keep a control visually small and still tappable.
  */
 const TOUCH_PROBE = (min) => {
   const bad = [];
   const INLINE_MIN = 24;
+  // a target's declared equivalent (data-target-equivalent, a selector), on the page and at the bar in both dimensions; inside
+  // the probe, which page.evaluate sends to the page as its own source
+  const EQUIVALENT_AT = (el, bar) => {
+    const sel = el.getAttribute('data-target-equivalent');
+    if (!sel) return false;
+    return [...document.querySelectorAll(sel)].some(alt => {
+      if (alt === el) return false;
+      const cs = getComputedStyle(alt);
+      if (cs.visibility === 'hidden' || cs.display === 'none') return false;
+      const r = alt.getBoundingClientRect();
+      return r.width >= bar && r.height >= bar;
+    });
+  };
   const sel = 'button, a[href], input, select, summary, [role="button"]';
   for (const el of document.querySelectorAll(sel)) {
     if (el.closest('[data-dev-chrome]') || el.closest('[data-hit-ok]') || el.hasAttribute('data-hit-ok')) continue;
@@ -114,6 +162,7 @@ const TOUCH_PROBE = (min) => {
     const inSentence = !!el.parentElement && ['P', 'SPAN', 'LI', 'LABEL'].includes(el.parentElement.tagName);
     const bar = inSentence ? INLINE_MIN : min;
     if (r.width >= bar && r.height >= bar) continue;
+    if (EQUIVALENT_AT(el, bar)) continue;                              // WCAG's equivalent exception, declared; see above
     const be = getComputedStyle(el, '::before');
     const bw = parseFloat(be.width) || 0, bh = parseFloat(be.height) || 0;
     if (be.position === 'absolute' && bw >= bar && bh >= bar) continue;

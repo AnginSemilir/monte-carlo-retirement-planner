@@ -35,9 +35,9 @@ const solverHarness = () => ({
 });
 
 /*
- * THE WORKERS READ THE SWITCH OFF (Phase 12). The engine's workers (src/simWorker.js, src/mcWorker.js) import src/App.jsx for
- * the engine, never for its screens. With the switch on in the source they would reach the solver's client and, through it,
- * the solver's worker, which imports the engine's: a circular worker import Vite refuses. Before Phase 12 every worker build
+ * THE WORKERS READ THE SWITCH OFF (Phase 12). The engine's worker (src/mcWorker.js; src/simWorker.js retired with the classic
+ * planner, D155) imports src/App.jsx for the engine, never for its screens. With the switch on in the source it would reach
+ * the solver's client and, through it, the solver's worker, which imports the engine's: a circular worker import Vite refuses. Before Phase 12 every worker build
  * read `const SOLVER = false;` (the preview plugin acted in the page's build only), so App.jsx's solver branches folded away
  * in them; this keeps that, the workers' bundles as they were. The page's own build reads the switch as the source has it.
  */
@@ -84,7 +84,7 @@ export default defineConfig({
   // edits back to source. A production build gets the manifest only — there is no server to write with.
   plugins: [solverHarness(), plannerPlant(), react(), inlineEdit()],
   /*
-   * The worker bundle needs the same plugins. src/simWorker.js imports the engine from App.jsx, which
+   * The worker bundle needs the same plugins. src/mcWorker.js imports the engine from App.jsx, which
    * reaches EditMode.jsx and its virtual:editable-copy module - so without this the worker build fails
    * to resolve an import the main build resolves fine.
    */

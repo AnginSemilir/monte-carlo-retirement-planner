@@ -169,8 +169,10 @@ const ok = (n, l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${n}. $
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
 const VITE = join(ROOT, 'node_modules/vite/bin/vite.js');
 const CLASSIC_LABELS = ['Strategy', 'Config & Assumptions', 'Audit Data Table', 'Historical Backtest'];
-// the tournament's words and the classic tabs' names (Phase 12 item 1, the rename pass: they never reach the new planner)
-const TOURNAMENT_WORDS = [/tournament/i, /recommended polic/i, /bridge safety margin/i, /\bStrategy tab\b/, /\bConfig tab\b/, /\bProjection tab\b/, /\bPlan Inputs\b/];
+// the tournament's words and the classic tabs' names (Phase 12 item 1, the rename pass: they never reach the new planner). Since
+// the classic planner retired (D155), any page's Config by name ("in Config", "the Config figures") and the Projection tab's
+// chart, which the documentation still named until the reviewer on D155 found it (finding 2)
+const TOURNAMENT_WORDS = [/tournament/i, /recommended polic/i, /bridge safety margin/i, /\bStrategy tab\b/, /\bConfig\b/, /\bProjection (?:tab|chart)\b/, /\bPlan Inputs\b/];
 const PLACES = [['plan', 'Your plan'], ['you', 'You'], ['whatif', 'What if'], ['details', 'Details']];
 
 // a page with the plan saved (or none), the planner chosen, and the solver's worker watched: each message the page sends it,

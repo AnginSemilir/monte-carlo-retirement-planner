@@ -211,7 +211,11 @@ function TierStrip({ life, ageAt0, a0, a1, rows }) {
               <div key={r.t0} title={`${name}: ${r.v}% in shares, ages ${ageAt0 + r.t0} to ${ageAt0 + r.t1}`} className="absolute top-0 h-6 rounded-sm overflow-hidden border-r-2 border-surface"
                 style={{ left: `${at(ageAt0 + r.t0)}%`, width: `${w}%` }}>
                 <div className="absolute inset-0 bg-indigo-700" style={{ opacity: 0.15 + 0.85 * (r.v / 100) }} />
-                {w >= 10 && <span className={`relative pl-1 text-[11px] font-semibold leading-6 ${r.v >= 60 ? 'text-surface' : 'text-slate-900'}`}>{r.v}%</span>}
+                {/* the share on its block, with a quarter of the colour opposite its own behind it: on the shade alone, a block
+                    from about 50 to 80% in shares put either colour of text under WCAG's 4.5:1 in one theme or another (white
+                    on 70% at 3.85:1 in the light theme); with the backing it clears it at every share in every theme (the
+                    D155 fix round; restyle-regression-ui.cjs, whose contrast probe reads the shade under the label) */}
+                {w >= 10 && <span className={`relative top-1 ml-0.5 inline-block px-1 rounded-sm text-[11px] font-semibold leading-4 ${r.v >= 60 ? 'text-surface bg-slate-900/25' : 'text-slate-900 bg-surface/25'}`}>{r.v}%</span>}
               </div>
             );
           })}
@@ -402,6 +406,8 @@ export function LifeCard({ life, ageAt0, fmt, dim, isPhone }) {
 }
 
 /* ---------------------------------------------------------------- every start year in history, in Details' history check */
+// the Start year controls above the run (src/App.jsx historyView: the number box and the slider), a start year's equivalent
+const START_YEAR = 'input[aria-label="Start year"]';
 // one column a start year: a solid bar where the money lasted, a hollow one where it ran out (shape as well as colour), the
 // solved plan's row over your current approach's; a column picks that start year for the run below
 export function HistoryStrip({ solved, yours, selected, onPick, isPhone }) {
@@ -413,12 +419,13 @@ export function HistoryStrip({ solved, yours, selected, onPick, isPhone }) {
   const row = (name, list, tone, k) => (
     <div className="flex items-center gap-2" data-history-row={k}>
       <span className="w-24 shrink-0 text-[11px] text-slate-600 leading-tight">{name}</span>
-      {/* a column a start year is narrower than WCAG 2.5.8's 24px on a desktop; the Start year slider beside the run picks the
-          same year, the criterion's equivalent control, which the harnesses' target probe reads by this name */}
-      <div className="flex-1 grid gap-[2px]" data-target-equivalent='input[aria-label="Start year"]' style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
+      {/* a column a start year is narrower than WCAG 2.5.8's 24px on a desktop; the Start year box and slider above the run
+          pick the same year, the criterion's equivalent control, which each column names (data-target-equivalent; the
+          harnesses' target probes, research/ui-harnesses/lib/probes.cjs, read it on the column itself, nothing else here) */}
+      <div className="flex-1 grid gap-[2px]" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
         {yours.map(({ y }) => {
           const r = list ? list.find(q => q.y === y) : null;
-          return <button key={y} type="button" onClick={() => onPick && onPick(y)} aria-label={`${y}: ${r ? (r.ok ? 'the money lasts' : `the money runs out in ${r.failYear}`) : 'working it out'}`}
+          return <button key={y} type="button" onClick={() => onPick && onPick(y)} data-target-equivalent={START_YEAR} aria-label={`${y}: ${r ? (r.ok ? 'the money lasts' : `the money runs out in ${r.failYear}`) : 'working it out'}`}
             title={`Starting in ${y}: ${r ? (r.ok ? 'the money lasts' : `runs out in ${r.failYear}`) : 'working it out'}`}
             className={`h-6 rounded-sm cursor-pointer ${cell(r, tone)} ${selected === y ? 'ring-2 ring-offset-1 ring-slate-900' : ''}`} />;
         })}
@@ -428,7 +435,9 @@ export function HistoryStrip({ solved, yours, selected, onPick, isPhone }) {
   /*
    * ON A PHONE, A DECADE GRID. Sixty-odd columns across a phone are hairlines two pixels wide that no finger can pick. So the
    * years go ten to a row, a row a decade, as a calendar reads: each cell is one start year, its upper half the solved plan and
-   * its lower half your current approach, and a cell is a tap target of about 28 by 40 pixels.
+   * its lower half your current approach. A cell is about 24 pixels across on an iPhone 13 and 44 tall (the touch floor's
+   * height), under WCAG 2.5.5's 44px across: the Start year box above picks the same year, at 44px on a phone, the criterion's
+   * equivalent control, which each cell names as the desktop's columns do (the reviewer on D155, finding 1).
    */
   const half = (r, tone) => (r ? (r.ok ? tone : 'bg-transparent border-2 border-rose-600') : 'bg-slate-100');
   const grid = isPhone && (
@@ -444,7 +453,7 @@ export function HistoryStrip({ solved, yours, selected, onPick, isPhone }) {
             if (!yr) return <span key={d} />;
             const sr = solved ? bySolved[y] : null;
             return (
-              <button key={d} type="button" onClick={() => onPick && onPick(y)} data-history-cell={y}
+              <button key={d} type="button" onClick={() => onPick && onPick(y)} data-history-cell={y} data-target-equivalent={START_YEAR}
                 aria-label={`${y}: solved plan ${sr ? (sr.ok ? 'lasts' : `runs out in ${sr.failYear}`) : 'working it out'}; your current approach ${yr.ok ? 'lasts' : `runs out in ${yr.failYear}`}`}
                 className={`h-10 rounded-sm flex flex-col gap-[2px] p-[1px] cursor-pointer ${selected === y ? 'ring-2 ring-slate-900' : ''}`}>
                 <span className={`flex-1 rounded-[2px] ${half(sr, 'bg-emerald-600')}`} />

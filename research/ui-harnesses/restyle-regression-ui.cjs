@@ -16,7 +16,16 @@
  *                            paddings and radii show up as a sideways-scrolling phone.
  *   3 NOTHING ERRORS         no page error in any place in any theme.
  *   4 EVERY PLACE RENDERS    each one still puts its own content on screen, so a place that throws and
- *                            renders empty cannot pass by being silently blank.
+ *                            renders empty cannot pass by being silently blank: an element its own card
+ *                            draws, not the place's heading, which the page draws before the card arrives
+ *                            (the reviewer on D155, finding 4); and Your plan is measured on its answer,
+ *                            not its progress: the solved plan's figures, strip and outlook on the card, its
+ *                            first paths in (on a phone the solve is asked for). Its last paths add no part
+ *                            to the card, and wait four minutes and more a page at these settings.
+ *
+ * And, at 390, every section of Details, which a phone shows one at a time (the classic planner's Config, Historical
+ * Backtest and Documentation tabs held them until D155, each measured so); and at both widths the full documentation, opened
+ * where it lives in Details (the reviewer on D155, finding 1).
  *
  * Run: node restyle-regression-ui.cjs [port] [shotDir]
  */
@@ -37,13 +46,13 @@ const plan = {
     { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: 30000, contrib: 0, growth: 0, risk: 'Cash Equivalents' }],
   otherIncomes: [], oneOffContributions: [], oneOffCosts: [], config: { valuationDate: '2026-01-01' }
 };
-// each place (its button's label, its <main data-place>), and a phrase only that place renders, so "it loaded" cannot be
-// satisfied by an empty panel
+// each place (its button's label, its <main data-place>), and an element only that place's own card draws, so "it loaded"
+// cannot be satisfied by an empty panel or by the heading the page draws before the card arrives
 const PLACES = [
-  ['Your plan', 'plan', /Your plan/i],
-  ['You', 'you', /With partner/i],
-  ['What if', 'whatif', /What if/i],
-  ['Details', 'details', /Year by year/i],
+  ['Your plan', 'plan', '[data-plan-answer]:not([data-plan-answer="loading"])'],
+  ['You', 'you', '[data-section="you"]'],
+  ['What if', 'whatif', '[data-whatif-scenarios]'],
+  ['Details', 'details', '[data-audit-ledger]'],
 ];
 
 let fails = 0;
@@ -74,25 +83,61 @@ const PHONE_MAX = 767;                 // in step with src/viewport.js
       await p.waitForTimeout(1600);
       console.log(`\n${theme} @ ${width}px`);
       let worstAll = [];
-      for (const [tab, place, marker] of PLACES) {
-        const clicked = await p.evaluate((t) => {
-          const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.trim() === t);
-          if (x) { x.click(); return true; } return false;
-        }, tab);
-        if (!clicked) { ok(`${tab}: place button present`, false); continue; }
-        // a place's cards load lazily: wait for its own <main> and its phrase
-        await p.waitForFunction(([pl, src]) => { const m = document.querySelector(`[data-place="${pl}"]`); return !!m && new RegExp(src, 'i').test(m.innerText); }, [place, marker.source], { timeout: 8000 }).catch(() => {});
-        await p.waitForTimeout(400);
-        const text = await p.evaluate(pl => { const m = document.querySelector(`[data-place="${pl}"]`); return m ? m.innerText : ''; }, place);
-        ok(`${tab}: renders its own content`, marker.test(text), marker.test(text) ? '' : (text.slice(0, 60).replace(/\n/g, ' ') || 'no place'));
+      const measure = async (label) => {
         const over = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-        ok(`${tab}: no sideways scroll`, over <= 1, `${over}px`);
+        ok(`${label}: no sideways scroll`, over <= 1, `${over}px`);
         const bad = await p.evaluate(CONTRAST_PROBE);
-        ok(`${tab}: no text below the WCAG bar`, bad.length === 0,
+        ok(`${label}: no text below the WCAG bar`, bad.length === 0,
           bad.slice(0, 3).map(x => `"${x.text}" ${x.ratio}:1 ${x.color}`).join(' | '));
         worstAll = worstAll.concat(bad);
+      };
+      const toPlace = (t) => p.evaluate((n) => {
+        const x = [...document.querySelectorAll('[data-tabbar] button, [data-bottomnav] button')].find(b => b.textContent.trim() === n && b.getBoundingClientRect().width > 0);
+        if (x) { x.click(); return true; } return false;
+      }, t);
+      for (const [tab, place, sel] of PLACES) {
+        const clicked = await toPlace(tab);
+        if (!clicked) { ok(`${tab}: place button present`, false); continue; }
+        // a place's cards load lazily: wait for an element its own card draws
+        await p.waitForFunction(([pl, q]) => !!document.querySelector(`[data-place="${pl}"] ${q}`), [place, sel], { timeout: 15000 }).catch(() => {});
+        if (place === 'plan') {
+          // the answer, not the progress: on a phone the solve is asked for; at the light settings it is in within seconds
+          await p.evaluate(() => document.querySelector('[data-plan-answer="ask"] [data-solve-request]')?.click());
+          await p.waitForSelector('[data-plan-answer="filling"], [data-plan-answer="done"]', { timeout: 180000 }).catch(() => {});
+        }
+        await p.waitForTimeout(400);
+        const own = await p.evaluate(([pl, q]) => !!document.querySelector(`[data-place="${pl}"] ${q}`), [place, sel]);
+        ok(`${tab}: renders its own content`, own, own ? '' : `no ${sel}`);
+        if (place === 'plan') {
+          const state = await p.evaluate(() => document.querySelector('[data-plan-answer]')?.getAttribute('data-plan-answer'));
+          ok(`${tab}: measured on its answer, not its progress`, state === 'filling' || state === 'done', `the card ${state}`);
+        }
+        await measure(tab);
         if (SHOT && width === 1400) await p.screenshot({ path: `${SHOT}/reg-${theme}-${tab.replace(/[^a-z]/gi, '')}.png` });
       }
+      // Details: on a phone a section at a time, each measured; at both widths the full documentation, opened
+      await toPlace('Details');
+      await p.waitForTimeout(400);
+      const sections = width <= PHONE_MAX ? await p.evaluate(() => [...document.querySelectorAll('[data-place="details"] [data-section-tabs] [role=tab]')].map(x => x.textContent.trim())) : [];
+      if (width <= PHONE_MAX) ok(`Details: its sections, a phone's tabs`, sections.length >= 4, sections.join(', '));
+      for (const t of sections.slice(1)) {
+        await p.evaluate(n => { const x = [...document.querySelectorAll('[data-place="details"] [data-section-tabs] [role=tab]')].find(b => b.textContent.trim() === n); if (x) x.click(); }, t);
+        await p.waitForTimeout(600);
+        if (/History/.test(t)) await p.waitForSelector('[data-place="details"] [data-history-row], [data-place="details"] [data-history-grid]', { timeout: 20000 }).catch(() => {});
+        await measure(`Details / ${t}`);
+      }
+      if (width <= PHONE_MAX) {
+        const docsTab = sections.find(t => /solver decides/.test(t));
+        if (docsTab) await p.evaluate(n => { const x = [...document.querySelectorAll('[data-place="details"] [data-section-tabs] [role=tab]')].find(b => b.textContent.trim() === n); if (x) x.click(); }, docsTab);
+        await p.waitForTimeout(400);
+      }
+      await p.click('[data-place="details"] [data-docs-open]').catch(() => {});
+      await p.waitForSelector('[data-place="details"] #doc-solver', { timeout: 15000 }).catch(() => {});
+      await p.waitForTimeout(600);
+      const docs = await p.evaluate(() => document.querySelectorAll('[data-place="details"] [id^="doc-"]').length);
+      ok('Details: the full documentation opens', docs >= 8, `${docs} cards`);
+      await measure('Details / the full documentation');
+      if (width <= PHONE_MAX && sections.length) await p.evaluate(n => { const x = [...document.querySelectorAll('[data-place="details"] [data-section-tabs] [role=tab]')].find(b => b.textContent.trim() === n); if (x) x.click(); }, sections[0]);
       /*
      * The phone layout must not leak on to the desktop, and must actually appear on a phone. Both halves
      * matter: a media query typo that showed the bottom bar at 1400 would otherwise only be caught by

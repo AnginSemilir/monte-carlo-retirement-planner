@@ -22,7 +22,9 @@
  *    0, and a planted dominated action at least 0.
  * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; Your plan says so, offers "try again",
  *    and shows the plan under the app's own rules under it, its current approach's chance worked out in the projection's
- *    worker (the classic planner's link until D155).
+ *    worker (the classic planner's link until D155): the projection's worker ran, and the same page forced onto the main
+ *    thread (?forceMain=1) starts none and gives the same chance to the digit (the classic planner's phone-perf sections 2
+ *    and 3 until D155, on the job the worker still runs: the reviewer on D155, finding 1 (e)).
  * 5. A couple the solver does not run under the switch (D42; since couples are on, D99, one outside src/couplesSwitch.js's
  *    guard, its younger partner holding 75%; since D150 under the guard before D150, the preview's build plant 'beforeall'):
  *    the couples card, nothing solved.
@@ -67,13 +69,16 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
 const VITE = join(ROOT, 'node_modules/vite/bin/vite.js');
 
-async function open(b, port, plan, { plantFail = false } = {}) {
+async function open(b, port, plan, { plantFail = false, query = '' } = {}) {
   // the planted failure: the page's solver worker answers every question with an error (no change to the app's code: the
-  // page's Worker constructor is wrapped for the solver's script; a route on the worker's own request is not honoured)
+  // page's Worker constructor is wrapped for the solver's script; a route on the worker's own request is not honoured). The
+  // wrapper records each worker the page starts, by its script's name
   const ctx = await b.newContext({ viewport: { width: 1400, height: 1100 } });
   if (plantFail) await ctx.addInitScript(() => {
     const Real = window.Worker;
+    window.__workers = [];
     window.Worker = function (url, o) {
+      window.__workers.push(String(url).split('/').pop());
       if (!/solverWorker/.test(String(url))) return new Real(url, o);
       const w = { onmessage: null, onerror: null, terminate() {}, postMessage(m) { setTimeout(() => w.onmessage && w.onmessage({ data: { id: (m && m.id) || 0, error: 'planted: the solver failed' } }), 0); } };
       return w;
@@ -84,7 +89,7 @@ async function open(b, port, plan, { plantFail = false } = {}) {
   p.on('pageerror', e => errs.push(e.message));
   p.on('request', q => urls.push(q.url()));
   await p.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan]);
-  await p.goto(`http://localhost:${port}/`, { waitUntil: 'networkidle' });
+  await p.goto(`http://localhost:${port}/${query}`, { waitUntil: 'networkidle' });
   // Your plan, where the planner lands
   await p.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.trim() === 'Your plan'); if (x) x.click(); });
   await p.waitForTimeout(1200);
@@ -217,8 +222,22 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
       try { await p.waitForSelector('[data-plan-answer="failed"] [data-failed-current="in"]', { timeout: 180000 }); } catch (e) { rules = false; }
       const said = await p.evaluate(() => { const el = document.querySelector('[data-plan-answer="failed"]'); return el ? /under the app.s own rules/.test(el.textContent) && /Your current approach: chance your money lasts/.test(el.textContent) : false; });
       ok('planted, the solver failing: Your plan says so, offers "try again" and shows the plan under the app\'s own rules', failed && !!retry && rules && said, `failed ${failed}, retry ${!!retry}, the app's rules in ${rules}, said ${said}`);
+      // the chance itself, and the workers the page started: the projection's worker ran (a silent fall back to the main thread
+      // would leave the figure standing and this at nought)
+      const figure = pg => pg.evaluate(() => { const el = document.querySelector('[data-failed-current]'); const m = el && /chance your money lasts\s*([\d.]+%)/.exec(el.textContent); return { chance: m ? m[1] : null, workers: window.__workers || [] }; });
+      const viaWorker = await figure(p);
+      ok('...its chance worked out in the projection\'s worker', !!viaWorker.chance && viaWorker.workers.some(w => /^mcWorker/.test(w)), `${viaWorker.chance}; workers ${viaWorker.workers.join(', ')}`);
       ok('planted: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
-      await p.context().close(); }
+      await p.context().close();
+      // the same, forced onto the main thread: no projection worker, the same chance
+      const m = await open(b, PREVIEW_PORT, planOf(CASES.main), { plantFail: true, query: '?forceMain=1' });
+      let mainIn = true;
+      try { await m.p.waitForSelector('[data-plan-answer="failed"] [data-failed-current="in"]', { timeout: 180000 }); } catch (e) { mainIn = false; }
+      const onMain = await figure(m.p);
+      ok('...and forced onto the main thread (?forceMain=1), no projection worker and the same chance', mainIn && !onMain.workers.some(w => /^mcWorker/.test(w)) && !!onMain.chance && onMain.chance === viaWorker.chance,
+        `main thread ${onMain.chance}, the worker ${viaWorker.chance}; workers ${onMain.workers.join(', ') || 'none'}`);
+      ok('forced onto the main thread: no page errors', m.errs.length === 0, m.errs.slice(0, 2).join(' | '));
+      await m.p.context().close(); }
 
     // 5. a couple
     if (!couple) ok('a couple in the library to test with', false);

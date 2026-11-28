@@ -19,6 +19,31 @@ below this section says "the beta", read it as history. The order from here:
   the classic planner, are retired.
 - Built as its own change after the employee pension question's fix round, with the reviewer on it, then B1's gate and the
   next batch. The couples' rollback switches (the guard and the cut) stay.
+- **Built (28 Nov):** b612be65, then one fix round on the reviewer's FAIL (`CLASSIC-RETIRE.md`, the fix round). B1's gate and
+  the reviewer's second look follow.
+
+**OPEN (28 Nov), yours, deciding nothing until you rule: You on a phone, against the classic form's rules.** Porting the
+classic planner's phone checks onto the planner's You (the reviewer on D155, finding 1 (d)) found the form itself within them.
+Two things the planner added are not, and the gate reports them rather than failing on them (`results-d155-fixround.txt`,
+section 3):
+- **Advanced is long.** Your current approach's five controls (the classic planner's Config until D155) add about `1112`px
+  to Advanced, so its page on a Pixel 7 is `2252`px, over the classic rule of two screens and a half (`1800`px). The classic
+  form's own part of it is `718`px.
+- **Limits uses drop-downs.** The solver's limits give the riskiest tier for the pension and for the ISA as drop-downs of
+  seven, where the classic form put tiers on chips.
+- The planner's You heading also starts every section `266`px lower than the classic page did, which is why the bar is now
+  held on the form's own content (`1660`px).
+
+The agent's recommendation is to leave both as they are, since they are your UI pass's design. If you want them held to the
+classic rules, the change would be:
+- fold Your current approach on a phone, behind its heading;
+- give Limits' tiers the chips the wrapper cards use.
+
+Either is a change to the planner's look, so it is yours to ask for.
+
+Also yours to change: the label backing on Your plan's "In shares" strip. Each share now sits on a quarter of the colour
+opposite its own text, so it clears WCAG's `4.5`:1 at every share in every theme. Before it, a `70`% label was `3.85`:1 in the
+light theme. This is the agent's choice, in `src/PlannerMore.jsx`.
 
 **DECIDED (27 Nov): D154, "Ignore 2029 changes for now, do the rest".** Read as follows, said to you:
 - The 2029 cap on salary sacrifice's NIC relief for a plan's own contributions (D134 (3)) is not built for now. The employer's

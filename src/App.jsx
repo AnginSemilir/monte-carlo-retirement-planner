@@ -7906,13 +7906,25 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     const key = solve.key, want = !inDetails ? null : !haveExpected ? 'expected' : activeHistoricalStartYear;
     if (want === null || (solvedRows.key === key && (want === 'expected' ? solvedRows.expected : solvedRows.hist[want]))) return undefined;
     let live = true;
+    // asked again after a failure (another place, another start year): the line says it is being worked out until this answer
+    if (want === 'expected' && solvedRows.key === key && solvedRows.expectedFailed) setSolvedRows(s => ({ ...s, expectedFailed: false }));
     // the ledger's action words come with it: solverWords.js loads then, in a chunk of its own, not with the page
     const asked = solve.ask('rows', { market: want === 'expected' ? 'expected' : { historical: true, startYear: want } });
     (want === 'expected'
       ? Promise.all([asked, import('./solverWords.js')]).then(([a, w]) => ({ ...a, rows: a.rows && { ...a.rows, words: a.rows.parts.map((pt, i) => (a.rows.couple ? w.coupleLedgerWords : w.ledgerWords)(pt, a.rows.rows[i].targetSpend > 0, a.rows.rows[i])) } }))
       : asked)
-      .then(({ rows: run }) => { if (live && run) setSolvedRows(s => { const kept = s.key === key ? s : { key, expected: null, hist: {} }; return want === 'expected' ? { ...kept, expected: run } : { ...kept, hist: { ...kept.hist, [want]: run } }; }); })
-      .catch(() => { /* the solved plan's run failed: your plan's figures stand */ });
+      .then(({ rows: run }) => {
+        if (!live) return;
+        if (!run) throw new Error('the solved plan\'s run came back without its rows');
+        setSolvedRows(s => { const kept = s.key === key ? s : { key, expected: null, hist: {} }; return want === 'expected' ? { ...kept, expected: run, expectedFailed: false } : { ...kept, hist: { ...kept.hist, [want]: run } }; });
+      })
+      // the solved plan's run failed: your plan's figures stand, and the ledger's line says the solved plan's could not be worked
+      // out, not that it is being (the reviewer's third look at D155, finding 5: until then the line stayed up). A solve let go
+      // ('closed', 'cancelled') is not a failure: the next solve asks again
+      .catch(e => {
+        if (!live || PLANNER_PLANT.has('stuckwait') || (e && (e.message === 'closed' || e.message === 'cancelled'))) return;
+        if (want === 'expected') setSolvedRows(s => ({ ...(s.key === key ? s : { key, expected: null, hist: {} }), expectedFailed: true }));
+      });
     return () => { live = false; };
   }, [solvedInHand, solve.key, activeTab, activeHistoricalStartYear, haveExpected]); // eslint-disable-line react-hooks/exhaustive-deps
   const solvedLedger = solvedInHand && solvedRows.key === solve.key ? solvedRows.expected : null;
@@ -7924,7 +7936,11 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     if (!solvedInHand || activeTab !== 'details' || histAll.key === solve.key) return undefined;
     let live = true;
     const key = solve.key;
-    solve.ask('history', { years: histYears }).then(({ history }) => { if (live && history) setHistAll({ key, list: history }); }).catch(() => { /* the strip shows your current approach alone */ });
+    solve.ask('history', { years: histYears })
+      .then(({ history }) => { if (!live) return; if (!history) throw new Error('the solved plan\'s history came back empty'); setHistAll({ key, list: history }); })
+      // the strip shows your current approach alone, and says the solved plan's could not be worked out (the reviewer's third look
+      // at D155, finding 5); a solve let go is not a failure
+      .catch(e => { if (!live || PLANNER_PLANT.has('stuckwait') || (e && (e.message === 'closed' || e.message === 'cancelled'))) return; setHistAll({ key, list: null, failed: true }); });
     return () => { live = false; };
   }, [solvedInHand, solve.key, activeTab, histYears]); // eslint-disable-line react-hooks/exhaustive-deps
   const yourHistAll = useMemo(() => (solverOn && activeTab === 'details' ? histYears.map(y => { const v = E.evaluateRows(ctx, E.simulateHistorical(ctx, y)); return { y, ok: !!v.survived, failYear: v.failYear }; }) : null), [solverOn, activeTab, ctx, histYears]);
@@ -8568,7 +8584,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
             {/* every start year first (the UI pass, 21 Nov): the overview a year is picked from, above the picker */}
             {solverOn && yourHistAll && (
               <Suspense fallback={null}>
-                <HistoryStripCard solved={histAll.key === solve.key ? histAll.list : null} yours={yourHistAll} selected={activeHistoricalStartYear} onPick={setSelectedHistoricalYear} isPhone={isPhone} />
+                <HistoryStripCard solved={histAll.key === solve.key ? histAll.list : null} failed={histAll.key === solve.key && !!histAll.failed} yours={yourHistAll} selected={activeHistoricalStartYear} onPick={setSelectedHistoricalYear} isPhone={isPhone} />
               </Suspense>
             )}
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
@@ -8624,7 +8640,9 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const auditCard = () => (
           <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-              <div><h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> {auditRun ? 'Year by year, on the expected returns' : solverOn ? 'Your current approach, year by year, on the expected returns' : <>Year-by-Year Cash Flow &amp; Wrapper Ledger</>}</h2>{solverOn && solvedInHand && !solvedLedger && <p data-audit-wait className="text-xs text-slate-600 mt-1">The solved plan&apos;s year by year is being worked out; your current approach&apos;s is shown until it is in.</p>}<span className="text-xs text-slate-500">{auditRun ? <>One steady market, not a forecast: every year&apos;s figures as raw numbers, so you can check the arithmetic.</> : <>Expected-return path: contributions, guaranteed income, <T k="decumulation">decumulation</T> waterfall, tax and wrapper balances (end of year).</>}</span>
+              <div><h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> {auditRun ? 'Year by year, on the expected returns' : solverOn ? 'Your current approach, year by year, on the expected returns' : <>Year-by-Year Cash Flow &amp; Wrapper Ledger</>}</h2>{solverOn && solvedInHand && !solvedLedger && (solvedRows.key === solve.key && solvedRows.expectedFailed
+                ? <p data-audit-wait="failed" className="text-xs text-slate-600 mt-1">The solved plan&apos;s year by year could not be worked out; your current approach&apos;s is shown.</p>
+                : <p data-audit-wait="pending" className="text-xs text-slate-600 mt-1">The solved plan&apos;s year by year is being worked out; your current approach&apos;s is shown until it is in.</p>)}<span className="text-xs text-slate-500">{auditRun ? <>One steady market, not a forecast: every year&apos;s figures as raw numbers, so you can check the arithmetic.</> : <>Expected-return path: contributions, guaranteed income, <T k="decumulation">decumulation</T> waterfall, tax and wrapper balances (end of year).</>}</span>
                 {solvedLedger && <div className="mt-2 inline-flex rounded-lg border border-slate-200 overflow-hidden text-xs" role="group" aria-label="Whose ledger" data-audit-view={auditView}>
                   {[['solved', 'The solved plan'], ['yours', 'Your current approach']].map(([v, l]) => <button key={v} type="button" aria-pressed={auditView === v} onClick={() => setAuditView(v)} className={`px-3 py-1.5 min-h-9 font-semibold cursor-pointer ${auditView === v ? 'bg-accent text-onaccent' : 'bg-surface text-slate-600 hover:bg-slate-100'}`}>{l}</button>)}
                 </div>}</div>

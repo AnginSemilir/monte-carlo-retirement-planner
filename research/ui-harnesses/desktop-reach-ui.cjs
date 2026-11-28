@@ -7,7 +7,10 @@
  * exactly as the phone probe does; so is the equivalent one, a small target whose function another control on the page
  * carries at 24px, which the target itself names (data-target-equivalent: the history strip's start years name the Start
  * year box and slider), held only while such a control is on the page at 24px (lib/probes.cjs says why; planted,
- * REACH_PLANT=noequivalent hides the Start year controls and Details' check fails on the strip). And:
+ * REACH_PLANT=noequivalent hides the Start year controls and Details' check fails on the strip). Each place is measured once
+ * its own card has drawn (an element the card draws, not the place's heading), Your plan on its answer with the typical run's
+ * cards in, not its progress (the reviewer's third look at D155, finding 6; planted, REACH_PLANT=norun takes the strip's mark
+ * off and that check fails). And:
  *   - a narrow window with a pointer (683 and 700, a Chromebook at 200%) keeps the desktop layout;
  *   - a glossary term is its own hit target, marked by a shimmering underline; hovering one explains it, inside the window;
  *     a click on the word keeps it open rather than closing it; it is named to a screen reader, and gone on the way out;
@@ -57,7 +60,12 @@ const LEDGER_PLAN = {
     { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: 25000, contrib: 0, growth: 0, risk: 'Cash Equivalents' }],
   otherIncomes: [], oneOffContributions: [], oneOffCosts: [], config: { valuationDate: '2026-01-01' }
 };
-const PLACES = [['Your plan', 'plan', /Your plan/i], ['You', 'you', /With partner/i], ['What if', 'whatif', /What if/i], ['Details', 'details', /Year by year/i]];
+// each place: its button's label, its <main data-place>, and an element only its own card draws: the place's heading is the
+// page's, drawn before the lazily loaded card arrives, so it cannot tell the card's progress from its answer (the reviewer on
+// D155, finding 4, and its third look, finding 6)
+const PLACES = [['Your plan', 'plan', '[data-plan-answer]:not([data-plan-answer="loading"])'], ['You', 'you', '[data-section="you"]'], ['What if', 'whatif', '[data-whatif-scenarios]'], ['Details', 'details', '[data-audit-ledger]']];
+// Your plan's typical run's cards, which come with the solve's next question once the first paths are in
+const RUN = ['[data-strategy-ahead]', '[data-invest-strip]', '[data-more="life"]'];
 
 const SMALL_24 = () => {
   const inline = new Set(['P', 'SPAN', 'LI', 'LABEL', 'TD', 'TH']);
@@ -91,15 +99,18 @@ async function open(b, w, h, seed = plan) {
   p.on('pageerror', e => errs.push(e.message));
   await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
   await p.addInitScript(pl => { localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); }, seed);
+  // planted (REACH_PLANT=norun): the "In shares" strip's mark taken off as soon as it is drawn, so the check that Your plan is
+  // measured with the typical run's cards drawn must fail (its wait then given 20s, not ten minutes)
+  if (PLANT === 'norun') await p.addInitScript(() => { new MutationObserver(() => document.querySelectorAll('[data-invest-strip]').forEach(x => x.removeAttribute('data-invest-strip'))).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-invest-strip'] }); });
   await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(900);
   return { p, errs };
 }
 // a place by its button's whole label ('You' is the start of 'Your plan'), waiting for its own content
 const place = async (p, label) => {
-  const [, id, marker] = PLACES.find(x => x[0] === label);
+  const [, id, sel] = PLACES.find(x => x[0] === label);
   await p.evaluate(n => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.trim() === n); if (x) x.click(); }, label);
-  await p.waitForFunction(([pl, src]) => { const m = document.querySelector(`[data-place="${pl}"]`); return !!m && new RegExp(src, 'i').test(m.innerText); }, [id, marker.source], { timeout: 8000 }).catch(() => {});
+  await p.waitForSelector(`[data-place="${id}"] ${sel}`, { timeout: 15000 }).catch(() => {});
   await p.waitForTimeout(400);
 };
 
@@ -172,8 +183,18 @@ const place = async (p, label) => {
   ok('...and a click on the word keeps it open rather than closing it', tip.heldOnClick === true, `open after the click: ${tip.heldOnClick}`);
   ok('...named to a screen reader, and gone on the way out', tip.described === true && tip.gone === true, `described ${tip.described}, gone ${tip.gone}`);
 
-  for (const [label] of PLACES) {
+  for (const [label, id, sel] of PLACES) {
     await place(p, label);
+    ok(`${label}: renders its own content`, await p.evaluate(q => !!document.querySelector(q), `[data-place="${id}"] ${sel}`), sel);
+    if (id === 'plan') {
+      // Your plan measured on its answer, not its progress: the first paths in, then the typical run's cards by their own marks
+      // (at the light settings a desktop solves at once; the waits are ceilings)
+      await p.waitForSelector('[data-plan-answer="filling"], [data-plan-answer="done"]', { timeout: 600000 }).catch(() => {});
+      for (const q of RUN) await p.waitForSelector(`[data-place="plan"] ${q}`, { timeout: PLANT === 'norun' ? 20000 : 600000 }).catch(() => {});
+      await p.waitForTimeout(400);
+      const st = await p.evaluate(qs => ({ state: document.querySelector('[data-plan-answer]')?.getAttribute('data-plan-answer'), missing: qs.filter(q => !document.querySelector(`[data-place="plan"] ${q}`)) }), RUN);
+      ok(`${label}: measured on its answer, with the typical run's cards drawn`, (st.state === 'filling' || st.state === 'done') && st.missing.length === 0, `the card ${st.state}${st.missing.length ? `; missing ${st.missing.join(', ')}` : ''}`);
+    }
     // planted: the Start year controls off the page, so the history strip's columns have no equivalent here and are held to 24px
     if (PLANT === 'noequivalent') await p.evaluate(() => document.querySelectorAll('input[aria-label="Start year"]').forEach(x => { x.style.display = 'none'; }));
     const small = await p.evaluate(SMALL_24);

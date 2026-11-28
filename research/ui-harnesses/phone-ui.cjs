@@ -17,12 +17,13 @@
  *     can reach the end of;
  *   - each section of Details no longer than the classic planner's tab that held it allowed (its screen cap, SCREEN_CAP
  *     there: Audit Data Table 1.8 screens, Historical Backtest 2.6, Config & Assumptions 2.0, Documentation 2.2), converted
- *     as You's form is below: the classic page drew 140px of its own around a tab's content, so a cap of c screens is c times
- *     the screen's height less 140px of content; the content the classic tab carried is held to it, and what the planner adds
- *     to the section or unfolds in it is measured and reported, not held to the classic bar (the history check's strip of
- *     every start year; in Assumptions, Tax rules open, which the classic Config folded on a phone, Display's heading with
- *     the theme, and the solver's settings): the reviewer's second look at D155, finding 2. Planted (PHONE_PLANT=nolengthsub,
- *     the planner's additions left in), the history check and Assumptions fail on the iPhone 13;
+ *     as You's form is below: the classic page drew 100px of its own around those tabs' content (28px above, 72px below), so
+ *     a cap of c screens is c times the screen's height less 100px of content; the content the classic tab carried is held
+ *     to it, and what the planner adds to the section or unfolds in it is measured and reported, not held to the classic bar
+ *     (the history check's strip of every start year; in Assumptions, Tax rules open, which the classic Config folded on a
+ *     phone, Display's heading with the theme, and the solver's settings): the reviewer's second look at D155, finding 2, and
+ *     its third look, finding 1. Planted, each fails: PHONE_PLANT=nolengthsub (the planner's additions left in) the history
+ *     check and Assumptions on the iPhone 13; PHONE_PLANT=docsopen (every documentation card opened) the documentation's;
  *   - the history check's chart on a phone: it uses the screen (92% of its width), and its expand button opens it at full
  *     screen, the dialog the viewport's width and height, Escape closing it (the classic planner's projection chart was
  *     checked so until D155; the reviewer's second look, finding 6). Planted (PHONE_PLANT=halfchart, the dialog at half the
@@ -31,7 +32,9 @@
  *   - the theme is one cycling button, not three;
  *   - You's phone form, on each phone in both themes as the classic planner's Plan Inputs was until D155 (the reviewer's
  *     second look, finding 3): its inputs are at least 16px (so focusing one does not zoom), its sections show one at a
- *     time, the form's own content under the classic bar with no long drop-down, and a swipe moves between them; its rows are
+ *     time, the form's own content under the classic bar with no long drop-down, the section it opens at within the classic
+ *     Plan Inputs tab's own cap, 2.0 screens less the 140px its page drew around a section (the third look, finding 3;
+ *     planted, PHONE_PLANT=tallyou, 500px more there, it fails on the iPhone 13), and a swipe moves between them; its rows are
  *     a label left and a control right, every control on one edge, the explanations a tap away; a new band opens as a row
  *     of three fields; an income stream cannot start before its owner retires and snaps back; a folded explanation shows its
  *     first lines; each wrapper is a card with its tier, opening into six chips that set the tier and fold away; and a
@@ -110,13 +113,16 @@ const measure = async (page, label) => {
 
 /*
  * EACH SECTION OF DETAILS NO LONGER THAN ITS CLASSIC TAB ALLOWED (the reviewer's second look at D155, finding 2). The classic
- * planner's phone check held each tab's page to a screen cap (SCREEN_CAP); the page drew 56px above a tab's content and 84px
- * below it (CLASSIC-RETIRE.md's record, results-d155-fixround.txt section 3), so a cap of c screens is c x the screen's
- * height less 140px of content. The content the classic tab carried is held to that; what the planner adds to the section,
- * or shows open where the classic folded it on a phone, is measured and reported beside it, not held to the classic bar, as
- * You's form is below (DECISIONS-PENDING.md).
+ * planner's phone check held each tab's page to a screen cap (SCREEN_CAP), so a cap of c screens is c x the screen's height
+ * less the chrome the classic page drew around the tab's content: around the four tabs whose content Details keeps (Config,
+ * Historical Backtest, Audit Data Table, Documentation) 28px above and 72px below, 100px, on both phones (the reviewer's third
+ * look, finding 1, and the second fix round's record, results-d155-fixround-2.txt section 5); a Plan Inputs section started
+ * 56px down, under its own sticky section tabs, so 140px there (results-d155-fixround.txt section 3), which You's caps below
+ * use. The content the classic tab carried is held to that; what the planner adds to the section, or shows open where the
+ * classic folded it on a phone, is measured and reported beside it, not held to the classic bar, as You's form is below
+ * (DECISIONS-PENDING.md).
  */
-const CLASSIC_CHROME = 140;
+const DETAILS_CHROME = 100, INPUTS_CHROME = 140;
 const DETAILS_CAP = { ledger: ['Audit Data Table', 1.8], history: ['Historical Backtest', 2.6], assumptions: ['Config & Assumptions', 2.0] };
 const DETAILS_ADDED = {
   // the strip of every start year: the planner's (at 9d04859a it rendered only under the solver's switch, which the classic
@@ -135,19 +141,22 @@ const detailsLength = async (page, label, vh) => {
   }, DETAILS_ADDED);
   const capOf = m && DETAILS_CAP[m.id];
   if (!capOf) { ok(`${label}: a section of Details with a classic tab's cap`, false, m ? `section ${m.id}` : 'no section'); return; }
-  const [tab, cap] = capOf, allowed = Math.round(cap * vh - CLASSIC_CHROME);
+  const [tab, cap] = capOf, allowed = Math.round(cap * vh - DETAILS_CHROME);
   const added = PLANTS.has('nolengthsub') ? 0 : m.parts.reduce((a, x) => a + x.h, 0), content = Math.round(m.own - added);
   ok(`${label}: the classic ${tab} tab's content within its ${cap} screens`, content <= allowed, `${content}px of ${allowed}px (the section ${Math.round(m.own)}px)`);
   for (const x of m.parts) if (x.h) console.log(`  (reported) ${label}: ${x.what} adds ${Math.round(x.h)}px`);
 };
 // the full documentation, from its contents to its last card: the classic Documentation tab's content (its cap 2.2 screens)
 const docsLength = async (page, label, vh) => {
+  // planted (PHONE_PLANT=docsopen): every card of the documentation opened, its whole text on the page (the folds' own checks
+  // run before it), so the length check below must fail
+  if (PLANTS.has('docsopen')) await page.evaluate(() => document.querySelectorAll('[data-place="details"] [id^="doc-"] details').forEach(x => { x.open = true; }));
   const d = await page.evaluate(() => {
     const c = document.querySelector('[data-place="details"] [data-doc-contents]'), cards = [...document.querySelectorAll('[data-place="details"] [id^="doc-"]')];
     if (!cards.length) return null;
     return { own: cards[cards.length - 1].getBoundingClientRect().bottom - (c || cards[0]).getBoundingClientRect().top };
   });
-  const allowed = Math.round(2.2 * vh - CLASSIC_CHROME);
+  const allowed = Math.round(2.2 * vh - DETAILS_CHROME);
   ok(`${label}: the classic Documentation tab's content within its 2.2 screens`, !!d && d.own <= allowed, d ? `${Math.round(d.own)}px of ${allowed}px, from the contents to the last card` : 'no documentation');
 };
 /*
@@ -301,9 +310,17 @@ const fullScreenChart = async (page, label, vw) => {
          * current approach's controls in Advanced (the classic planner's Config until D155) and Limits, the solver's own card,
          * whose riskiest tiers are drop-downs (the reviewer on D155's fix round; DECISIONS-PENDING.md).
          */
-        const FORM_CAP = 1660;
+        const FORM_CAP = 1800 - INPUTS_CHROME;
+        /*
+         * AND THE TAB AS IT OPENS no longer than the classic planner's Plan Inputs tab allowed on a phone (its screen cap, 2.0
+         * screens: SCREEN_CAP there, on the section it opened at), converted with the 140px its page drew around a section:
+         * the form's own content of You's first section (the reviewer's third look at D155, finding 3). Planted
+         * (PHONE_PLANT=tallyou: 500px more in that section), it fails on the iPhone 13, under the 1,660px bar above.
+         */
+        const INPUTS_CAP = 2.0;
         for (const t of tabs) {
           await sectionTab(t);
+          if (t === tabs[0] && PLANTS.has('tallyou')) await p.evaluate(() => { const sec = document.querySelector('[data-place="you"] [data-section]'); if (sec) { const d = document.createElement('div'); d.style.height = '500px'; d.setAttribute('data-planted', ''); sec.appendChild(d); } });
           const m = await p.evaluate(() => {
             const secs = [...document.querySelectorAll('[data-place="you"] [data-section]')], sec = secs[0];
             const added = sec ? [...sec.querySelectorAll('[data-current-approach]')].reduce((a, x) => a + x.getBoundingClientRect().height, 0) : 0;
@@ -315,6 +332,11 @@ const fullScreenChart = async (page, label, vw) => {
           const over = await p.evaluate(OVERFLOW_PROBE);
           ok(`You / ${t}: one section, the form's own content under the classic bar, nothing sideways, no long drop-down`, m.one === 1 && m.form <= FORM_CAP && over <= 1 && m.bigSelects === 0,
             `the form ${m.form}px of ${FORM_CAP}, ${m.bigSelects} long selects, ${over}px overflow; the page ${m.page}px`);
+          if (t === tabs[0]) {
+            const allowed = Math.round(INPUTS_CAP * desc.viewport.height - INPUTS_CHROME);
+            ok(`You / ${t}: the classic Plan Inputs tab's content as it opened within its ${INPUTS_CAP} screens`, m.form <= allowed, `the form ${m.form}px of ${allowed}px`);
+            await p.evaluate(() => document.querySelectorAll('[data-planted]').forEach(x => x.remove()));
+          }
           if (m.added) console.log(`  (reported) You / ${t}: Your current approach's controls add ${m.added}px, the section ${m.own}px, the page ${m.page}px`);
           if (m.limitsSelects.length) console.log(`  (reported) You / ${t}: the solver's limits as drop-downs: ${m.limitsSelects.join(', ')}`);
         }

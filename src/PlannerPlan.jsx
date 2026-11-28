@@ -82,7 +82,12 @@ export function PlannerPlan({ plan, solve, seed, fmt, isPhone, steps = STEPS, ac
           const { distil } = await solve.ask('distil', { plan, seed, n: actionsN });
           if (live) setMore(m => ({ ...m, key: solve.key, distil }));
         }
-      } catch (e) { /* the actions and the rule are extra; the headline stands without them */ }
+      } catch (e) {
+        // the actions and the rule are extra: the headline stands without them, and where this year's steps did not come the card
+        // says they could not be worked out, not that they are being (the reviewer's third look at D155, finding 5: until then the
+        // line stayed up); a solve let go is not a failure
+        if (live && !PLANNER_PLANT.has('stuckwait') && !(e && (e.message === 'closed' || e.message === 'cancelled'))) setMore(m => (m.key === solve.key && m.actions ? m : { ...m, key: solve.key, actionsFailed: true }));
+      }
     })();
     return () => { live = false; };
   }, [solved, solve.key, plan, seed]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -407,10 +412,11 @@ function belowParts({ s, mine, ctx, dim, isPhone, rulesLine }) {
     ['If the money runs out, typically at', v => (arm(v).failed.t50 === null ? 'never' : `${Math.round(ageAt0 + arm(v).failed.t50)}`), 'failAge']);
   const op = dim ? 'opacity-55' : '';
   const thisYear = (
-    <div className={`p-4 bg-surface border border-slate-200/90 rounded-xl space-y-3 ${op}`} data-strategy-actions={mine.actions ? 'done' : 'pending'}>
+    <div className={`p-4 bg-surface border border-slate-200/90 rounded-xl space-y-3 ${op}`} data-strategy-actions={mine.actions ? 'done' : mine.actionsFailed ? 'failed' : 'pending'}>
       <h3 className="text-[15px] font-semibold text-slate-900">{h.retired ? 'This year' : 'This year, before you retire'}</h3>
       {isPhone && <p className="text-xs text-slate-500">Each shows what skipping it, this year only, would cost.</p>}
-      {!mine.actions ? <p className="text-xs text-slate-500">Working out what each of this year&apos;s steps is worth…</p>
+      {!mine.actions ? (mine.actionsFailed ? <p className="text-xs text-slate-500">This year&apos;s steps could not be worked out; the plan above stands.</p>
+        : <p className="text-xs text-slate-500">Working out what each of this year&apos;s steps is worth…</p>)
         : !mine.actions.actions.length ? (sweepWords(mine.actions.sweep, ctx) ? null : <p className="text-sm text-slate-700" data-strategy-action="none">Nothing to change this year: keep to your plan as it stands.</p>)
           : <ol className="space-y-2">{mine.actions.actions.map((x, i) => { const two = !!mine.actions.couple, t = two ? coupleActionWords(x, ctx) : actionWords(x, ctx); return (
             <li key={two ? `${x.who}-${x.part}` : x.part} className="flex gap-3" data-strategy-action={two ? `${x.who}:${x.part}` : x.part} data-strategy-cost={x.cost === null ? '' : x.cost}>

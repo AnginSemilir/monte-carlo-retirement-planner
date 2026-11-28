@@ -33,6 +33,13 @@
  * 5. A couple the solver does not run under the switch (D42; since couples are on, D99, one outside src/couplesSwitch.js's
  *    guard, its younger partner holding 75%; since D150 under the guard before D150, the preview's build plant 'beforeall'):
  *    the couples card, nothing solved.
+ * 6. The solve's follow-up questions failing (the reviewer's third look at D155, finding 5): the solve's own worker planted to
+ *    answer this year's actions, the ledger's run ('rows'), history's start years and the figures lists' own line
+ *    ('strategy' asked exactly) with an error, the solve and Your plan's paths through. Each place says its figure could not
+ *    be worked out, and none is left saying it is being: Your plan's actions card; What if's own line of the target card's
+ *    figures and the scenarios' current plan; Details' ledger and the strip of every start year. Until then each caught the
+ *    failure and said nothing, so its waiting line stayed up. Planted (STRATEGY_PLANT=stuckwait: the app's plant restoring the
+ *    silent catches), the three checks fail.
  *
  *   node research/ui-harnesses/solver-strategy-ui.cjs [port]      (the preview build is served on port + 8)
  */
@@ -79,7 +86,7 @@ const VITE = join(ROOT, 'node_modules/vite/bin/vite.js');
 // worker answered must FAIL, and that one alone); 'mcseed', the worker asked on the seed after the page's, so its figures part
 // from the main thread's in a way a whole percentage need not show (the check of the same figures must FAIL, and that one alone)
 const STRATEGY_PLANT = process.env.STRATEGY_PLANT || '';
-async function open(b, port, plan, { plantFail = false, query = '' } = {}) {
+async function open(b, port, plan, { plantFail = false, query = '', failKinds = null, scenarios = null } = {}) {
   // the planted failure: the page's solver worker answers every question with an error (no change to the app's code: the
   // page's Worker constructor is wrapped for the solver's script; a route on the worker's own request is not honoured). The
   // wrapper records each worker the page starts, by its script's name, and counts the projection worker's own answers: each
@@ -108,6 +115,24 @@ async function open(b, port, plan, { plantFail = false, query = '' } = {}) {
       return w;
     };
   }, STRATEGY_PLANT);
+  // section 6: the solve's own worker answers the named follow-up questions with an error and passes every other through
+  // ('strategy:exact', the figures lists' own line and the scenarios' base row, apart from Your plan's 'strategy')
+  if (failKinds) await ctx.addInitScript(kinds => {
+    const Real = window.Worker;
+    window.__failed = [];
+    window.Worker = function (url, o) {
+      const real = new Real(url, o);
+      if (!/solverWorker/.test(String(url))) return real;
+      const post = real.postMessage.bind(real);
+      real.postMessage = (m, t) => {
+        const k = m && (m.kind === 'strategy' && m.exact ? 'strategy:exact' : m.kind);
+        if (k && kinds.includes(k)) { window.__failed.push(k); setTimeout(() => { if (real.onmessage) real.onmessage({ data: { id: m.id, error: 'planted: the question failed' } }); }, 0); return undefined; }
+        return t ? post(m, t) : post(m);
+      };
+      return real;
+    };
+  }, failKinds);
+  if (scenarios) await ctx.addInitScript(sc => { if (!sessionStorage.getItem('seededsc')) { localStorage.setItem('rp_saved_scenarios_v3', JSON.stringify(sc)); sessionStorage.setItem('seededsc', '1'); } }, scenarios);
   const p = await ctx.newPage();
   const errs = [], urls = [];
   p.on('pageerror', e => errs.push(e.message));
@@ -160,7 +185,7 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
   const OUT = mkdtempSync(join(tmpdir(), 'solver-strategy-'));
   let server = null;
   try {
-    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), PLANNER_PLANT: 'beforeall' } });
+    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), PLANNER_PLANT: STRATEGY_PLANT === 'stuckwait' ? 'beforeall,stuckwait' : 'beforeall' } });
     server = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT, '--port', PREVIEW_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
     let up = false;
     for (let i = 0; i < 40 && !up; i++) { try { const r = await fetch(`http://localhost:${PREVIEW_PORT}/`); up = r.ok; } catch (e) { await new Promise(res => setTimeout(res, 500)); } }
@@ -278,6 +303,35 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
       await p.waitForTimeout(2000);
       ok(`switch on, a couple the solver does not run (${couple.id}, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card, and nothing solved`, s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
       ok('a couple: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+      await p.context().close(); }
+
+    // 6. the solve's follow-up questions failing (the reviewer's third look at D155, finding 5): the solve and Your plan's paths
+    // come in, and this year's actions, the ledger's run, history's start years and the figures lists' own line fail; each place
+    // says its figure could not be worked out, and none is left saying it is being worked out
+    { const main = planOf(CASES.main), more = JSON.parse(JSON.stringify(main));
+      more.spending.targetSpend = Number(more.spending.targetSpend) + 2000;
+      const { p, errs } = await open(b, PREVIEW_PORT, main, { failKinds: ['actions', 'rows', 'history', 'strategy:exact'],
+        scenarios: [{ id: 's1', name: 'Scenario 1', data: main }, { id: 's2', name: 'Spend 2000 more', data: more }] });
+      const WAITING = /Working out what each of this year|being worked out; your current approach|Working out the solved plan|Working out your plan.s own figures first|working it out…/;
+      const placeTo = async label => { await p.evaluate(l => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(t => t.textContent.trim() === l); if (x) x.click(); }, label); await p.waitForTimeout(800); };
+      const still = () => p.evaluate(src => { const m = new RegExp(src).exec(document.querySelector('main') ? document.querySelector('main').innerText : ''); return m ? m[0] : null; }, WAITING.source);
+      let done = true;
+      try { await waitDone(p); } catch (e) { done = false; }
+      const acts = await p.waitForSelector('[data-place="plan"] [data-strategy-actions="failed"]', { timeout: 120000 }).then(() => true, () => false);
+      const planLeft = await still();
+      ok('the follow-up questions failing: Your plan says this year\'s steps could not be worked out, nothing left being worked out', done && acts && !planLeft, `paths in ${done}, the actions card failed ${acts}${planLeft ? `; still "${planLeft}"` : ''}`);
+      await placeTo('What if');
+      const own = await p.waitForSelector('[data-place="whatif"] [data-figures-own-wait="failed"]', { timeout: 120000 }).then(() => true, () => false);
+      const base = await p.waitForFunction(() => { const r = document.querySelector('[data-solver-scenario="__current__"]'); return !!r && /could not be worked out/.test(r.textContent); }, null, { timeout: 120000 }).then(() => true, () => false);
+      const whatLeft = await still();
+      ok('...What if: the figures list\'s own line and the scenarios\' current plan could not be worked out, nothing left being worked out', own && base && !whatLeft, `the own line failed ${own}, the current plan's row failed ${base}${whatLeft ? `; still "${whatLeft}"` : ''}`);
+      await placeTo('Details');
+      const ledger = await p.waitForSelector('[data-place="details"] [data-audit-wait="failed"]', { timeout: 120000 }).then(() => true, () => false);
+      const strip = await p.waitForSelector('[data-place="details"] [data-history-strip="failed"]', { timeout: 120000 }).then(() => true, () => false);
+      const detLeft = await still();
+      const failed = await p.evaluate(() => [...new Set(window.__failed || [])].sort().join(', '));
+      ok('...Details: the ledger\'s solved run and history\'s start years could not be worked out, nothing left being worked out', ledger && strip && !detLeft, `the ledger failed ${ledger}, the strip failed ${strip}${detLeft ? `; still "${detLeft}"` : ''}; the questions failed ${failed}`);
+      ok('the follow-up questions failing: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
   } finally {
     if (server) server.kill();

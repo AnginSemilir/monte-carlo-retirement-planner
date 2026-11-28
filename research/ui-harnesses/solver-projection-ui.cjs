@@ -17,7 +17,10 @@
  *    it Node's. The solve's worker answers the page's questions in turn, so Details is opened once Your plan's last ones are
  *    in (this year's actions and the rule of thumb, on 1,000 paired paths each), and the ledger then has its two minutes to
  *    itself (on the D155 fix round's gate, 28 Nov, with the machine loaded beside it, the ledger asked behind them had not
- *    come within the two minutes); the time of each is printed.
+ *    come within the two minutes); the time of each is printed. And the order a reader meets who opens Details as soon as the
+ *    answer is in, on a second page of the same plan (the reviewer's third look at D155, finding 5): while the solved ledger
+ *    is worked out behind Your plan's last questions the page says it shows your current approach's, and the solved ledger
+ *    comes, every total and move Node's, within two minutes of the last answer the solve's worker gave before it.
  *    Planted once (PROJECTION_PLANT=histexp: the built page asks history for the expected path instead), the history check
  *    fails.
  * 4. Item 3, the same preview, beside the answer: "Compare the four settings" works the other three out in the background,
@@ -175,6 +178,49 @@ const place = async (p, label) => { await p.evaluate(l => { const x = [...docume
     ok('the history check is the solved plan through real history, labelled the out-of-model check: its verdict and pot left Node\'s, your current approach\'s verdict beside it Node\'s',
       !!h && /out-of-model check/i.test(h.text) && h.terminal === nh.verdict.terminalPot && h.survived === (nh.verdict.survived ? 'survived' : 'failed') && h.yours === (ny.survived ? 'survived' : 'failed'),
       h ? `from ${h.start}: the solved plan ${h.survived}, the pot left ${Math.round(h.terminal)} (Node ${Math.round(nh.verdict.terminalPot)}); yours ${h.yours} (Node ${ny.survived ? 'survived' : 'failed'})` : 'no out-of-model check');
+    /*
+     * THE LEDGER ASKED BEHIND YOUR PLAN'S LAST QUESTIONS, the order a reader meets who opens Details as soon as the answer is in
+     * (the reviewer's third look at D155, finding 5): a second page of the same plan (its solve from the first page's store),
+     * Details opened the moment its card reads 'done', with this year's actions and the rule of thumb still being worked out.
+     * While the solved plan's ledger is not in, the page says whose ledger it shows and that the solved plan's is coming; it
+     * comes, every total and move Node's, within two minutes of the last answer the solve's worker gave before it (each answer
+     * timed as it arrives, by a listener on the solve's workers)
+     */
+    {
+      const q = await ctx.newPage(), qerrs = [];
+      q.on('pageerror', e => qerrs.push(e.message));
+      await q.addInitScript(() => {
+        const Real = window.Worker;
+        window.__answers = [];
+        window.Worker = function (url, o) {
+          const w = new Real(url, o);
+          if (/solverWorker/.test(String(url))) w.addEventListener('message', e => { const d = e.data || {}; for (const k of ['actions', 'distil', 'rows']) if (d[k] !== undefined) window.__answers.push({ k, t: performance.now() }); });
+          return w;
+        };
+      });
+      await q.goto(`http://localhost:${PREVIEW_PORT}/`, { waitUntil: 'networkidle' });
+      const qDone = await q.waitForSelector('[data-plan-answer="done"]', { timeout: 900000 }).then(() => true, () => false);
+      await place(q, 'Details');
+      const tOpen = await q.evaluate(() => performance.now());
+      const first = await q.evaluate(() => ({ ledger: (document.querySelector('[data-place="details"] [data-audit-ledger]') || { dataset: {} }).dataset.auditLedger || null,
+        wait: (document.querySelector('[data-place="details"] [data-audit-wait]') || { dataset: {} }).dataset.auditWait || null,
+        heading: /Your current approach, year by year/.test((document.querySelector('[data-place="details"]') || { innerText: '' }).innerText),
+        behind: !(window.__answers || []).some(a => a.k === 'actions') }));
+      const honest = first.ledger === 'solved' || (first.ledger === 'yours' && first.wait === 'pending' && first.heading);
+      const qGot = await q.waitForSelector('[data-place="details"] [data-audit-ledger="solved"]', { timeout: 900000 }).then(() => true, () => false);
+      const qPage = await q.$$eval('[data-place="details"] [data-audit-total]', els => els.map(el => ({ total: Number(el.dataset.auditTotal), act: (el.querySelector('[data-audit-action]') || { dataset: {} }).dataset.auditAction })));
+      const qBad = qPage.filter((v, t) => !x.rows[t] || v.total !== x.rows[t].totalCombined || v.act !== (x.parts[t] ? JSON.stringify(x.parts[t]) : '')).length;
+      const ans = await q.evaluate(() => window.__answers || []);
+      const rowsAt = (ans.find(a => a.k === 'rows') || {}).t;
+      const before = rowsAt === undefined ? [] : ans.filter(a => a.k !== 'rows' && a.t <= rowsAt);
+      const from = rowsAt === undefined ? null : Math.max(tOpen, ...before.map(a => a.t));
+      const lag = from === null ? null : Math.round((rowsAt - from) / 1000);
+      ok('Details opened before Your plan\'s last answers: while the solved ledger is worked out the page says it shows your current approach\'s, and the solved ledger comes within two minutes of the solve\'s last answer before it, every total and move Node\'s',
+        qDone && honest && qGot && qPage.length === x.rows.length && qBad === 0 && lag !== null && lag <= 120,
+        `opened with the ledger ${first.ledger} (the line ${first.wait || 'none'}${first.heading ? ', the heading your current approach\'s' : ''}), the actions ${first.behind ? 'not yet in' : 'already in'}; the solved ledger ${qGot && rowsAt !== undefined ? `in ${Math.round((rowsAt - tOpen) / 1000)}s after Details opened, ${lag}s after the last answer before it (${before.map(a => a.k).join(', ') || 'none'})` : 'never in'}; ${qPage.length} rows, ${qBad} differing`);
+      ok('the second page: no page errors', qerrs.length === 0, qerrs.slice(0, 2).join(' | '));
+      await q.close();
+    }
     }
     if (want('4')) {
     // 4. item 3, beside the answer: "Compare the four settings", a table on the first step's paths, nearest first

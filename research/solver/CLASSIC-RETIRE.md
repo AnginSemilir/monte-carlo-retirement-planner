@@ -175,7 +175,7 @@ it out. The checks' record is `results-d155-fixround-2.txt`, on this round's lig
    percentage the old check compared) but the unrounded chances are `94.70` and `94.96` and all `40` years' bands differ.
 2. **BLOCKING 2: the classic tabs' screen caps.** phone-ui holds each section of Details to the cap of the classic tab that
    carried it, converted as You's form is (a cap of c screens is c times the screen's height less the `140`px the classic page
-   drew around a tab's content): Year by year to the Audit Data Table's `1.8` screens, the history check to the Historical
+   drew around a tab's content; `100`px around these four tabs, as the third look found, below): Year by year to the Audit Data Table's `1.8` screens, the history check to the Historical
    Backtest's `2.6`, Assumptions to Config & Assumptions' `2.0`, and the full documentation, from its contents to its last
    card, to the Documentation tab's `2.2`. The content the classic tab carried is held to the cap; what the planner adds or
    shows open is measured and reported beside it, not gated: the history check's strip of every start year (`553`px), and in
@@ -223,3 +223,60 @@ year is being worked out; your current approach's is shown until it is in." The 
 answers before opening Details, so the ledger has its two minutes to itself, and it prints how long each took: run with two
 restyle-regression runs solving beside it, the two answers came `150`s after the card's last paths and the ledger at once
 after them (section 4b).
+
+## The third look (28 Nov): PASS, six MINOR, each answered
+
+The reviewer's third look (`reviews/2026-11-28-classic-retire-3.md`): PASS, no BLOCKING; the six findings of the second look
+answered. B1's gate on the second fix round's code (0649c387) was ALL REQUIRED GREEN (record section 7), solver-projection among them, with the
+reviewer's runs beside it. Its six MINOR findings, each answered; the checks' record is `results-d155-fixround-3.txt`.
+
+1. **The caps' chrome.** The classic page drew `100`px around the four tabs whose content Details keeps (`28`px above, `72`px
+   below), not the `140`px of a Plan Inputs section, whose own section tabs sit above it: measured on 9d04859a's build on
+   both phones (`research/solver/d155-fixround-2/classic-chrome.cjs`, record section 5). Details' caps are converted with
+   `100`px and You's with `140`px. The iPhone 13's caps are `40`px higher: the history check's `1626`px and Assumptions'
+   `1228`px. Both sections stay over whole, `1716` and `1555`px, and their classic parts within, `1163` and `843`px.
+   DECISIONS-PENDING.md says the same.
+2. **The probe's layer rule** now follows the painting order fully:
+   - text paints as positioned where its element at that level, or one between it and the text, is positioned or makes a
+     stacking context (opacity below 1, a transform or filter, a flex or grid item with a z-index, fixed or sticky,
+     isolation and the rest), at that element's z-index or 0;
+   - a layer with a negative z-index is beneath both, painted just above its stacking context's own background and hidden by
+     any opaque background in flow between.
+
+   The planted page gains the reviewer's five cases and one of a negative layer hidden by the card's own opaque background,
+   each confirmed by the browser's paint order (`elementsFromPoint`, record section 3b). As built it reads all thirteen as
+   intended. Planted, it fails: 'layerall' (the first fix round's rule) lets the veils and the hidden layer through;
+   'layerpos' (the second fix round's) misses the five.
+3. **Plan Inputs' own cap.** You's first section, the one the place opens at, is held to the classic Plan Inputs tab's `2.0`
+   screens less its `140`px: `840` of `1188`px on the iPhone 13, `840` of `1538`px on the Pixel 7. Planted ('tallyou',
+   `500`px more there), it fails on the iPhone 13 alone, under the form's `1660`px bar.
+4. **Plants for the checks that had none.**
+   - 'docsopen' (every documentation card opened) fails the documentation's length on each phone and theme.
+   - restyle-regression's 'norun' (the strip's mark taken off the page as soon as it is drawn) fails the checks that Your
+     plan's typical run's cards are drawn, on the desktop and on slide 4, in each theme.
+5. **The ledger asked behind Your plan's last questions.** solver-projection gains the order a reader meets: a second page of
+   the same plan, Details opened the moment the card reads 'done'. While the solved ledger is worked out the page says it
+   shows your current approach's; then it comes, every total and move Node's, within two minutes of the last answer the
+   solve's worker gave before it (each answer timed by a listener on the solve's workers). On this round's run it came `10`s
+   after Details opened, with Your plan's actions still out and no answer of the solve's before it (record section 6).
+
+   And the class the reviewer found, older than D155: a waiting line that outlives its question when the question fails.
+   Five places caught the failure and said nothing, so their line stayed up:
+   - Details' ledger ("The solved plan's year by year is being worked out");
+   - the history check's strip of every start year ("Working out the solved plan's…");
+   - Your plan's actions ("Working out what each of this year's steps is worth…");
+   - a figures list's own line on What if ("Working out your plan's own figures first…");
+   - the scenarios' current plan ("working it out…").
+
+   Each now says the figure could not be worked out (`src/App.jsx`, `src/PlannerMore.jsx`, `src/PlannerPlan.jsx`,
+   `src/SolverFigures.jsx`; the words the agent's, the maintainer's to change). A question let go with its solve ('closed',
+   'cancelled') is not a failure. The test of the class is solver-strategy section 6: the solve's own worker is planted to
+   answer exactly those questions with an error (this year's actions, the ledger's run, history's start years, and
+   `strategy` asked exactly); the solve and Your plan's paths go through. Every place says it could not be worked out, and
+   none is left saying it is being. Planted ('stuckwait', the app's plant restoring the silent catches), its three checks
+   fail. The places that wait on a question and were already sound: the history check's solved run for the start year shows
+   nothing until it is in; the next ten years and the typical run fail the whole card visibly; the figures lists' other
+   rows already said "could not be worked out".
+6. **desktop-reach measures each place once its own card has drawn,** an element the card draws, as restyle-regression and
+   phone-ui do. Your plan is measured on its answer, with the typical run's cards drawn, and a check says so; planted
+   ('norun'), that check fails alone.

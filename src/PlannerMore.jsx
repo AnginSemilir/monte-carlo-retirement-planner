@@ -410,7 +410,9 @@ export function LifeCard({ life, ageAt0, fmt, dim, isPhone }) {
 const START_YEAR = 'input[aria-label="Start year"]';
 // one column a start year: a solid bar where the money lasted, a hollow one where it ran out (shape as well as colour), the
 // solved plan's row over your current approach's; a column picks that start year for the run below
-export function HistoryStrip({ solved, yours, selected, onPick, isPhone }) {
+export function HistoryStrip({ solved, failed = false, yours, selected, onPick, isPhone }) {
+  // the solved plan's verdicts not in: being worked out, or (`failed`) not to be (the reviewer's third look at D155, finding 5)
+  const notIn = failed ? 'not worked out' : 'working it out';
   if (!yours || !yours.length) return null;
   const n = yours.length, sOk = solved ? solved.filter(r => r.ok).length : null, yOk = yours.filter(r => r.ok).length;
   const bySolved = solved ? Object.fromEntries(solved.map(r => [r.y, r])) : {};
@@ -425,8 +427,8 @@ export function HistoryStrip({ solved, yours, selected, onPick, isPhone }) {
       <div className="flex-1 grid gap-[2px]" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
         {yours.map(({ y }) => {
           const r = list ? list.find(q => q.y === y) : null;
-          return <button key={y} type="button" onClick={() => onPick && onPick(y)} data-target-equivalent={START_YEAR} aria-label={`${y}: ${r ? (r.ok ? 'the money lasts' : `the money runs out in ${r.failYear}`) : 'working it out'}`}
-            title={`Starting in ${y}: ${r ? (r.ok ? 'the money lasts' : `runs out in ${r.failYear}`) : 'working it out'}`}
+          return <button key={y} type="button" onClick={() => onPick && onPick(y)} data-target-equivalent={START_YEAR} aria-label={`${y}: ${r ? (r.ok ? 'the money lasts' : `the money runs out in ${r.failYear}`) : notIn}`}
+            title={`Starting in ${y}: ${r ? (r.ok ? 'the money lasts' : `runs out in ${r.failYear}`) : notIn}`}
             className={`h-6 rounded-sm cursor-pointer ${cell(r, tone)} ${selected === y ? 'ring-2 ring-offset-1 ring-slate-900' : ''}`} />;
         })}
       </div>
@@ -454,7 +456,7 @@ export function HistoryStrip({ solved, yours, selected, onPick, isPhone }) {
             const sr = solved ? bySolved[y] : null;
             return (
               <button key={d} type="button" onClick={() => onPick && onPick(y)} data-history-cell={y} data-target-equivalent={START_YEAR}
-                aria-label={`${y}: solved plan ${sr ? (sr.ok ? 'lasts' : `runs out in ${sr.failYear}`) : 'working it out'}; your current approach ${yr.ok ? 'lasts' : `runs out in ${yr.failYear}`}`}
+                aria-label={`${y}: solved plan ${sr ? (sr.ok ? 'lasts' : `runs out in ${sr.failYear}`) : notIn}; your current approach ${yr.ok ? 'lasts' : `runs out in ${yr.failYear}`}`}
                 className={`h-10 rounded-sm flex flex-col gap-[2px] p-[1px] cursor-pointer ${selected === y ? 'ring-2 ring-slate-900' : ''}`}>
                 <span className={`flex-1 rounded-[2px] ${half(sr, 'bg-emerald-600')}`} />
                 <span className={`flex-1 rounded-[2px] ${half(yr, 'bg-slate-400')}`} />
@@ -467,7 +469,7 @@ export function HistoryStrip({ solved, yours, selected, onPick, isPhone }) {
     </div>
   );
   return (
-    <div data-history-strip={solved ? 'in' : 'pending'} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+    <div data-history-strip={solved ? 'in' : failed ? 'failed' : 'pending'} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
       <div>
         <h3 className="text-base font-semibold text-slate-900">Every start year in history</h3>
         <p className="text-xs text-slate-600 mt-0.5">Your plan run through the real markets from each year since {yours[0].y}. {isPhone ? 'Tap' : 'Click'} a year to see its run below.</p>
@@ -484,7 +486,8 @@ export function HistoryStrip({ solved, yours, selected, onPick, isPhone }) {
       </div>
       <p className="text-sm text-slate-800" data-history-count>
         {solved ? <>The solved plan lasts from <strong>{sOk} of {n}</strong> start years; your current approach from <strong>{yOk} of {n}</strong>.{both.length ? ` The solved plan gets through ${both.length === 1 ? `${both[0]}` : `${both.length} start years`} where your current approach runs out.` : ''}</>
-          : <>Your current approach lasts from <strong>{yOk} of {n}</strong> start years. Working out the solved plan&apos;s…</>}
+          : failed ? <>Your current approach lasts from <strong>{yOk} of {n}</strong> start years. The solved plan&apos;s could not be worked out.</>
+            : <>Your current approach lasts from <strong>{yOk} of {n}</strong> start years. Working out the solved plan&apos;s…</>}
       </p>
     </div>
   );

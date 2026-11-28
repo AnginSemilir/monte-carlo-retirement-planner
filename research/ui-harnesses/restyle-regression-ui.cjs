@@ -37,11 +37,18 @@
  * Backtest and Documentation tabs held them until D155, each measured so); and at both widths the full documentation, opened
  * where it lives in Details (the reviewer on D155, finding 1).
  *
- * First, the contrast probe itself on a page of planted layers (the reviewer's second look at D155, finding 5): a layer
- * painted beneath a label is composited under it (the strip's shape, and a label above its layer by z-index), and a veil
+ * First, the contrast probe itself on a page of planted layers (the reviewer's second look at D155, finding 5, and its third
+ * look, finding 2): a layer painted beneath a label is composited under it (the strip's shape, a label above its layer by
+ * z-index, and dark text over a dark layer painted beneath it in each way CSS paints one so: a negative z-index, text with
+ * opacity or a transform, a flex item's z-index, a positioned label, a positioned child above its wrapper's layer), a veil
  * painted over the text (after it in paint order, or above it by z-index) or a hidden layer is not, so pale text under them
- * still fails. Planted (RESTYLE_PLANT=layerall: the probe composites every earlier positioned sibling over the text, the D155
- * fix round's rule), that check fails.
+ * still fails, and a negative z-index layer under an opaque background is hidden by it. Planted, that check fails:
+ * RESTYLE_PLANT=layerall (every earlier positioned sibling over the text composited, the D155 fix round's rule) and
+ * RESTYLE_PLANT=layerpos (a layer composited only beside a positioned label, the second fix round's rule).
+ *
+ * Planted (RESTYLE_PLANT=norun: the "In shares" strip's mark taken off the page as soon as it is drawn), the checks that Your
+ * plan's typical run's cards are drawn fail, on the desktop and on slide 4, in each theme (the reviewer's third look at D155,
+ * finding 4).
  *
  * Run: node restyle-regression-ui.cjs [port] [shotDir]
  */
@@ -89,23 +96,40 @@ const LAYERS = `<!doctype html><html><head><meta charset="utf-8"><style>
 <div class="card"><div class="layer" style="background: rgba(0,0,0,0.7); z-index: 10"></div><span class="t" style="position: relative; color: rgb(220,220,220)">veiled above</span></div>
 <div class="card"><div class="layer" style="background: rgb(0,0,0); visibility: hidden"></div><span class="t" style="position: relative; color: rgb(220,220,220)">hidden layer</span></div>
 <div class="card"><span class="t" style="color: rgb(220,220,220)">no layer</span></div>
+<div class="card" style="isolation: isolate"><div class="layer" style="background: rgb(49,46,129); z-index: -1"></div><span class="t" style="color: rgb(40,40,40)">negz static</span></div>
+<div class="card"><div class="layer" style="background: rgb(49,46,129)"></div><span class="t" style="color: rgb(40,40,40); opacity: 0.99">opacity static</span></div>
+<div class="card"><div class="layer" style="background: rgb(49,46,129)"></div><span class="t" style="color: rgb(40,40,40); transform: translateZ(0)">transform static</span></div>
+<div class="card" style="display: flex"><div class="layer" style="background: rgb(49,46,129)"></div><span class="t" style="color: rgb(40,40,40); z-index: 1">flexz static</span></div>
+<div class="card"><div class="layer" style="background: rgb(49,46,129)"></div><span class="t" style="position: relative; color: rgb(40,40,40)">positioned dark</span></div>
+<div class="card"><div class="layer" style="background: rgb(49,46,129); z-index: 3"></div><span style="position: relative"><span class="t" style="position: relative; z-index: 5; color: rgb(40,40,40)">child above</span></span></div>
+<div style="position: relative; z-index: 0; background: rgb(255,255,255)"><div class="card"><div class="layer" style="background: rgb(49,46,129); z-index: -1"></div><span class="t" style="color: rgb(40,40,40)">negz behind opaque</span></div></div>
 </body></html>`;
 
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
   {
-    // the probe on planted layers: beneath one and two composited (white on the indigo shade passes), the rest not (pale text
-    // on the white card, as a reader sees it: the veils cover it, the hidden layer is not painted, the last has no layer)
-    const p = await b.newPage({ viewport: { width: 400, height: 600 } });
+    // the probe on planted layers: beneath one and two composited (white on the indigo shade passes), and the veils, the hidden
+    // layer and no layer not (pale text on the white card, as a reader sees it: the veils cover it, the hidden layer is not
+    // painted); then dark text over the dark layer painted beneath it, each a real fault (about 1.3:1) the layer must be
+    // composited to see: a negative z-index layer under static text in a stacking context, static text with opacity or a
+    // transform, a flex item with a z-index, a positioned label, and a layer above the label's positioned wrapper but under
+    // the positioned child holding the text (the reviewer's third look at D155, finding 2); and a negative z-index layer whose
+    // stacking context is an ancestor, under the card's own opaque background, which paints over it (the text dark on white:
+    // no fault)
+    const p = await b.newPage({ viewport: { width: 400, height: 900 } });
     await p.setContent(LAYERS);
-    const flagged = await p.evaluate(CONTRAST_PROBE, { layerAll: RPLANT === 'layerall' });
+    const flagged = await p.evaluate(CONTRAST_PROBE, { layerAll: RPLANT === 'layerall', layerPositioned: RPLANT === 'layerpos' });
     const hit = t => flagged.some(x => x.text === t);
-    const want = { 'beneath one': false, 'beneath two': false, 'veiled static': true, 'veiled above': true, 'hidden layer': true, 'no layer': true };
+    const want = { 'beneath one': false, 'beneath two': false, 'veiled static': true, 'veiled above': true, 'hidden layer': true, 'no layer': true,
+      'negz static': true, 'opacity static': true, 'transform static': true, 'flexz static': true, 'positioned dark': true, 'child above': true, 'negz behind opaque': false };
     const wrong = Object.entries(want).filter(([t, w]) => hit(t) !== w).map(([t, w]) => `${t} ${w ? 'passed' : 'flagged'}`);
     console.log('\nthe contrast probe on planted layers');
     ok('a layer painted beneath the text is composited under it, and a veil over it or a hidden layer is not', wrong.length === 0,
       `${wrong.length ? `wrong: ${wrong.join(', ')}; ` : ''}flagged ${flagged.map(x => `"${x.text}" ${x.ratio}:1`).join(', ') || 'none'}${RPLANT ? ` (planted: ${RPLANT})` : ''}`);
     await p.close();
+    // RESTYLE_ONLY=layers: this check alone (a working run's narrowing, for the probe's own plants, which reach nothing else; the
+    // gate runs every check)
+    if (process.env.RESTYLE_ONLY === 'layers') { await b.close(); console.log(fails ? `\n${fails} FAILED` : '\nall ok'); process.exit(fails ? 1 : 0); }
   }
   for (const theme of ['light', 'dark', 'sepia']) {
     for (const width of [1400, 390]) {
@@ -124,6 +148,10 @@ const LAYERS = `<!doctype html><html><head><meta charset="utf-8"><style>
         localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl));
         localStorage.setItem('rp_theme_v1', t);
       }, [plan, theme]);
+      // planted (RESTYLE_PLANT=norun): the "In shares" strip's mark taken off as soon as it is drawn, so the checks that the
+      // typical run's cards are drawn, on the desktop and on slide 4, must fail (each wait for it then given 20s, not ten minutes)
+      if (RPLANT === 'norun') await p.addInitScript(() => { new MutationObserver(() => document.querySelectorAll('[data-invest-strip]').forEach(x => x.removeAttribute('data-invest-strip'))).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-invest-strip'] }); });
+      const RUN_WAIT = RPLANT === 'norun' ? 20000 : 600000;
       await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
       await p.waitForTimeout(1600);
       console.log(`\n${theme} @ ${width}px`);
@@ -155,7 +183,7 @@ const LAYERS = `<!doctype html><html><head><meta charset="utf-8"><style>
         const RUN = ['[data-strategy-ahead]', '[data-invest-strip]', '[data-more="life"]'];
         if (place === 'plan' && width > PHONE_MAX) {
           // the typical run's cards, asked for once the first paths are in: wait for each by its own mark
-          for (const q of RUN) await p.waitForSelector(`[data-place="plan"] ${q}`, { timeout: 600000 }).catch(() => {});
+          for (const q of RUN) await p.waitForSelector(`[data-place="plan"] ${q}`, { timeout: RUN_WAIT }).catch(() => {});
         }
         await p.waitForTimeout(400);
         const own = await p.evaluate(([pl, q]) => !!document.querySelector(`[data-place="${pl}"] ${q}`), [place, sel]);
@@ -179,7 +207,7 @@ const LAYERS = `<!doctype html><html><head><meta charset="utf-8"><style>
           for (const n of steps.slice(1)) {
             await p.evaluate(k => document.querySelector(`[data-place="plan"] [data-deck-step="${k}"]`)?.click(), n);
             await p.waitForSelector(`[data-place="plan"] [data-deck-slide="${n}"]`, { timeout: 10000 }).catch(() => {});
-            if (OWN[n]) await p.waitForSelector(`[data-place="plan"] [data-deck-slide="${n}"] ${OWN[n]}`, { timeout: 60000 }).catch(() => {});
+            if (OWN[n]) await p.waitForSelector(`[data-place="plan"] [data-deck-slide="${n}"] ${OWN[n]}`, { timeout: Math.min(RUN_WAIT, 60000) }).catch(() => {});
             await p.waitForTimeout(400);
             const shown = await p.evaluate(([k, q]) => ({ slide: !!document.querySelector(`[data-place="plan"] [data-deck-slide="${k}"]`), own: !q || !!document.querySelector(`[data-place="plan"] [data-deck-slide="${k}"] ${q}`) }), [n, OWN[n] || '']);
             ok(`${tab} / slide ${n}: shown, with its own content`, shown.slide && shown.own, `slide ${shown.slide}${OWN[n] ? `, ${OWN[n]} ${shown.own}` : ''}`);

@@ -56,11 +56,12 @@ section 2):
 - **Limits uses drop-downs.** The solver's limits give the riskiest tier for the pension and for the ISA as drop-downs of
   seven, where the classic form put tiers on chips.
 - **Details' history check and Assumptions are long on an iPhone 13.** Each section is held to the screen cap of the classic
-  tab that carried it, converted as You's form is (the classic page drew `140`px around a tab's content). On the iPhone 13
-  the history check is `1716`px against the Historical Backtest's `1586`, through the strip of every start year (`553`px,
-  the planner's); its classic part is `1163`px. Assumptions is `1555`px against Config & Assumptions' `1188`, through Tax
-  rules shown open (`386`px; the classic Config folded it on a phone), Display's heading with the theme (`152`px) and the
-  solver's settings (`174`px); its classic part is `843`px. On the Pixel 7 both sections are within the caps whole.
+  tab that carried it, converted as You's form is (the classic page drew `100`px around those tabs' content, measured on
+  9d04859a's build). On the iPhone 13 the history check is `1716`px against the Historical Backtest's `1626`, through the
+  strip of every start year (`553`px, the planner's); its classic part is `1163`px. Assumptions is `1555`px against
+  Config & Assumptions' `1228`, through Tax rules shown open (`386`px; the classic Config folded it on a phone), Display's
+  heading with the theme (`152`px) and the solver's settings (`174`px); its classic part is `843`px. On the Pixel 7 both
+  sections are within the caps whole.
 - The planner's You heading also starts every section `266`px lower than the classic page did, which is why the bar is held
   on the form's own content (`1660`px), and on the section's own height in Details.
 

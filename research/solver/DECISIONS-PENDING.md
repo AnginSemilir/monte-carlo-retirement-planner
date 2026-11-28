@@ -19,8 +19,29 @@ below this section says "the beta", read it as history. The order from here:
   the classic planner, are retired.
 - Built as its own change after the employee pension question's fix round, with the reviewer on it, then B1's gate and the
   next batch. The couples' rollback switches (the guard and the cut) stay.
-- **Built (28 Nov):** b612be65, then one fix round on the reviewer's FAIL (`CLASSIC-RETIRE.md`, the fix round). B1's gate and
-  the reviewer's second look follow.
+- **Built (28 Nov):** b612be65, then one fix round on the reviewer's FAIL (`CLASSIC-RETIRE.md`, the fix round; 1ce99382).
+
+**OPEN (28 Nov), yours (D81 (F)): the reviewer's second look at D155 is FAIL, standing after one fix round.**
+(`reviews/2026-11-28-classic-retire-2.md`: two BLOCKING, four MINOR.) Batch 20 waits on it. The reviewer found that the fix
+round answered the first look's findings except two gaps in the ported checks, and gave a way to answer each:
+- **BLOCKING 1.** solver-strategy's new projection-worker check counts a worker *started*. A worker that starts and then fails,
+  the page finishing on the main thread, passes it, and the main-thread run agrees with it only to a whole percent. To answer:
+  count the worker's own answers, and compare a figure finer than a whole percent.
+- **BLOCKING 2.** The classic phone harness held each tab to a screen cap. Four of those tabs' content now lives in Details,
+  and no ported check measures length. On the iPhone 13, two sections are over the caps (converted as You's were) through
+  what the planner adds or unfolds: History check `1716` of `1586`px, Assumptions `1555` of `1188`px. No record said the caps
+  had gone. To answer: port the caps as You's were, or retire them by your word and say so.
+- **MINOR:**
+  - the phone form's checks run on one phone and theme;
+  - on a phone, Your plan is measured on its first slide only;
+  - the new layer rule doesn't ask paint order or visibility;
+  - the full-screen chart's check is gone.
+
+  All pass today on the reviewer's runs.
+
+The agent's recommendation is a second fix round on all six, as the reviewer sets out. BLOCKING 2 would be answered as You's
+sections were: the classic content held to its converted cap, and what the planner adds measured and reported to you. Then the
+reviewer's third look and B1's gate, then batch 20.
 
 **OPEN (28 Nov), yours, deciding nothing until you rule: You on a phone, against the classic form's rules.** Porting the
 classic planner's phone checks onto the planner's You (the reviewer on D155, finding 1 (d)) found the form itself within them.

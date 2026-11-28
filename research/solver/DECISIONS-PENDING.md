@@ -11,6 +11,10 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**DONE (28 Nov): batch 20 on `main` and the readiness checklist on its release commit, 7 of 7 PASS** (`STATE.md`,
+section 5). Sharing it publicly is yours (D91). Still yours beside it, deciding nothing until you rule: You and Details on a
+phone against the classic planner's rules, and the label backing on Your plan's "In shares" strip (both below).
+
 **DECIDED (27 Nov, night): D155, "We don't need the classic anymore, just the new one".** Read as follows, said to you:
 - The classic planner is retired, D154's line on it below so amended: the new planner is the only one the app offers; the
   "Classic planner" links, the choice between the two and the rollback that gives everyone the classic planner go, and the
@@ -19,7 +23,9 @@ below this section says "the beta", read it as history. The order from here:
   the classic planner, are retired.
 - Built as its own change after the employee pension question's fix round, with the reviewer on it, then B1's gate and the
   next batch. The couples' rollback switches (the guard and the cut) stay.
-- **Built (28 Nov):** b612be65, then one fix round on the reviewer's FAIL (`CLASSIC-RETIRE.md`, the fix round; 1ce99382).
+- **Built (28 Nov):** b612be65, then one fix round on the reviewer's FAIL (`CLASSIC-RETIRE.md`, the fix round; 1ce99382) and a
+  second on its second look by D156 (0649c387); the third look PASS, its six MINOR answered (cb92ce94). On `main` with batch
+  20 (pull request 32, e3a5908f, 28 Nov) on B1's gate, Verify and both Full shards green on the release's head.
 
 **ANSWERED by D156 (28 Nov): "Second fix round, all six (Recommended)".** The entry as it stood:
 

@@ -28,10 +28,10 @@
  *      apart from salary sacrifice's, with Config's pass-through set: allocateBudget (the earnings cap binding, a small budget
  *      and a pension floor), accumulationOutlay, accumulationEnv, and the tournament's budget, its baseline outlay and
  *      Relief-First's relief and words; and the strategy panel's words read as the strategies price it (the source);
- *  10. with Config's pass-through set, a net-pay employee's taxable pay the salary less the whole contribution: the engine's
- *      (by hand, and the sacrificer's the salary less the contribution over the pass-through factor), the solver's exact
- *      model in step with the engine on a plan whose interest the band reaches, and the forward run's taxable pay, its
- *      savings split copies' included (src/solver/fast.js), the same.
+ *  10. with Config's pass-through set, a net-pay employee's taxable pay the salary less the whole contribution, and a
+ *      sacrificer's the salary less the contribution over the pass-through factor: the engine's by hand, and on each of the
+ *      two plans (one whose interest the band reaches) the solver's exact model in step with the engine and the forward
+ *      run's taxable pay, its savings split copies' included (src/solver/fast.js), the same.
  * The plants: 'ignored' (src/App.jsx ROUTE_PLANT: every employee priced as a sacrificer, the code before) fails 2, 3, 5, 6, 7,
  * 8, 9 and 10; 'unsure' (not sure priced as a sacrificer) fails 6 and 7; 'allnet' (salary sacrifice priced as net pay) fails
  * 1, 2, 3, 5, 7, 8, 9 and 10 (the warning follows the route, so a plant that moves the route moves it); 'nowarn' (the warning
@@ -39,9 +39,11 @@
  * 'enginepay' (the engine's taxable pay priced by the NIC class) fails 10; 'modelignored' (src/solver/model.js MODEL: the exact
  * model pricing every employee as a sacrificer) fails 4 and 10; 'houseroute' (src/solver/household.js HOUSE: the household
  * plan's take-home and the partner's own pay priced by the NIC class) fails 8. Every place that reads the route was also put
- * back to the NIC class alone, one at a time (the reviewer's pattern search, its finding 1), and each fails a check but the
+ * back to the NIC class alone, one at a time (the reviewer's pattern search, its finding 1), and the forward run's and the
+ * exact model's taxable pay each priced as net pay for everyone (the second look, MINOR 1), and each fails a check but the
  * earnings cap in allocateBudget, an equivalent change: grossUpNet and grossUpNetIncremental cap the credit at the salary
- * times their own pass-through factor, so the cap's factor moves no figure under any route (research/solver/results-pension-route.txt).
+ * times their own pass-through factor, so the cap's factor moves no figure under any route (research/solver/results-pension-route.txt,
+ * printed by research/solver/pension-route-results.sh from research/solver/pension-route-mutations.py and its sweep).
  *   node research/tests/pension-route.test.mjs [--plant <name>]       node research/tests/pension-route.test.mjs --plants
  *   node research/tests/pension-route.test.mjs --digest               the digests of check 1 on this code
  */
@@ -309,7 +311,7 @@ const yearOf = id => Number(/_(\d+)$/.exec(id)[1]);
   // band), Config's pass-through at 50%
   const passPlan = emp => { const q = JSON.parse(JSON.stringify(at(singleSaver, emp))); q.demographics.salarySelf = 60000; const pen = q.accounts.find(a => a.id === 'pen_self'); pen.contrib = 10000; delete pen.contribByYear; const cash = q.accounts.find(a => a.category === 'Cash Savings' && a.owner === 'Myself'); if (cash) cash.balance = 150000; q.config = { ...q.config, employerNicPassThrough: 50, guardrails: false, lookaheadYears: 0 }; return E.normalizePlan(q); };
   const rowsOf = p => E.simulateDeterministic(E.resolveMpaa(p), 'expected');
-  const netPlan = passPlan('employed-net'), net = rowsOf(netPlan), sac = rowsOf(passPlan('employed')), ctx = ctxOf(netPlan), P = ctx.P;
+  const netPlan = passPlan('employed-net'), sacPlan = passPlan('employed'), net = rowsOf(netPlan), sac = rowsOf(sacPlan), ctx = ctxOf(netPlan), P = ctx.P;
   const o = ctx.owners[0], pen = ctx.accounts.find(a => a.owner === 'self' && a.cat === 'pen'), pf = 1 + P.erNic * P.erPass;
   let years = 0;
   for (let t = 0; t < net.length; t++) {
@@ -320,24 +322,32 @@ const yearOf = id => Number(/_(\d+)$/.exec(id)[1]);
     if (!(Math.abs(sac[t].taxablePaySelf - (pay - c / pf) * frac) <= 1e-6)) { bad.push(`the sacrificer's taxable pay in plan year ${t}: £${sac[t].taxablePaySelf.toFixed(2)} against £${((pay - c / pf) * frac).toFixed(2)}`); break; }
   }
   if (!years) bad.push('no working year');
-  // the exact model in step with the engine, every wrapper and flow year by year (check 4's fields)
+  // the exact model in step with the engine (check 4's fields, every wrapper and flow year by year), and the forward run's taxable
+  // pay and its savings split copies' (the menu with both saves, as the candidate's solve compiles it), on each plan: the net-pay
+  // employee's, the salary less the whole contribution, and the sacrificer's, the salary less the contribution over the
+  // pass-through factor; with the pass-through set the two prices part, so a site that prices either as the other parts from
+  // the engine (the second look on D154 (3), MINOR 1: the sacrificer's plan added)
   const FIELDS = ['pensions', 'isas', 'other', 'cash', 'totalCombined', 'taxPaid', 'cgtPaid', 'drawdownPensions', 'harvested', 'targetSpend', 'netDrawdown', 'unmetDemand'];
-  const m = M.prepare(E, E.resolveMpaa(netPlan)), red = M.runFixed(m, M.actionFromContext(m.ctx));
-  let worst = 0, where = '';
-  if (red.length !== net.length) { worst = Infinity; where = 'row count'; }
-  else for (let t = 0; t < net.length; t++) for (const k of FIELDS) { const d = Math.abs(E.num(net[t][k], 0) - E.num(red[t][k], 0)); if (d > worst) { worst = d; where = `${k} in plan year ${t}`; } }
-  if (!(worst <= 1.0)) bad.push(`the exact model £${worst.toFixed(2)} from the engine (${where})`);
-  // the forward run's taxable pay, and its savings split copies' (the menu with both saves, as the candidate's solve compiles it)
-  const acts = buildActions(), c = F.compile(m, [...acts, ...acts.map(a => ({ ...a, save: 1 })), ...acts.map(a => ({ ...a, save: 2 }))]);
-  let fwd = 0, saves = 0;
-  for (let t = 0; t < net.length; t++) {
-    if (!(c.yr.pay[t] > 0)) continue;
-    fwd++;
-    if (!(Math.abs(c.yr.pay[t] - net[t].taxablePaySelf) <= 1e-6)) { bad.push(`the forward run's taxable pay in plan year ${t}: £${c.yr.pay[t].toFixed(2)} against the engine's £${net[t].taxablePaySelf.toFixed(2)}`); break; }
-    if (c.yr.saveYear[t]) for (let v = 1; v <= 2; v++) { saves++; const want = (E.salaryAtYear(o, t) - c.yr.saveCon[v][0][t]) * c.yr.frac[t]; if (!(Math.abs(c.yr.paySave[v][t] - want) <= 1e-6)) { bad.push(`the forward run's save ${v} in plan year ${t}: £${c.yr.paySave[v][t].toFixed(2)} against £${want.toFixed(2)}`); break; } }
-  }
-  if (fwd !== years || !saves) bad.push(`the forward run's working years ${fwd} (the engine's ${years}), its savings split years ${saves / 2}`);
-  ok(10, 'with the pass-through set, a net-pay employee\'s taxable pay the salary less the whole contribution: the engine\'s by hand, the exact model in step, the forward run\'s and its savings split copies\' the same', bad.length === 0, bad.length ? bad.join('; ') : `${years} working years; the exact model within £${worst.toExponential(2)}; ${saves / 2} savings split years`);
+  const acts = buildActions(), menu = [...acts, ...acts.map(a => ({ ...a, save: 1 })), ...acts.map(a => ({ ...a, save: 2 }))];
+  const lockstep = (plan, rows, div, who) => {
+    const m = M.prepare(E, E.resolveMpaa(plan)), red = M.runFixed(m, M.actionFromContext(m.ctx));
+    let worst = 0, where = '';
+    if (red.length !== rows.length) { worst = Infinity; where = 'row count'; }
+    else for (let t = 0; t < rows.length; t++) for (const k of FIELDS) { const d = Math.abs(E.num(rows[t][k], 0) - E.num(red[t][k], 0)); if (d > worst) { worst = d; where = `${k} in plan year ${t}`; } }
+    if (!(worst <= 1.0)) bad.push(`${who}: the exact model £${worst.toFixed(2)} from the engine (${where})`);
+    const c = F.compile(m, menu);
+    let fwd = 0, saves = 0;
+    for (let t = 0; t < rows.length; t++) {
+      if (!(c.yr.pay[t] > 0)) continue;
+      fwd++;
+      if (!(Math.abs(c.yr.pay[t] - rows[t].taxablePaySelf) <= 1e-6)) { bad.push(`${who}: the forward run's taxable pay in plan year ${t}: £${c.yr.pay[t].toFixed(2)} against the engine's £${rows[t].taxablePaySelf.toFixed(2)}`); break; }
+      if (c.yr.saveYear[t]) for (let v = 1; v <= 2; v++) { saves++; const want = (E.salaryAtYear(o, t) - c.yr.saveCon[v][0][t] / div) * c.yr.frac[t]; if (!(Math.abs(c.yr.paySave[v][t] - want) <= 1e-6)) { bad.push(`${who}: the forward run's save ${v} in plan year ${t}: £${c.yr.paySave[v][t].toFixed(2)} against £${want.toFixed(2)}`); break; } }
+    }
+    if (fwd !== years || !saves) bad.push(`${who}: the forward run's working years ${fwd} (the engine's ${years}), its savings split years ${saves / 2}`);
+    return { worst, saves: saves / 2 };
+  };
+  const ln = lockstep(netPlan, net, 1, 'net pay'), ls = lockstep(sacPlan, sac, pf, 'salary sacrifice');
+  ok(10, 'with the pass-through set, a net-pay employee\'s taxable pay the salary less the whole contribution and a sacrificer\'s the salary less the contribution over the pass-through factor: the engine\'s by hand, and on each plan the exact model in step and the forward run\'s and its savings split copies\' the same', bad.length === 0, bad.length ? bad.join('; ') : `${years} working years; the exact model within £${ln.worst.toExponential(2)} under net pay and £${ls.worst.toExponential(2)} under salary sacrifice; ${ln.saves} and ${ls.saves} savings split years`);
 }
 console.log(`${failed ? 'FAILED' : 'ALL PASS'}: ${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

@@ -8,7 +8,7 @@ pension-route.test.mjs
   ok   7. the words: the employment type's four answers, each with its line, the pass-through said where it does not apply, and its warning for a net-pay employee
   ok   8. the household plan prices the later retiree's take-home by their own route, the engine's year by year, and in the form 'pensionsPAown' the partner's own pay the salary less the whole contribution under net pay   8 take-home years each the engine's under both routes, 8 apart; the partner's own income in 25 years the self-employed's, 3 apart from salary sacrifice's
   ok   9. the classic strategies for a net-pay employee the self-employed's and apart from salary sacrifice's, the pass-through set: the allocation (the cap binding, a small budget, a floor), the outlay, the budget, the tournament and Relief-First's words   outlay £28159.66 against salary sacrifice's £25338.65; the cap binding at £34000.00 against £36550.00
-  ok   10. with the pass-through set, a net-pay employee's taxable pay the salary less the whole contribution: the engine's by hand, the exact model in step, the forward run's and its savings split copies' the same   5 working years; the exact model within £0.00e+0; 5 savings split years
+  ok   10. with the pass-through set, a net-pay employee's taxable pay the salary less the whole contribution and a sacrificer's the salary less the contribution over the pass-through factor: the engine's by hand, and on each plan the exact model in step and the forward run's and its savings split copies' the same   5 working years; the exact model within £0.00e+0 under net pay and £0.00e+0 under salary sacrifice; 5 and 5 savings split years
 ALL PASS: 10 passed, 0 failed
 
 plant 'ignored': checks failing 2, 3, 5, 6, 7, 8, 9, 10 (its own: 2, 3, 5, 6, 7, 8, 9, 10) ok
@@ -21,7 +21,7 @@ plant 'modelignored': checks failing 4, 10 (its own: 4, 10) ok
 plant 'houseroute': checks failing 8 (its own: 8) ok
 PLANTS: all 8 fail exactly their own checks
 
-THE PATTERN SEARCH (the reviewer on D154 (3), finding 1): each place the route is read put back to the NIC class (selfEmployed) alone, one at a time, on a copy of the tree, the engine rebuilt, the test run whole
+THE PATTERN SEARCH (the reviewer on D154 (3), finding 1, and its second look, MINOR 1; research/solver/pension-route-mutations.py): each place the route is read changed alone, one at a time, on a copy of the tree, the engine rebuilt, the test run whole: put back to the NIC class (selfEmployed), and, at the forward run's and the exact model's taxable pay, everyone priced as net pay (true, the rows ending -allnet)
 engine-taxablepay (src/App.jsx): checks failing 10
 engine-takehome (src/App.jsx): checks failing 3, 4, 8
 engine-warning (src/App.jsx): checks failing 7
@@ -40,7 +40,10 @@ model-taxablepay (src/solver/model.js): checks failing 10
 model-takehome (src/solver/model.js): checks failing 4
 household-takehome (src/solver/household.js): checks failing 8
 household-partown (src/solver/household.js): checks failing 8
-MUTATIONS: 17 of 18 caught
-the one not caught, allocateBudget's earnings cap, an equivalent change: grossUpNet and grossUpNetIncremental cap the credit at the salary times their own pass-through factor, so the cap's factor moves no figure under any route; allocateBudget against the engine over salaries (blank to £260,000), budgets, ISA shares, pass-through at 0, 50% and 100%, the MPAA, a pension floor, and the three routes:
+fast-pay-allnet (src/solver/fast.js): checks failing 10
+fast-paysave-allnet (src/solver/fast.js): checks failing 10
+model-taxablepay-allnet (src/solver/model.js): checks failing 10
+MUTATIONS: 20 of 21 caught
+the one not caught, allocateBudget's earnings cap, an equivalent change: grossUpNet and grossUpNetIncremental cap the credit at the salary times their own pass-through factor, so the cap's factor moves no figure under any route; allocateBudget against the engine over salaries (blank to £260,000), budgets, ISA shares, pass-through at 0, 50% and 100%, the MPAA, a pension floor, and the three routes (research/solver/pension-route-capsweep.mjs):
   the earnings cap put back: allocateBudget compared on 4860 cases: 0 differ
   the control, the gross-up put back: allocateBudget compared on 4860 cases: 345 differ (the first: employed-net £0 pass 0% mpaa false budget £1000 share 0)

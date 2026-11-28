@@ -85,5 +85,5 @@ route, as D148 put them.
 
 Beside it, deciding nothing, is the trade D116 names. Where the household plan keeps more paths and delivers no less
 spending, a smaller pot left is recorded, not a bar, so it is counted here up to the cap and in pounds a path. On three of the
-four couples the mean pot is smaller. The capped pot is lower on 31 of the 64 units. On S351F and S357F, lifetime tax is higher
-by more than the capped pot moves. Why is not traced here.
+four couples the mean pot is smaller. The capped pot is lower on 31 of the 64 units. On all 16 of S357F's units and 14 of S351F's, lifetime tax is higher by more than
+the capped pot moves. Why is not traced here.

@@ -6,7 +6,7 @@
  * does not have, so the worker dies on import before any of our code runs. A production build contains
  * neither, and the worker is fine there - this exists purely so dev behaves like the build.
  *
- * It is imported as the FIRST import of simWorker.js rather than written inline: ES imports are hoisted
+ * It is imported as the FIRST import of mcWorker.js rather than written inline: ES imports are hoisted
  * and evaluated in order, so a bare assignment at the top of that file would still run after App.jsx had
  * been evaluated and already thrown.
  */

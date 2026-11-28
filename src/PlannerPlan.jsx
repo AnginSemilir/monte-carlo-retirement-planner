@@ -45,7 +45,7 @@ function useWide() {
 }
 
 export function PlannerPlan({ plan, solve, seed, fmt, isPhone, steps = STEPS, actionsN = 1000, aside = null, onPhase = null, onRetry = null,
-  onOpenClassic = null, onSolveRequest = null, failedFigures = null, rulesLine = '', onPrint = null, levers = '', onOpenLevers = null, floorShare = 0.8, minPot = 0, onFigures = null, points = 45 }) {
+  onSolveRequest = null, failedFigures = null, rulesLine = '', onPrint = null, levers = '', onOpenLevers = null, floorShare = 0.8, minPot = 0, onFigures = null, points = 45 }) {
   const wide = useWide();
   const [view, setView] = useState({ key: null, strategy: null, error: null });
   const [more, setMore] = useState({ key: null, actions: null, ahead: null, distil: null });
@@ -104,7 +104,7 @@ export function PlannerPlan({ plan, solve, seed, fmt, isPhone, steps = STEPS, ac
   const pctDone = solve.progress && solve.progress.total ? Math.round((100 * solve.progress.done) / solve.progress.total) : null;
   const ctx = s ? { target: s.headline.target, fmt } : null;
   const card = <AnswerCard s={s} state={state} steps={steps} fmt={fmt} isPhone={isPhone} pctDone={pctDone} failed={failed} onRetry={onRetry} diag={{ solve, plan, points, paths: steps[steps.length - 1] }}
-    onOpenClassic={onOpenClassic} onSolveRequest={onSolveRequest} onPrint={onPrint} hasActions={!!mine.actions} failedFigures={failedFigures} fmt2={fmt} />;
+    onSolveRequest={onSolveRequest} onPrint={onPrint} hasActions={!!mine.actions} failedFigures={failedFigures} fmt2={fmt} />;
   const expl = s ? explanationWords(s.headline) : null;
   const explanation = expl && state !== 'failed' && (
     <div className={`p-4 bg-indigo-50/60 border border-indigo-100 rounded-xl text-sm text-slate-700 space-y-2 ${stale ? 'opacity-55' : ''}`} data-strategy-explanation={expl.kind}>
@@ -148,7 +148,7 @@ export function PlannerPlan({ plan, solve, seed, fmt, isPhone, steps = STEPS, ac
 }
 
 /* ---------------------------------------------------------------- the answer card (LAYOUT.md sections 3.1 and 4.2) */
-function AnswerCard({ s, state, steps, fmt, isPhone, pctDone, failed, onRetry, onOpenClassic, onSolveRequest, onPrint, hasActions, failedFigures, diag = null }) {
+function AnswerCard({ s, state, steps, fmt, isPhone, pctDone, failed, onRetry, onSolveRequest, onPrint, hasActions, failedFigures, diag = null }) {
   if (state === 'failed') {
     return (
       <div data-plan-answer="failed" data-solver-strategy data-strategy-state="failed" className="p-5 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 space-y-3">
@@ -158,8 +158,9 @@ function AnswerCard({ s, state, steps, fmt, isPhone, pctDone, failed, onRetry, o
           {onRetry && <button type="button" data-strategy-retry onClick={onRetry} className={`px-3 rounded-lg bg-surface border border-amber-300 text-amber-900 text-xs font-semibold cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Try again</button>}
         </div>
         {diag && <DiagnosticCopy {...diag} isPhone={isPhone} tone="amber" />}
-        <p className="text-xs text-amber-800">Meanwhile the classic planner shows your plan under the app&apos;s own rules.{' '}
-          {onOpenClassic && <button type="button" data-open-classic onClick={onOpenClassic} className={`font-semibold underline cursor-pointer ${isPhone ? 'min-h-11' : ''}`}>Open the classic planner</button>}</p>
+        {/* the classic planner retired (D155): the plan under the app's own rules is shown here, under this line (the agent's
+            words, the maintainer's to change) */}
+        <p className="text-xs text-amber-800">Meanwhile, here is your plan under the app&apos;s own rules.</p>
         {/* your current approach's figures under it: the projection's first stage, run once when the card shows */}
         <div data-failed-current={failedFigures ? 'in' : 'pending'} className="pt-2 border-t border-amber-200 space-y-2 text-slate-700">
           {!failedFigures ? <p className="text-xs">Running your current approach through 5,000 markets…</p> : (<>

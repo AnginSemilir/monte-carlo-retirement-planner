@@ -1,11 +1,10 @@
 /*
  * PART C PHASE 9: THE STRATEGY TAB UNDER THE SOLVER'S SWITCH (the launch plan section 4; since step U, the new planner's Your plan, src/PlannerPlan.jsx). REQUIRED.
  *
- * 1. The served build, the classic planner chosen (rp_planner 'classic', since 22 Nov 2026 when the new planner became the
- *    default; unset before it; the switch-off app bit for bit since Phase 12): the
- *    Strategy tab is the tournament as today, and no solver code is fetched.
+ * 1. (Retired 28 Nov 2026 with the classic planner, D155: the served build's classic Strategy tab, the tournament, and no
+ *    solver code fetched.)
  * 2. A preview build with the switch on at this harness's light settings (vite.config.js solver-preview; the strategy's
- *    steps 200 then 500 paths), opted in to the new planner (rp_planner 'new': step U, LAYOUT.md section 11.2), a single
+ *    steps 200 then 500 paths), the planner (step U, LAYOUT.md section 11.2; the only planner since D155), a single
  *    household from the research library (never anybody's own plan):
  *      - Your plan is the solved plan, and comes as its own chunk;
  *      - its figures, once all its paths are in, are the reference's bit for bit, every one (src/solverStrategy.js strategyOf
@@ -21,8 +20,9 @@
  *    a short dip (the note), a long dip (the full text), never back at target (the full text).
  *    And the skip costs on their fixture (SKIP_FIXTURE): the page's the reference's, a known costly action above 0, the costs not all
  *    0, and a planted dominated action at least 0.
- * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; Your plan says so, offers "try again"
- *    and the classic planner (the app's rules).
+ * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; Your plan says so, offers "try again",
+ *    and shows the plan under the app's own rules under it, its current approach's chance worked out in the projection's
+ *    worker (the classic planner's link until D155).
  * 5. A couple the solver does not run under the switch (D42; since couples are on, D99, one outside src/couplesSwitch.js's
  *    guard, its younger partner holding 75%; since D150 under the guard before D150, the preview's build plant 'beforeall'):
  *    the couples card, nothing solved.
@@ -67,7 +67,7 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
 const VITE = join(ROOT, 'node_modules/vite/bin/vite.js');
 
-async function open(b, port, plan, { plantFail = false, planner = 'new' } = {}) {
+async function open(b, port, plan, { plantFail = false } = {}) {
   // the planted failure: the page's solver worker answers every question with an error (no change to the app's code: the
   // page's Worker constructor is wrapped for the solver's script; a route on the worker's own request is not honoured)
   const ctx = await b.newContext({ viewport: { width: 1400, height: 1100 } });
@@ -83,10 +83,10 @@ async function open(b, port, plan, { plantFail = false, planner = 'new' } = {}) 
   const errs = [], urls = [];
   p.on('pageerror', e => errs.push(e.message));
   p.on('request', q => urls.push(q.url()));
-  await p.addInitScript(([k, pl, pick]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); if (pick) localStorage.setItem('rp_planner', pick); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan, planner]);
+  await p.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan]);
   await p.goto(`http://localhost:${port}/`, { waitUntil: 'networkidle' });
-  // not opted in: the classic Strategy tab; opted in: Your plan, where the new planner lands
-  await p.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => /^Strategy$|Your plan/.test(b.textContent.trim())); if (x) x.click(); });
+  // Your plan, where the planner lands
+  await p.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.trim() === 'Your plan'); if (x) x.click(); });
   await p.waitForTimeout(1200);
   return { p, errs, urls };
 }
@@ -128,15 +128,6 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     return JSON.stringify(actionsOf(E, solveForApp(E, M, pl, light), pl, { seed, n: light.strategyActionsN }).actions);
   }, { pl, light: LIGHT, seed: SEED }));
 
-  // 1. the classic planner, chosen (rp_planner 'classic': the new planner the default since 22 Nov 2026) (Phase 12: the switch is on in the source, so a visitor who has not opted in is the switch-off case; the
-  // gate's served build, either mode's)
-  { const { p, errs, urls } = await open(b, PORT, planOf(CASES.main), { planner: 'classic' }), s = await tab(p);
-    ok('not opted in (the classic planner): the Strategy tab is the tournament, without the solver\'s view', s.tournament && !s.strategy && !s.couple, JSON.stringify(s));
-    const got = urls.filter(u => /SolverStrategy|solverClient|solverWorker/.test(u));
-    ok('not opted in: no solver code fetched', got.length === 0, got.join(', ') || `${urls.length} requests`);
-    ok('not opted in: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
-    await p.context().close(); }
-
   const OUT = mkdtempSync(join(tmpdir(), 'solver-strategy-'));
   let server = null;
   try {
@@ -151,7 +142,7 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     const only = process.env.STRATEGY_CASES ? process.env.STRATEGY_CASES.split(',') : null;
     for (const [which, id] of Object.entries(CASES).filter(([w]) => !only || only.includes(w))) {
       const { p, errs, urls } = await open(b, PREVIEW_PORT, planOf(id)), s = await tab(p);
-      if (which === 'main') ok(`switch on, opted in, ${id}: Your plan is the solved plan, not the tournament`, s.strategy && !s.tournament && !s.couple, JSON.stringify(s));
+      if (which === 'main') ok(`switch on, ${id}: Your plan is the solved plan, not the tournament`, s.strategy && !s.tournament && !s.couple, JSON.stringify(s));
       let done = true;
       try { await waitDone(p); } catch (e) { done = false; }
       const figs = done ? JSON.parse(await p.getAttribute('[data-solver-strategy]', 'data-strategy-figures')) : null;
@@ -220,8 +211,12 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     { const { p, errs } = await open(b, PREVIEW_PORT, planOf(CASES.main), { plantFail: true });
       let failed = true;
       try { await p.waitForSelector('[data-solver-strategy][data-strategy-state="failed"]', { timeout: 60000 }); } catch (e) { failed = false; }
-      const retry = await p.$('[data-strategy-retry]'), classic = await p.$('[data-plan-answer="failed"] [data-open-classic]');
-      ok('planted, the solver failing: Your plan says so, offers "try again" and the classic planner (the app\'s rules)', failed && !!retry && !!classic);
+      const retry = await p.$('[data-strategy-retry]');
+      // the plan under the app's own rules under the card: its current approach's chance, from the projection's worker
+      let rules = true;
+      try { await p.waitForSelector('[data-plan-answer="failed"] [data-failed-current="in"]', { timeout: 180000 }); } catch (e) { rules = false; }
+      const said = await p.evaluate(() => { const el = document.querySelector('[data-plan-answer="failed"]'); return el ? /under the app.s own rules/.test(el.textContent) && /Your current approach: chance your money lasts/.test(el.textContent) : false; });
+      ok('planted, the solver failing: Your plan says so, offers "try again" and shows the plan under the app\'s own rules', failed && !!retry && rules && said, `failed ${failed}, retry ${!!retry}, the app's rules in ${rules}, said ${said}`);
       ok('planted: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
 
@@ -229,7 +224,7 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     if (!couple) ok('a couple in the library to test with', false);
     else { const { p, errs, urls } = await open(b, PREVIEW_PORT, unevenOf(couple.plan)), s = await tab(p);
       await p.waitForTimeout(2000);
-      ok(`switch on, opted in, a couple the solver does not run (${couple.id}, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card, and nothing solved`, s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
+      ok(`switch on, a couple the solver does not run (${couple.id}, its younger partner holding 75% and neither of them retiring within the plan, the shape the household plan refused from D148 until D150, under the guard before D150): the couples card, and nothing solved`, s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
       ok('a couple: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
   } finally {

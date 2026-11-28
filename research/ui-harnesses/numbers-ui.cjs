@@ -6,7 +6,7 @@
  *
  * SEPARATORS. Six digits with no separator is a number you count rather than read, and a plain
  * <input type="number"> cannot carry one at all, so money fields are text fields that format on the way
- * out and strip on the way in. The Config toggle switches the convention, and the important assertion is
+ * out and strip on the way in. The toggle in Details' Assumptions switches the convention, and the important assertion is
  * not that the display changes - it is that PARSING FOLLOWS IT. Under the European convention "1.234"
  * means one thousand two hundred and thirty-four and under the British one it means one and a bit, so a
  * parser left behind would store a different number from the one on screen, silently.
@@ -19,7 +19,6 @@
  * Run: node numbers-ui.cjs [port]
  */
 const { chromium } = require('/tmp/node_modules/playwright');
-require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 const PORT = process.argv[2] || '5173';
 const FULL_STATE_PENSION = 12548;
 const GIA = 'Other Investments (e.g. GIA)';
@@ -34,7 +33,8 @@ const plan = {
 
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
-const tab = async (p, name) => { await p.evaluate(n => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.includes(n)); if (x) x.click(); }, name); await p.waitForTimeout(650); };
+// a place of the planner by its button's label, exactly ('You' is the start of 'Your plan'); the classic planner's tabs until D155
+const tab = async (p, name) => { await p.evaluate(n => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.trim() === n); if (x) x.click(); }, name); await p.waitForTimeout(650); };
 // Type into a React-controlled field the way a person does, so onChange runs.
 const typeInto = (p, handle, text) => handle.evaluate((el, t) => {
   const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
@@ -52,7 +52,6 @@ const typeInto = (p, handle, text) => handle.evaluate((el, t) => {
   await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
   await p.addInitScript(pl => {
     localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl));
-    localStorage.setItem('rp_which_app', JSON.stringify('full'));
     // Once, not on every navigation: an init script runs again on reload, and clearing the key there
     // would wipe the very preference the reload is meant to prove survives.
     if (!sessionStorage.getItem('rp_numbers_harness_reset')) {
@@ -64,7 +63,7 @@ const typeInto = (p, handle, text) => handle.evaluate((el, t) => {
   await p.waitForTimeout(1100);
 
   // ---------- separators, on the default convention ----------
-  await tab(p, 'Plan Inputs');
+  await tab(p, 'You');
   const money = p.locator('input[data-money]');
   ok('money fields exist and are not number inputs', await money.count() > 0, `${await money.count()} fields`);
   const balance = money.filter({ hasNot: p.locator('[disabled]') });
@@ -76,15 +75,15 @@ const typeInto = (p, handle, text) => handle.evaluate((el, t) => {
   ok('a six figure balance is grouped, and says what it is', shown === '\u00a3320,000', String(shown));
 
   // ---------- the toggle, and whether parsing follows it ----------
-  await tab(p, 'Config & Assumptions');
-  ok('Config offers the number format', await p.locator('[data-number-format]').count() === 1);
+  await tab(p, 'Details');
+  ok('Details offers the number format', await p.locator('[data-number-format]').count() === 1);
   const pickFormat = (sample) => p.evaluate((t) => {
     const x = [...document.querySelectorAll('[data-number-format] button')].find(b => b.textContent.trim() === t);
     if (x) x.click(); return !!x;
   }, sample);
   ok('...with both conventions offered', await pickFormat('1.234,56'), 'European sample');
   await p.waitForTimeout(400);
-  await tab(p, 'Plan Inputs');
+  await tab(p, 'You');
   const euShown = await p.evaluate(() => {
     const el = [...document.querySelectorAll('input[data-money]')].find(i => String(i.value).replace(/\D/g, '') === '320000');
     return el ? el.value : null;
@@ -103,30 +102,30 @@ const typeInto = (p, handle, text) => handle.evaluate((el, t) => {
   const readBack = await first.inputValue();
   ok('...and parsing follows it too', readBack === '\u00a31.234', `read back "${readBack}", not "1" or "1,234"`);
 
-  await tab(p, 'Config & Assumptions');
+  await tab(p, 'Details');
   await pickFormat('1,234.56');
   await p.waitForTimeout(400);
-  await tab(p, 'Plan Inputs');
+  await tab(p, 'You');
   ok('switching back restores the other convention', (await first.inputValue()) === '\u00a31,234', await first.inputValue());
 
   // ---------- the choice outlives a reload ----------
-  await tab(p, 'Config & Assumptions');
+  await tab(p, 'Details');
   await pickFormat('1.234,56');
   await p.waitForTimeout(300);
   await p.reload({ waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1200);
-  await tab(p, 'Plan Inputs');
+  await tab(p, 'You');
   const afterReload = await p.evaluate(() => {
     const el = [...document.querySelectorAll('input[data-money]')].find(i => String(i.value).replace(/\D/g, '') === '320000');
     return el ? el.value : null;
   });
   ok('the convention survives a reload', afterReload === '\u00a3320.000', String(afterReload));
-  await tab(p, 'Config & Assumptions');
+  await tab(p, 'Details');
   await pickFormat('1,234.56');
   await p.waitForTimeout(300);
 
   // ---------- the full State Pension ----------
-  await tab(p, 'Plan Inputs');
+  await tab(p, 'You');
   const fullBtn = p.locator('[data-full-state-pension]').first();
   ok('the State Pension field offers the full award', await fullBtn.count() === 1);
   const spField = () => p.evaluate(() => {

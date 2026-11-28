@@ -45,24 +45,23 @@ build before promoting it, and those are different origins.
 the origin, so the same URL means the same storage and their figures are still there after a deploy.
 Three things would orphan them, all within your control:
 
-- **Bumping a storage key.** `rp_plan_full_v28`, `rp_simple_v1`, `rp_saved_scenarios_v3`,
-  `rp_simple_scenarios_v1`, `rp_theme_v1`, `rp_which_app`. Adding a FIELD is safe: `normalizePlan`
-  migrates an old shape on load, and the simple page spreads a saved plan over its blank. Only change a
-  key when a shape changes so incompatibly that loading the old one would be wrong.
+- **Bumping a storage key.** `rp_plan_full_v28`, `rp_saved_scenarios_v3`, `rp_theme_v1`,
+  `rp_number_format_v1`, and `rp_simple_v1`, which the quick start still reads (the Simple page that
+  wrote it retired with the classic planner, D155). Adding a FIELD is safe: `normalizePlan` migrates an
+  old shape on load. Only change a key when a shape changes so incompatibly that loading the old one
+  would be wrong.
 - **Moving domain.** A custom domain is a different origin from `*.pages.dev`, so pick the final address
   before inviting people rather than after.
 - **Someone using a preview URL.** Send the production link, not a deploy-specific one.
 
 ## Before the link goes out
 
-- `FEEDBACK_URL` in `src/Shell.jsx` opens a prefilled issue on this repository, and the footer of both
-  apps links to it. It needs a GitHub account, which the label says up front. `FEEDBACK_REPO` beside it
+- `FEEDBACK_URL` in `src/Shell.jsx` opens a prefilled issue on this repository, and the footer links
+  to it. It needs a GitHub account, which the label says up front. `FEEDBACK_REPO` beside it
   is the one line to change if the repository is renamed — GitHub redirects the old URL, so the link
   keeps working either way, but the redirect is not a good thing to leave in a shared page.
 - The prefilled body asks for **rounded figures**, because an issue is public and permanent and the
   natural way to report a bug here is to paste in what you typed. Keep that line if you edit the body.
-- `SHOW_INHERITANCE` in `src/App.jsx` is `false`, so the Inheritance tab stays hidden. Its code and its
-  268 assertions are untouched; flipping it to `true` is the whole of turning it on.
 - `APP_VERSION` in `src/App.jsx` reads `v0.8 beta`.
 
 ## Checking a build before promoting it

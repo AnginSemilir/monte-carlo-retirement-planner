@@ -16,11 +16,6 @@
 export const fieldCls = 'w-full p-2 bg-surface border border-slate-300 rounded-lg tabular-nums text-slate-900 font-semibold focus:ring-2 focus:ring-inset focus:ring-blue-600 focus:border-blue-600 focus:outline-none';
 export const smallFieldCls = 'w-full p-2 bg-surface border border-slate-300 rounded tabular-nums font-semibold text-slate-900 focus:ring-2 focus:ring-inset focus:ring-blue-600 focus:border-blue-600 focus:outline-none';
 
-/* The six tiers, as a phone chip has room to say them. */
-export const RISK_SHORT = {
-  'High Risk': 'High', 'Medium/High Risk': 'Med-hi', 'Medium Risk': 'Med',
-  'Medium/Low Risk': 'Med-lo', 'Low Risk': 'Low', 'Cash Equivalents': 'Cash'
-};
 
 /*
  * A tier's label in the risk matrix reads "High Risk: 80–100% Equities". Both pages want it in parts:

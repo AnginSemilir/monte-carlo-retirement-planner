@@ -235,28 +235,3 @@ export function Term({ k, isPhone, children }) {
   );
 }
 
-/*
- * The same affordance for a note that is not a glossary word: a phrase that names an explanation, which
- * opens in the same bubble. Used where the alternative would be a paragraph of small print sitting under
- * a field forever - the simple page's spending taper is the case it was built for.
- */
-export function Hint({ label, title, children, isPhone }) {
-  const { ref, box, open, close } = useBubble();
-  const id = useId();
-  const phone = useIsPhone();
-  const off = isPhone === undefined ? phone : isPhone;
-  return (
-    <span className="whitespace-normal">
-      <button ref={ref} type="button" data-hint aria-expanded={!!box} aria-describedby={box ? id : undefined}
-        onMouseEnter={off ? undefined : open} onMouseLeave={off ? undefined : close}
-        onFocus={off ? undefined : open} onBlur={off ? undefined : close}
-        /* Where there is hover, a click must not undo what the hover just did: the pointer arriving
-           opens the bubble, so a toggle here would close it the instant somebody clicked the word. */
-        onClick={() => (off ? (box ? close() : open()) : open())}
-        className="term-link inline-control inline p-0 m-0 bg-transparent border-0 text-inherit text-left cursor-pointer">
-        {label}
-      </button>
-      {box && <Bubble id={id} title={title ?? label} body={children} box={box} close={close} sticky={off} />}
-    </span>
-  );
-}

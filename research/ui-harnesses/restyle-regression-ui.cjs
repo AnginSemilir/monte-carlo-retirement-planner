@@ -3,8 +3,9 @@
  *
  * The other harnesses assert behaviour - a card applies, a band draws, a worker answers. None of them
  * would notice the failure a change of palette really produces, which is text the same colour as what
- * is behind it. So this one walks every tab, in both themes, at two widths, and asserts four things
- * that a retint breaks and a unit test cannot see:
+ * is behind it. So this one walks every place of the planner (Your plan, You, What if, Details: the classic planner's tabs
+ * until D155 retired them, 28 Nov 2026), in each theme, at two widths, and asserts four things that a retint breaks and a
+ * unit test cannot see:
  *
  *   1 NOTHING IS INVISIBLE   every run of text is measured against the background actually behind it -
  *                            walking up the ancestors, because a transparent element inherits whatever
@@ -13,14 +14,13 @@
  *                            captions a point too light.
  *   2 NOTHING OVERFLOWS      no horizontal page scroll at 390px, which is where a restyle's new
  *                            paddings and radii show up as a sideways-scrolling phone.
- *   3 NOTHING ERRORS         no page error on any tab in any theme.
- *   4 EVERY TAB RENDERS      each one still puts its own content on screen, so a tab that throws and
+ *   3 NOTHING ERRORS         no page error in any place in any theme.
+ *   4 EVERY PLACE RENDERS    each one still puts its own content on screen, so a place that throws and
  *                            renders empty cannot pass by being silently blank.
  *
  * Run: node restyle-regression-ui.cjs [port] [shotDir]
  */
 const { chromium } = require('/tmp/node_modules/playwright');
-require('./lib/classic-default.cjs');   // the classic planner, chosen: the new planner is the default since 22 Nov 2026 (lib/classic-default.cjs)
 // the contrast maths is shared with the phone harness so the two can never drift apart
 const { CONTRAST_PROBE } = require('./lib/probes.cjs');
 const PORT = process.argv[2] || '5173';
@@ -37,18 +37,13 @@ const plan = {
     { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: 30000, contrib: 0, growth: 0, risk: 'Cash Equivalents' }],
   otherIncomes: [], oneOffContributions: [], oneOffCosts: [], config: { valuationDate: '2026-01-01' }
 };
-// each tab, and a phrase only that tab renders, so "it loaded" cannot be satisfied by an empty panel
-const TABS = [
-  ['Start Here', /What each tab is for/i],
-  ['Plan Inputs', /With partner/i],
-  // the classic planner in both modes (step U): the app's rules
-  ['Config & Assumptions', /Decumulation/i],
-  ['Projection', /Run the projection/i],
-  // step U: with the switch on too, this harness sees the classic planner (chosen: lib/classic-default.cjs, the new planner the default since 22 Nov 2026), so the tournament
-  ['Strategy', /tournament/i],
-  ['Historical Backtest', /1928|backtest/i],
-  ['Audit Data Table', /audit|year-by-year|Age/i],
-  ['Documentation', /methodology|documentation|priorit/i],
+// each place (its button's label, its <main data-place>), and a phrase only that place renders, so "it loaded" cannot be
+// satisfied by an empty panel
+const PLACES = [
+  ['Your plan', 'plan', /Your plan/i],
+  ['You', 'you', /With partner/i],
+  ['What if', 'whatif', /What if/i],
+  ['Details', 'details', /Year by year/i],
 ];
 
 let fails = 0;
@@ -73,25 +68,23 @@ const PHONE_MAX = 767;                 // in step with src/viewport.js
       await p.route('https://fonts.gstatic.com/**', r => r.abort());
       await p.addInitScript(([pl, t]) => {
         localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl));
-        localStorage.setItem('rp_which_app', 'full');
         localStorage.setItem('rp_theme_v1', t);
       }, [plan, theme]);
       await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
       await p.waitForTimeout(1600);
       console.log(`\n${theme} @ ${width}px`);
       let worstAll = [];
-      for (const [tab, offMarker, onMarker] of TABS) {
+      for (const [tab, place, marker] of PLACES) {
         const clicked = await p.evaluate((t) => {
-          const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.includes(t));
+          const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.trim() === t);
           if (x) { x.click(); return true; } return false;
         }, tab);
-        if (!clicked) { ok(`${tab}: tab button present`, false); continue; }
-        await p.waitForTimeout(700);
-        // a tab loaded lazily (the solved plan's card) may still be arriving, the solve's workers busy: wait for it, or the tournament
-        if (onMarker) await p.waitForFunction(() => !!document.querySelector('[data-solver-strategy]') || /tournament/i.test(document.body.innerText), null, { timeout: 5000 }).catch(() => {});
-        const text = await p.evaluate(() => document.body.innerText);
-        const marker = onMarker && await p.evaluate(() => !!document.querySelector('[data-solver-strategy]')) ? onMarker : offMarker;
-        ok(`${tab}: renders its own content`, marker.test(text), marker.test(text) ? '' : text.slice(0, 60).replace(/\n/g, ' '));
+        if (!clicked) { ok(`${tab}: place button present`, false); continue; }
+        // a place's cards load lazily: wait for its own <main> and its phrase
+        await p.waitForFunction(([pl, src]) => { const m = document.querySelector(`[data-place="${pl}"]`); return !!m && new RegExp(src, 'i').test(m.innerText); }, [place, marker.source], { timeout: 8000 }).catch(() => {});
+        await p.waitForTimeout(400);
+        const text = await p.evaluate(pl => { const m = document.querySelector(`[data-place="${pl}"]`); return m ? m.innerText : ''; }, place);
+        ok(`${tab}: renders its own content`, marker.test(text), marker.test(text) ? '' : (text.slice(0, 60).replace(/\n/g, ' ') || 'no place'));
         const over = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         ok(`${tab}: no sideways scroll`, over <= 1, `${over}px`);
         const bad = await p.evaluate(CONTRAST_PROBE);
@@ -124,7 +117,7 @@ const PHONE_MAX = 767;                 // in step with src/viewport.js
   // the control itself: does switching actually repaint, and does it survive a reload
   const p = await b.newPage({ viewport: { width: 1400, height: 900 } });
   await p.route('https://fonts.googleapis.com/**', r => r.abort());
-  await p.addInitScript(pl => { localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); localStorage.setItem('rp_which_app', 'full'); }, plan);
+  await p.addInitScript(pl => { localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); }, plan);
   await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1400);
   console.log('\ntheme control');

@@ -413,7 +413,9 @@ export function HistoryStrip({ solved, yours, selected, onPick, isPhone }) {
   const row = (name, list, tone, k) => (
     <div className="flex items-center gap-2" data-history-row={k}>
       <span className="w-24 shrink-0 text-[11px] text-slate-600 leading-tight">{name}</span>
-      <div className="flex-1 grid gap-[2px]" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
+      {/* a column a start year is narrower than WCAG 2.5.8's 24px on a desktop; the Start year slider beside the run picks the
+          same year, the criterion's equivalent control, which the harnesses' target probe reads by this name */}
+      <div className="flex-1 grid gap-[2px]" data-target-equivalent='input[aria-label="Start year"]' style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
         {yours.map(({ y }) => {
           const r = list ? list.find(q => q.y === y) : null;
           return <button key={y} type="button" onClick={() => onPick && onPick(y)} aria-label={`${y}: ${r ? (r.ok ? 'the money lasts' : `the money runs out in ${r.failYear}`) : 'working it out'}`}

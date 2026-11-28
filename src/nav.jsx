@@ -17,8 +17,6 @@
  *   55  a chart opened fullscreen
  *   60+ the in-app editor's dev chrome, which is not part of the shipped app
  */
-import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { MoreHorizontal } from 'lucide-react';
 import { PLANNER_PLANT } from './plannerPlant.js';
 
@@ -64,84 +62,4 @@ export function BottomNav({ tabs, primaryIds, activeTab, onSelect, onMore, moreO
   );
 }
 
-/*
- * `extras` is what the header could not afford on a phone: the theme toggle, and on Plan Inputs the
- * export / import / clear actions. They are settings and file operations, which is what an overflow
- * sheet is for, and moving them here is what let the title card drop from 366px to one row. `foot` is
- * the version string, for the same reason.
- */
-export function MoreSheet({ open, tabs, primaryIds, activeTab, onSelect, onClose, extras = null, foot = null }) {
-  useEffect(() => {
-    if (!open) return undefined;
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-  if (!open) return null;
-  const overflow = tabs.filter(t => !primaryIds.includes(t.id));
-  return createPortal(
-    <>
-      <div className="fixed inset-0 z-50 bg-slate-900/40 md:hidden" onClick={onClose} aria-hidden="true" />
-      <div role="dialog" aria-modal="true" aria-label="More sections"
-        className="fixed inset-x-0 bottom-0 z-50 md:hidden bg-surface border-t border-slate-200 rounded-t-2xl p-2 shadow-lg"
-        style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
-        <div className="mx-auto mb-1 h-1 w-10 rounded-full bg-slate-300" />
-        {extras && <div className="pb-1 mb-1 border-b border-slate-100">{extras}</div>}
-        {overflow.map(t => {
-          const active = activeTab === t.id;
-          return (
-            <button key={t.id} type="button" onClick={() => { onSelect(t.id); onClose(); }}
-              aria-current={active ? 'page' : undefined}
-              className={`w-full min-h-[48px] flex items-center gap-3 px-3 rounded-lg text-sm font-semibold cursor-pointer ${
-                active ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'}`}>
-              <t.Icon className="w-4 h-4 shrink-0" /> {t.label}
-            </button>
-          );
-        })}
-        <button type="button" onClick={onClose}
-          className="w-full min-h-[44px] mt-1 text-xs font-semibold text-slate-500 cursor-pointer">Close</button>
-        {foot && <div className="text-center text-[10px] font-mono text-slate-400 pb-0.5">{foot}</div>}
-      </div>
-    </>,
-    document.body
-  );
-}
 
-/*
- * THE SIMPLE PAGE'S THREE.
- *
- * Same bar, three cells instead of five and no overflow: the simple page has exactly three places to be
- * and every one of them earns a permanent slot. 390 / 3 = 130px a cell, so the label can be a word
- * rather than an abbreviation.
- *
- * In flow rather than fixed, unlike BottomNav: the simple page on a phone is a fixed-height column that
- * does not scroll, so the bar is simply its last row. Nothing has to be padded out from underneath it,
- * and it cannot drift over content the way a fixed bar does when the keyboard opens.
- *
- * It is a separate component rather than BottomNav with a shorter list because BottomNav owns the More
- * button and the overflow dot, neither of which exists here, and threading "no overflow" through that
- * one would leave both components harder to read than the two of them are apart.
- */
-export function SimpleTabs({ tabs, active, onSelect }) {
-  return (
-    <nav data-simple-tabs aria-label="Simple planner sections"
-      className="shrink-0 md:hidden bg-surface border-t border-slate-200"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      {/* h-14, for the same reason BottomNav uses it: .touch-ui's min-height rule out-specifies a
-          Tailwind min-h class and would quietly shrink the bar to 44px. */}
-      <div className="grid grid-cols-3 h-14">
-        {tabs.map(t => {
-          const on = active === t.id;
-          return (
-            <button key={t.id} type="button" onClick={() => onSelect(t.id)}
-              aria-current={on ? 'page' : undefined}
-              className={`flex flex-col items-center justify-center gap-0.5 h-full px-1 text-[10px] font-semibold cursor-pointer transition-colors ${on ? 'text-blue-600' : 'text-slate-500'}`}>
-              <t.Icon className="w-5 h-5 shrink-0" />
-              <span className="truncate max-w-full">{t.short}</span>
-            </button>
-          );
-        })}
-      </div>
-    </nav>
-  );
-}

@@ -5,7 +5,7 @@
  * the page's first load carries none of them (LAYOUT.md section 11.2: the entry grows by the strip and the places' names only).
  */
 import React, { Suspense } from 'react';
-import { Bookmark, Download, Upload } from 'lucide-react';
+import { Bookmark, Download, Upload, RotateCcw } from 'lucide-react';
 import { PLANNER_PLANT } from './plannerPlant.js';
 import { SectionTabs } from './tabs.jsx';
 import { SolverAges, SolverTargets, SolverScenarios } from './SolverFigures.jsx';
@@ -14,7 +14,9 @@ import { solverApproximations } from './solverApproximations.js';
 import { SWAP_ELDER } from './couplesSwitch.js';
 import { DiagnosticCopy } from './DiagnosticCopy.jsx';
 
-/* a couple's plan the solver does not run (LAYOUT.md section 6; Part D, D5): the classic planner, or a plan for one person.
+/* a couple's plan the solver does not run (LAYOUT.md section 6; Part D, D5): since D155 (the classic planner retired) the plan under
+   the app's own rules, shown year by year in Details, or a plan for one person; under the defaults every couple is solved (D150),
+   so the card shows only on a rollback (src/couplesSwitch.js).
    `why` 'off': couples are not on in the solver (src/couplesSwitch.js COUPLES off, the rollback), the words as before D5;
    'uneven': couples are on (D99), and this one is outside the guard: its first person holding neither 40% to 60% of the pots
    nor, as the elder, more than 60% and at most 90% (since D104 (1), with SWAP_ELDER on, the elder entered either way), which
@@ -36,7 +38,7 @@ export const SHAPE_WORDS = Object.freeze({
   year0: 'One of you has retired while the other is still paid or saving this year.',
   noretire: 'Neither of you retires within the plan.'
 });
-export function Couples({ isPhone, onClassic, onOnePerson, why = 'off', share = null, shape = null }) {
+export function Couples({ isPhone, onDetails, onOnePerson, why = 'off', share = null, shape = null }) {
   if (PLANNER_PLANT.has('nocouple')) return null;
   // a share shown at an edge of the guard (10%, 40%, 60%, 90%) is not rounded onto it, so a couple just outside is not told it holds
   // what was tested (the reviewer on D99, finding 5): "just over 90%", "just under 40%"
@@ -47,22 +49,22 @@ export function Couples({ isPhone, onClassic, onOnePerson, why = 'off', share = 
       <h2 className="text-[15px] font-semibold text-slate-900">The new planner does not work out a plan like yours yet</h2>
       {/* D129 (5), D130 (5): what the tests found, of today's route (since D143 the card shows on the rollback alone, no class of
           the household route's open, src/couplesSwitch.js HOUSEHOLD_OPEN: its plant 'gapwords' retired with it) */}
-      <p className="text-sm text-slate-600">You two are more than three years apart in age, and your plan has other taxable income, such as a DB (final salary) pension or an annuity. In our tests the solver did worse than the app&apos;s own rules for some couples like this, so for now your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+      <p className="text-sm text-slate-600">You two are more than three years apart in age, and your plan has other taxable income, such as a DB (final salary) pension or an annuity. In our tests the solver did worse than the app&apos;s own rules for some couples like this, so for now your plan follows the app&apos;s own rules; Details shows it year by year. Your inputs are kept either way.</p>
     </> : why === 'shape' ? <>
       <h2 className="text-[15px] font-semibold text-slate-900">The new planner cannot work out a plan shaped like yours yet</h2>
-      <p className="text-sm text-slate-600">{SHAPE_WORDS[shape] || 'Your plan has a shape the new planner cannot take yet.'} For a couple, the new planner works out one plan for the money you hold between you, and it cannot take a plan like that yet; until then your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+      <p className="text-sm text-slate-600">{SHAPE_WORDS[shape] || 'Your plan has a shape the new planner cannot take yet.'} For a couple, the new planner works out one plan for the money you hold between you, and it cannot take a plan like that yet; until then your plan follows the app&apos;s own rules; Details shows it year by year. Your inputs are kept either way.</p>
     </> : ages ? <>
       <h2 className="text-[15px] font-semibold text-slate-900">The new planner cannot work out a plan this long for the two of you yet</h2>
-      <p className="text-sm text-slate-600">Your plan runs until your partner would be past 120, which the new planner cannot plan for yet. Ending the plan at an earlier age brings it within reach; until then your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+      <p className="text-sm text-slate-600">Your plan runs until your partner would be past 120, which the new planner cannot plan for yet. Ending the plan at an earlier age brings it within reach; until then your plan follows the app&apos;s own rules; Details shows it year by year. Your inputs are kept either way.</p>
     </> : uneven ? <>
       <h2 className="text-[15px] font-semibold text-slate-900">The new planner does not work out a split like yours yet</h2>
-      <p className="text-sm text-slate-600" data-couple-share={share}>Your plan has {pc(share)} of your money with you and {pc(1 - share)} with your partner. The solver has been tested on couples who hold their money about evenly, 40% to 60% each, and on couples where {SWAP_ELDER ? 'the older of you two holds' : 'you are the older of the two and hold'} up to 90% of it. A split like yours is still to be tested, so for now your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+      <p className="text-sm text-slate-600" data-couple-share={share}>Your plan has {pc(share)} of your money with you and {pc(1 - share)} with your partner. The solver has been tested on couples who hold their money about evenly, 40% to 60% each, and on couples where {SWAP_ELDER ? 'the older of you two holds' : 'you are the older of the two and hold'} up to 90% of it. A split like yours is still to be tested, so for now your plan follows the app&apos;s own rules; Details shows it year by year. Your inputs are kept either way.</p>
     </> : <>
     <h2 className="text-[15px] font-semibold text-slate-900">The new planner works out plans for one person for now</h2>
-    <p className="text-sm text-slate-600">Your plan is for two people. Until the solver plans for couples, which is being built, a couple&apos;s plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+    <p className="text-sm text-slate-600">Your plan is for two people. Until the solver plans for couples, which is being built, a couple&apos;s plan follows the app&apos;s own rules; Details shows it year by year. Your inputs are kept either way.</p>
     </>}
     <div className="flex flex-wrap gap-2">
-      <button type="button" data-open-classic onClick={onClassic} className={`px-4 rounded-lg bg-accent hover:bg-accent-hover text-onaccent text-sm font-bold cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Open the classic planner</button>
+      <button type="button" data-open-details onClick={onDetails} className={`px-4 rounded-lg bg-accent hover:bg-accent-hover text-onaccent text-sm font-bold cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>See it in Details</button>
       <button type="button" onClick={onOnePerson} className={`px-4 rounded-lg border border-slate-300 bg-surface text-sm font-semibold text-slate-800 cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Change to a plan for one person</button>
     </div>
   </section>
@@ -158,7 +160,7 @@ export function DocsSolver({ isPhone, open, onOpen, points = 45, paths = 5000, c
 /* Details (LAYOUT.md section 3.4), inside the place's <main> (App.jsx): print and export, then year by year, the history check, Assumptions (with Display and the
    solver's settings) and how the solver decides; on a phone one section at a time. Its contents come from the page, as render
    functions, so each is drawn only where it shows */
-export function Details({ isPhone, sections, section, onSection, onPrint, onExport, onImport, fileInput, couple, ledger, history, taxRules, assumptions, theme, numberFormat, settings, docs }) {
+export function Details({ isPhone, sections, section, onSection, onPrint, onExport, onImport, onClear = null, fileInput, couple, ledger, history, taxRules, assumptions, theme, numberFormat, settings, docs }) {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -167,6 +169,8 @@ export function Details({ isPhone, sections, section, onSection, onPrint, onExpo
           {onPrint && <button type="button" data-details-print onClick={onPrint} className={`px-3 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Print this plan</button>}
           <button type="button" onClick={onExport} className={`px-3 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer flex items-center gap-1.5 ${isPhone ? 'min-h-11' : 'min-h-9'}`}><Download className="w-3.5 h-3.5" /> Export plan (JSON)</button>
           <button type="button" onClick={onImport} className={`px-3 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer flex items-center gap-1.5 ${isPhone ? 'min-h-11' : 'min-h-9'}`}><Upload className="w-3.5 h-3.5" /> Import plan (JSON)</button>
+          {/* "Clear all inputs", the classic planner's, kept when it retired (D155): beside the plan's other files, as it stood there */}
+          {onClear && <button type="button" data-details-clear onClick={onClear} className={`px-3 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs font-semibold text-rose-700 cursor-pointer flex items-center gap-1.5 ${isPhone ? 'min-h-11' : 'min-h-9'}`}><RotateCcw className="w-3.5 h-3.5" /> Clear all inputs</button>}
           {fileInput}
         </div>
       </div>

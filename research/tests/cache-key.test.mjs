@@ -5,8 +5,9 @@
  * Builds the site (vite build, the project's own config) in a copy of its build inputs, and reads the key the solver worker
  * carries (vite-plugin-solver-code.js writes it over the placeholder in src/solverWorker.js):
  *   1. the build as it is carries a module-graph key;
- *   2. a screen change (the Config tab's Reseed button's text, below the engine slice) keeps the key, where the worker's URL
- *      moves (F19 again, on this code);
+ *   2. a screen change (the title of You's Limits section, below the engine slice, a constant the worker's bundle carries)
+ *      keeps the key, where the worker's URL moves (F19 again, on this code; until D155, 28 Nov 2026, the classic Config tab's
+ *      Reseed button's text, which since the classic planner's retirement no longer reaches the worker's bundle);
  *   3. a change to App.jsx's engine slice moves it;
  *   4. a change to src/solverPool.js (outside App.jsx: the worker's graph, not a list) moves it;
  *   5. a change to the solver (src/solver/solve.js) moves it;
@@ -14,7 +15,8 @@
  *   7. the plugin's engine slice is research/build-engine.py's (the head of research/engine.mjs).
  *   8. what names a stored solve (src/solverKey.js) names the candidate's `coarse` and `sweepCashIsaTo`, consent withdrawn and
  *      the dial's position (D73's port, step 8).
- *   CACHE_KEY_PLANT=url builds with the placeholder left in (the URL fallback): checks 1 and 2 fail; CACHE_KEY_PLANT=nod73: check 8.
+ *   CACHE_KEY_PLANT=url builds with the placeholder left in (the URL fallback): checks 1 to 6 fail (each reads a module-graph
+ *   key; checked 28 Nov); CACHE_KEY_PLANT=nod73: check 8.
  * The full tier (about a minute: five builds; on a runner with no packages installed, the copy installs them first).
  */
 import { mkdtempSync, cpSync, symlinkSync, readFileSync, writeFileSync, readdirSync, rmSync, existsSync } from 'node:fs';
@@ -81,13 +83,13 @@ try {
   const exportAt = app.split('\n').findIndex(l => l.startsWith('export {'));
   const lastSliceLine = app.split('\n')[exportAt - 1];
   const a = build('as-is');
-  const b = edited('screen', 'src/App.jsx', '>Reseed</button>', '>Reseed now</button>');
+  const b = edited('screen', 'src/App.jsx', "title: 'Limits on the solver' }", "title: 'Limits on the solver, now' }");
   const c = edited('engine', 'src/App.jsx', `\n${lastSliceLine}\nexport {`, `\n${lastSliceLine}\nconst CACHE_KEY_ENGINE_PLANT = 1; void CACHE_KEY_ENGINE_PLANT;\nexport {`);
   const d = edited('pool', 'src/solverPool.js', null, '\nexport const CACHE_KEY_POOL_PLANT = 1;\n');
   const e = edited('solver', 'src/solver/solve.js', null, '\nexport const CACHE_KEY_SOLVER_PLANT = 1;\n');
   console.log(`keys: as built ${a.key} (${a.file}); a screen change ${b.key} (${b.file}); the engine slice ${c.key}; solverPool.js ${d.key}; solve.js ${e.key}`);
   ok('1  the build as it is: the solver worker carries a module-graph key, not its URL', /^solver-code:/.test(a.key), a.key);
-  ok('2  a screen change (the Reseed button\'s text) keeps the key, where the worker\'s URL moves', b.key === a.key && b.file !== a.file, `${a.key} -> ${b.key}; the worker ${a.file} -> ${b.file}`);
+  ok('2  a screen change (the Limits section\'s title) keeps the key, where the worker\'s URL moves', b.key === a.key && b.file !== a.file, `${a.key} -> ${b.key}; the worker ${a.file} -> ${b.file}`);
   ok('3  a change to App.jsx\'s engine slice moves the key', c.key !== a.key && /^solver-code:/.test(c.key));
   ok('4  a change to src/solverPool.js moves the key', d.key !== a.key && /^solver-code:/.test(d.key));
   ok('5  a change to src/solver/solve.js moves the key', e.key !== a.key && /^solver-code:/.test(e.key));

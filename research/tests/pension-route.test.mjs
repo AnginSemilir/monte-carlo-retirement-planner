@@ -27,7 +27,8 @@
  *   9. the classic planner's contribution strategies for a net-pay employee the same plan's with the person self-employed, and
  *      apart from salary sacrifice's, with Config's pass-through set: allocateBudget (the earnings cap binding, a small budget
  *      and a pension floor), accumulationOutlay, accumulationEnv, and the tournament's budget, its baseline outlay and
- *      Relief-First's relief and words; and the strategy panel's words read as the strategies price it (the source);
+ *      Relief-First's relief and words (the strategy panel's words, read from the source until 28 Nov, retired with the
+ *      classic planner's pages, D155; the strategies are the engine's and stay);
  *  10. with Config's pass-through set, a net-pay employee's taxable pay the salary less the whole contribution, and a
  *      sacrificer's the salary less the contribution over the pass-through factor: the engine's by hand, and on each of the
  *      two plans (one whose interest the band reaches) the solver's exact model in step with the engine and the forward
@@ -237,12 +238,12 @@ const coupleWorking = (() => {
   const src = readFileSync(new URL('../../src/App.jsx', import.meta.url), 'utf8'), bad = [];
   if (JSON.stringify(E.EMPLOYMENT_KINDS) !== JSON.stringify(['employed', 'employed-net', 'employed-unsure', 'self-employed'])) bad.push(`the answers ${E.EMPLOYMENT_KINDS}`);
   for (const k of E.EMPLOYMENT_KINDS) if (!src.includes(`<option value="${k}">`)) bad.push(`no option '${k}'`);
-  const W = E.EMPLOYMENT_WORDS, pass = 'the employer NIC pass-through in Config does not apply';
+  const W = E.EMPLOYMENT_WORDS, pass = 'the employer NIC pass-through in Details, Assumptions does not apply';
   if (!/salary sacrifice: income tax and employee NIC relief/.test(W.employed(true)) || W.employed(true).includes(pass)) bad.push('salary sacrifice\'s line');
   if (!/income tax relief only/.test(W['employed-net'](false)) || !W['employed-net'](true).includes(pass) || W['employed-net'](false).includes(pass)) bad.push('net pay\'s line');
   if (!/^Priced as net pay, the more cautious/.test(W['employed-unsure'](false)) || !W['employed-unsure'](true).includes(pass)) bad.push('not sure\'s line');
   if (!/trading profit/.test(W['self-employed'](false))) bad.push('the self-employed\'s line');
-  // the warning (buildContext): with Config's pass-through set, a net-pay employee told it is ignored for them, a sacrificer not
+  // the warning (buildContext): with the pass-through set (Details, Assumptions), a net-pay employee told it is ignored for them, a sacrificer not
   const withPass = p => { const q = JSON.parse(JSON.stringify(p)); q.config = { ...q.config, employerNicPassThrough: 50 }; return E.normalizePlan(q); };
   const warned = emp => ctxOf(at(withPass(singleSaver), emp)).warnings.some(w => /applies only to salary sacrifice/.test(w));
   if (!warned('employed-net') || !warned('employed-unsure') || warned('employed') || warned('self-employed')) bad.push(`the pass-through's warning: net pay ${warned('employed-net')}, not sure ${warned('employed-unsure')}, salary sacrifice ${warned('employed')}, self-employed ${warned('self-employed')}`);
@@ -300,9 +301,8 @@ const yearOf = id => Number(/_(\d+)$/.exec(id)[1]);
   }
   if (net.tournament.reliefWords !== 'tax relief' || sac.tournament.reliefWords !== 'tax and NIC relief') bad.push(`Relief-First's words: net pay '${net.tournament.reliefWords}', salary sacrifice '${sac.tournament.reliefWords}'`);
   if (!(net.capBinds.penContrib === ctxOf(pass('employed-net')).owners[0].salary)) bad.push(`the earnings cap for net pay £${net.capBinds.penContrib.toFixed(2)}, not the salary`);
-  // the strategy panel's words (a page, outside the engine): read as the strategies price it, from the source
-  const src = readFileSync(new URL('../../src/App.jsx', import.meta.url), 'utf8');
-  if (!src.includes('const selfEmployedOnly = ctx.owners.length > 0 && ctx.owners.every(strategyRelief);') || /every\(o => o\.selfEmployed\)/.test(src)) bad.push('the strategy panel\'s words not read as the strategies price it');
+  // the strategy panel's words, read here from the source until 28 Nov, retired with the classic planner's pages (D155); the
+  // strategies themselves are the engine's and stay, read above
   ok(9, 'the classic strategies for a net-pay employee the self-employed\'s and apart from salary sacrifice\'s, the pass-through set: the allocation (the cap binding, a small budget, a floor), the outlay, the budget, the tournament and Relief-First\'s words', bad.length === 0, bad.length ? bad.join('; ') : `outlay £${net.outlay.toFixed(2)} against salary sacrifice's £${sac.outlay.toFixed(2)}; the cap binding at £${net.capBinds.penContrib.toFixed(2)} against £${sac.capBinds.penContrib.toFixed(2)}`);
 }
 {

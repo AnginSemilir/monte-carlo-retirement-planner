@@ -32,7 +32,8 @@ const hostile = [
 ];
 for (const [name, evil] of hostile) {
   reset();
-  const before = 'Where to start';
+  // live prose (28 Nov: 'Where to start', gone from the page before, left every case refused; D155 retired the classic pages)
+  const before = 'Tax cash interest';
   const res = applyPatch({ copy:[{ before, after: evil }] }, { root });
   const now = app();
   if (res.ok) {
@@ -46,11 +47,11 @@ for (const [name, evil] of hostile) {
 
 console.log('\n=== one edit changes every place that wording is shown');
 reset();
-const label = 'Unchanged';
+const label = 'Gross salary';   // three places in the new planner ('Unchanged' retired with the classic planner's sandbox, D155)
 const n = findProse(pristine, label).length;
 r = applyPatch({ copy:[{ before: label, after:'No change' }] }, { root });
 ok(`"${label}" is written in ${n} place(s) and all were rewritten`,
-   r.ok && r.applied[0].places === n && !app().includes('>Unchanged<'), JSON.stringify(r.applied[0] || r.failed[0]));
+   r.ok && r.applied[0].places === n && !app().includes(`>${label}<`), JSON.stringify(r.applied[0] || r.failed[0]));
 
 fs.rmSync(root,{recursive:true,force:true});
 console.log(`\n${pass} passed, ${fail} failed`);

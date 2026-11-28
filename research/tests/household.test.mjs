@@ -52,7 +52,9 @@
  *      ceiling moves, research/tests/couple-past120.test.mjs check 4), 2721e4bb5022 since D154 (3)'s employee's pension question
  *      (27 Nov: how an employee pays into their pension priced in the engine, the exact model, the forward run and the household
  *      plan; every plan as entered the same to the bit, research/tests/pension-route.test.mjs check 1), d3d5295b01b1 since its fix round
- *      (27 Nov: the test's plants in the engine and the household plan, the classic strategies through one helper);
+ *      (27 Nov: the test's plants in the engine and the household plan, the classic strategies through one helper), 3d4bb0353ea5
+ *      since D155 (28 Nov: the classic planner retired; the engine's words for the pass-through name Details, Assumptions, and
+ *      the comment on relief at source gives both its effects, no figure moving);
  *   8. THE TWIN (PRESCRIPTIVE-PLAN.md step 3): on check 3's six units, the couple made of the first person twice (built as the
  *      review's scripts/twin-trace.mjs builds it), under arm A's policy, 100 paths of seed 99001, the household plan
  *      (through householdContext) against the couple, year by year: (1) on S205, S061-dbpart, S327F, S227-90 and S023-db
@@ -322,7 +324,8 @@ console.log('ONE PLAN FOR THE WHOLE HOUSEHOLD (design A): household.test.mjs');
   // shapes 'salaries' and 'noretire'), off in code: re-pinned
   // 27 Nov: D154 (3), how an employee pays into their pension (every plan as entered the same to the bit): re-pinned
   // 27 Nov, again: its fix round (the reviewer on it, finding 1: the test's plants, the classic strategies' helper): re-pinned
-  check('(7d) the solver\'s code id d3d5295b01b1 (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work, then the pricing form, then step 4\'s shapes, then their change of default and its fix round, then COUPLES-ANY A, then B and C, then D150\'s horizon past 120, then D154 (3)\'s pension question and its fix round)', !!cid && cid.hash === 'd3d5295b01b1', cid ? cid.hash : 'none');
+  // 28 Nov: D155, the engine's words for the pass-through and a comment (no figure moving): re-pinned
+  check('(7d) the solver\'s code id 3d4bb0353ea5 (D115\'s, then D130 (1)\'s fix, then step 8\'s port, then D138, then its speed work, then the pricing form, then step 4\'s shapes, then their change of default and its fix round, then COUPLES-ANY A, then B and C, then D150\'s horizon past 120, then D154 (3)\'s pension question and its fix round, then D155\'s words)', !!cid && cid.hash === '3d4bb0353ea5', cid ? cid.hash : 'none');
 }
 
 // 8. the twin (PRESCRIPTIVE-PLAN.md step 3)

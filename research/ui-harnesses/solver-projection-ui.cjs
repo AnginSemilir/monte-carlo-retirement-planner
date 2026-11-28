@@ -2,9 +2,10 @@
  * PART C PHASE 10: THE PROJECTION UNDER THE SOLVER'S SWITCH (the launch plan section 4, Phase 10; research/solver/PHASE-10.md).
  * REQUIRED. In step U the solver's pieces moved to the new planner's places (Your plan, What if, Details), and this follows them.
  *
- * 1. The site as built (the switch off): the projection is your plan's, with no solver line on it.
- * 2. A preview build with the switch on at light settings (vite.config.js solver-preview), opted in to the new planner
- *    (rp_planner 'new'; step U, research/reviews/2026-11-03/LAYOUT.md section 11.2), S126 from the research library: Your
+ * 1. (Retired 28 Nov 2026 with the classic planner, D155: the site as built, the switch off, its projection, audit table and
+ *    backtest your plan's with no solver line, and the Simple page with no answers from the solver.)
+ * 2. A preview build with the switch on at light settings (vite.config.js solver-preview), the planner (step U,
+ *    research/reviews/2026-11-03/LAYOUT.md section 11.2; the only planner since D155), S126 from the research library: Your
  *    plan's outlook, drawn from the headline's own runs, its money bands the engine's monteCarlo bands on the same paths and
  *    seed within a relative 1e-12 for each arm (Node's Math.pow and Chromium's round in the last place differently:
  *    research/ui-harnesses/pow-probe.cjs), the spending bands Node's bit for bit.
@@ -13,7 +14,7 @@
  *    Node's year for year (rowsOf, src/solverStrategy.js) and each year's move Node's; "Your current approach" gives your
  *    plan's ledger, Node's, with no move column. The history check is the solved plan through real history, labelled the
  *    out-of-model check: its verdict and the pot left Node's for the start year shown, your current approach's verdict beside
- *    it Node's. The switch off (section 1): your plan's ledger with no action column, and no out-of-model check.
+ *    it Node's.
  *    Planted once (PROJECTION_PLANT=histexp: the built page asks history for the expected path instead), the history check
  *    fails.
  * 4. Item 3, the same preview, beside the answer: "Compare the four settings" works the other three out in the background,
@@ -53,21 +54,15 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
 const VITE = join(ROOT, 'node_modules/vite/bin/vite.js');
 
-// the classic planner chosen unless told otherwise (rp_planner 'classic': the new planner the default since 22 Nov 2026)
-async function open(b, port, plan, planner = 'classic') {
+async function open(b, port, plan) {
   const ctx = await b.newContext({ viewport: { width: 1400, height: 1100 } }), p = await ctx.newPage(), errs = [];
   p.on('pageerror', e => errs.push(e.message));
-  await ctx.addInitScript(([k, pl, pick]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); if (pick) localStorage.setItem('rp_planner', pick); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan, planner]);
+  await ctx.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan]);
   await p.goto(`http://localhost:${port}/`, { waitUntil: 'networkidle' });
   return { p, errs, ctx };
 }
 // the new planner's places, by their names in the tab strip (step U)
 const place = async (p, label) => { await p.evaluate(l => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(t => t.textContent.trim() === l); if (x) x.click(); }, label); await p.waitForTimeout(800); };
-const tab = (p, re) => p.evaluate(src => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => new RegExp(src).test(b.textContent)); if (x) x.click(); }, re.source);
-const runProjection = async p => {
-  await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /^\s*(Run the projection|Re-run the simulations)\s*$/.test(b.textContent)); if (x) x.click(); });
-  await p.waitForFunction(() => /Survival rate/.test(document.body.innerText) && ![...document.querySelectorAll('button')].some(b => /Testing…|Solving…|Simulating…|Comparing…/.test(b.textContent)), null, { timeout: 900000 });
-};
 
 (async () => {
   execFileSync('python3', [join(ROOT, 'research/build-engine.py')], { stdio: 'ignore' });
@@ -77,29 +72,6 @@ const runProjection = async p => {
   const { buildScenarios } = await load('research/policy-study/scenarios.mjs');
   const plan = buildScenarios().find(s => s.id === 'S126').plan;
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
-
-  // 1. the switch off
-  { const { p, errs, ctx } = await open(b, PORT, plan);
-    await tab(p, /Projection/); await p.waitForTimeout(800); await runProjection(p);
-    const yours = await p.$('[data-solver-yours]');
-    ok('switch off: the projection is your plan\'s, with no solver line', !yours && /Your plan as entered/.test(await p.textContent('body')));
-    await tab(p, /Audit/); await p.waitForTimeout(500);
-    const ledger = await p.$eval('[data-audit-ledger]', el => el.dataset.auditLedger).catch(() => null), acts = await p.$$('[data-audit-action]');
-    await tab(p, /Backtest|Historical/); await p.waitForTimeout(500);
-    const oom = await p.$('[data-history-solved]');
-    ok('switch off: the audit table is your plan\'s ledger with no action column, and history has no out-of-model check', ledger === 'yours' && acts.length === 0 && !oom, `ledger ${ledger}, action cells ${acts.length}, out-of-model ${!!oom}`);
-    ok('switch off: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
-    await ctx.close(); }
-  { const { SIMPLE_BLANK } = await load('research/simplePlan.mjs');
-    const c = await b.newContext({ viewport: { width: 1400, height: 1100 } }), p = await c.newPage();
-    // the page is chosen by the key read raw (src/Shell.jsx: getItem('rp_which_app') === 'simple'), not as JSON
-    // and the classic planner chosen: since 22 Nov the new planner is the default, and it opens the full planner, not the Simple page
-    await c.addInitScript(sp => { localStorage.setItem('rp_simple_v1', JSON.stringify(sp)); localStorage.setItem('rp_which_app', 'simple'); localStorage.setItem('rp_planner', 'classic'); }, { ...SIMPLE_BLANK, ageSelf: 56, retireSelf: 60, spend: 26000, pen: 420000, isa: 90000, cash: 15000 });
-    await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
-    // the Simple page itself (the Shell offers "Open the full planner" on it alone), its figures drawn, before the card's absence means anything
-    const onSimple = await p.waitForFunction(() => /Open the full planner/.test(document.body.textContent) && /Pot at retirement/.test(document.body.textContent), null, { timeout: 120000 }).then(() => true, () => false);
-    ok('switch off: the Simple page has no answers from the solver', onSimple && !(await p.$('[data-simple-solver]')), `on the Simple page ${onSimple}, the card ${!!(await p.$('[data-simple-solver]'))}`);
-    await c.close(); }
 
   const OUT = mkdtempSync(join(tmpdir(), 'solver-projection-'));
   let server = null;
@@ -152,7 +124,7 @@ const runProjection = async p => {
     for (let i = 0; i < 40 && !up; i++) { try { const r = await fetch(`http://localhost:${PREVIEW_PORT}/`); up = r.ok; } catch (e) { await new Promise(res => setTimeout(res, 500)); } }
     ok('the preview build (the switch on) is served', up, `port ${PREVIEW_PORT}`);
 
-    const { p, errs, ctx } = await open(b, PREVIEW_PORT, plan, 'new');
+    const { p, errs, ctx } = await open(b, PREVIEW_PORT, plan);
     // 2. Your plan's outlook (item 2, in the new planner: step U, LAYOUT.md section 3.1): from the headline's own runs, its
     // money bands the engine's monteCarlo bands on the same paths and seed within a relative 1e-12 for each arm (the money
     // passes through Math.pow, which Node and Chromium round differently in the last place: pow-probe.cjs), and the spending
@@ -227,7 +199,7 @@ const runProjection = async p => {
     // 5. item 4, on What if: the age card, on a household still working
     {
       const plan188 = buildScenarios().find(x => x.id === 'S188').plan;
-      const { p, errs, ctx } = await open(b, PREVIEW_PORT, plan188, 'new');
+      const { p, errs, ctx } = await open(b, PREVIEW_PORT, plan188);
       const solved188 = await p.waitForSelector('[data-solve-state="solved"]', { timeout: 900000 }).then(() => true, () => false);
       await place(p, 'What if');
       const line = await p.waitForSelector('[data-figures="ages"] [data-figures-line]', { timeout: 300000 }).then(() => true, () => false);
@@ -279,7 +251,7 @@ const runProjection = async p => {
       const ctx7 = await b.newContext({ viewport: { width: 1400, height: 1100 } }), p = await ctx7.newPage(), errs = [];
       p.on('pageerror', e => errs.push(e.message));
       await ctx7.addInitScript(([k, pl, pb]) => { if (!sessionStorage.getItem('seeded')) {
-        localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); localStorage.setItem('rp_planner', 'new');
+        localStorage.setItem(k, JSON.stringify(pl));
         localStorage.setItem('rp_saved_scenarios_v3', JSON.stringify([{ id: 's1', name: 'Scenario 1', data: pl }, { id: 's2', name: 'Spend 2000 more', data: pb }]));
         sessionStorage.setItem('seeded', '1'); } }, [STORE, plan, planB]);
       await p.goto(`http://localhost:${PREVIEW_PORT}/`, { waitUntil: 'networkidle' });

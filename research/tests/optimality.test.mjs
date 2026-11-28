@@ -135,7 +135,8 @@ console.log('\n=========== E. WHY THE LIVE SEARCH RUNS 4,000 PATHS, PINNED =====
    *      tie tolerance from seed to seed, so the tolerance was not "comfortably above the noise"
    *   3  the wobble shrinks with the square root of the path count, as a Bernoulli proportion must -
    *      which is why the fix is more paths, not more seeds at the same total
-   * LIVE_SEARCH_TRIALS mirrors TOURNAMENT_TRIALS in src/App.jsx, which the engine slice does not export.
+   * LIVE_SEARCH_TRIALS mirrors TOURNAMENT_TRIALS, which src/App.jsx's classic planner held below the engine slice until D155
+   * retired that planner on 28 Nov 2026 (the tournament itself is the engine's, and stays).
    */
   const LIVE_SEARCH_TRIALS = 4000;
   const noisy = E.normalizePlan(scs[224].plan);          // ~40% survival: the worst case for sampling noise
